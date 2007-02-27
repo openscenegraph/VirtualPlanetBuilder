@@ -50,6 +50,7 @@
 
 using namespace osgTerrain;
 
+#define SHIFT_RASTER_BY_HALF_CELL
 
 static int s_notifyOffset = 0;
 void DataSet::setNotifyOffset(int level) { s_notifyOffset = level; }
@@ -216,7 +217,12 @@ void DataSet::SpatialProperties::computeExtents()
 {
     _extents.init();
     _extents.expandBy( osg::Vec3(0.0,0.0,0.0)*_geoTransform);
-    _extents.expandBy( osg::Vec3(_numValuesX,_numValuesY,0.0)*_geoTransform);
+
+    // get correct extent if a vector format is used
+    if (_dataType == VECTOR)
+        _extents.expandBy( osg::Vec3(_numValuesX-1,_numValuesY-1,0.0)*_geoTransform);
+    else
+        _extents.expandBy( osg::Vec3(_numValuesX,_numValuesY,0.0)*_geoTransform);
     _extents._isGeographic = getCoordinateSystemType(_cs.get())==GEOGRAPHIC;
 
     my_notify(osg::INFO)<<"DataSet::SpatialProperties::computeExtents() is geographic "<<_extents._isGeographic<<std::endl;
@@ -225,6 +231,38 @@ void DataSet::SpatialProperties::computeExtents()
 DataSet::SourceData::~SourceData()
 {
     if (_gdalDataset) GDALClose(_gdalDataset);
+}
+
+float DataSet::SourceData::getInterpolatedValue(osg::HeightField* hf, double x, double y)
+{
+    double r, c;
+    c = (x - hf->getOrigin().x()) / hf->getXInterval();
+    r = (y - hf->getOrigin().y()) / hf->getYInterval();
+
+    int rowMin = osg::maximum((int)floor(r), 0);
+    int rowMax = osg::maximum(osg::minimum((int)ceil(r), (int)(hf->getNumRows()-1)), 0);
+    int colMin = osg::maximum((int)floor(c), 0);
+    int colMax = osg::maximum(osg::minimum((int)ceil(c), (int)(hf->getNumColumns()-1)), 0);
+
+    if (rowMin > rowMax) rowMin = rowMax;
+    if (colMin > colMax) colMin = colMax;
+
+    float urHeight = hf->getHeight(colMax, rowMax);
+    float llHeight = hf->getHeight(colMin, rowMin);
+    float ulHeight = hf->getHeight(colMin, rowMax);
+    float lrHeight = hf->getHeight(colMax, rowMin);
+
+    double x_rem = c - (int)c;
+    double y_rem = r - (int)r;
+
+    double w00 = (1.0 - y_rem) * (1.0 - x_rem) * (double)llHeight;
+    double w01 = (1.0 - y_rem) * x_rem * (double)lrHeight;
+    double w10 = y_rem * (1.0 - x_rem) * (double)ulHeight;
+    double w11 = y_rem * x_rem * (double)urHeight;
+
+    float result = (float)(w00 + w01 + w10 + w11);
+
+    return result;
 }
 
 float DataSet::SourceData::getInterpolatedValue(GDALRasterBand *band, double x, double y)
@@ -236,6 +274,15 @@ float DataSet::SourceData::getInterpolatedValue(GDALRasterBand *band, double x, 
     geoTransform[3] = _geoTransform(3,1);
     geoTransform[4] = _geoTransform(0,1);
     geoTransform[5] = _geoTransform(1,1);
+
+    // shift the transform to the middle of the cell if a raster format is used
+#ifdef SHIFT_RASTER_BY_HALF_CELL
+    if (_dataType == RASTER)
+    {
+        geoTransform[0] += 0.5 * geoTransform[1];
+        geoTransform[3] += 0.5 * geoTransform[5];
+    }
+#endif
 
     double invTransform[6];
     GDALInvGeoTransform(geoTransform, invTransform);
@@ -290,12 +337,58 @@ DataSet::SourceData* DataSet::SourceData::readData(Source* source)
     case(Source::IMAGE):
     case(Source::HEIGHT_FIELD):
         {
+            // try osgDB for source if height data is a vector data set
+            if ((source->getType() == Source::HEIGHT_FIELD) &&
+                (source->_dataType == Source::VECTOR))
+            {
+                osg::HeightField* hf = (osg::HeightField*)source->getHFDataset();
+                if (!hf)
+                    hf = osgDB::readHeightFieldFile(source->getFileName().c_str());
+                if (hf)
+                {
+                    my_notify(osg::INFO)<<"readData: HeightField recognised: "<<source->getFileName().c_str()<<std::endl;
+                    SourceData* data = new SourceData(source);
+
+                    // need to set vector or raster
+                    data->_dataType = source->_dataType;
+
+                    data->_hfDataset = hf;
+
+                    data->_numValuesX = hf->getNumColumns();
+                    data->_numValuesY = hf->getNumRows();
+                    data->_numValuesZ = 1;
+                    data->_hasGCPs = false;
+                    data->_cs = new osg::CoordinateSystemNode("WKT","");
+
+                    double geoTransform[6];
+                    for (int i=0 ; i < 6 ; i++)
+                        geoTransform[i] = 0.0;
+                    // top left vertex - represent as top down
+                    osg::Vec3 vertex = hf->getVertex(0,hf->getNumRows()-1);
+                    geoTransform[0] = vertex.x();
+                    geoTransform[3] = vertex.y();
+                    geoTransform[1] = hf->getXInterval();
+                    geoTransform[5] = -hf->getYInterval();
+                    data->_geoTransform.set( geoTransform[1],    geoTransform[4],    0.0,    0.0,
+                                             geoTransform[2],    geoTransform[5],    0.0,    0.0,
+                                             0.0,                0.0,                1.0,    0.0,
+                                             geoTransform[0],    geoTransform[3],    0.0,    1.0);
+                                            
+                    data->computeExtents();
+                    return data;
+                }
+            }
+
             GDALDataset* gdalDataSet = (GDALDataset*)source->getGdalDataset();
             if(!gdalDataSet)
                 gdalDataSet = (GDALDataset*)GDALOpen(source->getFileName().c_str(),GA_ReadOnly);
             if (gdalDataSet)
             {
                 SourceData* data = new SourceData(source);
+
+                // need to set vector or raster
+                data->_dataType = source->_dataType;
+
                 data->_gdalDataset = gdalDataSet;
                 
                 data->_numValuesX = gdalDataSet->GetRasterXSize();
@@ -311,6 +404,14 @@ DataSet::SourceData* DataSet::SourceData::readData(Source* source)
                 double geoTransform[6];
                 if (gdalDataSet->GetGeoTransform(geoTransform)==CE_None)
                 {
+#ifdef SHIFT_RASTER_BY_HALF_CELL
+                    // shift the transform to the middle of the cell if a raster interpreted as vector
+                    if (data->_dataType == VECTOR)
+                    {
+                        geoTransform[0] += 0.5 * geoTransform[1];
+                        geoTransform[3] += 0.5 * geoTransform[5];
+                    }
+#endif
                     data->_geoTransform.set( geoTransform[1],    geoTransform[4],    0.0,    0.0,
                                              geoTransform[2],    geoTransform[5],    0.0,    0.0,
                                              0.0,                0.0,                1.0,    0.0,
@@ -864,7 +965,7 @@ void DataSet::SourceData::readImage(DestinationData& destination)
 
 void DataSet::SourceData::readHeightField(DestinationData& destination)
 {
-    my_notify(osg::INFO)<<"In DataSet::SourceData::readHeightField"<<std::endl;
+    my_notify(osg::INFO)<<"\nIn DataSet::SourceData::readHeightField"<<std::endl;
 
     if (destination._heightField.valid())
     {
@@ -897,6 +998,36 @@ void DataSet::SourceData::readHeightField(DestinationData& destination)
            int destWidth = osg::minimum((int)ceilf((float)destination._heightField->getNumColumns()*(intersect_bb.xMax()-d_bb.xMin())/(d_bb.xMax()-d_bb.xMin())),(int)destination._heightField->getNumColumns())-destX;
            int destHeight = osg::minimum((int)ceilf((float)destination._heightField->getNumRows()*(intersect_bb.yMax()-d_bb.yMin())/(d_bb.yMax()-d_bb.yMin())),(int)destination._heightField->getNumRows())-destY;
 
+            // use heightfield if it exists
+            if (_hfDataset)
+            {
+                // read the data.
+                osg::HeightField* hf = destination._heightField.get();
+
+                //float noDataValueFill = 0.0f;
+                //bool ignoreNoDataValue = true;
+
+                //Sample terrain at each vert to increase accuracy of the terrain.
+                int endX = destX + destWidth;
+                int endY = destY + destHeight;
+
+                double orig_X = hf->getOrigin().x();
+                double orig_Y = hf->getOrigin().y();
+                double delta_X = hf->getXInterval();
+                double delta_Y = hf->getYInterval();
+
+                for (int c = destX; c < endX; ++c)
+                {
+                    double geoX = orig_X + (delta_X * (double)c);
+                    for (int r = destY; r < endY; ++r)
+                    {
+                        double geoY = orig_Y + (delta_Y * (double)r);
+                        float h = getInterpolatedValue(_hfDataset, geoX-xoffset, geoY);
+                        hf->setHeight(c,r,h);
+                    }
+                }
+                return;
+            }
 
             // which band do we want to read from...        
             int numBands = _gdalDataset->GetRasterCount();
@@ -1063,6 +1194,21 @@ const void* DataSet::Source::getGdalDataset() const
     return _gdalDataset;
 }
 
+void DataSet::Source::setHFDataset(void* hfDataSet)
+{
+    _hfDataset = (osg::HeightField*)hfDataSet;
+}
+
+void* DataSet::Source::getHFDataset()
+{
+    return _hfDataset;
+}
+
+const void* DataSet::Source::getHFDataset() const
+{
+    return _hfDataset;
+}
+
 void DataSet::Source::setSortValueFromSourceDataResolution()
 {
     if (_sourceData.valid())
@@ -1109,8 +1255,20 @@ void DataSet::Source::assignCoordinateSystemAndGeoTransformAccordingToParameterP
     {
     
         // scale the x and y axis.
-        double div_x = 1.0/(double)(_sourceData->_numValuesX - 1);
-        double div_y = 1.0/(double)(_sourceData->_numValuesY - 1);
+        double div_x;
+        double div_y;
+
+        // set up properly for vector and raster (previously always vector)
+        if (_dataType == SpatialProperties::VECTOR)
+        {
+            div_x = 1.0/(double)(_sourceData->_numValuesX - 1);
+            div_y = 1.0/(double)(_sourceData->_numValuesY - 1);
+        }
+        else    // if (_dataType == SpatialProperties::RASTER)
+        {
+            div_x = 1.0/(double)(_sourceData->_numValuesX);
+            div_y = 1.0/(double)(_sourceData->_numValuesY);
+        }
     
         _geoTransform(0,0) *= div_x;
         _geoTransform(1,0) *= div_x;
@@ -1122,7 +1280,7 @@ void DataSet::Source::assignCoordinateSystemAndGeoTransformAccordingToParameterP
 
         _sourceData->_geoTransform = _geoTransform;
 
-        my_notify(osg::INFO)<<"assigning GeoTransform from Source to Data."<<_geoTransform<<std::endl;
+        my_notify(osg::INFO)<<"assigning GeoTransform from Source to Data based on file resolution."<<_geoTransform<<std::endl;
 
     }
     else
@@ -1547,8 +1705,19 @@ void DataSet::DestinationTile::computeMaximumSourceResolution(CompositeSource* s
             {
                 _maxSourceLevel = osg::maximum((*itr)->getMaxLevel(),_maxSourceLevel);
 
-                float sourceResolutionX = (sp._extents.xMax()-sp._extents.xMin())/(float)sp._numValuesX;
-                float sourceResolutionY = (sp._extents.yMax()-sp._extents.yMin())/(float)sp._numValuesY;
+                float sourceResolutionX;
+                float sourceResolutionY;
+                // set up properly for vector and raster (previously always raster)
+                if (sp._dataType == SpatialProperties::VECTOR)
+                {
+                    sourceResolutionX = (sp._extents.xMax()-sp._extents.xMin())/(float)(sp._numValuesX-1);
+                    sourceResolutionY = (sp._extents.yMax()-sp._extents.yMin())/(float)(sp._numValuesY-1);
+                }
+                else    // if (sp._dataType == SpatialProperties::RASTER)
+                {
+                    sourceResolutionX = (sp._extents.xMax()-sp._extents.xMin())/(float)sp._numValuesX;
+                    sourceResolutionY = (sp._extents.yMax()-sp._extents.yMin())/(float)sp._numValuesY;
+                }
 
                 switch((*itr)->getType())
                 {
@@ -1582,8 +1751,21 @@ bool DataSet::DestinationTile::computeImageResolution(unsigned int layer, unsign
     if (imageData._imagery_maxSourceResolutionX!=0.0f && imageData._imagery_maxSourceResolutionY!=0.0f &&
         _imagery_maxNumColumns!=0 && _imagery_maxNumRows!=0)
     {
-        unsigned int numColumnsAtFullRes = 1+(unsigned int)ceilf((_extents.xMax()-_extents.xMin())/imageData._imagery_maxSourceResolutionX);
-        unsigned int numRowsAtFullRes = 1+(unsigned int)ceilf((_extents.yMax()-_extents.yMin())/imageData._imagery_maxSourceResolutionY);
+        // set up properly for vector and raster (previously always vector)
+        // assume raster if _dataType not set (default for Destination Tile)
+        unsigned int numColumnsAtFullRes;
+        unsigned int numRowsAtFullRes;
+        if (_dataType == SpatialProperties::VECTOR)
+        {
+            numColumnsAtFullRes = 1+(unsigned int)ceilf((_extents.xMax()-_extents.xMin())/imageData._imagery_maxSourceResolutionX);
+            numRowsAtFullRes = 1+(unsigned int)ceilf((_extents.yMax()-_extents.yMin())/imageData._imagery_maxSourceResolutionY);
+        }
+        else    // if (_dataType == SpatialProperties::RASTER)
+        {
+            numColumnsAtFullRes = (unsigned int)ceilf((_extents.xMax()-_extents.xMin())/imageData._imagery_maxSourceResolutionX);
+            numRowsAtFullRes = (unsigned int)ceilf((_extents.yMax()-_extents.yMin())/imageData._imagery_maxSourceResolutionY);
+        }
+
         unsigned int numColumnsRequired = osg::minimum(_imagery_maxNumColumns,numColumnsAtFullRes);
         unsigned int numRowsRequired    = osg::minimum(_imagery_maxNumRows,numRowsAtFullRes);
 
@@ -1595,8 +1777,18 @@ bool DataSet::DestinationTile::computeImageResolution(unsigned int layer, unsign
         while (numColumns<numColumnsRequired) numColumns *= 2;
         while (numRows<numRowsRequired) numRows *= 2;
         
-        resX = (_extents.xMax()-_extents.xMin())/(double)(numColumns-1);
-        resY = (_extents.yMax()-_extents.yMin())/(double)(numRows-1);
+        // set up properly for vector and raster (previously always vector)
+        // assume raster if _dataType not set (default for Destination Tile)
+        if (_dataType == SpatialProperties::VECTOR)
+        {
+            resX = (_extents.xMax()-_extents.xMin())/(double)(numColumns-1);
+            resY = (_extents.yMax()-_extents.yMin())/(double)(numRows-1);
+        }
+        else    // if (_dataType == SpatialProperties::RASTER)
+        {
+            resX = (_extents.xMax()-_extents.xMin())/(double)numColumns;
+            resY = (_extents.yMax()-_extents.yMin())/(double)numRows;
+        }
         
         return true;
     }
@@ -1608,13 +1800,36 @@ bool DataSet::DestinationTile::computeTerrainResolution(unsigned int& numColumns
     if (_terrain_maxSourceResolutionX!=0.0f && _terrain_maxSourceResolutionY!=0.0f &&
         _terrain_maxNumColumns!=0 && _terrain_maxNumRows!=0)
     {
-        unsigned int numColumnsAtFullRes = 1+(unsigned int)ceilf((_extents.xMax()-_extents.xMin())/_terrain_maxSourceResolutionX);
-        unsigned int numRowsAtFullRes = 1+(unsigned int)ceilf((_extents.yMax()-_extents.yMin())/_terrain_maxSourceResolutionY);
+        // set up properly for vector and raster (previously always vector)
+        // assume vector if _dataType not set (default for Destination Tile)
+        unsigned int numColumnsAtFullRes;
+        unsigned int numRowsAtFullRes;
+        if (_dataType == SpatialProperties::RASTER)
+        {
+            numColumnsAtFullRes = (unsigned int)ceilf((_extents.xMax()-_extents.xMin())/_terrain_maxSourceResolutionX);
+            numRowsAtFullRes = (unsigned int)ceilf((_extents.yMax()-_extents.yMin())/_terrain_maxSourceResolutionY);
+        }
+        else    // if (_dataType == SpatialProperties::VECTOR)
+        {
+            numColumnsAtFullRes = 1+(unsigned int)ceilf((_extents.xMax()-_extents.xMin())/_terrain_maxSourceResolutionX);
+            numRowsAtFullRes = 1+(unsigned int)ceilf((_extents.yMax()-_extents.yMin())/_terrain_maxSourceResolutionY);
+        }
+
         numColumns = osg::minimum(_terrain_maxNumColumns,numColumnsAtFullRes);
         numRows    = osg::minimum(_terrain_maxNumRows,numRowsAtFullRes);
 
-        resX = (_extents.xMax()-_extents.xMin())/(double)(numColumns-1);
-        resY = (_extents.yMax()-_extents.yMin())/(double)(numRows-1);
+        // set up properly for vector and raster (previously always vector)
+        // assume vector if _dataType not set (default for Destination Tile)
+        if (_dataType == SpatialProperties::RASTER)
+        {
+            resX = (_extents.xMax()-_extents.xMin())/(double)(numColumns);
+            resY = (_extents.yMax()-_extents.yMin())/(double)(numRows);
+        }
+        else    // if (_dataType == SpatialProperties::VECTOR)
+        {
+            resX = (_extents.xMax()-_extents.xMin())/(double)(numColumns-1);
+            resY = (_extents.yMax()-_extents.yMin())/(double)(numRows-1);
+        }
         
         return true;
     }
@@ -3993,6 +4208,11 @@ DataSet::CompositeDestination* DataSet::createDestinationGraph(CompositeDestinat
     tile->_dataSet = this;
     tile->_cs = cs;
     tile->_extents = extents;
+
+    // set to NONE as the tile is a mix of RASTER and VECTOR
+    // that way the default of RASTER for image and VECTOR for height is maintained
+    tile->_dataType = SpatialProperties::NONE;
+
     tile->_pixelFormat = (getTextureType()==COMPRESSED_RGBA_TEXTURE||
                           getTextureType()==RGBA ||
                           getTextureType()==RGBA_16) ? GL_RGBA : GL_RGB;

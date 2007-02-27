@@ -1,0 +1,1 @@
+27th February 2007, VirtualPlanetBuilder project setup moving osgTerrain(part of)/osgdem/gdal plugin components of the OpenSceneGraph out into their own project.

@@ -172,7 +172,15 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
 
         struct OSGTERRAIN_EXPORT SpatialProperties
         {
+            enum DataType
+            {
+                NONE,
+                RASTER,
+                VECTOR
+            };
+
             SpatialProperties():
+                _dataType(RASTER),
                 _numValuesX(0),
                 _numValuesY(0),
                 _numValuesZ(0) {}
@@ -181,6 +189,7 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
                 _cs(sp._cs),
                 _geoTransform(sp._geoTransform),
                 _extents(sp._extents),
+                _dataType(sp._dataType),
                 _numValuesX(sp._numValuesX),
                 _numValuesY(sp._numValuesY),
                 _numValuesZ(sp._numValuesZ) {}
@@ -188,6 +197,7 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
              SpatialProperties(osg::CoordinateSystemNode* cs, const GeospatialExtents& extents):
                 _cs(cs),
                 _extents(extents),
+                _dataType(RASTER),
                 _numValuesX(0),
                 _numValuesY(0),
                 _numValuesZ(0) {}
@@ -199,6 +209,7 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
                 _cs = sp._cs;
                 _geoTransform = sp._geoTransform;
                 _extents = sp._extents;
+                _dataType = sp._dataType;
                 _numValuesX = sp._numValuesX;
                 _numValuesY = sp._numValuesY;
                 _numValuesZ = sp._numValuesZ;
@@ -211,6 +222,7 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
             osg::ref_ptr<osg::CoordinateSystemNode>     _cs;
             osg::Matrixd                                _geoTransform;
             GeospatialExtents                           _extents;
+            DataType                                    _dataType;
             unsigned int                                _numValuesX;
             unsigned int                                _numValuesY;
             unsigned int                                _numValuesZ;
@@ -245,7 +257,8 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
             SourceData(Source* source=0):
                 _source(source),
                 _hasGCPs(false),
-                _gdalDataset(0) {}
+                _gdalDataset(0),
+                _hfDataset(0) {}
                 
             virtual ~SourceData();
 
@@ -264,6 +277,7 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
             virtual void readModels(DestinationData& destination);
 
             float getInterpolatedValue(GDALRasterBand *band, double x, double y);
+            float getInterpolatedValue(osg::HeightField* hf, double x, double y);
 
             Source*                                     _source;
             
@@ -271,6 +285,7 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
             
             osg::ref_ptr<osg::Node>                     _model;
             GDALDataset*                                _gdalDataset;
+            osg::HeightField*                           _hfDataset;
             
             typedef std::map<const osg::CoordinateSystemNode*,SpatialProperties> SpatialPropertiesMap;
             mutable SpatialPropertiesMap _spatialPropertiesMap;
@@ -306,7 +321,8 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
                 _minLevel(0),
                 _maxLevel(MAXIMUM_NUMBER_OF_LEVELS),
                 _layer(0),
-                _gdalDataset(0)
+                _gdalDataset(0),
+                _hfDataset(0)
                 {}
         
             Source(Type type, const std::string& filename):
@@ -319,7 +335,8 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
                 _minLevel(0),
                 _maxLevel(MAXIMUM_NUMBER_OF_LEVELS),
                 _layer(0),
-                _gdalDataset(0)
+                _gdalDataset(0),
+                _hfDataset(0)
                 {}
 
             void setSortValue(double s) { _sortValue = s; }
@@ -339,6 +356,10 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
             void setGdalDataset(void* gdalDataset);
             void* getGdalDataset();
             const void* getGdalDataset() const;
+
+            void setHFDataset(void* hfDataset);
+            void* getHFDataset();
+            const void* getHFDataset() const;
 
             void setCoordinateSystemPolicy(ParameterPolicy policy) { _coordinateSystemPolicy = policy; }
             ParameterPolicy getCoordinateSystemPolicy() const { return _coordinateSystemPolicy; }
@@ -453,6 +474,8 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
             ResolutionList                              _requiredResolutions;
           
             GDALDataset*                                _gdalDataset;
+
+            osg::HeightField*                           _hfDataset;
         };
         
         enum CompositeType
