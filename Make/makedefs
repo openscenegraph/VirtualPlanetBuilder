@@ -123,6 +123,14 @@ ifneq ("$(OPENTHREADS_LIB_DIR)","")
 LDFLAGS += -L$(OPENTHREADS_LIB_DIR)
 endif
 
+ifneq ("$(OSG_INC_DIR)","")
+INC += -I$(OSG_INC_DIR)
+endif
+
+ifneq ("$(OSG_LIB_DIR)","")
+LDFLAGS += -L$(OSG_LIB_DIR)
+endif
+
 
 RECURSIVE_TARGETS = \
       opt \

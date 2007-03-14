@@ -9,7 +9,7 @@ TOP_LEVEL_DIRS = \
 ################################################################
 # Directories traversed in the TOPDIR/src directory
 SRC_DIRS = \
-	osgTerrain
+	vpb
         
 ################################################################
 # Directories traversed in the TOPDIR/src/osgPlugins directory
