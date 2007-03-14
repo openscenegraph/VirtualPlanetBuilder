@@ -37,13 +37,13 @@
 
 #include <set>
 
-#include <osgTerrain/Export>
+#include <vpb/Export>
 
-// forward declare so we can avoid tieing osgTerrain to GDAL.
+// forward declare so we can avoid tieing vpb to GDAL.
 class GDALDataset;
 class GDALRasterBand;
 
-namespace osgTerrain
+namespace vpb
 {
 
 #define MAXIMUM_NUMBER_OF_LEVELS 30
@@ -162,7 +162,7 @@ public:
 
 
 
-class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
+class VPB_EXPORT DataSet : public osg::Referenced
 {
     public:
 
@@ -170,7 +170,7 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
 
         class Source;
 
-        struct OSGTERRAIN_EXPORT SpatialProperties
+        struct VPB_EXPORT SpatialProperties
         {
             enum DataType
             {
@@ -251,7 +251,7 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
             ModelList                                   _models;
         };
 
-        struct OSGTERRAIN_EXPORT SourceData : public osg::Referenced, public SpatialProperties
+        struct VPB_EXPORT SourceData : public osg::Referenced, public SpatialProperties
         {
         
             SourceData(Source* source=0):
@@ -294,7 +294,7 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
         };
 
 
-        class OSGTERRAIN_EXPORT Source : public osg::Referenced, public SpatialProperties
+        class VPB_EXPORT Source : public osg::Referenced, public SpatialProperties
         {
         public:
         
@@ -485,7 +485,7 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
             PAGED_LOD
         };
         
-        class OSGTERRAIN_EXPORT CompositeSource : public osg::Referenced, public SpatialProperties
+        class VPB_EXPORT CompositeSource : public osg::Referenced, public SpatialProperties
         {
         public:
             
@@ -826,7 +826,7 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
         };
         
         
-        class OSGTERRAIN_EXPORT DestinationTile : public osg::Referenced, public SpatialProperties
+        class VPB_EXPORT DestinationTile : public osg::Referenced, public SpatialProperties
         {
         public:
         
@@ -952,7 +952,7 @@ class OSGTERRAIN_EXPORT DataSet : public osg::Referenced
 
         };
 
-        class OSGTERRAIN_EXPORT CompositeDestination : public osg::Referenced, public SpatialProperties
+        class VPB_EXPORT CompositeDestination : public osg::Referenced, public SpatialProperties
         {
         public:   
         
