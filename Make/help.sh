@@ -124,8 +124,7 @@ INST_DOC, and INST_DATA share a common prefix by default : INST_SHARE, which
 is located under INST_LOCATION by default.  This provides a short cut for the 
 above 'make' usage.  For example,
 
-  make INST_LOCATION=/usr/local/OpenSceneGraph \\
-       INST_SHARE=/usr/share/OpenSceneGraph \\
+  make INST_LOCATION=/usr/local/bin \\
        install
 
 

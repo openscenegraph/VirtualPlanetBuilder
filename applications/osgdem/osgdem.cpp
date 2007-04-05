@@ -35,7 +35,7 @@
 
 #include <osg/Switch>
 
-#include <osgTerrain/DataSet>
+#include <vpb/DataSet>
 
 #include <iostream>
 
@@ -111,26 +111,30 @@ void ellipsodeTransformTest(double latitude, double longitude, double height)
 }
 
 void processFile(std::string filename,
-                   osgTerrain::DataSet::Source::Type type,
+                   vpb::DataSet::Source::Type type,
+                   vpb::DataSet::SpatialProperties::DataType dataType,
                    std::string currentCS, 
                    osg::Matrixd &geoTransform,
                    bool geoTransformSet,
                    bool geoTransformScale,
                    bool minmaxLevelSet, unsigned int min_level, unsigned int max_level,
                    unsigned int layerNum,
-                   osg::ref_ptr<osgTerrain::DataSet> dataset) {
+                   osg::ref_ptr<vpb::DataSet> dataset) {
 
     if(filename.empty()) return;
 
     if(osgDB::fileType(filename) == osgDB::REGULAR_FILE) {
         
-        osgTerrain::DataSet::Source* source = new osgTerrain::DataSet::Source(type, filename);                
+        vpb::DataSet::Source* source = new vpb::DataSet::Source(type, filename);                
         if (source)
         {
+            // set type of data
+            source->_dataType = dataType;
+
             if (!currentCS.empty())
             {
                 std::cout<<"source->setCoordySystem "<<currentCS<<std::endl;
-                source->setCoordinateSystemPolicy(osgTerrain::DataSet::Source::PREFER_CONFIG_SETTINGS);
+                source->setCoordinateSystemPolicy(vpb::DataSet::Source::PREFER_CONFIG_SETTINGS);
                 source->setCoordinateSystem(currentCS);
             } 
             
@@ -138,8 +142,8 @@ void processFile(std::string filename,
             {
                 std::cout<<"source->setGeoTransform "<<geoTransform<<std::endl;
                 source->setGeoTransformPolicy(geoTransformScale ? 
-                                              osgTerrain::DataSet::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION : 
-                                              osgTerrain::DataSet::Source::PREFER_CONFIG_SETTINGS);
+                                              vpb::DataSet::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION : 
+                                              vpb::DataSet::Source::PREFER_CONFIG_SETTINGS);
                 source->setGeoTransform(geoTransform);
             }
             if (minmaxLevelSet) 
@@ -163,7 +167,7 @@ void processFile(std::string filename,
         for(i = dirContents.begin(); i != dirContents.end(); ++i) {
             if((*i != ".") && (*i != "..")) {
                 fullfilename = filename + '/' + *i;
-                processFile(fullfilename, type, currentCS, 
+                processFile(fullfilename, type, dataType, currentCS, 
                             geoTransform, geoTransformSet, geoTransformScale, 
                             minmaxLevelSet, min_level, max_level,
                             layerNum,
@@ -210,6 +214,8 @@ int main( int argc, char **argv )
     arguments.getApplicationUsage()->addCommandLineOption("--RGBA-24","Use 24bit RGB destination imagery");     
     arguments.getApplicationUsage()->addCommandLineOption("--RGB-16","Use 16bit RGBA destination imagery");     
     arguments.getApplicationUsage()->addCommandLineOption("--RGBA","Use 32bit RGBA destination imagery");     
+    arguments.getApplicationUsage()->addCommandLineOption("--vector","Interpret input as a vector data set");
+    arguments.getApplicationUsage()->addCommandLineOption("--raster","Interpret input as a raster data set (default)");
     arguments.getApplicationUsage()->addCommandLineOption("--max-visible-distance-of-top-level","Set the maximum visible distance that the top most tile can be viewed at");     
     arguments.getApplicationUsage()->addCommandLineOption("--no-terrain-simplification","Switch off terrain simplification.");
     arguments.getApplicationUsage()->addCommandLineOption("--default-color <r,g,b,a>","Sets the default color of the terrain.");
@@ -234,45 +240,45 @@ int main( int argc, char **argv )
     arguments.getApplicationUsage()->addCommandLineOption("--comment","Added a comment/description string to the top most node in the dataset");     
     arguments.getApplicationUsage()->addCommandLineOption("-O","string option to pass to write plugins, use \" \" for multiple options");    
     // create DataSet.
-    osg::ref_ptr<osgTerrain::DataSet> dataset = new osgTerrain::DataSet;
+    osg::ref_ptr<vpb::DataSet> dataset = new vpb::DataSet;
 
 
     float x,y,w,h;
     while (arguments.read("-e",x,y,w,h))
     {
-        dataset->setDestinationExtents(osgTerrain::GeospatialExtents(x,y,x+w,y+h,false)); // FIXME - need to check whether we a geographic extents of not
+        dataset->setDestinationExtents(vpb::GeospatialExtents(x,y,x+w,y+h,false)); // FIXME - need to check whether we a geographic extents of not
     }
     
     while (arguments.read("--HEIGHT_FIELD"))
     {
-        dataset->setGeometryType(osgTerrain::DataSet::HEIGHT_FIELD);
+        dataset->setGeometryType(vpb::DataSet::HEIGHT_FIELD);
     }
 
     while (arguments.read("--POLYGONAL"))
     {
-        dataset->setGeometryType(osgTerrain::DataSet::POLYGONAL);
+        dataset->setGeometryType(vpb::DataSet::POLYGONAL);
     }
 
     while (arguments.read("--LOD"))
     {
-        dataset->setDatabaseType(osgTerrain::DataSet::LOD_DATABASE);
+        dataset->setDatabaseType(vpb::DataSet::LOD_DATABASE);
     }
     
     while (arguments.read("--PagedLOD"))
     {
-        dataset->setDatabaseType(osgTerrain::DataSet::PagedLOD_DATABASE);
+        dataset->setDatabaseType(vpb::DataSet::PagedLOD_DATABASE);
     }
 
-    while (arguments.read("--compressed")) { dataset->setTextureType(osgTerrain::DataSet::COMPRESSED_TEXTURE); }
-    while (arguments.read("--RGBA-compressed")) { dataset->setTextureType(osgTerrain::DataSet::COMPRESSED_RGBA_TEXTURE); }
-    while (arguments.read("--RGB_16") || arguments.read("--RGB-16") ) { dataset->setTextureType(osgTerrain::DataSet::RGB_16); }
-    while (arguments.read("--RGBA_16") || arguments.read("--RGBA-16") ) { dataset->setTextureType(osgTerrain::DataSet::RGBA_16); }
-    while (arguments.read("--RGB_24") || arguments.read("--RGB-24") ) { dataset->setTextureType(osgTerrain::DataSet::RGB_24); }
-    while (arguments.read("--RGBA") || arguments.read("--RGBA") ) { dataset->setTextureType(osgTerrain::DataSet::RGBA); }
+    while (arguments.read("--compressed")) { dataset->setTextureType(vpb::DataSet::COMPRESSED_TEXTURE); }
+    while (arguments.read("--RGBA-compressed")) { dataset->setTextureType(vpb::DataSet::COMPRESSED_RGBA_TEXTURE); }
+    while (arguments.read("--RGB_16") || arguments.read("--RGB-16") ) { dataset->setTextureType(vpb::DataSet::RGB_16); }
+    while (arguments.read("--RGBA_16") || arguments.read("--RGBA-16") ) { dataset->setTextureType(vpb::DataSet::RGBA_16); }
+    while (arguments.read("--RGB_24") || arguments.read("--RGB-24") ) { dataset->setTextureType(vpb::DataSet::RGB_24); }
+    while (arguments.read("--RGBA") || arguments.read("--RGBA") ) { dataset->setTextureType(vpb::DataSet::RGBA); }
 
-    while (arguments.read("--no_mip_mapping") || arguments.read("--no-mip-mapping")) { dataset->setMipMappingMode(osgTerrain::DataSet::NO_MIP_MAPPING); }
-    while (arguments.read("--mip_mapping_hardware") || arguments.read("--mip-mapping-hardware")) { dataset->setMipMappingMode(osgTerrain::DataSet::MIP_MAPPING_HARDWARE); }
-    while (arguments.read("--mip_mapping_imagery") || arguments.read("--mip-mapping-imagery")) { dataset->setMipMappingMode(osgTerrain::DataSet::MIP_MAPPING_IMAGERY); }
+    while (arguments.read("--no_mip_mapping") || arguments.read("--no-mip-mapping")) { dataset->setMipMappingMode(vpb::DataSet::NO_MIP_MAPPING); }
+    while (arguments.read("--mip_mapping_hardware") || arguments.read("--mip-mapping-hardware")) { dataset->setMipMappingMode(vpb::DataSet::MIP_MAPPING_HARDWARE); }
+    while (arguments.read("--mip_mapping_imagery") || arguments.read("--mip-mapping-imagery")) { dataset->setMipMappingMode(vpb::DataSet::MIP_MAPPING_IMAGERY); }
 
     float maxAnisotropy;
     while (arguments.read("--max_anisotropy",maxAnisotropy) || arguments.read("--max-anisotropy",maxAnisotropy))
@@ -391,6 +397,7 @@ int main( int argc, char **argv )
     bool minmaxLevelSet = false;
     unsigned int min_level=0, max_level=maximumPossibleLevel;
     unsigned int currentLayerNum = 0;
+    vpb::DataSet::SpatialProperties::DataType dataType = vpb::DataSet::SpatialProperties::RASTER;
          
     int pos = 1;
     while(pos<arguments.argc())
@@ -399,7 +406,7 @@ int main( int argc, char **argv )
 
         if (arguments.read(pos, "--cs",def))
         {
-            currentCS = !def.empty() ? osgTerrain::DataSet::coordinateSystemStringToWTK(def) : "";
+            currentCS = !def.empty() ? vpb::DataSet::coordinateSystemStringToWTK(def) : "";
             std::cout<<"--cs \""<<def<<"\" converted to "<<currentCS<<std::endl;
         }
         else if (arguments.read(pos, "--wkt",def))
@@ -430,7 +437,7 @@ int main( int argc, char **argv )
 
         else if (arguments.read(pos, "--bluemarble-east"))
         {
-            currentCS = osgTerrain::DataSet::coordinateSystemStringToWTK("WGS84");
+            currentCS = vpb::DataSet::coordinateSystemStringToWTK("WGS84");
             geoTransformSet = true;
             geoTransformScale = true;
             geoTransform = computeGeoTransForRange(0.0, 180.0, -90.0, 90.0);
@@ -441,7 +448,7 @@ int main( int argc, char **argv )
 
         else if (arguments.read(pos, "--bluemarble-west"))
         {
-            currentCS = osgTerrain::DataSet::coordinateSystemStringToWTK("WGS84");
+            currentCS = vpb::DataSet::coordinateSystemStringToWTK("WGS84");
             geoTransformSet = true;
             geoTransformScale = true;
             geoTransform = computeGeoTransForRange(-180.0, 0.0, -90.0, 90.0);
@@ -452,7 +459,7 @@ int main( int argc, char **argv )
 
         else if (arguments.read(pos, "--whole-globe"))
         {
-            currentCS = osgTerrain::DataSet::coordinateSystemStringToWTK("WGS84");
+            currentCS = vpb::DataSet::coordinateSystemStringToWTK("WGS84");
             geoTransformSet = true;
             geoTransformScale = true;
             geoTransform = computeGeoTransForRange(-180.0, 180.0, -90.0, 90.0);
@@ -565,10 +572,22 @@ int main( int argc, char **argv )
             std::cout<<"--layer layeNumber="<<currentLayerNum<<std::endl;
         }
 
+        else if (arguments.read(pos, "--vector"))
+        {
+            dataType = vpb::DataSet::SpatialProperties::VECTOR;
+            std::cout<<"--vector input data"<<std::endl;
+        }
+
+        else if (arguments.read(pos, "--raster"))
+        {
+            dataType = vpb::DataSet::SpatialProperties::RASTER;
+            std::cout<<"--raster input data"<<std::endl;
+        }
+
         else if (arguments.read(pos, "-d",filename))
         {
             std::cout<<"-d "<<filename<<std::endl;
-            processFile(filename, osgTerrain::DataSet::Source::HEIGHT_FIELD, currentCS, 
+            processFile(filename, vpb::DataSet::Source::HEIGHT_FIELD, dataType, currentCS, 
                         geoTransform, geoTransformSet, geoTransformScale,
                         minmaxLevelSet, min_level, max_level,
                         currentLayerNum,
@@ -582,12 +601,12 @@ int main( int argc, char **argv )
             geoTransformSet = false;
             geoTransformScale = false;
             geoTransform.makeIdentity();
-
+            dataType = vpb::DataSet::SpatialProperties::RASTER;
         }
         else if (arguments.read(pos, "-t",filename))
         {
             std::cout<<"-t "<<filename<<std::endl;
-            processFile(filename, osgTerrain::DataSet::Source::IMAGE, currentCS, 
+            processFile(filename, vpb::DataSet::Source::IMAGE, dataType, currentCS, 
                         geoTransform, geoTransformSet, geoTransformScale, 
                         minmaxLevelSet, min_level, max_level, 
                         currentLayerNum,
@@ -601,12 +620,13 @@ int main( int argc, char **argv )
             geoTransformSet = false;
             geoTransformScale = false;
             geoTransform.makeIdentity();            
+            dataType = vpb::DataSet::SpatialProperties::RASTER;
         }
 /*        
         else if (arguments.read(pos, "-m",filename))
         {
             std::cout<<"-m "<<filename<<std::endl;
-            processFile(filename, osgTerrain::DataSet::Source::MODEL, currentCS, 
+            processFile(filename, vpb::DataSet::Source::MODEL, currentCS, 
                         geoTransform, geoTransformSet, geoTransformScale, 
                         minmaxLevelSet, min_level, max_level, 
                         currentLayerNum, 
