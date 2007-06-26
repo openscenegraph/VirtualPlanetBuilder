@@ -21,7 +21,7 @@ SET(VIRTUALPLANETBUILDER_SOVERSION 0)
 
 SET(VIRTUALPLANETBUILDER_VERSION ${VIRTUALPLANETBUILDER_MAJOR_VERSION}.${VIRTUALPLANETBUILDER_MINOR_VERSION}.${VIRTUALPLANETBUILDER_PATCH_VERSION})
 
-SET(OSG_PLUGINS vpbPlugins-${VIRTUALPLANETBUILDER_VERSION})
+SET(VPB_PLUGINS vpbPlugins-${VIRTUALPLANETBUILDER_VERSION})
 
 # We want to build SONAMES shared librariess
 SET(VIRTUALPLANETBUILDER_SONAMES TRUE)
@@ -72,16 +72,6 @@ INCLUDE_DIRECTORIES(
 #ADD_DEFINITIONS(-D)
 # Platform specific definitions
 
-IF(WIN32)
-    ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
-    #needed for net plugin
-    SET (OSG_SOCKET_LIBS wsock32.lib)
-    # Both Cygwin and Msys need -DNOMINMAX ???
-    IF(UNIX)
-        ADD_DEFINITIONS(-DNOMINMAX)
-    ENDIF(UNIX)
-ENDIF(WIN32)
-
 ########################################################################################################
 ##### these were settings located in SetupCommon.cmake used in Luigi builds.... find out what are useful
 ########################################################################################################
@@ -109,7 +99,7 @@ FIND_PACKAGE(GDAL)
 # Create bin and lib directories if required
 
 IF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
-   FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/lib/${OSG_PLUGINS})
+   FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/lib/${VPB_PLUGINS})
 ENDIF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
 
@@ -136,7 +126,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${OUTPUT_BINDIR})
 #SET(OUTPUT_LIBDIR ${PROJECT_BINARY_DIR}/lib/${CMAKE_SYSTEM_NAME})
 SET(OUTPUT_LIBDIR ${PROJECT_BINARY_DIR}/lib)
 MAKE_DIRECTORY(${OUTPUT_LIBDIR})
-MAKE_DIRECTORY(${OUTPUT_LIBDIR}/${OSG_PLUGINS})
+MAKE_DIRECTORY(${OUTPUT_LIBDIR}/${VPB_PLUGINS})
 SET(LIBRARY_OUTPUT_PATH ${OUTPUT_LIBDIR})
 
 
@@ -185,38 +175,11 @@ INCLUDE(VpbMacroUtils)
 ADD_SUBDIRECTORY(src)
 
 # VPB Applications
-OPTION(BUILD_APPLICATIONS "Enable to build OSG Applications (e.g. osgviewer)" ON)
+OPTION(BUILD_APPLICATIONS "Enable to build VPB Applications (e.g. osgdem)" ON)
 IF   (BUILD_APPLICATIONS)
     ADD_SUBDIRECTORY(applications)
 ENDIF(BUILD_APPLICATIONS)
 
-# This is for an advanced option to give aggressive warnings 
-# under different compilers. If yours is not implemented, this option
-# will not be made available.
-IF(CMAKE_COMPILER_IS_GNUCXX)
-    # To be complete, we might also do GNUCC flags, 
-    # but everything here is C++ code.
-    # -Wshadow and -Woverloaded-virtual are also interesting flags, but OSG
-    # returns too many hits.
-    # FYI, if we do implement GNUCC, then -Wmissing-prototypes in another 
-    # interesting C-specific flag.
-    # Also, there is a bug in gcc 4.0. Under C++, -pedantic will create
-    # errors instead of warnings for certain issues, including superfluous
-    # semicolons and commas, and the use of long long. -fpermissive seems
-    # to be the workaround. 
-    SET(OSG_AGGRESSIVE_WARNING_FLAGS "-Wall -Wparentheses -Wformat=2 -Wno-long-long -Wno-import -pedantic -Wnewline-eof -Wreturn-type -Wmissing-braces -Wunknown-pragmas -Wunused -fpermissive")
-ELSE(CMAKE_COMPILER_IS_GNUCXX)
-    IF(MSVC)
-        # FIXME: What are good aggressive warning flags for Visual Studio?
-        # And do we need to further subcase this for different versions of VS?
-        # CMake variables: MSVC60, MSVC70, MSVC71, MSVC80, CMAKE_COMPILER_2005
-        SET(OSG_AGGRESSIVE_WARNING_FLAGS "/Wall /W4")
-    ELSE(MSVC)
-        # CMake lacks an elseif, so other non-gcc, non-VS compilers need
-        # to be listed below. If unhandled, OSG_AGGRESSIVE_WARNING_FLAGS should 
-        # remain unset.
-    ENDIF(MSVC)
-ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 
 # Set defaults for Universal Binaries. We want 32-bit Intel/PPC on 10.4 
@@ -228,7 +191,7 @@ IF(APPLE)
     # will overwrite any changes the user sets.
     # FORCE is used because the options are not reflected in the UI otherwise.
     # Seems like a good place to add version specific compiler flags too.
-    IF(NOT OSG_CONFIG_HAS_BEEN_RUN_BEFORE)
+    IF(NOT VPB_CONFIG_HAS_BEEN_RUN_BEFORE)
         # This is really fragile, but CMake doesn't provide the OS system 
         # version information we need. (Darwin versions can be changed 
         # independently of OS X versions.)
@@ -246,18 +209,18 @@ IF(APPLE)
                 # but the SDK detection is too unreliable here.
             ENDIF(EXISTS /Developer/SDKs/MacOSX10.4u.sdk)
         ENDIF(EXISTS /Developer/SDKs/10.5.sdk)
-    ENDIF(NOT OSG_CONFIG_HAS_BEEN_RUN_BEFORE)
+    ENDIF(NOT VPB_CONFIG_HAS_BEEN_RUN_BEFORE)
     
-    OPTION(OSG_BUILD_APPLICATION_BUNDLES "Enable the building of applications and examples as OSX Bundles" OFF)
+    OPTION(VPB_BUILD_APPLICATION_BUNDLES "Enable the building of applications and examples as OSX Bundles" OFF)
     
 ENDIF(APPLE)
 
 
 # This needs to be run very last so other parts of the scripts can take
 # advantage of this.
-IF(NOT OSG_CONFIG_HAS_BEEN_RUN_BEFORE)
-    SET(OSG_CONFIG_HAS_BEEN_RUN_BEFORE 1 CACHE INTERNAL "Flag to track whether this is the first time running CMake or if CMake has been configured before")
-ENDIF(NOT OSG_CONFIG_HAS_BEEN_RUN_BEFORE)
+IF(NOT VPB_CONFIG_HAS_BEEN_RUN_BEFORE)
+    SET(VOB_CONFIG_HAS_BEEN_RUN_BEFORE 1 CACHE INTERNAL "Flag to track whether this is the first time running CMake or if CMake has been configured before")
+ENDIF(NOT VPB_CONFIG_HAS_BEEN_RUN_BEFORE)
 
 
 #-----------------------------------------------------------------------------
