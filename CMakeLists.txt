@@ -92,6 +92,10 @@ INCLUDE_DIRECTORIES(
 ########################################################################################################
 
 # Common to all platforms:
+SET(OSG_DIR "" CACHE PATH "set to base osg install path")
+
+SET(CMAKE_DEBUG_POSTFIX  "d")
+
 FIND_PACKAGE(OSG)
 FIND_PACKAGE(GDAL)
 
@@ -106,7 +110,6 @@ ENDIF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 ################################################################################
 # Installation stuff
 
-SET(CMAKE_DEBUG_POSTFIX  "d")
 
 IF(UNIX AND NOT WIN32 AND NOT APPLE)
   IF(CMAKE_SIZEOF_VOID_P MATCHES "8")

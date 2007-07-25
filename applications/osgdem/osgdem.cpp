@@ -12,7 +12,7 @@
 #ifdef WIN32
     #pragma warning(disable : 4503)
 #endif // WIN32
-
+#include <osgViewer/Viewer>
 #include <osg/ApplicationUsage>
 #include <osg/Texture2D>
 #include <osg/Geometry>
@@ -674,7 +674,7 @@ int main( int argc, char **argv )
         arguments.writeErrorMessages(std::cout);
         return 1;
     }
-    
+    osgViewer::Viewer viewer;   
     // generate the database
     {
         MyGraphicsContext context;
