@@ -443,7 +443,7 @@ int main( int argc, char **argv )
             geoTransform = computeGeoTransForRange(0.0, 180.0, -90.0, 90.0);
             
 //            dataset->setConvertFromGeographicToGeocentric(true);
-            std::cout<<"--bluemarble-west"<<currentCS<<" matrix="<<geoTransform<<std::endl;
+            std::cout<<"--bluemarble-east"<<currentCS<<" matrix="<<geoTransform<<std::endl;
         }
 
         else if (arguments.read(pos, "--bluemarble-west"))
