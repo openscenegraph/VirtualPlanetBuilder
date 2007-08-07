@@ -29,7 +29,7 @@ FIND_PATH(GDAL_INCLUDE_DIR gdal.h
 )
 
 FIND_LIBRARY(GDAL_LIBRARY 
-    NAMES gdal gdal_i gdal1.4.0
+    NAMES gdal gdal_i gdal1.4.0 gdal1.3.2
     PATHS
     ${GDAL_DIR}/lib
     $ENV{GDAL_DIR}/lib
