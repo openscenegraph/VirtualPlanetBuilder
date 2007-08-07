@@ -2,8 +2,3 @@
 SUBDIRS(
         vpb
 )
-
-OPTION(BUILD_PLUGINS "Enable to build plugins" ON)
-IF   (BUILD_PLUGINS)
-	ADD_SUBDIRECTORY(vpbPlugins)
-ENDIF(BUILD_PLUGINS)
