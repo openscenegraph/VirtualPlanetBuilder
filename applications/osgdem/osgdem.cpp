@@ -236,6 +236,8 @@ int main( int argc, char **argv )
     arguments.getApplicationUsage()->addCommandLineOption("--yt","");     
     arguments.getApplicationUsage()->addCommandLineOption("--zz","");     
     arguments.getApplicationUsage()->addCommandLineOption("--zt","");     
+    arguments.getApplicationUsage()->addCommandLineOption("--version","Print out version");     
+    arguments.getApplicationUsage()->addCommandLineOption("--version-number","Print out version number only.");     
     arguments.getApplicationUsage()->addCommandLineOption("--tile-image-size","Set the tile maximum image size");
     arguments.getApplicationUsage()->addCommandLineOption("--tile-terrain-size","Set the tile maximum terrain size");
     arguments.getApplicationUsage()->addCommandLineOption("--comment","Added a comment/description string to the top most node in the dataset");     
@@ -246,10 +248,15 @@ int main( int argc, char **argv )
 
     if (arguments.read("--version"))
     {
-        std::cout<<"osgdem version = "<<vpbGetVersion()<<std::endl;
+        std::cout<<"VirtualPlanetBuilder/osgdem version "<<vpbGetVersion()<<std::endl;
         return 0;
     }
 
+    if (arguments.read("--version-number"))
+    {
+        std::cout<<vpbGetVersion()<<std::endl;
+        return 0;
+    }
 
     float x,y,w,h;
     while (arguments.read("-e",x,y,w,h))
