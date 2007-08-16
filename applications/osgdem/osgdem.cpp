@@ -36,6 +36,7 @@
 #include <osg/Switch>
 
 #include <vpb/DataSet>
+#include <vpb/Version>
 
 #include <iostream>
 
@@ -241,6 +242,13 @@ int main( int argc, char **argv )
     arguments.getApplicationUsage()->addCommandLineOption("-O","string option to pass to write plugins, use \" \" for multiple options");    
     // create DataSet.
     osg::ref_ptr<vpb::DataSet> dataset = new vpb::DataSet;
+
+
+    if (arguments.read("--version"))
+    {
+        std::cout<<"osgdem version = "<<vpbGetVersion()<<std::endl;
+        return 0;
+    }
 
 
     float x,y,w,h;
