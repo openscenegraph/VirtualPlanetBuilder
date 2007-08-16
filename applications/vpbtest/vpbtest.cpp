@@ -53,8 +53,13 @@ int main( int argc, char **argv )
         {
             osgTerrain::HeightFieldLayer* hfl = dynamic_cast<osgTerrain::HeightFieldLayer*>(sourceGraph->getElevationLayer());
             osgTerrain::ImageLayer* iml = dynamic_cast<osgTerrain::ImageLayer*>(sourceGraph->getElevationLayer());
+            osgTerrain::CompositeLayer* cl = dynamic_cast<osgTerrain::CompositeLayer*>(sourceGraph->getElevationLayer());
             if (hfl) std::cout<<"Elevation HeightFieldLayer supplied"<<std::endl;
             if (iml) std::cout<<"Elevation ImageLayer supplied"<<std::endl;
+            if (cl)
+            {
+                std::cout<<"ElevationLayer CompositLayer supplied"<<std::endl;
+            }
             
         }
         for(unsigned int i=0; i<sourceGraph->getNumColorLayers();++i)
@@ -64,8 +69,17 @@ int main( int argc, char **argv )
             {
                 osgTerrain::HeightFieldLayer* hfl = dynamic_cast<osgTerrain::HeightFieldLayer*>(sourceGraph->getColorLayer(i));
                 osgTerrain::ImageLayer* iml = dynamic_cast<osgTerrain::ImageLayer*>(sourceGraph->getColorLayer(i));
+                osgTerrain::CompositeLayer* cl = dynamic_cast<osgTerrain::CompositeLayer*>(sourceGraph->getColorLayer(i));
                 if (hfl) std::cout<<"ColorLayer "<<i<<" HeightFieldLayer supplied"<<std::endl;
                 if (iml) std::cout<<"ColorLayer "<<i<<" ImageLayer supplied"<<std::endl;
+                if (cl)
+                {
+                    std::cout<<"ColorLayer "<<i<<" CompositLayer supplied"<<std::endl;
+                    for(unsigned int j=0; j<cl->getNumLayers(); ++j)
+                    {
+                        std::cout<<"   Layer "<<cl->getFileName(j)<<std::endl;
+                    }
+                }
             }
         }
     }
