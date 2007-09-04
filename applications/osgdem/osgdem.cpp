@@ -689,6 +689,7 @@ int main( int argc, char **argv )
         arguments.writeErrorMessages(std::cout);
         return 1;
     }
+    
     osgViewer::Viewer viewer;   
     // generate the database
     {

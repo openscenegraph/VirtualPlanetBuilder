@@ -5097,3 +5097,82 @@ void DataSet::_buildDestination(bool writeToDisk)
 
 }
 
+
+bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum)
+{
+    osgTerrain::HeightFieldLayer* hfl = dynamic_cast<osgTerrain::HeightFieldLayer*>(layer);
+    if (hfl)
+    {
+        // need to read locator.
+        std::cout<<"Elevation HeightFieldLayer supplied"<<hfl->getFileName()<<std::endl;
+        vpb::DataSet::Source* source = new vpb::DataSet::Source(type, hfl->getFileName());
+        source->setLayer(layerNum);
+        addSource(source);
+        return true;
+    }
+    
+    osgTerrain::ImageLayer* iml = dynamic_cast<osgTerrain::ImageLayer*>(layer);
+    if (iml)
+    {
+        // need to read locator
+        std::cout<<"ImageLayer supplied"<<iml->getFileName()<<std::endl;
+        vpb::DataSet::Source* source = new vpb::DataSet::Source(type, iml->getFileName());
+        source->setLayer(layerNum);
+        addSource(source);
+        return true;
+    }
+    
+    osgTerrain::ProxyLayer* pl = dynamic_cast<osgTerrain::ProxyLayer*>(layer);
+    if (pl)
+    {
+        std::cout<<"ProxyLayer supplied"<<pl->getFileName()<<std::endl;
+        vpb::DataSet::Source* source = new vpb::DataSet::Source(type, pl->getFileName());
+        source->setLayer(layerNum);
+        addSource(source);
+        return true;
+    }
+
+    osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(layer);
+    {
+        std::cout<<"CompositLayer supplied"<<std::endl;
+        for(unsigned int i=0; i<compositeLayer->getNumLayers();++i)
+        {
+            if (compositeLayer->getLayer(i))
+            {
+                addLayer(type, compositeLayer->getLayer(i), layerNum);
+            }
+            else if (!compositeLayer->getFileName(i).empty())
+            {
+                vpb::DataSet::Source* source = new vpb::DataSet::Source(type, pl->getFileName());
+                source->setLayer(layerNum);
+                addSource(source);
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
+{
+    if (terrain->getElevationLayer())
+    {
+        addLayer(vpb::DataSet::Source::HEIGHT_FIELD, terrain->getElevationLayer(), 0);
+    }
+    for(unsigned int i=0; i<terrain->getNumColorLayers();++i)
+    {
+        osgTerrain::Layer* layer = terrain->getColorLayer(i);
+        if (layer) 
+        {
+            addLayer(vpb::DataSet::Source::HEIGHT_FIELD, layer, i);
+        }
+    }
+    return true;
+}
+
+osgTerrain::Terrain* DataSet::createTerrainRepresentation() const
+{
+    
+}
+
+

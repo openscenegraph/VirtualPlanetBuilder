@@ -33,6 +33,8 @@
 #include <osg/CoordinateSystemNode>
 #include <osg/State>
 
+#include <osgTerrain/Terrain>
+
 #include <osgDB/Archive>
 
 #include <set>
@@ -1060,6 +1062,12 @@ class VPB_EXPORT DataSet : public osg::Referenced
 
         void addSource(Source* source);
         void addSource(CompositeSource* composite);
+        
+        bool addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum);
+        bool addTerrain(osgTerrain::Terrain* terrain);
+        
+        osgTerrain::Terrain* createTerrainRepresentation() const;
+        
 
         void loadSources();
         

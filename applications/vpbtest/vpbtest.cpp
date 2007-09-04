@@ -22,23 +22,25 @@ int main( int argc, char **argv )
     // use an ArgumentParser object to manage the program arguments.
     osg::ArgumentParser arguments(&argc,argv);
 
+    osg::ref_ptr<vpb::DataSet> dataset = new vpb::DataSet;
+
     std::string outputFilename;
-    while(arguments.read("-o",outputFilename)) {}
+    while(arguments.read("-o",outputFilename)) { dataset->setDestinationName(outputFilename); }
 
     std::string archiveName;
-    while (arguments.read("-a",archiveName)) {}
+    while (arguments.read("-a",archiveName)) { dataset->setArchiveName(archiveName); }
 
     // input data.
-    osg::ref_ptr<osgTerrain::Terrain> sourceGraph;
+    osg::ref_ptr<osgTerrain::Terrain> terrain;
 
     std::string filename;
     while(arguments.read("-s",filename))
     {
         osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(filename);
-        osg::ref_ptr<osgTerrain::Terrain> terrain = dynamic_cast<osgTerrain::Terrain*>(node.get());
-        if (terrain.valid())
+        osg::ref_ptr<osgTerrain::Terrain> cast_terrain = dynamic_cast<osgTerrain::Terrain*>(node.get());
+        if (cast_terrain.valid())
         {
-            sourceGraph = terrain;
+            terrain = cast_terrain;
             std::cout<<"Read terrain : "<<filename<<std::endl;
         } 
         else
@@ -47,41 +49,20 @@ int main( int argc, char **argv )
         }
     }
     
-    if (sourceGraph.valid())
+    if (terrain.valid() && !outputFilename.empty())
     {
-        if (sourceGraph->getElevationLayer())
-        {
-            osgTerrain::HeightFieldLayer* hfl = dynamic_cast<osgTerrain::HeightFieldLayer*>(sourceGraph->getElevationLayer());
-            osgTerrain::ImageLayer* iml = dynamic_cast<osgTerrain::ImageLayer*>(sourceGraph->getElevationLayer());
-            osgTerrain::CompositeLayer* cl = dynamic_cast<osgTerrain::CompositeLayer*>(sourceGraph->getElevationLayer());
-            if (hfl) std::cout<<"Elevation HeightFieldLayer supplied"<<std::endl;
-            if (iml) std::cout<<"Elevation ImageLayer supplied"<<std::endl;
-            if (cl)
-            {
-                std::cout<<"ElevationLayer CompositLayer supplied"<<std::endl;
-            }
-            
-        }
-        for(unsigned int i=0; i<sourceGraph->getNumColorLayers();++i)
-        {
-            osgTerrain::Layer* layer = sourceGraph->getColorLayer(i);
-            if (layer)
-            {
-                osgTerrain::HeightFieldLayer* hfl = dynamic_cast<osgTerrain::HeightFieldLayer*>(sourceGraph->getColorLayer(i));
-                osgTerrain::ImageLayer* iml = dynamic_cast<osgTerrain::ImageLayer*>(sourceGraph->getColorLayer(i));
-                osgTerrain::CompositeLayer* cl = dynamic_cast<osgTerrain::CompositeLayer*>(sourceGraph->getColorLayer(i));
-                if (hfl) std::cout<<"ColorLayer "<<i<<" HeightFieldLayer supplied"<<std::endl;
-                if (iml) std::cout<<"ColorLayer "<<i<<" ImageLayer supplied"<<std::endl;
-                if (cl)
-                {
-                    std::cout<<"ColorLayer "<<i<<" CompositLayer supplied"<<std::endl;
-                    for(unsigned int j=0; j<cl->getNumLayers(); ++j)
-                    {
-                        std::cout<<"   Layer "<<cl->getFileName(j)<<std::endl;
-                    }
-                }
-            }
-        }
+    
+        // create DataSet.
+        
+        dataset->addTerrain(terrain.get());
+        
+        dataset->loadSources();
+        
+        unsigned int numLevels = 5;
+
+        dataset->createDestination((unsigned int)numLevels);
+
+        dataset->writeDestination();        
     }
 
     return 0;
