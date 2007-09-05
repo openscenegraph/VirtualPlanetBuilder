@@ -5195,6 +5195,26 @@ osgTerrain::Terrain* DataSet::createTerrainRepresentation() const
 
         if (loadedLayer)
         {
+            if (!loadedLayer->getLocator())
+            {
+                osgTerrain::Locator* locator = new osgTerrain::Locator;
+                locator->setTransform(source->getGeoTransform());
+                locator->setCoordinateSystem(source->_cs->getCoordinateSystem());
+                locator->setFormat(source->_cs->getFormat());
+                locator->setEllipsoidModel(source->_cs->getEllipsoidModel());
+                
+                
+                switch(getCoordinateSystemType(source->_cs.get()))
+                {
+                    case(GEOCENTRIC): locator->setCoordinateSystemType(osgTerrain::Locator::GEOCENTRIC); break;
+                    case(GEOGRAPHIC): locator->setCoordinateSystemType(osgTerrain::Locator::GEOGRAPHIC); break;
+                    case(PROJECTED): locator->setCoordinateSystemType(osgTerrain::Locator::PROJECTED); break;
+                    case(LOCAL): locator->setCoordinateSystemType(osgTerrain::Locator::PROJECTED); break;
+                };
+
+                loadedLayer->setLocator(locator);
+            }
+        
             if (source->getType()==Source::IMAGE)
             {
                 osgTerrain::Layer* existingLayer = (layerNum < terrain->getNumColorLayers()) ? terrain->getColorLayer(layerNum) : 0;
