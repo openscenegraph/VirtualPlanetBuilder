@@ -315,6 +315,30 @@ int main( int argc, char **argv )
 
     dataset->setDestinationName("output.ive");
 
+    std::string sourceName;
+    while (arguments.read("-s",sourceName))
+    {
+        osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(sourceName);
+        if (node.valid())
+        {
+            osgTerrain::Terrain* terrain = dynamic_cast<osgTerrain::Terrain*>(node.get());
+            if (terrain)
+            {
+                dataset->addTerrain(terrain);
+            }
+            else
+            {
+                osg::notify(osg::NOTICE)<<"Error: source file \""<<sourceName<<"\" not suitable terrain data."<<std::endl;
+            }
+        }
+        else
+        {
+            osg::notify(osg::NOTICE)<<"Error: unable to load source file \""<<sourceName<<"\""<<std::endl;
+        }
+    }
+
+    std::string terrainOutputName;
+    while (arguments.read("--so",terrainOutputName)) {}
 
     unsigned int numLevels = 10;
     while (arguments.read("-l",numLevels)) {}
@@ -690,6 +714,21 @@ int main( int argc, char **argv )
         return 1;
     }
     
+    if (!terrainOutputName.empty())
+    {
+        osg::ref_ptr<osgTerrain::Terrain> terrain = dataset->createTerrainRepresentation();
+        if (terrain.valid())
+        {
+            osgDB::writeNodeFile(*terrain, terrainOutputName);
+        }
+        else
+        {
+            osg::notify(osg::NOTICE)<<"Error: unable to create terrain output \""<<terrainOutputName<<"\""<<std::endl;
+        }
+        return 1;
+    }
+
+
     osgViewer::Viewer viewer;   
     // generate the database
     {

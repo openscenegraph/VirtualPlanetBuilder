@@ -5172,7 +5172,8 @@ bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
 
 osgTerrain::Terrain* DataSet::createTerrainRepresentation() const
 {
-    
+    osg::ref_ptr<osgTerrain::Terrain> terrain = new osgTerrain::Terrain;
+    return terrain.release();
 }
 
 
