@@ -5164,7 +5164,7 @@ bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
         osgTerrain::Layer* layer = terrain->getColorLayer(i);
         if (layer) 
         {
-            addLayer(vpb::DataSet::Source::HEIGHT_FIELD, layer, i);
+            addLayer(vpb::DataSet::Source::IMAGE, layer, i);
         }
     }
     return true;
@@ -5173,6 +5173,75 @@ bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
 osgTerrain::Terrain* DataSet::createTerrainRepresentation() const
 {
     osg::ref_ptr<osgTerrain::Terrain> terrain = new osgTerrain::Terrain;
+
+    for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
+    {
+        osg::ref_ptr<Source> source = (*itr);
+#if 0
+            osg::Locator* locator = new osg::Locator;
+            osg::ref_ptr<osg::CoordinateSystemNode>     _cs;
+            osg::Matrixd                                _geoTransform;
+            GeospatialExtents                           _extents;
+            DataType                                    _dataType;
+            unsigned int                                _numValuesX;
+            unsigned int                                _numValuesY;
+            unsigned int                                _numValuesZ;
+#endif
+        unsigned int layerNum = source->getLayer();
+
+
+        osg::ref_ptr<osg::Object> loadedObject = osgDB::readObjectFile(source->getFileName()+".gdal");
+        osgTerrain::Layer* loadedLayer = dynamic_cast<osgTerrain::Layer*>(loadedObject.get());
+
+        if (loadedLayer)
+        {
+            if (source->getType()==Source::IMAGE)
+            {
+                osgTerrain::Layer* existingLayer = (layerNum < terrain->getNumColorLayers()) ? terrain->getColorLayer(layerNum) : 0;
+                osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+
+                if (compositeLayer)
+                {
+                    compositeLayer->addLayer( loadedLayer );
+                }
+                else if (existingLayer)
+                {
+                    compositeLayer = new osgTerrain::CompositeLayer;
+                    compositeLayer->addLayer( existingLayer );
+                    compositeLayer->addLayer( loadedLayer );
+
+                    terrain->setColorLayer(layerNum, compositeLayer);
+                }
+                else
+                {
+                    terrain->setColorLayer(layerNum, loadedLayer);
+                }
+            }
+            else if (source->getType()==Source::HEIGHT_FIELD)
+            {
+                osgTerrain::Layer* existingLayer = terrain->getElevationLayer();
+                osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+
+                if (compositeLayer)
+                {
+                    compositeLayer->addLayer( loadedLayer );
+                }
+                else if (existingLayer)
+                {
+                    compositeLayer = new osgTerrain::CompositeLayer;
+                    compositeLayer->addLayer( existingLayer );
+                    compositeLayer->addLayer( loadedLayer );
+
+                    terrain->setElevationLayer(compositeLayer);
+                }
+                else
+                {
+                    terrain->setElevationLayer(loadedLayer);
+                }
+            }
+        }
+    }
+
     return terrain.release();
 }
 
