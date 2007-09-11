@@ -25,13 +25,7 @@
 #ifndef DATASET_H
 #define DATASET_H 1
 
-#include <osg/BoundingSphere>
-#include <osg/Node>
-#include <osg/Matrixd>
-#include <osg/Image>
-#include <osg/Shape>
 #include <osg/CoordinateSystemNode>
-#include <osg/State>
 
 #include <osgTerrain/Terrain>
 

@@ -12,21 +12,11 @@
 */
 
 
-#include <osg/Geode>
-#include <osg/ShapeDrawable>
 #include <osg/Texture2D>
-#include <osg/Group>
-#include <osg/Geometry>
-#include <osg/MatrixTransform>
-#include <osg/ClusterCullingCallback>
 #include <osg/Notify>
 #include <osg/io_utils>
 
 #include <osg/GLU>
-
-#include <osgUtil/SmoothingVisitor>
-#include <osgUtil/TriStripVisitor>
-#include <osgUtil/Simplifier>
 
 #include <osgTerrain/GeometryTechnique>
 
@@ -40,8 +30,6 @@
 
 // GDAL includes
 #include <gdal_priv.h>
-#include <cpl_string.h>
-#include <gdalwarper.h>
 #include <ogr_spatialref.h>
 
 // standard library includes
@@ -51,8 +39,6 @@
 
 
 using namespace vpb;
-
-#define SHIFT_RASTER_BY_HALF_CELL
 
 static int s_notifyOffset = 0;
 void DataSet::setNotifyOffset(int level) { s_notifyOffset = level; }
