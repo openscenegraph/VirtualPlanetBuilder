@@ -28,6 +28,8 @@
 #include <osgUtil/TriStripVisitor>
 #include <osgUtil/Simplifier>
 
+#include <osgTerrain/GeometryTechnique>
+
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>
 #include <osgDB/FileNameUtils>
@@ -57,176 +59,6 @@ void DataSet::setNotifyOffset(int level) { s_notifyOffset = level; }
 int DataSet::getNotifyOffset() { return s_notifyOffset; }
 
 inline std::ostream& my_notify(osg::NotifySeverity level) { return osg::notify(osg::NotifySeverity(s_notifyOffset+level)); }
-
-
-std::string vpb::DataSet::coordinateSystemStringToWTK(const std::string& coordinateSystem)
-{
-    std::string wtkString;
-
-    CPLErrorReset();
-    
-    OGRSpatialReferenceH hSRS = OSRNewSpatialReference( NULL );
-    if( OSRSetFromUserInput( hSRS, coordinateSystem.c_str() ) == OGRERR_NONE )
-    {
-        char *pszResult = NULL;
-        OSRExportToWkt( hSRS, &pszResult );
-        
-        if (pszResult) wtkString = pszResult;
-
-        CPLFree(pszResult);
-
-    }
-    else
-    {
-        my_notify(osg::WARN)<<"Warning: coordinateSystem string not recognised."<<std::endl;
-        
-    }
-    
-    OSRDestroySpatialReference( hSRS );
-
-    return wtkString;
-}
-
-enum CoordinateSystemType
-{
-    GEOCENTRIC,
-    GEOGRAPHIC,
-    PROJECTED,
-    LOCAL
-};
-
-CoordinateSystemType getCoordinateSystemType(const osg::CoordinateSystemNode* lhs)
-{
-    if (!lhs) return PROJECTED;
-
-    // set up LHS SpatialReference
-    char* projection_string = strdup(lhs->getCoordinateSystem().c_str());
-    char* importString = projection_string;
-    
-    OGRSpatialReference lhsSR;
-    lhsSR.importFromWkt(&importString);
-    
-     
-    
-    my_notify(osg::INFO)<<"getCoordinateSystemType("<<projection_string<<")"<<std::endl;
-    my_notify(osg::INFO)<<"    lhsSR.IsGeographic()="<<lhsSR.IsGeographic()<<std::endl;
-    my_notify(osg::INFO)<<"    lhsSR.IsProjected()="<<lhsSR.IsProjected()<<std::endl;
-    my_notify(osg::INFO)<<"    lhsSR.IsLocal()="<<lhsSR.IsLocal()<<std::endl;
-
-    free(projection_string);
-
-    if (strcmp(lhsSR.GetRoot()->GetValue(),"GEOCCS")==0) my_notify(osg::INFO)<<"    lhsSR. is GEOCENTRIC "<<std::endl;
-    
-
-    if (strcmp(lhsSR.GetRoot()->GetValue(),"GEOCCS")==0) return GEOCENTRIC;    
-    if (lhsSR.IsGeographic()) return GEOGRAPHIC;
-    if (lhsSR.IsProjected()) return PROJECTED;
-    if (lhsSR.IsLocal()) return LOCAL;
-    return PROJECTED;
-}
-
-double getAngularUnits(const osg::CoordinateSystemNode* lhs)
-{
-    // set up LHS SpatialReference
-    char* projection_string = strdup(lhs->getCoordinateSystem().c_str());
-    char* importString = projection_string;
-    
-    OGRSpatialReference lhsSR;
-    lhsSR.importFromWkt(&importString);
-    
-    free(projection_string);
-
-    char* str;
-    double result = lhsSR.GetAngularUnits(&str);
-    my_notify(osg::INFO)<<"lhsSR.GetAngularUnits("<<str<<") "<<result<<std::endl;
-
-    return result;
-}
-
-double getLinearUnits(const osg::CoordinateSystemNode* lhs)
-{
-    // set up LHS SpatialReference
-    char* projection_string = strdup(lhs->getCoordinateSystem().c_str());
-    char* importString = projection_string;
-    
-    OGRSpatialReference lhsSR;
-    lhsSR.importFromWkt(&importString);
-    
-    free(projection_string);
-
-    char* str;
-    double result = lhsSR.GetLinearUnits(&str);
-    my_notify(osg::INFO)<<"lhsSR.GetLinearUnits("<<str<<") "<<result<<std::endl;
-
-    my_notify(osg::INFO)<<"lhsSR.IsGeographic() "<<lhsSR.IsGeographic()<<std::endl;
-    my_notify(osg::INFO)<<"lhsSR.IsProjected() "<<lhsSR.IsProjected()<<std::endl;
-    my_notify(osg::INFO)<<"lhsSR.IsLocal() "<<lhsSR.IsLocal()<<std::endl;
-    
-    return result;
-}
-
-bool areCoordinateSystemEquivalent(const osg::CoordinateSystemNode* lhs,const osg::CoordinateSystemNode* rhs)
-{
-    // if ptr's equal the return true
-    if (lhs == rhs) return true;
-    
-    // if one CS is NULL then true false
-    if (!lhs || !rhs)
-    {
-        my_notify(osg::INFO)<<"areCoordinateSystemEquivalent lhs="<<lhs<<"  rhs="<<rhs<<" return true"<<std::endl;
-        return false;
-    }
-    
-    my_notify(osg::INFO)<<"areCoordinateSystemEquivalent lhs="<<lhs->getCoordinateSystem()<<"  rhs="<<rhs->getCoordinateSystem()<<std::endl;
-
-    // use compare on ProjectionRef strings.
-    if (lhs->getCoordinateSystem() == rhs->getCoordinateSystem()) return true;
-    
-    // set up LHS SpatialReference
-    char* projection_string = strdup(lhs->getCoordinateSystem().c_str());
-    char* importString = projection_string;
-    
-    OGRSpatialReference lhsSR;
-    lhsSR.importFromWkt(&importString);
-    
-    free(projection_string);
-
-    // set up RHS SpatialReference
-    projection_string = strdup(rhs->getCoordinateSystem().c_str());
-    importString = projection_string;
-
-    OGRSpatialReference rhsSR;
-    rhsSR.importFromWkt(&importString);
-
-    free(projection_string);
-    
-    int result = lhsSR.IsSame(&rhsSR);
-
-#if 0
-    int result2 = lhsSR.IsSameGeogCS(&rhsSR);
-
-     my_notify(osg::INFO)<<"areCoordinateSystemEquivalent "<<std::endl
-              <<"LHS = "<<lhs->getCoordinateSystem()<<std::endl
-              <<"RHS = "<<rhs->getCoordinateSystem()<<std::endl
-              <<"result = "<<result<<"  result2 = "<<result2<<std::endl;
-#endif
-         return result ? true : false;
-}
-
-void DataSet::SpatialProperties::computeExtents()
-{
-    _extents.init();
-    _extents.expandBy( osg::Vec3(0.0,0.0,0.0)*_geoTransform);
-
-    // get correct extent if a vector format is used
-    if (_dataType == VECTOR)
-        _extents.expandBy( osg::Vec3(_numValuesX-1,_numValuesY-1,0.0)*_geoTransform);
-    else
-        _extents.expandBy( osg::Vec3(_numValuesX,_numValuesY,0.0)*_geoTransform);
-    _extents._isGeographic = getCoordinateSystemType(_cs.get())==GEOGRAPHIC;
-
-    my_notify(osg::INFO)<<"DataSet::SpatialProperties::computeExtents() is geographic "<<_extents._isGeographic<<std::endl;
-}
 
 DataSet::SourceData::~SourceData()
 {
@@ -502,7 +334,7 @@ GeospatialExtents DataSet::SourceData::getExtents(const osg::CoordinateSystemNod
     return computeSpatialProperties(cs)._extents;
 }
 
-const DataSet::SpatialProperties& DataSet::SourceData::computeSpatialProperties(const osg::CoordinateSystemNode* cs) const
+const SpatialProperties& DataSet::SourceData::computeSpatialProperties(const osg::CoordinateSystemNode* cs) const
 {
     // check to see it exists in the _spatialPropertiesMap first.
     SpatialPropertiesMap::const_iterator itr = _spatialPropertiesMap.find(cs);
@@ -527,7 +359,7 @@ const DataSet::SpatialProperties& DataSet::SourceData::computeSpatialProperties(
             
             // insert into the _spatialPropertiesMap for future reuse.
             _spatialPropertiesMap[cs] = *this;
-            DataSet::SpatialProperties& sp = _spatialPropertiesMap[cs];
+            SpatialProperties& sp = _spatialPropertiesMap[cs];
             
             /* -------------------------------------------------------------------- */
             /*      Create a transformation object from the source to               */
@@ -5199,18 +5031,21 @@ osgTerrain::Terrain* DataSet::createTerrainRepresentation() const
             {
                 osgTerrain::Locator* locator = new osgTerrain::Locator;
                 locator->setTransform(source->getGeoTransform());
-                locator->setCoordinateSystem(source->_cs->getCoordinateSystem());
-                locator->setFormat(source->_cs->getFormat());
-                locator->setEllipsoidModel(source->_cs->getEllipsoidModel());
                 
-                
-                switch(getCoordinateSystemType(source->_cs.get()))
+                if (source->_cs.valid())
                 {
-                    case(GEOCENTRIC): locator->setCoordinateSystemType(osgTerrain::Locator::GEOCENTRIC); break;
-                    case(GEOGRAPHIC): locator->setCoordinateSystemType(osgTerrain::Locator::GEOGRAPHIC); break;
-                    case(PROJECTED): locator->setCoordinateSystemType(osgTerrain::Locator::PROJECTED); break;
-                    case(LOCAL): locator->setCoordinateSystemType(osgTerrain::Locator::PROJECTED); break;
-                };
+                    locator->setCoordinateSystem(source->_cs->getCoordinateSystem());
+                    locator->setFormat(source->_cs->getFormat());
+                    locator->setEllipsoidModel(source->_cs->getEllipsoidModel());
+
+                    switch(getCoordinateSystemType(source->_cs.get()))
+                    {
+                        case(GEOCENTRIC): locator->setCoordinateSystemType(osgTerrain::Locator::GEOCENTRIC); break;
+                        case(GEOGRAPHIC): locator->setCoordinateSystemType(osgTerrain::Locator::GEOGRAPHIC); break;
+                        case(PROJECTED): locator->setCoordinateSystemType(osgTerrain::Locator::PROJECTED); break;
+                        case(LOCAL): locator->setCoordinateSystemType(osgTerrain::Locator::PROJECTED); break;
+                    };
+                }
 
                 loadedLayer->setLocator(locator);
             }
@@ -5261,6 +5096,8 @@ osgTerrain::Terrain* DataSet::createTerrainRepresentation() const
             }
         }
     }
+    
+    // terrain->setTerrainTechnique(new osgTerrain::GeometryTechnique);
 
     return terrain.release();
 }

@@ -113,7 +113,7 @@ void ellipsodeTransformTest(double latitude, double longitude, double height)
 
 void processFile(std::string filename,
                    vpb::DataSet::Source::Type type,
-                   vpb::DataSet::SpatialProperties::DataType dataType,
+                   vpb::SpatialProperties::DataType dataType,
                    std::string currentCS, 
                    osg::Matrixd &geoTransform,
                    bool geoTransformSet,
@@ -436,7 +436,7 @@ int main( int argc, char **argv )
     bool minmaxLevelSet = false;
     unsigned int min_level=0, max_level=maximumPossibleLevel;
     unsigned int currentLayerNum = 0;
-    vpb::DataSet::SpatialProperties::DataType dataType = vpb::DataSet::SpatialProperties::RASTER;
+    vpb::SpatialProperties::DataType dataType = vpb::SpatialProperties::RASTER;
          
     int pos = 1;
     while(pos<arguments.argc())
@@ -445,7 +445,7 @@ int main( int argc, char **argv )
 
         if (arguments.read(pos, "--cs",def))
         {
-            currentCS = !def.empty() ? vpb::DataSet::coordinateSystemStringToWTK(def) : "";
+            currentCS = !def.empty() ? vpb::coordinateSystemStringToWTK(def) : "";
             std::cout<<"--cs \""<<def<<"\" converted to "<<currentCS<<std::endl;
         }
         else if (arguments.read(pos, "--wkt",def))
@@ -476,7 +476,7 @@ int main( int argc, char **argv )
 
         else if (arguments.read(pos, "--bluemarble-east"))
         {
-            currentCS = vpb::DataSet::coordinateSystemStringToWTK("WGS84");
+            currentCS = vpb::coordinateSystemStringToWTK("WGS84");
             geoTransformSet = true;
             geoTransformScale = true;
             geoTransform = computeGeoTransForRange(0.0, 180.0, -90.0, 90.0);
@@ -487,7 +487,7 @@ int main( int argc, char **argv )
 
         else if (arguments.read(pos, "--bluemarble-west"))
         {
-            currentCS = vpb::DataSet::coordinateSystemStringToWTK("WGS84");
+            currentCS = vpb::coordinateSystemStringToWTK("WGS84");
             geoTransformSet = true;
             geoTransformScale = true;
             geoTransform = computeGeoTransForRange(-180.0, 0.0, -90.0, 90.0);
@@ -498,7 +498,7 @@ int main( int argc, char **argv )
 
         else if (arguments.read(pos, "--whole-globe"))
         {
-            currentCS = vpb::DataSet::coordinateSystemStringToWTK("WGS84");
+            currentCS = vpb::coordinateSystemStringToWTK("WGS84");
             geoTransformSet = true;
             geoTransformScale = true;
             geoTransform = computeGeoTransForRange(-180.0, 180.0, -90.0, 90.0);
@@ -613,13 +613,13 @@ int main( int argc, char **argv )
 
         else if (arguments.read(pos, "--vector"))
         {
-            dataType = vpb::DataSet::SpatialProperties::VECTOR;
+            dataType = vpb::SpatialProperties::VECTOR;
             std::cout<<"--vector input data"<<std::endl;
         }
 
         else if (arguments.read(pos, "--raster"))
         {
-            dataType = vpb::DataSet::SpatialProperties::RASTER;
+            dataType = vpb::SpatialProperties::RASTER;
             std::cout<<"--raster input data"<<std::endl;
         }
 
@@ -640,7 +640,7 @@ int main( int argc, char **argv )
             geoTransformSet = false;
             geoTransformScale = false;
             geoTransform.makeIdentity();
-            dataType = vpb::DataSet::SpatialProperties::RASTER;
+            dataType = vpb::SpatialProperties::RASTER;
         }
         else if (arguments.read(pos, "-t",filename))
         {
@@ -659,7 +659,7 @@ int main( int argc, char **argv )
             geoTransformSet = false;
             geoTransformScale = false;
             geoTransform.makeIdentity();            
-            dataType = vpb::DataSet::SpatialProperties::RASTER;
+            dataType = vpb::SpatialProperties::RASTER;
         }
 /*        
         else if (arguments.read(pos, "-m",filename))

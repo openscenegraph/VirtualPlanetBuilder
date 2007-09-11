@@ -1,0 +1,207 @@
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield 
+ *
+ * This library is open source and may be redistributed and/or modified under  
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * OpenSceneGraph Public License for more details.
+*/
+
+#include <osg/Vec2d>
+#include <osg/CoordinateSystemNode>
+
+#include <float.h>
+
+#include <vpb/Export>
+
+namespace vpb
+{
+
+enum CoordinateSystemType
+{
+    GEOCENTRIC,
+    GEOGRAPHIC,
+    PROJECTED,
+    LOCAL
+};
+
+extern CoordinateSystemType getCoordinateSystemType(const osg::CoordinateSystemNode* lhs);
+extern std::string coordinateSystemStringToWTK(const std::string& coordinateSystem);
+extern double getLinearUnits(const osg::CoordinateSystemNode* lhs);
+extern bool areCoordinateSystemEquivalent(const osg::CoordinateSystemNode* lhs,const osg::CoordinateSystemNode* rhs);
+
+class GeospatialExtents
+{
+public:
+
+    osg::Vec2d  _min;
+    osg::Vec2d  _max;
+    bool        _isGeographic;
+    
+    inline GeospatialExtents() : 
+        _min(DBL_MAX,DBL_MAX),
+        _max(-DBL_MAX,-DBL_MAX),
+        _isGeographic(false) {}
+
+    inline GeospatialExtents(double xmin, double ymin, double xmax, double ymax, bool isGeographic) :
+        _min(xmin, ymin),
+        _max(xmax, ymax),
+        _isGeographic(isGeographic) {}
+
+    inline double& xMin() { return _min.x(); }
+    inline double xMin() const { return _min.x(); }
+
+    inline double& yMin() { return _min.y(); }
+    inline double yMin() const { return _min.y(); }
+
+    inline double& xMax() { return _max.x(); }
+    inline double xMax() const { return _max.x(); }
+
+    inline double& yMax() { return _max.y(); }
+    inline double yMax() const { return _max.y(); }
+
+    inline void init()
+    {
+        _min.set(DBL_MAX,DBL_MAX);
+        _max.set(-DBL_MAX,-DBL_MAX);
+    }
+
+    inline bool valid() const
+    {
+        return _max.x()>=_min.x() &&  _max.y()>=_min.y();
+    }
+
+    inline double radius() const
+    {
+        return sqrt((radius2()));
+    }
+
+    inline double radius2() const
+    {
+        return 0.25f*((_max-_min).length2());
+    }
+
+    GeospatialExtents intersection(const GeospatialExtents& e, double xoffset) const
+    {    
+        return GeospatialExtents(osg::maximum(xMin(),e.xMin()+xoffset),osg::maximum(yMin(),e.yMin()),
+                                 osg::minimum(xMax(),e.xMax()+xoffset),osg::minimum(yMax(),e.yMax()),_isGeographic);
+    }
+
+    /** Return true if this bounding box intersects the specified bounding box. */
+    bool intersects(const GeospatialExtents& bb) const
+    {
+        if (_isGeographic)
+        {
+            // first check vertical axis overlap
+            if (osg::maximum(yMin(),bb.yMin()) > osg::minimum(yMax(),bb.yMax())) return false;
+            
+            // next check if overlaps directly without any 360 degree horizontal shifts.
+            if (osg::maximum(xMin(),bb.xMin()) <= osg::minimum(xMax(),bb.xMax())) return true;
+            
+            // next check if a 360 rotation will produce an overlap
+            float rotationAngle = (xMin() > bb.xMin()) ? 360.0 : -360;
+            return (osg::maximum(xMin(),bb.xMin()+rotationAngle) <= osg::minimum(xMax(),bb.xMax()+rotationAngle));
+        }
+        else
+        {
+            return (osg::maximum(xMin(),bb.xMin()) <= osg::minimum(xMax(),bb.xMax()) &&
+                    osg::maximum(yMin(),bb.yMin()) <= osg::minimum(yMax(),bb.yMax()));
+        }
+    }
+
+ 
+    void expandBy(const osg::BoundingSphere& sh)
+    {
+        if (!sh.valid()) return;
+
+        if(sh._center.x()-sh._radius<_min.x()) _min.x() = sh._center.x()-sh._radius;
+        if(sh._center.x()+sh._radius>_max.x()) _max.x() = sh._center.x()+sh._radius;
+
+        if(sh._center.y()-sh._radius<_min.y()) _min.y() = sh._center.y()-sh._radius;
+        if(sh._center.y()+sh._radius>_max.y()) _max.y() = sh._center.y()+sh._radius;
+    }
+
+    inline void expandBy(const osg::Vec3& v)
+    {
+        if(v.x()<_min.x()) _min.x() = v.x();
+        if(v.x()>_max.x()) _max.x() = v.x();
+
+        if(v.y()<_min.y()) _min.y() = v.y();
+        if(v.y()>_max.y()) _max.y() = v.y();
+    }
+
+    void expandBy(const GeospatialExtents& e)
+    {
+        if (!e.valid()) return;
+
+        if(e._min.x()<_min.x()) _min.x() = e._min.x();
+        if(e._max.x()>_max.x()) _max.x() = e._max.x();
+
+        if(e._min.y()<_min.y()) _min.y() = e._min.y();
+        if(e._max.y()>_max.y()) _max.y() = e._max.y();
+    }
+};
+
+struct VPB_EXPORT SpatialProperties
+{
+    enum DataType
+    {
+        NONE,
+        RASTER,
+        VECTOR
+    };
+
+    SpatialProperties():
+        _dataType(RASTER),
+        _numValuesX(0),
+        _numValuesY(0),
+        _numValuesZ(0) {}
+
+    SpatialProperties(const SpatialProperties& sp):
+        _cs(sp._cs),
+        _geoTransform(sp._geoTransform),
+        _extents(sp._extents),
+        _dataType(sp._dataType),
+        _numValuesX(sp._numValuesX),
+        _numValuesY(sp._numValuesY),
+        _numValuesZ(sp._numValuesZ) {}
+
+     SpatialProperties(osg::CoordinateSystemNode* cs, const GeospatialExtents& extents):
+        _cs(cs),
+        _extents(extents),
+        _dataType(RASTER),
+        _numValuesX(0),
+        _numValuesY(0),
+        _numValuesZ(0) {}
+
+    inline SpatialProperties& assignSpatialProperties(const SpatialProperties& sp)
+    {
+        if (&sp==this) return *this;
+
+        _cs = sp._cs;
+        _geoTransform = sp._geoTransform;
+        _extents = sp._extents;
+        _dataType = sp._dataType;
+        _numValuesX = sp._numValuesX;
+        _numValuesY = sp._numValuesY;
+        _numValuesZ = sp._numValuesZ;
+
+        return *this;
+    }
+
+    void computeExtents();
+
+    osg::ref_ptr<osg::CoordinateSystemNode>     _cs;
+    osg::Matrixd                                _geoTransform;
+    GeospatialExtents                           _extents;
+    DataType                                    _dataType;
+    unsigned int                                _numValuesX;
+    unsigned int                                _numValuesY;
+    unsigned int                                _numValuesZ;
+};
+
+}
