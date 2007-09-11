@@ -9,6 +9,8 @@ SET(HEADER_PATH ${VIRTUALPLANETBUILDER_SOURCE_DIR}/include/${LIB_NAME})
 SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/DataSet
 	${HEADER_PATH}/SpatialProperties
+	${HEADER_PATH}/Source
+	${HEADER_PATH}/Destination
 	${HEADER_PATH}/Export
 	${HEADER_PATH}/Version
 )
@@ -17,6 +19,8 @@ ADD_LIBRARY(${LIB_NAME}
 	${VIRTUALPLANETBUILDER_USER_DEFINED_DYNAMIC_OR_STATIC}
 	${LIB_PUBLIC_HEADERS}
 	SpatialProperties.cpp
+	Source.cpp
+	Destination.cpp
 	DataSet.cpp
 	Version.cpp
 )

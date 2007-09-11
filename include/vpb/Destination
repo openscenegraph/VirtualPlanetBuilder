@@ -1,0 +1,240 @@
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield 
+ *
+ * This library is open source and may be redistributed and/or modified under  
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * OpenSceneGraph Public License for more details.
+*/
+
+#ifndef DESTINATION_H
+#define DESTINATION_H 1
+
+#include <vpb/Source>
+
+namespace vpb
+{
+
+class DataSet;
+
+struct DestinationData : public osg::Referenced, SpatialProperties
+{
+
+    DestinationData(DataSet* dataSet):
+        _dataSet(dataSet),
+        _minDistance(0.0),
+        _maxDistance(FLT_MAX) {}
+
+
+    typedef std::vector< osg::ref_ptr<osg::Image> > ImageList;
+    typedef std::vector< osg::ref_ptr<osg::Node> > ModelList;
+
+    DataSet*                                    _dataSet;
+
+    float                                       _minDistance;
+    float                                       _maxDistance;
+
+
+    osg::ref_ptr<osg::Image>                    _image;
+    osg::ref_ptr<osg::HeightField>              _heightField;
+    ModelList                                   _models;
+};
+
+class VPB_EXPORT DestinationTile : public osg::Referenced, public SpatialProperties
+{
+public:
+
+
+    enum Position
+    {
+        LEFT        = 0,
+        LEFT_BELOW  = 1,
+        BELOW       = 2,
+        BELOW_RIGHT = 3,
+        RIGHT       = 4,
+        RIGHT_ABOVE = 5,
+        ABOVE       = 6,
+        ABOVE_LEFT  = 7,
+        NUMBER_OF_POSITIONS = 8
+    };
+
+
+    DestinationTile();
+
+    void computeNeighboursFromQuadMap();
+
+    void setNeighbours(DestinationTile* left, DestinationTile* left_below, 
+                       DestinationTile* below, DestinationTile* below_right,
+                       DestinationTile* right, DestinationTile* right_above,
+                       DestinationTile* above, DestinationTile* above_left);
+
+    void checkNeighbouringTiles();
+
+    void setMaximumImagerySize(unsigned int maxNumColumns,unsigned int maxNumRows)
+    {
+        _imagery_maxNumColumns = maxNumColumns;
+        _imagery_maxNumRows = maxNumRows;
+    }
+
+    void setMaximumTerrainSize(unsigned int maxNumColumns,unsigned int maxNumRows)
+    {
+        _terrain_maxNumColumns = maxNumColumns;
+        _terrain_maxNumRows = maxNumRows;
+    }
+
+    void computeMaximumSourceResolution(CompositeSource* sourceGraph);
+
+    bool computeImageResolution(unsigned int layer, unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY);
+    bool computeTerrainResolution(unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY);
+
+    void allocate();
+
+    void addRequiredResolutions(CompositeSource* sourceGraph);
+
+    void readFrom(CompositeSource* sourceGraph);
+
+    void allocateEdgeNormals();
+
+    void equalizeCorner(Position position);
+    void equalizeEdge(Position position);
+
+    void equalizeBoundaries();
+
+    void setTileComplete(bool complete);
+    bool getTileComplete() const { return _complete; }
+
+    void optimizeResolution();
+
+    osg::Node* createScene();
+
+    osg::StateSet* createStateSet();
+    osg::Node* createHeightField();
+    osg::Node* createPolygonal();
+
+    void unrefData();
+
+
+    DataSet*                                    _dataSet;
+    std::string                                 _name;
+    unsigned int                                _level;
+    unsigned int                                _tileX;
+    unsigned int                                _tileY;
+    GLenum                                      _pixelFormat;                                    
+
+    struct ImageData
+    {
+        ImageData():
+            _imagery_maxSourceResolutionX(0.0f),
+            _imagery_maxSourceResolutionY(0.0f) {}
+
+
+        float                                  _imagery_maxSourceResolutionX;
+        float                                  _imagery_maxSourceResolutionY;
+
+        osg::ref_ptr<DestinationData>          _imagery;
+    };
+
+    std::vector<ImageData>                      _imagery;
+
+    inline ImageData& getImageData(unsigned int layer)
+    {
+        if (layer>=_imagery.size()) _imagery.resize(layer+1);
+        return _imagery[layer];
+    }
+
+    osg::ref_ptr<DestinationData>               _terrain;
+    osg::ref_ptr<DestinationData>               _models;
+
+    DestinationTile*                            _neighbour[NUMBER_OF_POSITIONS];
+    bool                                        _equalized[NUMBER_OF_POSITIONS];
+
+
+    unsigned int                                _maxSourceLevel;
+
+    unsigned int                                _imagery_maxNumColumns;
+    unsigned int                                _imagery_maxNumRows;
+
+    unsigned int                                _terrain_maxNumColumns;
+    unsigned int                                _terrain_maxNumRows;
+    float                                       _terrain_maxSourceResolutionX;
+    float                                       _terrain_maxSourceResolutionY;
+
+    bool                                        _complete;
+
+    typedef std::vector<osg::Vec2> HeightDeltaList;
+    HeightDeltaList                             _heightDeltas[NUMBER_OF_POSITIONS];
+
+};
+
+class VPB_EXPORT CompositeDestination : public osg::Referenced, public SpatialProperties
+{
+public:   
+
+    CompositeDestination():
+        _dataSet(0),
+        _parent(0),
+        _level(0),
+        _tileX(0),
+        _tileY(0),
+        _type(GROUP),
+        _maxVisibleDistance(FLT_MAX),
+        _subTileGenerated(false) {}
+
+    CompositeDestination(osg::CoordinateSystemNode* cs, const GeospatialExtents& extents):
+        SpatialProperties(cs,extents),
+        _dataSet(0),
+        _parent(0),
+        _level(0),
+        _tileX(0),
+        _tileY(0),
+        _type(GROUP),
+        _maxVisibleDistance(FLT_MAX),
+        _subTileGenerated(false)  {}
+
+    void computeNeighboursFromQuadMap();
+
+    void addRequiredResolutions(CompositeSource* sourceGraph);
+
+    void readFrom(CompositeSource* sourceGraph);
+
+    void equalizeBoundaries();
+
+    osg::Node* createScene();
+
+    bool areSubTilesComplete();
+    std::string getSubTileName();
+    osg::Node* createPagedLODScene();
+    osg::Node* createSubTileScene();
+
+    void unrefSubTileData();
+    void unrefLocalData();
+
+    void setSubTilesGenerated(bool generated) { _subTileGenerated=generated; }
+    bool getSubTilesGenerated() const { return _subTileGenerated; }
+
+
+    typedef std::vector< osg::ref_ptr<DestinationTile> > TileList;
+    typedef std::vector< osg::ref_ptr<CompositeDestination> > ChildList;
+
+    DataSet*                _dataSet;
+    CompositeDestination*   _parent;
+    std::string             _name;
+    unsigned int            _level;
+    unsigned int            _tileX;
+    unsigned int            _tileY;
+    CompositeType           _type;
+    TileList                _tiles;
+    ChildList               _children;
+    float                   _maxVisibleDistance;
+    bool                    _subTileGenerated;
+
+};
+
+
+}
+
+#endif

@@ -112,7 +112,7 @@ void ellipsodeTransformTest(double latitude, double longitude, double height)
 }
 
 void processFile(std::string filename,
-                   vpb::DataSet::Source::Type type,
+                   vpb::Source::Type type,
                    vpb::SpatialProperties::DataType dataType,
                    std::string currentCS, 
                    osg::Matrixd &geoTransform,
@@ -126,7 +126,7 @@ void processFile(std::string filename,
 
     if(osgDB::fileType(filename) == osgDB::REGULAR_FILE) {
         
-        vpb::DataSet::Source* source = new vpb::DataSet::Source(type, filename);                
+        vpb::Source* source = new vpb::Source(type, filename);                
         if (source)
         {
             // set type of data
@@ -135,7 +135,7 @@ void processFile(std::string filename,
             if (!currentCS.empty())
             {
                 std::cout<<"source->setCoordySystem "<<currentCS<<std::endl;
-                source->setCoordinateSystemPolicy(vpb::DataSet::Source::PREFER_CONFIG_SETTINGS);
+                source->setCoordinateSystemPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
                 source->setCoordinateSystem(currentCS);
             } 
             
@@ -143,8 +143,8 @@ void processFile(std::string filename,
             {
                 std::cout<<"source->setGeoTransform "<<geoTransform<<std::endl;
                 source->setGeoTransformPolicy(geoTransformScale ? 
-                                              vpb::DataSet::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION : 
-                                              vpb::DataSet::Source::PREFER_CONFIG_SETTINGS);
+                                              vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION : 
+                                              vpb::Source::PREFER_CONFIG_SETTINGS);
                 source->setGeoTransform(geoTransform);
             }
             if (minmaxLevelSet) 
@@ -626,7 +626,7 @@ int main( int argc, char **argv )
         else if (arguments.read(pos, "-d",filename))
         {
             std::cout<<"-d "<<filename<<std::endl;
-            processFile(filename, vpb::DataSet::Source::HEIGHT_FIELD, dataType, currentCS, 
+            processFile(filename, vpb::Source::HEIGHT_FIELD, dataType, currentCS, 
                         geoTransform, geoTransformSet, geoTransformScale,
                         minmaxLevelSet, min_level, max_level,
                         currentLayerNum,
@@ -645,7 +645,7 @@ int main( int argc, char **argv )
         else if (arguments.read(pos, "-t",filename))
         {
             std::cout<<"-t "<<filename<<std::endl;
-            processFile(filename, vpb::DataSet::Source::IMAGE, dataType, currentCS, 
+            processFile(filename, vpb::Source::IMAGE, dataType, currentCS, 
                         geoTransform, geoTransformSet, geoTransformScale, 
                         minmaxLevelSet, min_level, max_level, 
                         currentLayerNum,
@@ -665,7 +665,7 @@ int main( int argc, char **argv )
         else if (arguments.read(pos, "-m",filename))
         {
             std::cout<<"-m "<<filename<<std::endl;
-            processFile(filename, vpb::DataSet::Source::MODEL, currentCS, 
+            processFile(filename, vpb::Source::MODEL, currentCS, 
                         geoTransform, geoTransformSet, geoTransformScale, 
                         minmaxLevelSet, min_level, max_level, 
                         currentLayerNum, 

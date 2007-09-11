@@ -11,6 +11,9 @@
  * OpenSceneGraph Public License for more details.
 */
 
+#ifndef SPATIALPROPERTIES_H
+#define SPATIALPROPERTIES_H 1
+
 #include <osg/Vec2d>
 #include <osg/CoordinateSystemNode>
 
@@ -205,3 +208,5 @@ struct VPB_EXPORT SpatialProperties
 };
 
 }
+
+#endif
