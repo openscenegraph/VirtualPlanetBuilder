@@ -68,6 +68,20 @@ DatabaseBuilder::DatabaseBuilder()
 }
 
 DatabaseBuilder::DatabaseBuilder(const DatabaseBuilder& db,const osg::CopyOp& copyop):
-    osgTerrain::TerrainTechnique(db, copyop)
+    osgTerrain::TerrainTechnique(db, copyop),
+    BuildOptions(db)
 {
 }
+
+void DatabaseBuilder::init()
+{
+}
+
+void DatabaseBuilder::update(osgUtil::UpdateVisitor*)
+{
+}
+
+void DatabaseBuilder::cull(osgUtil::CullVisitor*)
+{
+}
+

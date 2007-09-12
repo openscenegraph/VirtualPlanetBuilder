@@ -50,42 +50,6 @@ inline std::ostream& my_notify(osg::NotifySeverity level) { return osg::notify(o
 DataSet::DataSet()
 {
     init();
-    
-    _maximumTileImageSize = 256;
-    _maximumTileTerrainSize = 64;
-    
-    _maximumVisiableDistanceOfTopLevel = 1e10;
-    
-    _radiusToMaxVisibleDistanceRatio = 7.0f;
-    _verticalScale = 1.0f;
-    _skirtRatio = 0.02f;
-
-    _convertFromGeographicToGeocentric = false;
-    
-    _tileBasename = "output";
-    _tileExtension = ".ive";
-    _imageExtension = ".dds";
-
-    
-    _defaultColor.set(0.5f,0.5f,1.0f,1.0f);
-    _databaseType = PagedLOD_DATABASE;
-    _geometryType = POLYGONAL;
-    _textureType = COMPRESSED_TEXTURE;
-    _maxAnisotropy = 1.0;
-    _mipMappingMode = MIP_MAPPING_IMAGERY;
-
-    _useLocalTileTransform = true;
-    
-    _decorateWithCoordinateSystemNode = true;
-    _decorateWithMultiTextureControl = true;
-    
-    _numTextureLevels = 1;
-    
-    _writeNodeBeforeSimplification = false;
-
-    _simplifyTerrain = true;
-
-    setEllipsoidModel(new osg::EllipsoidModel());
 }
 
 void DataSet::init()
@@ -98,44 +62,6 @@ void DataSet::init()
     }
 }
 
-void DataSet::setDestinationName(const std::string& filename)
-{
-    std::string path = osgDB::getFilePath(filename);
-    std::string base = osgDB::getStrippedName(filename);
-    std::string extension = '.'+osgDB::getLowerCaseFileExtension(filename);
-
-    osg::notify(osg::INFO)<<"setDestinationName("<<filename<<")"<<std::endl;
-    osg::notify(osg::INFO)<<"   path "<<path<<std::endl;
-    osg::notify(osg::INFO)<<"   base "<<base<<std::endl;
-    osg::notify(osg::INFO)<<"   extension "<<extension<<std::endl;
-
-    setDirectory(path);
-    setDestinationTileBaseName(base);
-    setDestinationTileExtension(extension);
-} 
-
-void DataSet::setDirectory(const std::string& directory)
-{
-    _directory = directory;
-    
-    if (_directory.empty()) return;
-    
-#ifdef WIN32    
-    // convert trailing forward slash if any to back slash.
-    if (_directory[_directory.size()-1]=='/') _directory[_directory.size()-1] = '\\';
-
-    // if no trailing back slash exists add one.
-    if (_directory[_directory.size()-1]!='\\') _directory.push_back('\\');
-#else
-    // convert trailing back slash if any to forward slash.
-    if (_directory[_directory.size()-1]=='\\') _directory[_directory.size()-1] = '/';
-
-    // if no trailing forward slash exists add one.
-    if (_directory[_directory.size()-1]!='/') _directory.push_back('/');
-#endif    
-    osg::notify(osg::NOTICE)<<"directory name set "<<_directory<<std::endl;
-}
- 
 void DataSet::addSource(Source* source)
 {
     if (!source) return;
@@ -1229,6 +1155,7 @@ osgTerrain::Terrain* DataSet::createTerrainRepresentation() const
     }
     
     osg::ref_ptr<DatabaseBuilder> builder = new DatabaseBuilder;
+    builder->setBuildOptions(*this);
     terrain->setTerrainTechnique(builder.get());
 
     return terrain.release();

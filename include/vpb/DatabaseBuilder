@@ -21,7 +21,7 @@
 namespace vpb
 {
 
-class VPB_EXPORT DatabaseBuilder : public osgTerrain::TerrainTechnique
+class VPB_EXPORT DatabaseBuilder : public osgTerrain::TerrainTechnique, public BuildOptions
 {
     public:
 
@@ -31,6 +31,13 @@ class VPB_EXPORT DatabaseBuilder : public osgTerrain::TerrainTechnique
         DatabaseBuilder(const DatabaseBuilder&,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
         
         META_Object(vpb, DatabaseBuilder);
+        
+        // dummy implementations for TerrainTechnique
+        virtual void init();
+        virtual void update(osgUtil::UpdateVisitor* nv);
+        virtual void cull(osgUtil::CullVisitor* nv);
+
+    protected:
 
 };
 

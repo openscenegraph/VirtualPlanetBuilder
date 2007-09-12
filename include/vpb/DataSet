@@ -36,6 +36,7 @@
 #include <vpb/SpatialProperties>
 #include <vpb/Source>
 #include <vpb/Destination>
+#include <vpb/BuildOptions>
 
 // forward declare so we can avoid tieing vpb to GDAL.
 class GDALDataset;
@@ -45,7 +46,7 @@ namespace vpb
 {
 
 
-class VPB_EXPORT DataSet : public osg::Referenced
+class VPB_EXPORT DataSet : public osg::Referenced, public BuildOptions
 {
     public:
 
@@ -102,142 +103,7 @@ class VPB_EXPORT DataSet : public osg::Referenced
 
         void loadSources();
         
-        void setMaximumTileImageSize(unsigned int size) { _maximumTileImageSize = size; }
-        unsigned int getMaximumTileImageSize() const { return _maximumTileImageSize; }
-
-        void setMaximumTileTerrainSize(unsigned int size) { _maximumTileTerrainSize = size; }
-        unsigned int getMaximumTileTerrainSize() const { return _maximumTileTerrainSize; }
-
-        void setMaximumVisibleDistanceOfTopLevel(float d) { _maximumVisiableDistanceOfTopLevel = d; }
-        float getMaximumVisibleDistanceOfTopLevel() const { return _maximumVisiableDistanceOfTopLevel; }
-
-        void setRadiusToMaxVisibleDistanceRatio(float ratio) { _radiusToMaxVisibleDistanceRatio = ratio; }
-        float getRadiusToMaxVisibleDistanceRatio() const { return _radiusToMaxVisibleDistanceRatio; }
-    
-        void setVerticalScale(float verticalScale) { _verticalScale = verticalScale; }
-        float getVerticalScale() const { return _verticalScale; }
-               
-        void setSkirtRatio(float skirtRatio) { _skirtRatio = skirtRatio; }
-        float getSkirtRatio() const { return _skirtRatio; }
-
-        void setDefaultColor(const osg::Vec4& defaultColor) { _defaultColor = defaultColor; }
-        const osg::Vec4& getDefaultColor() const { return _defaultColor; }
-
-        void setDestinationCoordinateSystem(const std::string& wellKnownText) { setDestinationCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText)); }
-        void setDestinationCoordinateSystem(osg::CoordinateSystemNode* cs) { _destinationCoordinateSystem = cs; }
-        osg::CoordinateSystemNode* getDestinationCoordinateSystem() { return _destinationCoordinateSystem .get(); }
-        
-        void setIntermediateCoordinateSystem(const std::string& wellKnownText) { setIntermediateCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText)); }
-        void setIntermediateCoordinateSystem(osg::CoordinateSystemNode* cs) { _intermediateCoordinateSystem = cs; }
-        osg::CoordinateSystemNode* getIntermediateCoordinateSystem() { return _intermediateCoordinateSystem.get(); }
-
-        void setConvertFromGeographicToGeocentric(bool flag) { _convertFromGeographicToGeocentric = flag; }
-        bool getConvertFromGeographicToGeocentric() const { return _convertFromGeographicToGeocentric; }
-
-        void setEllipsoidModel(osg::EllipsoidModel* et) { _ellipsoidModel = et; }
-        osg::EllipsoidModel* getEllipsoidModel() { return _ellipsoidModel.get(); }
-        const osg::EllipsoidModel* getEllipsoidModel() const { return _ellipsoidModel.get(); }
-        
         bool mapLatLongsToXYZ() const { return getConvertFromGeographicToGeocentric() && getEllipsoidModel(); }
-
-        void setDestinationExtents(const GeospatialExtents& extents) { _extents = extents; }
-        
-        void setDestinationGeoTransform(const osg::Matrixd& geoTransform) { _geoTransform = geoTransform; }
-
-        /** Set the Archive name if one is to be used.*/
-        void setArchiveName(const std::string& filename) { _archiveName = filename; }
-
-        /** Get the Archive name.*/
-        const std::string& getArchiveName() const { return _archiveName; }
-
-        /** Set the Archive.*/
-        void setArchive(osgDB::Archive* archive) { _archive = archive; }
-
-        /** Get the Archive if one is to being used.*/
-        osgDB::Archive* getArchive() { return _archive.get(); }
-
-        /** Set the Directory, DestinationTileBaseName and DestinationTileExtension from the passed in filename.*/
-        void setDestinationName(const std::string& filename);
-
-        void setDirectory(const std::string& directory);
-        const std::string& getDirectory() const { return _directory; }
-
-        void setDestinationTileBaseName(const std::string& basename) { _tileBasename = basename; }
-        const std::string& getDestinationTileBaseName() const { return _tileBasename; }
-        
-        void setDestinationTileExtension(const std::string& extension) { _tileExtension = extension; }
-        const std::string& getDestinationTileExtension() const { return _tileExtension; }
-
-        void setDestinationImageExtension(const std::string& extension) { _imageExtension = extension; }
-        const std::string& getDestinationImageExtension() const { return _imageExtension; }
-        
-        enum DatabaseType
-        {
-            LOD_DATABASE,
-            PagedLOD_DATABASE,
-        };
-        
-        void setDatabaseType(DatabaseType type) { _databaseType = type; }
-        DatabaseType getDatabaseType() const { return _databaseType; }
-
-        enum GeometryType
-        {
-            HEIGHT_FIELD,
-            POLYGONAL,
-        };
-        void setGeometryType(GeometryType type) { _geometryType = type; }
-        GeometryType getGeometryType() const { return _geometryType; }
-
-        enum TextureType
-        {
-            RGB_24,
-            RGBA,
-            RGB_16,
-            RGBA_16,
-            COMPRESSED_TEXTURE,
-            COMPRESSED_RGBA_TEXTURE
-        };
-        void setTextureType(TextureType type) { _textureType = type; }
-        TextureType getTextureType() const { return _textureType; }
-
-        void setMaxAnisotropy(float d) { _maxAnisotropy = d; }
-        float getMaxAnisotropy() const { return _maxAnisotropy; }
-
-
-        enum MipMappingMode
-        {
-            NO_MIP_MAPPING, /// disable mip mapping - use LINEAR, LINEAR filters.
-            MIP_MAPPING_HARDWARE, /// use mip mapping, dynamically compute them in hardware if supported
-            MIP_MAPPING_IMAGERY /// use mip mapping, and store imagery along with associated mip maps.
-        };
-
-        void setMipMappingMode(MipMappingMode mipMappingMode) { _mipMappingMode = mipMappingMode; }
-        MipMappingMode getMipMappingMode() const { return _mipMappingMode; }
-
-
-        void setUseLocalTileTransform(bool flag) { _useLocalTileTransform = flag; }
-        bool getUseLocalTileTransform() const { return _useLocalTileTransform; }
-        
-        void setSimplifyTerrain(bool flag) { _simplifyTerrain = flag; }
-        bool getSimplifyTerrain() const { return _simplifyTerrain; }
-        
-
-        void setDecorateGeneratedSceneGraphWithCoordinateSystemNode(bool flag) { _decorateWithCoordinateSystemNode = flag; }
-        bool getDecorateGeneratedSceneGraphWithCoordinateSystemNode() const { return _decorateWithCoordinateSystemNode; }
-
-
-        void setDecorateGeneratedSceneGraphWithMultiTextureControl(bool flag) { _decorateWithMultiTextureControl = flag; }
-        bool getDecorateGeneratedSceneGraphWithMultiTextureControl() const { return _decorateWithMultiTextureControl; }
-
-        unsigned int getNumOfTextureLevels() const { return _numTextureLevels; }
-
-        void setCommentString(const std::string& comment) { _comment = comment; }        
-        const std::string& getCommentString() const { return _comment; }        
-
-
-        void setWriteNodeBeforeSimplification(bool flag) { _writeNodeBeforeSimplification = flag; }
-        bool getWriteNodeBeforeSimplification() const { return _writeNodeBeforeSimplification; }
-
 
         static void setNotifyOffset(int level);
         static int getNotifyOffset();
@@ -297,52 +163,8 @@ class VPB_EXPORT DataSet : public osg::Referenced
         
         QuadMap                                     _quadMap;
 
-
-
-        unsigned int                                _maximumTileImageSize;
-        unsigned int                                _maximumTileTerrainSize;
-        float                                       _maximumVisiableDistanceOfTopLevel;
-        float                                       _radiusToMaxVisibleDistanceRatio;
-        float                                       _verticalScale;
-        float                                       _skirtRatio;
-            
-        osg::ref_ptr<osg::CoordinateSystemNode>     _destinationCoordinateSystem;
-        osg::ref_ptr<osg::CoordinateSystemNode>     _intermediateCoordinateSystem;
-
-        bool                                        _convertFromGeographicToGeocentric;
-        osg::ref_ptr<osg::EllipsoidModel>           _ellipsoidModel;
- 
-        osg::Matrixd                                _geoTransform;
-        GeospatialExtents                           _extents;
-        std::string                                 _archiveName;
-        osg::ref_ptr<osgDB::Archive>                _archive;
-        std::string                                 _directory;
-        std::string                                 _tileBasename;
-        std::string                                 _tileExtension;
-        std::string                                 _imageExtension;
-        osg::Vec4                                   _defaultColor;
-        DatabaseType                                _databaseType;
-        GeometryType                                _geometryType;
-        TextureType                                 _textureType;
-        float                                       _maxAnisotropy;
-        MipMappingMode                              _mipMappingMode;
-        
-        unsigned int                                _numTextureLevels;
-
-        bool                                        _useLocalTileTransform;
-
-        bool                                        _decorateWithCoordinateSystemNode;
-        bool                                        _decorateWithMultiTextureControl;
-        
-        std::string                                 _comment;
-
-        bool                                        _writeNodeBeforeSimplification;
-        
-        bool                                        _simplifyTerrain;
-
         osg::ref_ptr<osg::Node>                     _rootNode;
         osg::ref_ptr<osg::State>                    _state;
-
         
 };
 
