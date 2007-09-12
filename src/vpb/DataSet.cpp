@@ -27,6 +27,7 @@
 #include <osgFX/MultiTextureControl>
 
 #include <vpb/DataSet>
+#include <vpb/DatabaseBuilder>
 
 // GDAL includes
 #include <gdal_priv.h>
@@ -1227,7 +1228,8 @@ osgTerrain::Terrain* DataSet::createTerrainRepresentation() const
         }
     }
     
-    // terrain->setTerrainTechnique(new osgTerrain::GeometryTechnique);
+    osg::ref_ptr<DatabaseBuilder> builder = new DatabaseBuilder;
+    terrain->setTerrainTechnique(builder.get());
 
     return terrain.release();
 }
