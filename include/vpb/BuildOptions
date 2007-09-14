@@ -40,6 +40,38 @@ class VPB_EXPORT BuildOptions
         
         void setBuildOptions(const BuildOptions& rhs);
 
+
+        /** Set the Directory, DestinationTileBaseName and DestinationTileExtension from the passed in filename.*/
+        void setDestinationName(const std::string& filename);
+
+        void setDirectory(const std::string& directory);
+        const std::string& getDirectory() const { return _directory; }
+
+        void setDestinationTileBaseName(const std::string& basename) { _tileBasename = basename; }
+        const std::string& getDestinationTileBaseName() const { return _tileBasename; }
+        
+        void setDestinationTileExtension(const std::string& extension) { _tileExtension = extension; }
+        const std::string& getDestinationTileExtension() const { return _tileExtension; }
+
+        void setDestinationImageExtension(const std::string& extension) { _imageExtension = extension; }
+        const std::string& getDestinationImageExtension() const { return _imageExtension; }
+        
+        /** Set the Archive name if one is to be used.*/
+        void setArchiveName(const std::string& filename) { _archiveName = filename; }
+
+        /** Get the Archive name.*/
+        const std::string& getArchiveName() const { return _archiveName; }
+
+        /** Set the Archive.*/
+        void setArchive(osgDB::Archive* archive) { _archive = archive; }
+
+        /** Get the Archive if one is to being used.*/
+        osgDB::Archive* getArchive() { return _archive.get(); }
+
+        void setCommentString(const std::string& comment) { _comment = comment; }        
+        const std::string& getCommentString() const { return _comment; }        
+
+
         void setMaximumTileImageSize(unsigned int size) { _maximumTileImageSize = size; }
         unsigned int getMaximumTileImageSize() const { return _maximumTileImageSize; }
 
@@ -60,6 +92,7 @@ class VPB_EXPORT BuildOptions
 
         void setDefaultColor(const osg::Vec4& defaultColor) { _defaultColor = defaultColor; }
         const osg::Vec4& getDefaultColor() const { return _defaultColor; }
+        
 
         void setDestinationCoordinateSystem(const std::string& wellKnownText) { setDestinationCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText)); }
         void setDestinationCoordinateSystem(osg::CoordinateSystemNode* cs) { _destinationCoordinateSystem = cs; }
@@ -80,33 +113,30 @@ class VPB_EXPORT BuildOptions
         
         void setDestinationGeoTransform(const osg::Matrixd& geoTransform) { _geoTransform = geoTransform; }
 
-        /** Set the Archive name if one is to be used.*/
-        void setArchiveName(const std::string& filename) { _archiveName = filename; }
 
-        /** Get the Archive name.*/
-        const std::string& getArchiveName() const { return _archiveName; }
 
-        /** Set the Archive.*/
-        void setArchive(osgDB::Archive* archive) { _archive = archive; }
-
-        /** Get the Archive if one is to being used.*/
-        osgDB::Archive* getArchive() { return _archive.get(); }
-
-        /** Set the Directory, DestinationTileBaseName and DestinationTileExtension from the passed in filename.*/
-        void setDestinationName(const std::string& filename);
-
-        void setDirectory(const std::string& directory);
-        const std::string& getDirectory() const { return _directory; }
-
-        void setDestinationTileBaseName(const std::string& basename) { _tileBasename = basename; }
-        const std::string& getDestinationTileBaseName() const { return _tileBasename; }
+        void setUseLocalTileTransform(bool flag) { _useLocalTileTransform = flag; }
+        bool getUseLocalTileTransform() const { return _useLocalTileTransform; }
         
-        void setDestinationTileExtension(const std::string& extension) { _tileExtension = extension; }
-        const std::string& getDestinationTileExtension() const { return _tileExtension; }
-
-        void setDestinationImageExtension(const std::string& extension) { _imageExtension = extension; }
-        const std::string& getDestinationImageExtension() const { return _imageExtension; }
+        void setSimplifyTerrain(bool flag) { _simplifyTerrain = flag; }
+        bool getSimplifyTerrain() const { return _simplifyTerrain; }
         
+
+        void setDecorateGeneratedSceneGraphWithCoordinateSystemNode(bool flag) { _decorateWithCoordinateSystemNode = flag; }
+        bool getDecorateGeneratedSceneGraphWithCoordinateSystemNode() const { return _decorateWithCoordinateSystemNode; }
+
+
+        void setDecorateGeneratedSceneGraphWithMultiTextureControl(bool flag) { _decorateWithMultiTextureControl = flag; }
+        bool getDecorateGeneratedSceneGraphWithMultiTextureControl() const { return _decorateWithMultiTextureControl; }
+
+        unsigned int getNumOfTextureLevels() const { return _numTextureLevels; }
+
+        void setWriteNodeBeforeSimplification(bool flag) { _writeNodeBeforeSimplification = flag; }
+        bool getWriteNodeBeforeSimplification() const { return _writeNodeBeforeSimplification; }
+
+
+
+
         enum DatabaseType
         {
             LOD_DATABASE,
@@ -149,29 +179,6 @@ class VPB_EXPORT BuildOptions
 
         void setMipMappingMode(MipMappingMode mipMappingMode) { _mipMappingMode = mipMappingMode; }
         MipMappingMode getMipMappingMode() const { return _mipMappingMode; }
-
-
-        void setUseLocalTileTransform(bool flag) { _useLocalTileTransform = flag; }
-        bool getUseLocalTileTransform() const { return _useLocalTileTransform; }
-        
-        void setSimplifyTerrain(bool flag) { _simplifyTerrain = flag; }
-        bool getSimplifyTerrain() const { return _simplifyTerrain; }
-        
-
-        void setDecorateGeneratedSceneGraphWithCoordinateSystemNode(bool flag) { _decorateWithCoordinateSystemNode = flag; }
-        bool getDecorateGeneratedSceneGraphWithCoordinateSystemNode() const { return _decorateWithCoordinateSystemNode; }
-
-
-        void setDecorateGeneratedSceneGraphWithMultiTextureControl(bool flag) { _decorateWithMultiTextureControl = flag; }
-        bool getDecorateGeneratedSceneGraphWithMultiTextureControl() const { return _decorateWithMultiTextureControl; }
-
-        unsigned int getNumOfTextureLevels() const { return _numTextureLevels; }
-
-        void setCommentString(const std::string& comment) { _comment = comment; }        
-        const std::string& getCommentString() const { return _comment; }        
-
-        void setWriteNodeBeforeSimplification(bool flag) { _writeNodeBeforeSimplification = flag; }
-        bool getWriteNodeBeforeSimplification() const { return _writeNodeBeforeSimplification; }
 
 
     protected:

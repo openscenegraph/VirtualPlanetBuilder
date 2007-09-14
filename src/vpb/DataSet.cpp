@@ -1044,10 +1044,17 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
 
 bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
 {
+    vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(terrain->getTerrainTechnique());
+    if (db)
+    {
+        setBuildOptions(*db);
+    }
+
     if (terrain->getElevationLayer())
     {
         addLayer(vpb::Source::HEIGHT_FIELD, terrain->getElevationLayer(), 0);
     }
+
     for(unsigned int i=0; i<terrain->getNumColorLayers();++i)
     {
         osgTerrain::Layer* layer = terrain->getColorLayer(i);
@@ -1056,6 +1063,7 @@ bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
             addLayer(vpb::Source::IMAGE, layer, i);
         }
     }
+
     return true;
 }
 
