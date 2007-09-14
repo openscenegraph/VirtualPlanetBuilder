@@ -373,66 +373,6 @@ public:
         }
         return result;
     }
-    
-
-#if 0
-
-    DatabaseBuilder                                                    _prototype;
-
-    StringSetterAndGetter<DatabaseBuilder>                             _directory;
-    StringSetterAndGetter<DatabaseBuilder>                             _destinationTileBaseName;
-    EnumSetterAndGetter<DatabaseBuilder, DatabaseBuilder::DatabaseType>   _databaseType;
-    EnumSetterAndGetter<DatabaseBuilder, DatabaseBuilder::GeometryType>   _geometryType;
-    EnumSetterAndGetter<DatabaseBuilder, DatabaseBuilder::TextureType>    _textureType;
-    EnumSetterAndGetter<DatabaseBuilder, DatabaseBuilder::MipMappingMode> _mipMappingMode;
-
-    DatabaseBuilderLookUps():
-        _directory("Directory", _prototype.getDirectory(), &DatabaseBuilder::getDirectory,&DatabaseBuilder::setDirectory),
-        _destinationTileBaseName("DestinationTileBaseName", _prototype.getDestinationTileBaseName(), &DatabaseBuilder::getDestinationTileBaseName,&DatabaseBuilder::setDestinationTileBaseName),
-        _databaseType("DatabaseType", _prototype.getDatabaseType(), &DatabaseBuilder::getDatabaseType, &DatabaseBuilder::setDatabaseType),
-        _geometryType("GeometryType",_prototype.getGeometryType(), &DatabaseBuilder::getGeometryType, &DatabaseBuilder::setGeometryType),
-        _textureType("TextureType",_prototype.getTextureType(), &DatabaseBuilder::getTextureType, &DatabaseBuilder::setTextureType),
-        _mipMappingMode("MipMappingMode",_prototype.getMipMappingMode(), &DatabaseBuilder::getMipMappingMode, &DatabaseBuilder::setMipMappingMode)
-    {
-        _databaseType.add(DatabaseBuilder::LOD_DATABASE, "LOD_DATABASE");
-        _databaseType.add(DatabaseBuilder::PagedLOD_DATABASE, "PagedLOD_DATABASE");
-        
-        _geometryType.add(DatabaseBuilder::HEIGHT_FIELD,"HEIGHT_FIELD");
-        _geometryType.add(DatabaseBuilder::POLYGONAL,"POLYGONAL");
-        
-        _textureType.add(DatabaseBuilder::RGB_24,"RGB_24");
-        _textureType.add(DatabaseBuilder::RGBA,"RGBA");
-        _textureType.add(DatabaseBuilder::RGB_16,"RGB_16");
-        _textureType.add(DatabaseBuilder::RGBA_16,"RGBA_16");
-        _textureType.add(DatabaseBuilder::COMPRESSED_TEXTURE, "COMPRESSED_TEXTURE");
-        _textureType.add(DatabaseBuilder::COMPRESSED_RGBA_TEXTURE, "COMPRESSED_RGBA_TEXTURE");
-        
-        _mipMappingMode.add(DatabaseBuilder::NO_MIP_MAPPING, "NO_MIP_MAPPING");
-        _mipMappingMode.add(DatabaseBuilder::MIP_MAPPING_HARDWARE, "MIP_MAPPING_HARDWARE");
-        _mipMappingMode.add(DatabaseBuilder::MIP_MAPPING_IMAGERY, "MIP_MAPPING_IMAGERY");
-    }
-
-    bool read(osgDB::Input& fr, DatabaseBuilder& bo, bool& itrAdvanced)
-    {
-        _directory.read(fr,bo,itrAdvanced);
-        _destinationTileBaseName.read(fr,bo,itrAdvanced);
-        _databaseType.read(fr,bo,itrAdvanced);
-        _geometryType.read(fr,bo,itrAdvanced);
-        _textureType.read(fr,bo,itrAdvanced);
-        _mipMappingMode.read(fr,bo,itrAdvanced);
-    }
-
-    bool write(osgDB::Output& fw, const DatabaseBuilder& bo)
-    {
-        _directory.write(fw,bo);
-        _destinationTileBaseName.write(fw,bo);
-        _databaseType.write(fw, bo);
-        _geometryType.write(fw, bo);
-        _textureType.write(fw, bo);
-        _mipMappingMode.write(fw, bo);
-    }
-
-#endif
 
 };
 
