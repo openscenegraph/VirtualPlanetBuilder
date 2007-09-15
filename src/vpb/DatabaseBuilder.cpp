@@ -216,7 +216,7 @@ public:
         C& object = static_cast<C&>(obj);
         if (fr[0].matchWord(_fieldName.c_str()) && fr[1].isInt())
         {
-            int value;
+            P value;
             fr[1].getInt(value);
             (object.*_setter)(value);
             fr += 2;
@@ -226,7 +226,7 @@ public:
      
      bool               _writeOutDefaultValues;
      std::string        _fieldName;
-     int                _default;
+     P                  _default;
      GetterFunctionType _getter;
      SetterFunctionType _setter;
 };
@@ -262,7 +262,7 @@ public:
         C& object = static_cast<C&>(obj);
         if (fr[0].matchWord(_fieldName.c_str()) && fr[1].isUInt())
         {
-            unsigned int value;
+            P value;
             fr[1].getUInt(value);
             (object.*_setter)(value);
             fr += 2;
@@ -272,7 +272,144 @@ public:
      
      bool               _writeOutDefaultValues;
      std::string        _fieldName;
-     unsigned int       _default;
+     P                  _default;
+     GetterFunctionType _getter;
+     SetterFunctionType _setter;
+};
+
+
+template<typename C>
+class FloatSetterAndGetter : public Serializer
+{
+public:
+
+     typedef float P;
+     typedef P (C::*GetterFunctionType)() const;
+     typedef void (C::*SetterFunctionType)(P);
+
+     FloatSetterAndGetter(const char* fieldName, P defaultValue, GetterFunctionType getter, SetterFunctionType setter):
+        _writeOutDefaultValues(true),
+        _fieldName(fieldName),
+        _default(defaultValue),
+        _getter(getter),
+        _setter(setter) {}
+     
+     bool write(osgDB::Output& fw, const osg::Object& obj)
+     {
+        const C& object = static_cast<const C&>(obj);
+        if (_writeOutDefaultValues ||
+            _default != (object.*_getter)())
+        {
+            fw.indent()<<_fieldName<<" "<<(object.*_getter)()<<std::endl;
+        }
+     }
+
+    bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
+    {
+        C& object = static_cast<C&>(obj);
+        if (fr[0].matchWord(_fieldName.c_str()) && fr[1].isFloat())
+        {
+            P value;
+            fr[1].getFloat(value);
+            (object.*_setter)(value);
+            fr += 2;
+            itrAdvanced = true;
+        }
+     }
+     
+     bool               _writeOutDefaultValues;
+     std::string        _fieldName;
+     P                  _default;
+     GetterFunctionType _getter;
+     SetterFunctionType _setter;
+};
+
+template<typename C>
+class DoubleSetterAndGetter : public Serializer
+{
+public:
+
+     typedef double P;
+     typedef P (C::*GetterFunctionType)() const;
+     typedef void (C::*SetterFunctionType)(P);
+
+     DoubleSetterAndGetter(const char* fieldName, P defaultValue, GetterFunctionType getter, SetterFunctionType setter):
+        _writeOutDefaultValues(true),
+        _fieldName(fieldName),
+        _default(defaultValue),
+        _getter(getter),
+        _setter(setter) {}
+     
+     bool write(osgDB::Output& fw, const osg::Object& obj)
+     {
+        const C& object = static_cast<const C&>(obj);
+        if (_writeOutDefaultValues ||
+            _default != (object.*_getter)())
+        {
+            fw.indent()<<_fieldName<<" "<<(object.*_getter)()<<std::endl;
+        }
+     }
+
+    bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
+    {
+        C& object = static_cast<C&>(obj);
+        if (fr[0].matchWord(_fieldName.c_str()) && fr[1].isFloat())
+        {
+            P value;
+            fr[1].getFloat(value);
+            (object.*_setter)(value);
+            fr += 2;
+            itrAdvanced = true;
+        }
+     }
+     
+     bool               _writeOutDefaultValues;
+     std::string        _fieldName;
+     P                  _default;
+     GetterFunctionType _getter;
+     SetterFunctionType _setter;
+};
+
+template<typename C>
+class BoolSetterAndGetter : public Serializer
+{
+public:
+
+     typedef bool P;
+     typedef P (C::*GetterFunctionType)() const;
+     typedef void (C::*SetterFunctionType)(P);
+
+     BoolSetterAndGetter(const char* fieldName, P defaultValue, GetterFunctionType getter, SetterFunctionType setter):
+        _writeOutDefaultValues(true),
+        _fieldName(fieldName),
+        _default(defaultValue),
+        _getter(getter),
+        _setter(setter) {}
+     
+     bool write(osgDB::Output& fw, const osg::Object& obj)
+     {
+        const C& object = static_cast<const C&>(obj);
+        if (_writeOutDefaultValues ||
+            _default != (object.*_getter)())
+        {
+            fw.indent()<<_fieldName<<" "<<((object.*_getter)() ? "TRUE" : "FALSE")<<std::endl;
+        }
+     }
+
+    bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
+    {
+        C& object = static_cast<C&>(obj);
+        if (fr[0].matchWord(_fieldName.c_str()) && fr[1].isWord())
+        {
+            (object.*_setter)(fr[1].matchWord("TRUE") || fr[1].matchWord("True") || fr[1].matchWord("true"));
+            fr += 2;
+            itrAdvanced = true;
+        }
+     }
+     
+     bool               _writeOutDefaultValues;
+     std::string        _fieldName;
+     P                  _default;
      GetterFunctionType _getter;
      SetterFunctionType _setter;
 };
@@ -286,6 +423,56 @@ public:
 
 #define ADD_STRING_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_STRING_SERIALIZER(DatabaseBuilder,PROPERTY,prototype))
 
+
+#define CREATE_UINT_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
+    new UIntSetterAndGetter<CLASS>( \
+    #PROPERTY, \
+    PROTOTYPE.get##PROPERTY(), \
+    &CLASS::get##PROPERTY, \
+    &CLASS::set##PROPERTY)
+
+#define ADD_UINT_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_UINT_SERIALIZER(DatabaseBuilder,PROPERTY,prototype))
+
+
+#define CREATE_INT_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
+    new IntSetterAndGetter<CLASS>( \
+    #PROPERTY, \
+    PROTOTYPE.get##PROPERTY(), \
+    &CLASS::get##PROPERTY, \
+    &CLASS::set##PROPERTY)
+
+#define ADD_INT_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_INT_SERIALIZER(DatabaseBuilder,PROPERTY,prototype))
+
+
+#define CREATE_FLOAT_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
+    new FloatSetterAndGetter<CLASS>( \
+    #PROPERTY, \
+    PROTOTYPE.get##PROPERTY(), \
+    &CLASS::get##PROPERTY, \
+    &CLASS::set##PROPERTY)
+
+#define ADD_FLOAT_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_FLOAT_SERIALIZER(DatabaseBuilder,PROPERTY,prototype))
+
+#define CREATE_DOUBLE_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
+    new DoubleSetterAndGetter<CLASS>( \
+    #PROPERTY, \
+    PROTOTYPE.get##PROPERTY(), \
+    &CLASS::get##PROPERTY, \
+    &CLASS::set##PROPERTY)
+
+#define ADD_DOUBLE_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_DOUBLE_SERIALIZER(DatabaseBuilder,PROPERTY,prototype))
+
+
+#define CREATE_BOOL_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
+    new BoolSetterAndGetter<CLASS>( \
+    #PROPERTY, \
+    PROTOTYPE.get##PROPERTY(), \
+    &CLASS::get##PROPERTY, \
+    &CLASS::set##PROPERTY)
+
+#define ADD_BOOL_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_BOOL_SERIALIZER(DatabaseBuilder,PROPERTY,prototype))
+
+
 #define CREATE_ENUM_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
     typedef EnumSetterAndGetter<DatabaseBuilder, DatabaseBuilder::PROPERTY> MySerializer;\
     osg::ref_ptr<MySerializer> serializer = new MySerializer(\
@@ -295,6 +482,7 @@ public:
         &CLASS::set##PROPERTY\
     )
     
+
 #define ADD_ENUM_PROPERTY(PROPERTY) \
     CREATE_ENUM_SERIALIZER(DatabaseBuilder, PROPERTY, prototype); \
     _serializerList.push_back(serializer.get())
@@ -342,6 +530,7 @@ public:
         ADD_STRING_PROPERTY(DestinationTileExtension);
         ADD_STRING_PROPERTY(DestinationImageExtension);
         ADD_STRING_PROPERTY(ArchiveName);
+        ADD_STRING_PROPERTY(CommentString);
         
         ADD_ENUM_PROPERTY_TWO_VALUES(DatabaseType, LOD_DATABASE, PagedLOD_DATABASE)
         ADD_ENUM_PROPERTY_TWO_VALUES(GeometryType, HEIGHT_FIELD, POLYGONAL)
@@ -349,6 +538,21 @@ public:
 
         { AEP(TextureType); AEV(RGB_24); AEV(RGBA);AEV(RGB_16);AEV(RGBA_16);AEV(COMPRESSED_TEXTURE);AEV(COMPRESSED_RGBA_TEXTURE); }
 
+        ADD_UINT_PROPERTY(MaximumTileImageSize);
+        ADD_UINT_PROPERTY(MaximumTileTerrainSize);
+
+        ADD_FLOAT_PROPERTY(MaximumVisibleDistanceOfTopLevel);
+        ADD_FLOAT_PROPERTY(RadiusToMaxVisibleDistanceRatio);
+        ADD_FLOAT_PROPERTY(VerticalScale);
+        ADD_FLOAT_PROPERTY(SkirtRatio);
+        
+        ADD_BOOL_PROPERTY(ConvertFromGeographicToGeocentric);
+        ADD_BOOL_PROPERTY(UseLocalTileTransform);
+        ADD_BOOL_PROPERTY(SimplifyTerrain);
+        ADD_BOOL_PROPERTY(DecorateGeneratedSceneGraphWithCoordinateSystemNode);
+        ADD_BOOL_PROPERTY(DecorateGeneratedSceneGraphWithMultiTextureControl);
+        ADD_BOOL_PROPERTY(WriteNodeBeforeSimplification);
+        
     }
     
     bool read(osgDB::Input& fr, DatabaseBuilder& db, bool& itrAdvanced)
