@@ -1051,7 +1051,6 @@ bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
 {
     if (terrain->getLocator())
     {
-        
     }
  
     vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(terrain->getTerrainTechnique());
