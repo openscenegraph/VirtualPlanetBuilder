@@ -63,7 +63,7 @@ struct VPB_EXPORT SourceData : public osg::Referenced, public SpatialProperties
 
     osg::ref_ptr<osg::Node>                     _model;
     GDALDataset*                                _gdalDataset;
-    osg::HeightField*                           _hfDataset;
+    osg::ref_ptr<osg::HeightField>              _hfDataset;
 
     typedef std::map<const osg::CoordinateSystemNode*,SpatialProperties> SpatialPropertiesMap;
     mutable SpatialPropertiesMap _spatialPropertiesMap;
@@ -131,13 +131,13 @@ public:
     void setTemporaryFile(bool temporaryFile) { _temporaryFile = temporaryFile; }
     bool getTemporaryFile() const { return _temporaryFile; }
 
-    void setGdalDataset(void* gdalDataset);
-    void* getGdalDataset();
-    const void* getGdalDataset() const;
+    void setGdalDataset(GDALDataset* gdalDataset);
+    GDALDataset* getGdalDataset();
+    const GDALDataset* getGdalDataset() const;
 
-    void setHFDataset(void* hfDataset);
-    void* getHFDataset();
-    const void* getHFDataset() const;
+    void setHFDataset(osg::HeightField* hfDataset);
+    osg::HeightField* getHFDataset();
+    const osg::HeightField* getHFDataset() const;
 
     void setCoordinateSystemPolicy(ParameterPolicy policy) { _coordinateSystemPolicy = policy; }
     ParameterPolicy getCoordinateSystemPolicy() const { return _coordinateSystemPolicy; }
@@ -251,8 +251,7 @@ protected:
     ResolutionList                              _requiredResolutions;
 
     GDALDataset*                                _gdalDataset;
-
-    osg::HeightField*                           _hfDataset;
+    osg::ref_ptr<osg::HeightField>              _hfDataset;
 };
 
 enum CompositeType

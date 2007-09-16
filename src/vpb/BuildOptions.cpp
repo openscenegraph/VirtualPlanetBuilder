@@ -47,13 +47,10 @@ BuildOptions::BuildOptions()
     _decorateWithCoordinateSystemNode = true;
     _decorateWithMultiTextureControl = true;
     
-    _numTextureLevels = 1;
     
     _writeNodeBeforeSimplification = false;
 
     _simplifyTerrain = true;
-
-    setEllipsoidModel(new osg::EllipsoidModel());
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs)
@@ -101,13 +98,9 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _decorateWithCoordinateSystemNode = rhs._decorateWithCoordinateSystemNode;
     _decorateWithMultiTextureControl = rhs._decorateWithMultiTextureControl;
     
-    _numTextureLevels = rhs._numTextureLevels;
-    
     _writeNodeBeforeSimplification = rhs._writeNodeBeforeSimplification;
 
     _simplifyTerrain = rhs._simplifyTerrain;
-
-    _ellipsoidModel = rhs._ellipsoidModel;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)

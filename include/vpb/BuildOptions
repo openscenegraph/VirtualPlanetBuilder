@@ -62,12 +62,6 @@ class VPB_EXPORT BuildOptions
         /** Get the Archive name.*/
         const std::string& getArchiveName() const { return _archiveName; }
 
-        /** Set the Archive.*/
-        void setArchive(osgDB::Archive* archive) { _archive = archive; }
-
-        /** Get the Archive if one is to being used.*/
-        osgDB::Archive* getArchive() { return _archive.get(); }
-
         void setCommentString(const std::string& comment) { _comment = comment; }        
         const std::string& getCommentString() const { return _comment; }        
 
@@ -92,27 +86,10 @@ class VPB_EXPORT BuildOptions
 
         void setDefaultColor(const osg::Vec4& defaultColor) { _defaultColor = defaultColor; }
         const osg::Vec4& getDefaultColor() const { return _defaultColor; }
-        
 
-        void setDestinationCoordinateSystem(const std::string& wellKnownText) { setDestinationCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText)); }
-        void setDestinationCoordinateSystem(osg::CoordinateSystemNode* cs) { _destinationCoordinateSystem = cs; }
-        osg::CoordinateSystemNode* getDestinationCoordinateSystem() { return _destinationCoordinateSystem .get(); }
-        
-        void setIntermediateCoordinateSystem(const std::string& wellKnownText) { setIntermediateCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText)); }
-        void setIntermediateCoordinateSystem(osg::CoordinateSystemNode* cs) { _intermediateCoordinateSystem = cs; }
-        osg::CoordinateSystemNode* getIntermediateCoordinateSystem() { return _intermediateCoordinateSystem.get(); }
 
         void setConvertFromGeographicToGeocentric(bool flag) { _convertFromGeographicToGeocentric = flag; }
         bool getConvertFromGeographicToGeocentric() const { return _convertFromGeographicToGeocentric; }
-
-        void setEllipsoidModel(osg::EllipsoidModel* et) { _ellipsoidModel = et; }
-        osg::EllipsoidModel* getEllipsoidModel() { return _ellipsoidModel.get(); }
-        const osg::EllipsoidModel* getEllipsoidModel() const { return _ellipsoidModel.get(); }
-        
-        void setDestinationExtents(const GeospatialExtents& extents) { _extents = extents; }
-        
-        void setDestinationGeoTransform(const osg::Matrixd& geoTransform) { _geoTransform = geoTransform; }
-
 
 
         void setUseLocalTileTransform(bool flag) { _useLocalTileTransform = flag; }
@@ -129,7 +106,6 @@ class VPB_EXPORT BuildOptions
         void setDecorateGeneratedSceneGraphWithMultiTextureControl(bool flag) { _decorateWithMultiTextureControl = flag; }
         bool getDecorateGeneratedSceneGraphWithMultiTextureControl() const { return _decorateWithMultiTextureControl; }
 
-        unsigned int getNumOfTextureLevels() const { return _numTextureLevels; }
 
         void setWriteNodeBeforeSimplification(bool flag) { _writeNodeBeforeSimplification = flag; }
         bool getWriteNodeBeforeSimplification() const { return _writeNodeBeforeSimplification; }
@@ -181,6 +157,8 @@ class VPB_EXPORT BuildOptions
         MipMappingMode getMipMappingMode() const { return _mipMappingMode; }
 
 
+
+
     protected:
 
         unsigned int                                _maximumTileImageSize;
@@ -190,16 +168,9 @@ class VPB_EXPORT BuildOptions
         float                                       _verticalScale;
         float                                       _skirtRatio;
             
-        osg::ref_ptr<osg::CoordinateSystemNode>     _destinationCoordinateSystem;
-        osg::ref_ptr<osg::CoordinateSystemNode>     _intermediateCoordinateSystem;
-
         bool                                        _convertFromGeographicToGeocentric;
-        osg::ref_ptr<osg::EllipsoidModel>           _ellipsoidModel;
- 
-        osg::Matrixd                                _geoTransform;
-        GeospatialExtents                           _extents;
+
         std::string                                 _archiveName;
-        osg::ref_ptr<osgDB::Archive>                _archive;
         std::string                                 _directory;
         std::string                                 _tileBasename;
         std::string                                 _tileExtension;
@@ -211,7 +182,6 @@ class VPB_EXPORT BuildOptions
         float                                       _maxAnisotropy;
         MipMappingMode                              _mipMappingMode;
         
-        unsigned int                                _numTextureLevels;
 
         bool                                        _useLocalTileTransform;
 

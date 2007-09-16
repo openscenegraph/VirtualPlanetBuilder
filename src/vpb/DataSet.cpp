@@ -60,6 +60,11 @@ void DataSet::init()
         s_initialized = true;
         GDALAllRegister();
     }
+
+    _numTextureLevels = 1;
+
+    setEllipsoidModel(new osg::EllipsoidModel());
+
 }
 
 void DataSet::addSource(Source* source)
@@ -1044,6 +1049,11 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
 
 bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
 {
+    if (terrain->getLocator())
+    {
+        
+    }
+ 
     vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(terrain->getTerrainTechnique());
     if (db)
     {

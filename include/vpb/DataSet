@@ -139,6 +139,32 @@ class VPB_EXPORT DataSet : public osg::Referenced, public BuildOptions
         void setState(osg::State* state) { _state = state; }
         osg::State* getState() { return _state.get(); }
 
+        /** Set the Archive.*/
+        void setArchive(osgDB::Archive* archive) { _archive = archive; }
+
+        /** Get the Archive if one is to being used.*/
+        osgDB::Archive* getArchive() { return _archive.get(); }
+
+
+        unsigned int getNumOfTextureLevels() const { return _numTextureLevels; }
+
+        void setDestinationCoordinateSystem(const std::string& wellKnownText) { setDestinationCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText)); }
+        void setDestinationCoordinateSystem(osg::CoordinateSystemNode* cs) { _destinationCoordinateSystem = cs; }
+        osg::CoordinateSystemNode* getDestinationCoordinateSystem() { return _destinationCoordinateSystem .get(); }
+        
+        void setIntermediateCoordinateSystem(const std::string& wellKnownText) { setIntermediateCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText)); }
+        void setIntermediateCoordinateSystem(osg::CoordinateSystemNode* cs) { _intermediateCoordinateSystem = cs; }
+        osg::CoordinateSystemNode* getIntermediateCoordinateSystem() { return _intermediateCoordinateSystem.get(); }
+
+        void setEllipsoidModel(osg::EllipsoidModel* et) { _ellipsoidModel = et; }
+        osg::EllipsoidModel* getEllipsoidModel() { return _ellipsoidModel.get(); }
+        const osg::EllipsoidModel* getEllipsoidModel() const { return _ellipsoidModel.get(); }
+        
+        void setDestinationExtents(const GeospatialExtents& extents) { _extents = extents; }
+        void setDestinationGeoTransform(const osg::Matrixd& geoTransform) { _geoTransform = geoTransform; }
+
+
+
     protected:
 
         virtual ~DataSet() {}
@@ -165,6 +191,16 @@ class VPB_EXPORT DataSet : public osg::Referenced, public BuildOptions
 
         osg::ref_ptr<osg::Node>                     _rootNode;
         osg::ref_ptr<osg::State>                    _state;
+
+        osg::ref_ptr<osgDB::Archive>                _archive;
+
+        unsigned int                                _numTextureLevels;
+        osg::ref_ptr<osg::CoordinateSystemNode>     _destinationCoordinateSystem;
+        osg::ref_ptr<osg::CoordinateSystemNode>     _intermediateCoordinateSystem;
+        osg::ref_ptr<osg::EllipsoidModel>           _ellipsoidModel;
+        osg::Matrixd                                _geoTransform;
+        GeospatialExtents                           _extents;
+
         
 };
 

@@ -178,7 +178,7 @@ SourceData* SourceData::readData(Source* source)
                 }
             }
 
-            GDALDataset* gdalDataSet = (GDALDataset*)source->getGdalDataset();
+            GDALDataset* gdalDataSet = source->getGdalDataset();
             if(!gdalDataSet)
                 gdalDataSet = (GDALDataset*)GDALOpen(source->getFileName().c_str(),GA_ReadOnly);
             if (gdalDataSet)
@@ -798,7 +798,7 @@ void SourceData::readHeightField(DestinationData& destination)
            int destHeight = osg::minimum((int)ceilf((float)destination._heightField->getNumRows()*(intersect_bb.yMax()-d_bb.yMin())/(d_bb.yMax()-d_bb.yMin())),(int)destination._heightField->getNumRows())-destY;
 
             // use heightfield if it exists
-            if (_hfDataset)
+            if (_hfDataset.valid())
             {
                 // read the data.
                 osg::HeightField* hf = destination._heightField.get();
@@ -821,7 +821,7 @@ void SourceData::readHeightField(DestinationData& destination)
                     for (int r = destY; r < endY; ++r)
                     {
                         double geoY = orig_Y + (delta_Y * (double)r);
-                        float h = getInterpolatedValue(_hfDataset, geoX-xoffset, geoY);
+                        float h = getInterpolatedValue(_hfDataset.get(), geoX-xoffset, geoY);
                         hf->setHeight(c,r,h);
                     }
                 }
@@ -977,35 +977,34 @@ void SourceData::readModels(DestinationData& destination)
     }
 }
 
-
-void Source::setGdalDataset(void* gdalDataSet)
+void Source::setGdalDataset(GDALDataset* gdalDataSet)
 {
-    _gdalDataset = (GDALDataset*)gdalDataSet;
+    _gdalDataset = gdalDataSet;
 }
 
-void* Source::getGdalDataset()
+GDALDataset* Source::getGdalDataset()
 {
     return _gdalDataset;
 }
 
-const void* Source::getGdalDataset() const
+const GDALDataset* Source::getGdalDataset() const
 {
     return _gdalDataset;
 }
 
-void Source::setHFDataset(void* hfDataSet)
+void Source::setHFDataset(osg::HeightField* hfDataSet)
 {
-    _hfDataset = (osg::HeightField*)hfDataSet;
+    _hfDataset = hfDataSet;
 }
 
-void* Source::getHFDataset()
+osg::HeightField* Source::getHFDataset()
 {
-    return _hfDataset;
+    return _hfDataset.get();
 }
 
-const void* Source::getHFDataset() const
+const osg::HeightField* Source::getHFDataset() const
 {
-    return _hfDataset;
+    return _hfDataset.get();
 }
 
 void Source::setSortValueFromSourceDataResolution()
