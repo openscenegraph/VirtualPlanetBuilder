@@ -157,7 +157,17 @@ class VPB_EXPORT BuildOptions
         MipMappingMode getMipMappingMode() const { return _mipMappingMode; }
 
 
+        void setDestinationCoordinateSystem(const std::string& wellKnownText);
+        void setDestinationCoordinateSystem(osg::CoordinateSystemNode* cs) { _destinationCoordinateSystem = cs; }
+        osg::CoordinateSystemNode* getDestinationCoordinateSystem() { return _destinationCoordinateSystem.get(); }
+        
+        void setDestinationExtents(const GeospatialExtents& extents) { _extents = extents; }
 
+        osg::EllipsoidModel* getEllipsoidModel() { return _destinationCoordinateSystem->getEllipsoidModel(); }
+        const osg::EllipsoidModel* getEllipsoidModel() const { return _destinationCoordinateSystem->getEllipsoidModel(); }
+
+        void setMaximumNumOfLevels(unsigned int levels) { _maximumNumOfLevels = levels; }
+        unsigned int getMaximumNumOfLevels() const { return _maximumNumOfLevels; }
 
     protected:
 
@@ -193,7 +203,11 @@ class VPB_EXPORT BuildOptions
         bool                                        _writeNodeBeforeSimplification;
         
         bool                                        _simplifyTerrain;
-        
+
+        osg::ref_ptr<osg::CoordinateSystemNode>     _destinationCoordinateSystem;
+        GeospatialExtents                           _extents;
+   
+        unsigned int                                _maximumNumOfLevels;
 };
 
 }

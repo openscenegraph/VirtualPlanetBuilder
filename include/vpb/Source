@@ -150,7 +150,7 @@ public:
     void setGeoTransformPolicy(ParameterPolicy policy)  { _geoTransformPolicy = policy; }
     ParameterPolicy getGeoTransformPolicy() const { return _geoTransformPolicy; }
 
-    void setGeoTransform(osg::Matrixd& transform) { _geoTransform = transform; }
+    void setGeoTransform(const osg::Matrixd& transform) { _geoTransform = transform; }
     osg::Matrixd& getGeoTransform() { return _geoTransform; }
 
     void setGeoTransformFromRange(double xMin, double xMax, double yMin, double yMax)

@@ -26,6 +26,9 @@
 
 #include <osgFX/MultiTextureControl>
 
+#include <osgViewer/GraphicsWindow>
+#include <osgViewer/Viewer>
+
 #include <vpb/DataSet>
 #include <vpb/DatabaseBuilder>
 
@@ -62,9 +65,6 @@ void DataSet::init()
     }
 
     _numTextureLevels = 1;
-
-    setEllipsoidModel(new osg::EllipsoidModel());
-
 }
 
 void DataSet::addSource(Source* source)
@@ -1001,6 +1001,17 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
         std::cout<<"Elevation HeightFieldLayer supplied"<<hfl->getFileName()<<std::endl;
         vpb::Source* source = new vpb::Source(type, hfl->getFileName());
         source->setLayer(layerNum);
+
+        if (layer->getLocator() && !layer->getLocator()->getDefinedInFile())
+        {
+            std::cout<<"Setting Coordinatesytem for "<<layer->getFileName()<<std::endl;
+            source->setGeoTransformPolicy(vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION);
+            source->setGeoTransform(layer->getLocator()->getTransform());
+
+            source->setCoordinateSystemPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
+            source->setCoordinateSystem(layer->getLocator()->getCoordinateSystem());
+        } 
+
         addSource(source);
         return true;
     }
@@ -1012,6 +1023,18 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
         std::cout<<"ImageLayer supplied"<<iml->getFileName()<<std::endl;
         vpb::Source* source = new vpb::Source(type, iml->getFileName());
         source->setLayer(layerNum);
+
+        if (layer->getLocator() && !layer->getLocator()->getDefinedInFile())
+        {
+            std::cout<<"Setting Coordinatesytem for "<<layer->getFileName()<<std::endl;
+
+            source->setGeoTransformPolicy(vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION);
+            source->setGeoTransform(layer->getLocator()->getTransform());
+
+            source->setCoordinateSystemPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
+            source->setCoordinateSystem(layer->getLocator()->getCoordinateSystem());
+        }
+
         addSource(source);
         return true;
     }
@@ -1022,6 +1045,18 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
         std::cout<<"ProxyLayer supplied"<<pl->getFileName()<<std::endl;
         vpb::Source* source = new vpb::Source(type, pl->getFileName());
         source->setLayer(layerNum);
+
+        if (layer->getLocator() && !layer->getLocator()->getDefinedInFile())
+        {
+            std::cout<<"Setting Coordinatesytem for "<<layer->getFileName()<<std::endl;
+
+            source->setGeoTransformPolicy(vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION);
+            source->setGeoTransform(layer->getLocator()->getTransform());
+
+            source->setCoordinateSystemPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
+            source->setCoordinateSystem(layer->getLocator()->getCoordinateSystem());
+        }
+
         addSource(source);
         return true;
     }
@@ -1037,7 +1072,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
             }
             else if (!compositeLayer->getFileName(i).empty())
             {
-                vpb::Source* source = new vpb::Source(type, pl->getFileName());
+                vpb::Source* source = new vpb::Source(type, compositeLayer->getFileName(i));
                 source->setLayer(layerNum);
                 addSource(source);
             }
@@ -1178,4 +1213,63 @@ osgTerrain::Terrain* DataSet::createTerrainRepresentation() const
     return terrain.release();
 }
 
+class MyGraphicsContext {
+    public:
+        MyGraphicsContext()
+        {
+            osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+            traits->x = 0;
+            traits->y = 0;
+            traits->width = 1;
+            traits->height = 1;
+            traits->windowDecoration = false;
+            traits->doubleBuffer = false;
+            traits->sharedContext = 0;
+            traits->pbuffer = true;
 
+            _gc = osg::GraphicsContext::createGraphicsContext(traits.get());
+
+            if (!_gc)
+            {
+                osg::notify(osg::NOTICE)<<"Failed to create pbuffer, failing back to normal graphics window."<<std::endl;
+                
+                traits->pbuffer = false;
+                _gc = osg::GraphicsContext::createGraphicsContext(traits.get());
+            }
+
+            if (_gc.valid()) 
+            
+            
+            {
+                _gc->realize();
+                _gc->makeCurrent();
+                std::cout<<"Realized window"<<std::endl;
+            }
+        }
+        
+        bool valid() const { return _gc.valid() && _gc->isRealized(); }
+        
+    private:
+        osg::ref_ptr<osg::GraphicsContext> _gc;
+};
+
+
+
+int DataSet::run()
+{
+    // dummy Viewer to get round silly Windows autoregistration problem for GraphicsWindowWin32.cpp
+    osgViewer::Viewer viewer;
+    
+    MyGraphicsContext context;
+    if (!context.valid())
+    {
+        osg::notify(osg::NOTICE)<<"Error: Unable to create graphis context - cannot run osgdem"<<std::endl;
+        return 1;
+    }
+
+    loadSources();
+
+    createDestination(getMaximumNumOfLevels());
+
+    writeDestination();        
+}

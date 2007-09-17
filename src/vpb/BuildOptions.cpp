@@ -47,10 +47,11 @@ BuildOptions::BuildOptions()
     _decorateWithCoordinateSystemNode = true;
     _decorateWithMultiTextureControl = true;
     
-    
     _writeNodeBeforeSimplification = false;
 
     _simplifyTerrain = true;
+    
+    _maximumNumOfLevels = 30;
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs)
@@ -98,9 +99,16 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _decorateWithCoordinateSystemNode = rhs._decorateWithCoordinateSystemNode;
     _decorateWithMultiTextureControl = rhs._decorateWithMultiTextureControl;
     
+    _comment = rhs._comment;
+    
     _writeNodeBeforeSimplification = rhs._writeNodeBeforeSimplification;
 
     _simplifyTerrain = rhs._simplifyTerrain;
+    
+    _destinationCoordinateSystem = rhs._destinationCoordinateSystem;
+    _extents = rhs._extents;
+    
+    _maximumNumOfLevels = rhs._maximumNumOfLevels;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)
@@ -141,3 +149,7 @@ void BuildOptions::setDirectory(const std::string& directory)
     osg::notify(osg::NOTICE)<<"directory name set "<<_directory<<std::endl;
 }
  
+void BuildOptions::setDestinationCoordinateSystem(const std::string& wellKnownText)
+{
+    setDestinationCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText));
+}
