@@ -93,6 +93,13 @@ void DataSet::loadSources()
     }
 }
 
+bool DataSet::mapLatLongsToXYZ() const
+{
+    bool result = getConvertFromGeographicToGeocentric() && getEllipsoidModel();
+    //osg::notify(osg::NOTICE)<<"DataSet::mapLatLongsToXYZ() = "<<result<<std::endl;    
+    return result;
+}
+
 CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* parent,
                                                       osg::CoordinateSystemNode* cs,
                                                       const GeospatialExtents& extents,
@@ -548,6 +555,9 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
         for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
         {
             Source* source = itr->get();
+            
+            osg::notify(osg::INFO)<<"Checking "<<source->getFileName()<<std::endl;
+            
             if (source && source->needReproject(_intermediateCoordinateSystem.get()))
             {
                 // do the reprojection to a tempory file.
@@ -563,6 +573,7 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
                     *itr = 0;
                 }
             }
+            osg::notify(osg::NOTICE)<<std::endl;
         }
     }
     
@@ -1048,7 +1059,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
 
         if (layer->getLocator() && !layer->getLocator()->getDefinedInFile())
         {
-            std::cout<<"Setting Coordinatesytem for "<<layer->getFileName()<<std::endl;
+            std::cout<<"Setting Coordinatesytem for "<<layer->getFileName()<<" "<<layer->getLocator()->getCoordinateSystem()<<std::endl;
 
             source->setGeoTransformPolicy(vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION);
             source->setGeoTransform(layer->getLocator()->getTransform());

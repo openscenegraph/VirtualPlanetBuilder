@@ -1137,7 +1137,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
     if (!_sourceData) return 0;
     if (_type==MODEL) return 0;
     
-    osg::notify(osg::INFO)<<"reprojecting to file "<<filename<<std::endl;
+    osg::notify(osg::NOTICE)<<"reprojecting to file "<<filename<<std::endl;
 
     GDALDriverH hDriver = GDALGetDriverByName( "GTiff" );
         

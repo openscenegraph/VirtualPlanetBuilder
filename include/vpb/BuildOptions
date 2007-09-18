@@ -158,13 +158,14 @@ class VPB_EXPORT BuildOptions
 
 
         void setDestinationCoordinateSystem(const std::string& wellKnownText);
-        void setDestinationCoordinateSystem(osg::CoordinateSystemNode* cs) { _destinationCoordinateSystem = cs; }
+        void setDestinationCoordinateSystem(osg::CoordinateSystemNode* cs);
         osg::CoordinateSystemNode* getDestinationCoordinateSystem() { return _destinationCoordinateSystem.get(); }
         
         void setDestinationExtents(const GeospatialExtents& extents) { _extents = extents; }
+        const GeospatialExtents& getDestinationExtents() const { return _extents; }
 
-        osg::EllipsoidModel* getEllipsoidModel() { return _destinationCoordinateSystem->getEllipsoidModel(); }
-        const osg::EllipsoidModel* getEllipsoidModel() const { return _destinationCoordinateSystem->getEllipsoidModel(); }
+        osg::EllipsoidModel* getEllipsoidModel() { return _destinationCoordinateSystem.valid() ? _destinationCoordinateSystem->getEllipsoidModel() : 0; }
+        const osg::EllipsoidModel* getEllipsoidModel() const { return _destinationCoordinateSystem.valid() ? _destinationCoordinateSystem->getEllipsoidModel() : 0; }
 
         void setMaximumNumOfLevels(unsigned int levels) { _maximumNumOfLevels = levels; }
         unsigned int getMaximumNumOfLevels() const { return _maximumNumOfLevels; }

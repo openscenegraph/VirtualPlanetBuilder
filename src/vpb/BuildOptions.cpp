@@ -50,6 +50,9 @@ BuildOptions::BuildOptions()
     _writeNodeBeforeSimplification = false;
 
     _simplifyTerrain = true;
+
+    _destinationCoordinateSystem = new osg::CoordinateSystemNode;
+    _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
     
     _maximumNumOfLevels = 30;
 }
@@ -85,8 +88,9 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _tileBasename = rhs._tileBasename;
     _tileExtension = rhs._tileExtension;
     _imageExtension = rhs._imageExtension;
-
     
+    _archiveName = rhs._archiveName;
+
     _defaultColor = rhs._defaultColor;
     _databaseType = rhs._databaseType;
     _geometryType = rhs._geometryType;
@@ -152,4 +156,14 @@ void BuildOptions::setDirectory(const std::string& directory)
 void BuildOptions::setDestinationCoordinateSystem(const std::string& wellKnownText)
 {
     setDestinationCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText));
+}
+
+void BuildOptions::setDestinationCoordinateSystem(osg::CoordinateSystemNode* cs)
+{
+    _destinationCoordinateSystem = cs;
+    
+    if (_destinationCoordinateSystem.valid() && _destinationCoordinateSystem->getEllipsoidModel()==0)
+    {
+        _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
+    }
 }

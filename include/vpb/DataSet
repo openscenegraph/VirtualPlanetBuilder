@@ -103,7 +103,7 @@ class VPB_EXPORT DataSet : public osg::Referenced, public BuildOptions
 
         void loadSources();
         
-        bool mapLatLongsToXYZ() const { return getConvertFromGeographicToGeocentric() && getEllipsoidModel(); }
+        bool mapLatLongsToXYZ() const;
 
         static void setNotifyOffset(int level);
         static int getNotifyOffset();

@@ -141,7 +141,7 @@ bool vpb::areCoordinateSystemEquivalent(const osg::CoordinateSystemNode* lhs,con
 #if 0
     int result2 = lhsSR.IsSameGeogCS(&rhsSR);
 
-     osg::notify(osg::INFO)<<"areCoordinateSystemEquivalent "<<std::endl
+     osg::notify(osg::NOTICE)<<"areCoordinateSystemEquivalent "<<std::endl
               <<"LHS = "<<lhs->getCoordinateSystem()<<std::endl
               <<"RHS = "<<rhs->getCoordinateSystem()<<std::endl
               <<"result = "<<result<<"  result2 = "<<result2<<std::endl;

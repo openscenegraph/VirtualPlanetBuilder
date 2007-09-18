@@ -67,6 +67,8 @@ void processFile(const std::string& filename,
 {
 
     if (filename.empty()) return;
+    
+    osg::notify(osg::INFO)<<"processFile "<<filename<<" cs="<<currentCS<<std::endl;
 
     if (osgDB::fileType(filename) == osgDB::REGULAR_FILE)
     {
@@ -86,7 +88,7 @@ void processFile(const std::string& filename,
 
             if (!currentCS.empty())
             {
-                std::cout<<"locator->setCoordateSystem "<<currentCS<<std::endl;
+                osg::notify(osg::INFO)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
                 locator->setFormat("WKT");
                 locator->setCoordinateSystem(currentCS);
                 locator->setDefinedInFile(false);
@@ -94,7 +96,7 @@ void processFile(const std::string& filename,
 
             if (geoTransformSet)
             {
-                std::cout<<"locator->setTransform "<<geoTransform<<std::endl;
+                osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
                 locator->setTransform(geoTransform);
                 locator->setDefinedInFile(false);
             }
@@ -143,7 +145,6 @@ void processFile(const std::string& filename,
                     terrain->setElevationLayer(loadedLayer);
                 }
             }
-            std::cout<<"Reading as layer = "<<layerNum<<std::endl;
         }
 
 
@@ -340,7 +341,7 @@ int new_main(osg::ArgumentParser& arguments)
     while (arguments.read("--so",terrainOutputName)) {}
 
     unsigned int numLevels = 10;
-    while (arguments.read("-l",numLevels)) {}
+    while (arguments.read("-l",numLevels)) { buildOptions->setMaximumNumOfLevels(numLevels); }
 
     float verticalScale;
     while (arguments.read("-v",verticalScale))
