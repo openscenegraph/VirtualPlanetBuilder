@@ -605,6 +605,9 @@ public:
 
         ADD_VEC4_PROPERTY(DefaultColor);
         
+        ADD_STRING_PROPERTY(DestinationCoordinateSystem);
+        ADD_UINT_PROPERTY(MaximumNumOfLevels);
+        
     }
     
     bool read(osgDB::Input& fr, DatabaseBuilder& db, bool& itrAdvanced)

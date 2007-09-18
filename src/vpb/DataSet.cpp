@@ -573,7 +573,7 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
                     *itr = 0;
                 }
             }
-            osg::notify(osg::NOTICE)<<std::endl;
+            osg::notify(osg::INFO)<<std::endl;
         }
     }
     

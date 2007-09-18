@@ -19,42 +19,33 @@ using namespace vpb;
 
 BuildOptions::BuildOptions()
 {
-    _maximumTileImageSize = 256;
-    _maximumTileTerrainSize = 64;
-    
-    _maximumVisiableDistanceOfTopLevel = 1e10;
-    
-    _radiusToMaxVisibleDistanceRatio = 7.0f;
-    _verticalScale = 1.0f;
-    _skirtRatio = 0.02f;
-
+    _archiveName = "";
+    _comment = "";
     _convertFromGeographicToGeocentric = false;
-    
-    _tileBasename = "output";
-    _tileExtension = ".ive";
-    _imageExtension = ".dds";
-
-    
-    _defaultColor.set(0.5f,0.5f,1.0f,1.0f);
     _databaseType = PagedLOD_DATABASE;
-    _geometryType = POLYGONAL;
-    _textureType = COMPRESSED_TEXTURE;
-    _maxAnisotropy = 1.0;
-    _mipMappingMode = MIP_MAPPING_IMAGERY;
-
-    _useLocalTileTransform = true;
-    
     _decorateWithCoordinateSystemNode = true;
     _decorateWithMultiTextureControl = true;
-    
-    _writeNodeBeforeSimplification = false;
-
-    _simplifyTerrain = true;
-
-    _destinationCoordinateSystem = new osg::CoordinateSystemNode;
-    _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
-    
+    _defaultColor.set(0.5f,0.5f,1.0f,1.0f);
+    _destinationCoordinateSystemString = "";
+    _destinationCoordinateSystem = new osg::CoordinateSystemNode; _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
+    _directory = "";
+    _geometryType = POLYGONAL;
+    _imageExtension = ".dds";
+    _maxAnisotropy = 1.0;
     _maximumNumOfLevels = 30;
+    _maximumTileImageSize = 256;
+    _maximumTileTerrainSize = 64;
+    _maximumVisiableDistanceOfTopLevel = 1e10;
+    _mipMappingMode = MIP_MAPPING_IMAGERY;
+    _radiusToMaxVisibleDistanceRatio = 7.0f;
+    _simplifyTerrain = true;
+    _skirtRatio = 0.02f;
+    _textureType = COMPRESSED_TEXTURE;
+    _tileBasename = "output";
+    _tileExtension = ".ive";
+    _useLocalTileTransform = true;
+    _verticalScale = 1.0f;
+    _writeNodeBeforeSimplification = false;
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs)
@@ -74,45 +65,34 @@ BuildOptions& BuildOptions::operator = (const BuildOptions& rhs)
 
 void BuildOptions::setBuildOptions(const BuildOptions& rhs)
 {
-    _maximumTileImageSize = rhs._maximumTileImageSize;
-    _maximumTileTerrainSize = rhs._maximumTileTerrainSize;
-    
-    _maximumVisiableDistanceOfTopLevel = rhs._maximumVisiableDistanceOfTopLevel;
-    
-    _radiusToMaxVisibleDistanceRatio = rhs._radiusToMaxVisibleDistanceRatio;
-    _verticalScale = rhs._verticalScale;
-    _skirtRatio = rhs._skirtRatio;
-
-    _convertFromGeographicToGeocentric = rhs._convertFromGeographicToGeocentric;
-    
-    _tileBasename = rhs._tileBasename;
-    _tileExtension = rhs._tileExtension;
-    _imageExtension = rhs._imageExtension;
-    
     _archiveName = rhs._archiveName;
-
-    _defaultColor = rhs._defaultColor;
+    _comment = rhs._comment;
+    _convertFromGeographicToGeocentric = rhs._convertFromGeographicToGeocentric;
     _databaseType = rhs._databaseType;
-    _geometryType = rhs._geometryType;
-    _textureType = rhs._textureType;
-    _maxAnisotropy = rhs._maxAnisotropy;
-    _mipMappingMode = rhs._mipMappingMode;
-
-    _useLocalTileTransform = rhs._useLocalTileTransform;
-    
     _decorateWithCoordinateSystemNode = rhs._decorateWithCoordinateSystemNode;
     _decorateWithMultiTextureControl = rhs._decorateWithMultiTextureControl;
-    
-    _comment = rhs._comment;
-    
-    _writeNodeBeforeSimplification = rhs._writeNodeBeforeSimplification;
-
-    _simplifyTerrain = rhs._simplifyTerrain;
-    
+    _defaultColor = rhs._defaultColor;
+    _destinationCoordinateSystemString = rhs._destinationCoordinateSystemString;
     _destinationCoordinateSystem = rhs._destinationCoordinateSystem;
+    _directory = rhs._directory;
     _extents = rhs._extents;
-    
+    _geometryType = rhs._geometryType;
+    _imageExtension = rhs._imageExtension;
+    _maxAnisotropy = rhs._maxAnisotropy;
     _maximumNumOfLevels = rhs._maximumNumOfLevels;
+    _maximumTileImageSize = rhs._maximumTileImageSize;
+    _maximumTileTerrainSize = rhs._maximumTileTerrainSize;
+    _maximumVisiableDistanceOfTopLevel = rhs._maximumVisiableDistanceOfTopLevel;
+    _mipMappingMode = rhs._mipMappingMode;
+    _radiusToMaxVisibleDistanceRatio = rhs._radiusToMaxVisibleDistanceRatio;
+    _simplifyTerrain = rhs._simplifyTerrain;
+    _skirtRatio = rhs._skirtRatio;
+    _textureType = rhs._textureType;
+    _tileBasename = rhs._tileBasename;
+    _tileExtension = rhs._tileExtension;
+    _useLocalTileTransform = rhs._useLocalTileTransform;
+    _verticalScale = rhs._verticalScale;
+    _writeNodeBeforeSimplification = rhs._writeNodeBeforeSimplification;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)
@@ -155,15 +135,27 @@ void BuildOptions::setDirectory(const std::string& directory)
  
 void BuildOptions::setDestinationCoordinateSystem(const std::string& wellKnownText)
 {
-    setDestinationCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText));
+    _destinationCoordinateSystemString = wellKnownText;
+    setDestinationCoordinateSystemNode(new osg::CoordinateSystemNode("WKT",wellKnownText));
 }
 
-void BuildOptions::setDestinationCoordinateSystem(osg::CoordinateSystemNode* cs)
+void BuildOptions::setDestinationCoordinateSystemNode(osg::CoordinateSystemNode* cs)
 {
     _destinationCoordinateSystem = cs;
     
-    if (_destinationCoordinateSystem.valid() && _destinationCoordinateSystem->getEllipsoidModel()==0)
+    if (_destinationCoordinateSystem.valid())
     {
-        _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
+        if (_destinationCoordinateSystem->getEllipsoidModel()==0)
+        {
+            _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
+        }
+        
+        _destinationCoordinateSystemString = _destinationCoordinateSystem->getCoordinateSystem();
     }
+    else
+    {
+        _destinationCoordinateSystemString.clear();
+    }
+    
+
 }

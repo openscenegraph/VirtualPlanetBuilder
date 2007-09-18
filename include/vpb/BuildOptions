@@ -158,8 +158,10 @@ class VPB_EXPORT BuildOptions
 
 
         void setDestinationCoordinateSystem(const std::string& wellKnownText);
-        void setDestinationCoordinateSystem(osg::CoordinateSystemNode* cs);
-        osg::CoordinateSystemNode* getDestinationCoordinateSystem() { return _destinationCoordinateSystem.get(); }
+        const std::string& getDestinationCoordinateSystem() const { return _destinationCoordinateSystemString; }
+        
+        void setDestinationCoordinateSystemNode(osg::CoordinateSystemNode* cs);
+        osg::CoordinateSystemNode* getDestinationCoordinateSystemNode() { return _destinationCoordinateSystem.get(); }
         
         void setDestinationExtents(const GeospatialExtents& extents) { _extents = extents; }
         const GeospatialExtents& getDestinationExtents() const { return _extents; }
@@ -172,43 +174,34 @@ class VPB_EXPORT BuildOptions
 
     protected:
 
-        unsigned int                                _maximumTileImageSize;
-        unsigned int                                _maximumTileTerrainSize;
-        float                                       _maximumVisiableDistanceOfTopLevel;
-        float                                       _radiusToMaxVisibleDistanceRatio;
-        float                                       _verticalScale;
-        float                                       _skirtRatio;
-            
         bool                                        _convertFromGeographicToGeocentric;
-
-        std::string                                 _archiveName;
-        std::string                                 _directory;
-        std::string                                 _tileBasename;
-        std::string                                 _tileExtension;
-        std::string                                 _imageExtension;
-        osg::Vec4                                   _defaultColor;
-        DatabaseType                                _databaseType;
-        GeometryType                                _geometryType;
-        TextureType                                 _textureType;
-        float                                       _maxAnisotropy;
-        MipMappingMode                              _mipMappingMode;
-        
-
-        bool                                        _useLocalTileTransform;
-
         bool                                        _decorateWithCoordinateSystemNode;
         bool                                        _decorateWithMultiTextureControl;
-        
-        std::string                                 _comment;
-
-        bool                                        _writeNodeBeforeSimplification;
-        
         bool                                        _simplifyTerrain;
-
-        osg::ref_ptr<osg::CoordinateSystemNode>     _destinationCoordinateSystem;
+        bool                                        _useLocalTileTransform;
+        bool                                        _writeNodeBeforeSimplification;
+        DatabaseType                                _databaseType;
+        float                                       _maxAnisotropy;
+        float                                       _maximumVisiableDistanceOfTopLevel;
+        float                                       _radiusToMaxVisibleDistanceRatio;
+        float                                       _skirtRatio;
+        float                                       _verticalScale;
+        GeometryType                                _geometryType;
         GeospatialExtents                           _extents;
-   
+        MipMappingMode                              _mipMappingMode;
+        osg::ref_ptr<osg::CoordinateSystemNode>     _destinationCoordinateSystem;
+        osg::Vec4                                   _defaultColor;
+        std::string                                 _archiveName;
+        std::string                                 _comment;
+        std::string                                 _destinationCoordinateSystemString;
+        std::string                                 _directory;
+        std::string                                 _imageExtension;
+        std::string                                 _tileBasename;
+        std::string                                 _tileExtension;
+        TextureType                                 _textureType;
         unsigned int                                _maximumNumOfLevels;
+        unsigned int                                _maximumTileImageSize;
+        unsigned int                                _maximumTileTerrainSize;
 };
 
 }
