@@ -578,6 +578,7 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
     }
     
     // do sampling of data to required values.
+    if (getBuildOverlays())
     {
         for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
         {
@@ -1268,19 +1269,31 @@ class MyGraphicsContext {
 
 int DataSet::run()
 {
-    // dummy Viewer to get round silly Windows autoregistration problem for GraphicsWindowWin32.cpp
-    osgViewer::Viewer viewer;
-    
-    MyGraphicsContext context;
-    if (!context.valid())
-    {
-        osg::notify(osg::NOTICE)<<"Error: Unable to create graphis context - cannot run osgdem"<<std::endl;
-        return 1;
-    }
 
     loadSources();
 
     createDestination(getMaximumNumOfLevels());
+    
+    if (!getIntermediateBuildName().empty())
+    {
+        osg::ref_ptr<osgTerrain::Terrain> terrain = createTerrainRepresentation();
+        if (terrain.valid())
+        {
+            osgDB::writeNodeFile(*terrain,getIntermediateBuildName());
+        }
+    }
 
-    writeDestination();        
+    {
+        // dummy Viewer to get round silly Windows autoregistration problem for GraphicsWindowWin32.cpp
+        osgViewer::Viewer viewer;
+
+        MyGraphicsContext context;
+        if (!context.valid())
+        {
+            osg::notify(osg::NOTICE)<<"Error: Unable to create graphis context - cannot run osgdem"<<std::endl;
+            return 1;
+        }
+
+        writeDestination();
+    }
 }

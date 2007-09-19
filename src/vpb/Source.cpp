@@ -1436,12 +1436,9 @@ void Source::consolodateRequiredResolutions()
 
 void Source::buildOverviews()
 {
-    return;
-
     if (_sourceData.valid() && _sourceData->_gdalDataset )
     {
-
-        int anOverviewList[4] = { 2, 4, 8, 16 };
+        int anOverviewList[5] = { 2, 4, 8, 16, 32 };
         GDALBuildOverviews( _sourceData->_gdalDataset, "AVERAGE", 4, anOverviewList, 0, NULL, 
                                 GDALTermProgress/*GDALDummyProgress*/, NULL );
 

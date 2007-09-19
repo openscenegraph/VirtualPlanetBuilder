@@ -62,6 +62,9 @@ class VPB_EXPORT BuildOptions
         /** Get the Archive name.*/
         const std::string& getArchiveName() const { return _archiveName; }
 
+        void setIntermediateBuildName(const std::string& buildName) { _intermediateBuildName = buildName; }
+        const std::string& getIntermediateBuildName() const { return _intermediateBuildName; }
+
         void setCommentString(const std::string& comment) { _comment = comment; }        
         const std::string& getCommentString() const { return _comment; }        
 
@@ -87,6 +90,8 @@ class VPB_EXPORT BuildOptions
         void setDefaultColor(const osg::Vec4& defaultColor) { _defaultColor = defaultColor; }
         const osg::Vec4& getDefaultColor() const { return _defaultColor; }
 
+        void setBuildOverlays(bool flag) { _buildOverlays = flag; }
+        bool getBuildOverlays() const { return _buildOverlays; }
 
         void setConvertFromGeographicToGeocentric(bool flag) { _convertFromGeographicToGeocentric = flag; }
         bool getConvertFromGeographicToGeocentric() const { return _convertFromGeographicToGeocentric; }
@@ -109,8 +114,6 @@ class VPB_EXPORT BuildOptions
 
         void setWriteNodeBeforeSimplification(bool flag) { _writeNodeBeforeSimplification = flag; }
         bool getWriteNodeBeforeSimplification() const { return _writeNodeBeforeSimplification; }
-
-
 
 
         enum DatabaseType
@@ -174,6 +177,7 @@ class VPB_EXPORT BuildOptions
 
     protected:
 
+        bool                                        _buildOverlays;
         bool                                        _convertFromGeographicToGeocentric;
         bool                                        _decorateWithCoordinateSystemNode;
         bool                                        _decorateWithMultiTextureControl;
@@ -196,6 +200,7 @@ class VPB_EXPORT BuildOptions
         std::string                                 _destinationCoordinateSystemString;
         std::string                                 _directory;
         std::string                                 _imageExtension;
+        std::string                                 _intermediateBuildName;
         std::string                                 _tileBasename;
         std::string                                 _tileExtension;
         TextureType                                 _textureType;

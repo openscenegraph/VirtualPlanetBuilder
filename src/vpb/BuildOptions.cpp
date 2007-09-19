@@ -20,6 +20,7 @@ using namespace vpb;
 BuildOptions::BuildOptions()
 {
     _archiveName = "";
+    _buildOverlays = false;
     _comment = "";
     _convertFromGeographicToGeocentric = false;
     _databaseType = PagedLOD_DATABASE;
@@ -31,6 +32,7 @@ BuildOptions::BuildOptions()
     _directory = "";
     _geometryType = POLYGONAL;
     _imageExtension = ".dds";
+    _intermediateBuildName = "";
     _maxAnisotropy = 1.0;
     _maximumNumOfLevels = 30;
     _maximumTileImageSize = 256;
@@ -66,6 +68,7 @@ BuildOptions& BuildOptions::operator = (const BuildOptions& rhs)
 void BuildOptions::setBuildOptions(const BuildOptions& rhs)
 {
     _archiveName = rhs._archiveName;
+    _buildOverlays = rhs._buildOverlays;
     _comment = rhs._comment;
     _convertFromGeographicToGeocentric = rhs._convertFromGeographicToGeocentric;
     _databaseType = rhs._databaseType;
@@ -78,6 +81,7 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _extents = rhs._extents;
     _geometryType = rhs._geometryType;
     _imageExtension = rhs._imageExtension;
+    _intermediateBuildName = rhs._intermediateBuildName;
     _maxAnisotropy = rhs._maxAnisotropy;
     _maximumNumOfLevels = rhs._maximumNumOfLevels;
     _maximumTileImageSize = rhs._maximumTileImageSize;

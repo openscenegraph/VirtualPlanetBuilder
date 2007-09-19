@@ -480,6 +480,7 @@ public:
         ADD_STRING_PROPERTY(DestinationTileExtension);
         ADD_STRING_PROPERTY(DestinationImageExtension);
         ADD_STRING_PROPERTY(ArchiveName);
+        ADD_STRING_PROPERTY(IntermediateBuildName);
         ADD_STRING_PROPERTY(CommentString);
         
         ADD_ENUM_PROPERTY_TWO_VALUES(DatabaseType, LOD_DATABASE, PagedLOD_DATABASE)
@@ -497,6 +498,7 @@ public:
         ADD_FLOAT_PROPERTY(SkirtRatio);
         ADD_FLOAT_PROPERTY(MaxAnisotropy);
         
+        ADD_BOOL_PROPERTY(BuildOverlays);
         ADD_BOOL_PROPERTY(ConvertFromGeographicToGeocentric);
         ADD_BOOL_PROPERTY(UseLocalTileTransform);
         ADD_BOOL_PROPERTY(SimplifyTerrain);

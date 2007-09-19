@@ -177,6 +177,7 @@ int new_main(osg::ArgumentParser& arguments)
     arguments.getApplicationUsage()->addCommandLineOption("-d <filename>","Specify the digital elevation map input file to process");
     arguments.getApplicationUsage()->addCommandLineOption("-t <filename>","Specify the texture map input file to process");
     arguments.getApplicationUsage()->addCommandLineOption("-a <archivename>","Specify the archive to place the generated database");
+    arguments.getApplicationUsage()->addCommandLineOption("--ibn <buildname>","Specify the intermediate build file name");
     arguments.getApplicationUsage()->addCommandLineOption("-o <outputfile>","Specify the output master file to generate");
     arguments.getApplicationUsage()->addCommandLineOption("-l <numOfLevels>","Specify the number of PagedLOD levels to generate");
     arguments.getApplicationUsage()->addCommandLineOption("--image-ext <ext>","Specify the Image format to output to via its plugin name, i.e. rgb, dds, jp2, jpeg.");
@@ -285,7 +286,13 @@ int new_main(osg::ArgumentParser& arguments)
     {
         buildOptions->setDestinationExtents(vpb::GeospatialExtents(x,y,x+w,y+h,false)); // FIXME - need to check whether we a geographic extents of not
     }
-    
+
+    std::string buildname;    
+    while (arguments.read("--ibn",buildname))
+    {
+        buildOptions->setIntermediateBuildName(buildname);
+    }
+
     while (arguments.read("--HEIGHT_FIELD"))
     {
         buildOptions->setGeometryType(vpb::BuildOptions::HEIGHT_FIELD);
