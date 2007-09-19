@@ -181,16 +181,15 @@ public:
 };
 
 
-template<typename C>
-class IntSerializer : public Serializer
+template<typename C, typename P>
+class TemplateSerializer : public Serializer
 {
 public:
 
-     typedef int P;
      typedef P (C::*GetterFunctionType)() const;
      typedef void (C::*SetterFunctionType)(P);
 
-     IntSerializer(const char* fieldName, P defaultValue, GetterFunctionType getter, SetterFunctionType setter):
+     TemplateSerializer(const char* fieldName, P defaultValue, GetterFunctionType getter, SetterFunctionType setter):
         _fieldName(fieldName),
         _default(defaultValue),
         _getter(getter),
@@ -209,12 +208,10 @@ public:
     bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
     {
         C& object = static_cast<C&>(obj);
-        if (fr[0].matchWord(_fieldName.c_str()) && fr[1].isInt())
+        P value;
+        if (fr.read(_fieldName.c_str(), value))
         {
-            P value;
-            fr[1].getInt(value);
             (object.*_setter)(value);
-            fr += 2;
             itrAdvanced = true;
         }
      }
@@ -224,140 +221,6 @@ public:
      GetterFunctionType _getter;
      SetterFunctionType _setter;
 };
-
-template<typename C>
-class UIntSerializer : public Serializer
-{
-public:
-
-     typedef unsigned int P;
-     typedef P (C::*GetterFunctionType)() const;
-     typedef void (C::*SetterFunctionType)(P);
-
-     UIntSerializer(const char* fieldName, P defaultValue, GetterFunctionType getter, SetterFunctionType setter):
-        _fieldName(fieldName),
-        _default(defaultValue),
-        _getter(getter),
-        _setter(setter) {}
-     
-     bool write(osgDB::Output& fw, const osg::Object& obj)
-     {
-        const C& object = static_cast<const C&>(obj);
-        if (fw.getWriteOutDefaultValues() ||
-            _default != (object.*_getter)())
-        {
-            fw.indent()<<_fieldName<<" "<<(object.*_getter)()<<std::endl;
-        }
-     }
-
-    bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
-    {
-        C& object = static_cast<C&>(obj);
-        if (fr[0].matchWord(_fieldName.c_str()) && fr[1].isUInt())
-        {
-            P value;
-            fr[1].getUInt(value);
-            (object.*_setter)(value);
-            fr += 2;
-            itrAdvanced = true;
-        }
-     }
-     
-     std::string        _fieldName;
-     P                  _default;
-     GetterFunctionType _getter;
-     SetterFunctionType _setter;
-};
-
-
-template<typename C>
-class FloatSerializer : public Serializer
-{
-public:
-
-     typedef float P;
-     typedef P (C::*GetterFunctionType)() const;
-     typedef void (C::*SetterFunctionType)(P);
-
-     FloatSerializer(const char* fieldName, P defaultValue, GetterFunctionType getter, SetterFunctionType setter):
-        _fieldName(fieldName),
-        _default(defaultValue),
-        _getter(getter),
-        _setter(setter) {}
-     
-     bool write(osgDB::Output& fw, const osg::Object& obj)
-     {
-        const C& object = static_cast<const C&>(obj);
-        if (fw.getWriteOutDefaultValues() ||
-            _default != (object.*_getter)())
-        {
-            fw.indent()<<_fieldName<<" "<<(object.*_getter)()<<std::endl;
-        }
-     }
-
-    bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
-    {
-        C& object = static_cast<C&>(obj);
-        if (fr[0].matchWord(_fieldName.c_str()) && fr[1].isFloat())
-        {
-            P value;
-            fr[1].getFloat(value);
-            (object.*_setter)(value);
-            fr += 2;
-            itrAdvanced = true;
-        }
-     }
-     
-     std::string        _fieldName;
-     P                  _default;
-     GetterFunctionType _getter;
-     SetterFunctionType _setter;
-};
-
-template<typename C>
-class DoubleSerializer : public Serializer
-{
-public:
-
-     typedef double P;
-     typedef P (C::*GetterFunctionType)() const;
-     typedef void (C::*SetterFunctionType)(P);
-
-     DoubleSerializer(const char* fieldName, P defaultValue, GetterFunctionType getter, SetterFunctionType setter):
-        _fieldName(fieldName),
-        _default(defaultValue),
-        _getter(getter),
-        _setter(setter) {}
-     
-     bool write(osgDB::Output& fw, const osg::Object& obj)
-     {
-        const C& object = static_cast<const C&>(obj);
-        if (fw.getWriteOutDefaultValues() ||
-            _default != (object.*_getter)())
-        {
-            fw.indent()<<_fieldName<<" "<<(object.*_getter)()<<std::endl;
-        }
-     }
-
-    bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
-    {
-        C& object = static_cast<C&>(obj);
-        if (fr[0].matchWord(_fieldName.c_str()) && fr[1].isFloat())
-        {
-            P value;
-            fr[1].getFloat(value);
-            (object.*_setter)(value);
-            fr += 2;
-            itrAdvanced = true;
-        }
-     }
-     
-     std::string        _fieldName;
-     P                  _default;
-     GetterFunctionType _getter;
-     SetterFunctionType _setter;
-};
-
 
 template<typename C>
 class Vec4Serializer : public Serializer
@@ -388,17 +251,9 @@ public:
     bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
     {
         C& object = static_cast<C&>(obj);
-        if (fr[0].matchWord(_fieldName.c_str()) &&
-            fr[1].isFloat() &&
-            fr[2].isFloat() &&
-            fr[3].isFloat() &&
-            fr[4].isFloat())
+        V value;
+        if (fr.read(_fieldName.c_str(), value[0], value[1], value[2], value[3]))
         {
-            V value;
-            fr[1].getFloat(value[0]);
-            fr[2].getFloat(value[1]);
-            fr[3].getFloat(value[2]);
-            fr[4].getFloat(value[3]);
             (object.*_setter)(value);
             fr += 2;
             itrAdvanced = true;
@@ -410,6 +265,7 @@ public:
      GetterFunctionType _getter;
      SetterFunctionType _setter;
 };
+
 
 template<typename C>
 class BoolSerializer : public Serializer
@@ -453,6 +309,51 @@ public:
      SetterFunctionType _setter;
 };
 
+template<typename C>
+class GeospatialExtentsSerializer : public Serializer
+{
+public:
+
+     typedef GeospatialExtents V;
+     typedef const V& P;
+     typedef P (C::*GetterFunctionType)() const;
+     typedef void (C::*SetterFunctionType)(P);
+
+     GeospatialExtentsSerializer(const char* fieldName, P defaultValue, GetterFunctionType getter, SetterFunctionType setter):
+        _fieldName(fieldName),
+        _default(defaultValue),
+        _getter(getter),
+        _setter(setter) {}
+     
+     bool write(osgDB::Output& fw, const osg::Object& obj)
+     {
+        const C& object = static_cast<const C&>(obj);
+        if (fw.getWriteOutDefaultValues() ||
+            _default != (object.*_getter)())
+        {
+            P value = (object.*_getter)();
+            fw.indent()<<_fieldName<<" "<<value._min[0]<<" "<<value._min[1]<<" "<<value._max[0]<<" "<<value._max[1]<<std::endl;
+        }
+     }
+
+    bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
+    {
+        C& object = static_cast<C&>(obj);
+        V value;
+        if (fr.read(_fieldName.c_str(), value._min[0], value._min[1], value._max[0], value._max[1]))
+        {
+            (object.*_setter)(value);
+            itrAdvanced = true;
+        }
+     }
+     
+     std::string        _fieldName;
+     V                  _default;
+     GetterFunctionType _getter;
+     SetterFunctionType _setter;
+};
+
+
 #define CREATE_STRING_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
     new StringSerializer<CLASS>( \
     #PROPERTY, \
@@ -464,7 +365,7 @@ public:
 
 
 #define CREATE_UINT_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
-    new UIntSerializer<CLASS>( \
+    new TemplateSerializer<CLASS,unsigned int>( \
     #PROPERTY, \
     PROTOTYPE.get##PROPERTY(), \
     &CLASS::get##PROPERTY, \
@@ -474,7 +375,7 @@ public:
 
 
 #define CREATE_INT_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
-    new IntSerializer<CLASS>( \
+    new TemplateSerializer<CLASS, int>( \
     #PROPERTY, \
     PROTOTYPE.get##PROPERTY(), \
     &CLASS::get##PROPERTY, \
@@ -484,7 +385,7 @@ public:
 
 
 #define CREATE_FLOAT_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
-    new FloatSerializer<CLASS>( \
+    new TemplateSerializer<CLASS,float>( \
     #PROPERTY, \
     PROTOTYPE.get##PROPERTY(), \
     &CLASS::get##PROPERTY, \
@@ -493,7 +394,7 @@ public:
 #define ADD_FLOAT_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_FLOAT_SERIALIZER(DatabaseBuilder,PROPERTY,prototype))
 
 #define CREATE_DOUBLE_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
-    new DoubleSerializer<CLASS>( \
+    new TemplateSerializer<CLASS, double>( \
     #PROPERTY, \
     PROTOTYPE.get##PROPERTY(), \
     &CLASS::get##PROPERTY, \
@@ -606,6 +507,14 @@ public:
         ADD_VEC4_PROPERTY(DefaultColor);
         
         ADD_STRING_PROPERTY(DestinationCoordinateSystem);
+
+
+        _serializerList.push_back(new GeospatialExtentsSerializer<DatabaseBuilder>(
+                "DestinationExtents", 
+                prototype.getDestinationExtents(), 
+                &DatabaseBuilder::getDestinationExtents,
+                &DatabaseBuilder::setDestinationExtents));
+
         ADD_UINT_PROPERTY(MaximumNumOfLevels);
         
     }

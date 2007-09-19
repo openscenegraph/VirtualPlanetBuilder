@@ -50,10 +50,25 @@ public:
         _max(-DBL_MAX,-DBL_MAX),
         _isGeographic(false) {}
 
+    inline GeospatialExtents(const GeospatialExtents& rhs):
+        _min(rhs._min),
+        _max(rhs._max),
+        _isGeographic(rhs._isGeographic) {}
+
     inline GeospatialExtents(double xmin, double ymin, double xmax, double ymax, bool isGeographic) :
         _min(xmin, ymin),
         _max(xmax, ymax),
         _isGeographic(isGeographic) {}
+        
+    bool operator != (const GeospatialExtents& rhs) const
+    {
+        return (_min != rhs._min) || (_min != rhs._min) || (_isGeographic != rhs._isGeographic);
+    }
+
+    bool operator == (const GeospatialExtents& rhs) const
+    {
+        return (_min == rhs._min) && (_min == rhs._min) && (_isGeographic == rhs._isGeographic);
+    }
 
     inline double& xMin() { return _min.x(); }
     inline double xMin() const { return _min.x(); }
