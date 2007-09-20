@@ -230,10 +230,8 @@ int new_main(osg::ArgumentParser& arguments)
     // create DataSet.
 
     osg::ref_ptr<osgTerrain::Terrain> terrain = new osgTerrain::Terrain;
-    osg::ref_ptr<vpb::DatabaseBuilder> db = new vpb::DatabaseBuilder;
-    terrain->setTerrainTechnique(db.get());    
-    
-    vpb::BuildOptions* buildOptions = db.get();
+    terrain->setTerrainTechnique(new vpb::DatabaseBuilder);    
+    vpb::DatabaseBuilder* buildOptions = dynamic_cast<vpb::DatabaseBuilder*>(terrain->getTerrainTechnique());
 
     if (arguments.read("--version"))
     {
@@ -256,15 +254,17 @@ int new_main(osg::ArgumentParser& arguments)
             osgTerrain::Terrain* loaded_terrain = dynamic_cast<osgTerrain::Terrain*>(node.get());
             if (loaded_terrain) 
             {
-                vpb::DatabaseBuilder* loaded_db = dynamic_cast<vpb::DatabaseBuilder*>(terrain->getTerrainTechnique());
+                vpb::DatabaseBuilder* loaded_db = dynamic_cast<vpb::DatabaseBuilder*>(loaded_terrain->getTerrainTechnique());
                 if (loaded_db)
                 {
-                    db = loaded_db;
                     buildOptions = loaded_db;
+                    
+                    osg::notify(osg::NOTICE)<<"Reassigning buildOptions"<<std::endl;
                 }
                 else
                 {
-                    loaded_terrain->setTerrainTechnique(db.get());
+                    loaded_terrain->setTerrainTechnique(buildOptions);
+                    osg::notify(osg::NOTICE)<<"Reusing buildOptions"<<std::endl;
                 }
                 
                 terrain = loaded_terrain;

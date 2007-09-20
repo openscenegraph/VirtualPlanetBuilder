@@ -1279,6 +1279,11 @@ int DataSet::run()
         osg::ref_ptr<osgTerrain::Terrain> terrain = createTerrainRepresentation();
         if (terrain.valid())
         {
+            DatabaseBuilder* db = dynamic_cast<DatabaseBuilder*>(terrain->getTerrainTechnique());
+            if (db) 
+            {
+                db->setIntermediateBuildName("");
+            }
             osgDB::writeNodeFile(*terrain,getIntermediateBuildName());
         }
     }

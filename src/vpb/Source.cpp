@@ -1068,6 +1068,17 @@ void Source::assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy()
             div_y = 1.0/(double)(_sourceData->_numValuesY);
         }
     
+#if 1    
+        _sourceData->_geoTransform = _geoTransform;
+
+        _sourceData->_geoTransform(0,0) *= div_x;
+        _sourceData->_geoTransform(1,0) *= div_x;
+        _sourceData->_geoTransform(2,0) *= div_x;
+    
+        _sourceData->_geoTransform(0,1) *= div_y;
+        _sourceData->_geoTransform(1,1) *= div_y;
+        _sourceData->_geoTransform(2,1) *= div_y;
+#else
         _geoTransform(0,0) *= div_x;
         _geoTransform(1,0) *= div_x;
         _geoTransform(2,0) *= div_x;
@@ -1077,6 +1088,7 @@ void Source::assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy()
         _geoTransform(2,1) *= div_y;
 
         _sourceData->_geoTransform = _geoTransform;
+#endif
 
         osg::notify(osg::INFO)<<"assigning GeoTransform from Source to Data based on file resolution."<<_geoTransform<<std::endl;
 
