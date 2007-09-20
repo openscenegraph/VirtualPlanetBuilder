@@ -11,8 +11,8 @@
  * OpenSceneGraph Public License for more details.
 */
 
-#ifndef BUILDEROPTIONS_H
-#define BUILDEROPTIONS_H 1
+#ifndef BUILDOPTIONS_H
+#define BUILDOPTIONS_H 1
 
 #include <osg/CoordinateSystemNode>
 #include <osgTerrain/Terrain>
