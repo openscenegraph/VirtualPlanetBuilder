@@ -15,8 +15,21 @@
 
 using namespace vpb;
 
+BuildOperation::BuildOperation(BuildLog* buildLog, const std::string& name, bool keep):
+    osg::Operation(name,keep),
+    _buildLog(buildLog)
+{
+    _log = new OperationLog(name);
+    
+    if (_buildLog.valid()) _buildLog->pendingOperation(this);
+}
+
 void BuildOperation::operator () (osg::Object*)
 {
+    if (_buildLog.valid()) _buildLog->runningOperation(this);
+    
     build();
+    
+    if (_buildLog.valid()) _buildLog->completedOperation(this);
 }
 

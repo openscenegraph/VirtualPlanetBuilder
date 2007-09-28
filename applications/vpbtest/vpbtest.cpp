@@ -9,60 +9,88 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 */
 
-#include <vpb/DataSet>
-#include <vpb/Version>
+#include <vpb/BuildOperation>
 
 #include <osgDB/ReadFile>
 #include <osgTerrain/Terrain>
 
 #include <iostream>
 
+struct OperationOne : public vpb::BuildOperation
+{
+    OperationOne(vpb::BuildLog* buildLog, unsigned int i):
+        vpb::BuildOperation(buildLog,"Operation One",false),
+        _i(i) {}
+    
+    virtual void build()
+    {
+        log() << "one: "<<_i<<std::endl;
+    }
+    
+    unsigned int _i;
+
+};
+
+struct OperationTwo : public vpb::BuildOperation
+{
+    OperationTwo(vpb::BuildLog* buildLog, unsigned int i):
+        vpb::BuildOperation(buildLog,"Operation Two",false),
+        _i(i) {}
+    
+    virtual void build()
+    {
+        log() << "two: "<<_i<<std::endl;
+    }
+    unsigned int _i;
+
+};
+
 int main( int argc, char **argv )
 {
     // use an ArgumentParser object to manage the program arguments.
     osg::ArgumentParser arguments(&argc,argv);
 
-    osg::ref_ptr<vpb::DataSet> dataset = new vpb::DataSet;
 
-    std::string outputFilename;
-    while(arguments.read("-o",outputFilename)) { dataset->setDestinationName(outputFilename); }
-
-    std::string archiveName;
-    while (arguments.read("-a",archiveName)) { dataset->setArchiveName(archiveName); }
-
-    // input data.
-    osg::ref_ptr<osgTerrain::Terrain> terrain;
-
-    std::string filename;
-    while(arguments.read("-s",filename))
+    osg::ref_ptr<vpb::BuildLog> buildLog = new vpb::BuildLog;
+    
+    typedef std::list< osg::ref_ptr<osg::OperationThread> > Threads;
+    Threads threads;
+    
+    osg::ref_ptr<osg::OperationQueue> operationQueue = new osg::OperationQueue;
+    
+    unsigned int numThreads=1;
+    while(arguments.read("-t",numThreads)) {}
+    
+    for(unsigned int i=0; i<numThreads; ++i)
     {
-        osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(filename);
-        osg::ref_ptr<osgTerrain::Terrain> cast_terrain = dynamic_cast<osgTerrain::Terrain*>(node.get());
-        if (cast_terrain.valid())
-        {
-            terrain = cast_terrain;
-            std::cout<<"Read terrain : "<<filename<<std::endl;
-        } 
-        else
-        {
-            std::cout<<"Model is not a terrain data : "<<filename<<std::endl;
-        }
+        osg::ref_ptr<osg::OperationThread> thread = new osg::OperationThread;
+        thread->setOperationQueue(operationQueue.get());
+        threads.push_back(thread.get());
+        
+        thread->startThread();
     }
     
-    if (terrain.valid() && !outputFilename.empty())
-    {
     
-        // create DataSet.
-        
-        dataset->addTerrain(terrain.get());
-        
-        dataset->loadSources();
-        
-        unsigned int numLevels = 5;
+    unsigned int numOneOps=100;
+    while(arguments.read("-1",numOneOps)) {}
 
-        dataset->createDestination((unsigned int)numLevels);
-
-        dataset->writeDestination();        
+    unsigned int numTwoOps=100;
+    while(arguments.read("-2",numTwoOps)) {}
+    
+    unsigned int i = 0;
+    unsigned int j = 0;
+    for(unsigned int i=0; 
+        i<numOneOps || j<numTwoOps;
+        ++i, ++j)
+    {
+        if (i<numOneOps) operationQueue->add(new OperationOne(buildLog.get(),i));
+        if (j<numOneOps) operationQueue->add(new OperationTwo(buildLog.get(),j));
+    }
+    
+    osg::ref_ptr<osg::Operation> operation;
+    while ((operation=operationQueue->getNextOperation()).valid())
+    {
+        (*operation)(0);
     }
 
     return 0;

@@ -15,7 +15,38 @@
 
 using namespace vpb;
 
-BuildLog::BuildLog()
+OperationLog::OperationLog(const OperationLog& log, const osg::CopyOp& copyop):
+    osg::Object(log,copyop)
 {
 }
+
+
+std::ostream& OperationLog::operator() (osg::NotifySeverity level)
+{
+    return osg::notify(level);
+}
+
+BuildLog::BuildLog():
+    osg::Object(true)
+{
+}
+
+BuildLog::BuildLog(const BuildLog& bl, const osg::CopyOp& copyop):
+    osg::Object(bl,copyop)
+{
+}
+
+void BuildLog::pendingOperation(BuildOperation* operation)
+{
+}
+
+void BuildLog::runningOperation(BuildOperation* operation)
+{
+}
+
+void BuildLog::completedOperation(BuildOperation* operation)
+{
+}
+
+
 

@@ -31,15 +31,31 @@ class VPB_EXPORT BuildOperation : public osg::Operation
 {
     public:
     
-        BuildOperation(const std::string& name, bool keep):
-            osg::Operation(name,keep) {}
-    
+        BuildOperation(BuildLog* buildLog, const std::string& name, bool keep);
+        
+        /** Set the OperationLog to use store log messages.*/    
+        void setOperationLog(OperationLog* log) { _log = log; }
+
+        /** Get the OperationLog used to store log messages.*/    
+        OperationLog* getOperationLog() { return _log.get(); }
+
+        /** Get the const OperationLog used to store log messages.*/    
+        const OperationLog* getOperationLog() const { return _log.get(); }
+
+        /** record a log message in the attach OperationLog.*/
+        std::ostream& log(osg::NotifySeverity level=osg::NOTICE) { return (*_log)(level); }
+
         /** Use a TemplateMethod designed pattern - the OperationThread calls this method, and this provides progress info.*/ 
         virtual void operator () (osg::Object*);
 
+        /** Virtual build method - this is the mehthod that must be overriden to provide the build method.*/
         virtual void build() = 0;
+        
 
     protected:
+    
+        osg::ref_ptr<OperationLog>  _log;
+        osg::observer_ptr<BuildLog> _buildLog;
 
 };
 

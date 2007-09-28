@@ -21,21 +21,38 @@
 
 #include <vpb/Export>
 
+#include <list>
+
 
 namespace vpb
 {
+
+class BuildOperation;
 
 class VPB_EXPORT OperationLog : public osg::Object
 {
     public:
     
+        OperationLog():
+            Object(true)
+        {
+        }
+
         OperationLog(const std::string& name):
             Object(true)
         {
             setName(name);
         }
+        
+        OperationLog(const OperationLog& log, const osg::CopyOp& copyop = osg::CopyOp::SHALLOW_COPY);
 
-        std::ostream& notify(osg::NotifySeverity level=osg::NOTICE);
+        META_Object(vpb, OperationLog)
+
+        std::ostream& operator() (osg::NotifySeverity level=osg::NOTICE);
+
+    protected:
+    
+        virtual ~OperationLog() {}
 
 };
 
@@ -44,10 +61,29 @@ class VPB_EXPORT BuildLog : public osg::Object
     public:
     
         BuildLog();
-    
+
+        BuildLog(const BuildLog& bl, const osg::CopyOp& copyop = osg::CopyOp::SHALLOW_COPY);
+        
+        META_Object(vpb, BuildLog)
+
+        void pendingOperation(BuildOperation* operation);
+        void runningOperation(BuildOperation* operation);
+        void completedOperation(BuildOperation* operation);
 
     protected:
+    
+        virtual ~BuildLog() {}
 
+        typedef std::list< osg::ref_ptr<OperationLog> > OperationLogs;
+
+        OpenThreads::Mutex  _pendingOperationsMutex;
+        OperationLogs       _pendingOperations;
+
+        OpenThreads::Mutex  _runningOperationsMutex;
+        OperationLogs       _runningOperations;
+
+        OpenThreads::Mutex  _completedOperationsMutex;
+        OperationLogs       _completedOperations;
 };
 
 }
