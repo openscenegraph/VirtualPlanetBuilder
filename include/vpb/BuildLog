@@ -56,7 +56,9 @@ class VPB_EXPORT OperationLog : public osg::Object
         double getEndRunningTime() const { return _endRunningTime; }
         
         double getWaitingTime() const { return _startRunningTime - _startPendingTime; }
-        double getRunningTime() const { return _endRunningTime - _startPendingTime; }
+        double getRunningTime() const { return _endRunningTime - _startRunningTime; }
+        
+        void report(std::ostream& out);
         
     protected:
     
@@ -99,7 +101,7 @@ class VPB_EXPORT BuildLog : public osg::Object
         void initStartTime();
         
         /** Get the current time.*/
-        inline double getCurrentTime() const { _timer.time_s(); }
+        double getCurrentTime() const { return _timer.time_s(); }
         
 
         /** Report if all outstanding operations have been completed. */

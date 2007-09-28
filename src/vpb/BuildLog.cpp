@@ -59,6 +59,21 @@ OperationLog::~OperationLog()
     }
 }
 
+void OperationLog::report(std::ostream& out)
+{
+    out<<getName()<<":: waiting time: "<<getWaitingTime()<<" running time: "<<getRunningTime()<<std::endl;
+    for(Messages::iterator itr = _messages.begin();
+        itr != _messages.end();
+        ++itr)
+    {
+        if (itr->second)
+        {
+            out<<"    "<<itr->first<<" : "<<(itr->second)->str();
+        }
+    }
+    out<<std::endl;
+}
+
 
 std::ostream& OperationLog::operator() (osg::NotifySeverity level)
 {
@@ -177,10 +192,32 @@ void BuildLog::waitForCompletion() const
 void BuildLog::report(std::ostream& out)
 {
     out<<"BuildLog::report"<<std::endl;
-    out<<"================"<<std::endl<<std::endl;
-    out<<"Pending Operations   "<<_pendingOperations.size()<<std::endl;
-    out<<"Runnning Operations  "<<_runningOperations.size()<<std::endl;
-    out<<"Completed Operations "<<_completedOperations.size()<<std::endl;
+    out<<"================"<<std::endl;
+    out<<std::endl<<"Pending Operations   "<<_pendingOperations.size()<<std::endl;
+
+    for(OperationLogs::iterator itr = _pendingOperations.begin();
+        itr != _pendingOperations.end();
+        ++itr)
+    {
+        (*itr)->report(out);
+    }
+    
+    out<<std::endl<<"Runnning Operations  "<<_runningOperations.size()<<std::endl;
+    for(OperationLogs::iterator itr = _runningOperations.begin();
+        itr != _runningOperations.end();
+        ++itr)
+    {
+        (*itr)->report(out);
+    }
+    
+    out<<std::endl<<"Completed Operations "<<_completedOperations.size()<<std::endl;
+    for(OperationLogs::iterator itr = _completedOperations.begin();
+        itr != _completedOperations.end();
+        ++itr)
+    {
+        (*itr)->report(out);
+    }
+
 }
 
 
