@@ -25,6 +25,7 @@ struct OperationOne : public vpb::BuildOperation
     virtual void build()
     {
         log() << "one: "<<_i<<std::endl;
+        osg::ref_ptr<osg::Node> node = osgDB::readNodeFile("cow.osg");
     }
     
     unsigned int _i;
@@ -40,6 +41,7 @@ struct OperationTwo : public vpb::BuildOperation
     virtual void build()
     {
         log() << "two: "<<_i<<std::endl;
+        osg::ref_ptr<osg::Node> node = osgDB::readNodeFile("glider.osg");
     }
     unsigned int _i;
 
@@ -84,7 +86,7 @@ int main( int argc, char **argv )
         ++i, ++j)
     {
         if (i<numOneOps) operationQueue->add(new OperationOne(buildLog.get(),i));
-        if (j<numOneOps) operationQueue->add(new OperationTwo(buildLog.get(),j));
+        if (j<numTwoOps) operationQueue->add(new OperationTwo(buildLog.get(),j));
     }
     
     osg::ref_ptr<osg::Operation> operation;
@@ -92,6 +94,10 @@ int main( int argc, char **argv )
     {
         (*operation)(0);
     }
+    
+    buildLog->waitForCompletion();
+    
+    buildLog->report(std::cout);
 
     return 0;
 }

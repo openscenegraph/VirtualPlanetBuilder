@@ -16,43 +16,62 @@
 
 #include <osg/Object>
 #include <osg/Notify>
+#include <osg/Timer>
 
 #include <OpenThreads/Mutex>
 
 #include <vpb/Export>
 
 #include <list>
+#include <sstream>
 
 
 namespace vpb
 {
 
 class BuildOperation;
+class BuildLog;
 
 class VPB_EXPORT OperationLog : public osg::Object
 {
     public:
     
-        OperationLog():
-            Object(true)
-        {
-        }
+        OperationLog(BuildLog* buildLog=0);
 
-        OperationLog(const std::string& name):
-            Object(true)
-        {
-            setName(name);
-        }
+        OperationLog(BuildLog* buildLog, const std::string& name);
         
         OperationLog(const OperationLog& log, const osg::CopyOp& copyop = osg::CopyOp::SHALLOW_COPY);
 
         META_Object(vpb, OperationLog)
 
         std::ostream& operator() (osg::NotifySeverity level=osg::NOTICE);
-
+        
+        void setStartPendingTime(double t) { _startPendingTime = t; }
+        double getStartPendingTime() const { return _startPendingTime; }
+        
+        void setStartRunningTime(double t) { _startRunningTime = t; }
+        double getStartRunningTime() const { return _startRunningTime; }
+        
+        void setEndRunningTime(double t) { _endRunningTime = t; }
+        double getEndRunningTime() const { return _endRunningTime; }
+        
+        double getWaitingTime() const { return _startRunningTime - _startPendingTime; }
+        double getRunningTime() const { return _endRunningTime - _startPendingTime; }
+        
     protected:
     
-        virtual ~OperationLog() {}
+        virtual ~OperationLog();
+        
+        double _startPendingTime;
+        double _startRunningTime;
+        double _endRunningTime;
+        
+        BuildLog* _buildLog;
+        
+        
+        typedef std::pair<double, std::ostringstream* > MessagePair;
+        typedef std::list<MessagePair> Messages;
+        Messages _messages;
 
 };
 
@@ -66,9 +85,32 @@ class VPB_EXPORT BuildLog : public osg::Object
         
         META_Object(vpb, BuildLog)
 
+        /** Signal that a operation has be constructed and is awaited execution.*/
         void pendingOperation(BuildOperation* operation);
+        
+        /** Signal that a operation has started execution.*/
         void runningOperation(BuildOperation* operation);
+        
+        /** Signal that a operation has be completed running.*/
         void completedOperation(BuildOperation* operation);
+
+
+        /** Initialize the build logs timer.*/
+        void initStartTime();
+        
+        /** Get the current time.*/
+        inline double getCurrentTime() const { _timer.time_s(); }
+        
+
+        /** Report if all outstanding operations have been completed. */
+        bool isComplete() const;
+
+        /** Waiting for all outstanding operations to be completed. */
+        void waitForCompletion() const;
+
+
+        /** Generate report. */
+        void report(std::ostream& out);
 
     protected:
     
@@ -76,14 +118,18 @@ class VPB_EXPORT BuildLog : public osg::Object
 
         typedef std::list< osg::ref_ptr<OperationLog> > OperationLogs;
 
-        OpenThreads::Mutex  _pendingOperationsMutex;
+        osg::Timer          _timer;
+
+        mutable OpenThreads::Mutex  _pendingOperationsMutex;
         OperationLogs       _pendingOperations;
 
-        OpenThreads::Mutex  _runningOperationsMutex;
+        mutable OpenThreads::Mutex  _runningOperationsMutex;
         OperationLogs       _runningOperations;
 
-        OpenThreads::Mutex  _completedOperationsMutex;
+        mutable OpenThreads::Mutex  _completedOperationsMutex;
         OperationLogs       _completedOperations;
+        
+        void remove(OperationLogs& logs, OperationLog* log);
 };
 
 }

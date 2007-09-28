@@ -19,7 +19,7 @@ BuildOperation::BuildOperation(BuildLog* buildLog, const std::string& name, bool
     osg::Operation(name,keep),
     _buildLog(buildLog)
 {
-    _log = new OperationLog(name);
+    _log = new OperationLog(buildLog, name);
     
     if (_buildLog.valid()) _buildLog->pendingOperation(this);
 }
