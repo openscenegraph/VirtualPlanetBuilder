@@ -21,7 +21,7 @@
 namespace vpb
 {
 
-class VPB_EXPORT DatabaseBuilder : public osgTerrain::TerrainTechnique, public BuildOptions
+class VPB_EXPORT DatabaseBuilder : public osgTerrain::TerrainTechnique
 {
     public:
 
@@ -32,12 +32,25 @@ class VPB_EXPORT DatabaseBuilder : public osgTerrain::TerrainTechnique, public B
         
         META_Object(vpb, DatabaseBuilder);
         
+        
+        void setBuildOptions(BuildOptions* bo) { _buildOptions = bo; }
+        BuildOptions* getBuildOptions() { return _buildOptions.get(); }
+        const BuildOptions* getBuildOptions() const { return _buildOptions.get(); }
+        
+        void setBuildLog(BuildLog* bl) { _buildLog = bl; }
+        BuildLog* getBuildLog() { return _buildLog.get(); }
+        const BuildLog* getBuildLog() const { return _buildLog.get(); }
+        
+        
         // dummy implementations for TerrainTechnique
         virtual void init();
         virtual void update(osgUtil::UpdateVisitor* nv);
         virtual void cull(osgUtil::CullVisitor* nv);
 
     protected:
+    
+        osg::ref_ptr<BuildOptions>  _buildOptions;
+        osg::ref_ptr<BuildLog>      _buildLog;
 
 };
 

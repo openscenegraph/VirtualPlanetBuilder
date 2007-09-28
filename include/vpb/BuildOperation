@@ -15,18 +15,17 @@
 #define BUILDOPERATION_H 1
 
 #include <osg/CoordinateSystemNode>
+#include <osg/Notify>
+
 #include <osgTerrain/Terrain>
 #include <osgDB/Archive>
 
 #include <set>
 
-#include <vpb/SpatialProperties>
-#include <vpb/Source>
-#include <vpb/Destination>
+#include <vpb/BuildLog>
 
 namespace vpb
 {
-
 
 class VPB_EXPORT BuildOperation : public osg::Operation
 {
@@ -36,7 +35,7 @@ class VPB_EXPORT BuildOperation : public osg::Operation
             osg::Operation(name,keep) {}
     
         /** Use a TemplateMethod designed pattern - the OperationThread calls this method, and this provides progress info.*/ 
-        virtual void operator () (osg::Object*) ;
+        virtual void operator () (osg::Object*);
 
         virtual void build() = 0;
 

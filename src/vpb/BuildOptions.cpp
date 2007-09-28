@@ -17,7 +17,8 @@
 
 using namespace vpb;
 
-BuildOptions::BuildOptions()
+BuildOptions::BuildOptions():
+    osg::Object(true)
 {
     _archiveName = "";
     _buildOverlays = false;
@@ -50,7 +51,8 @@ BuildOptions::BuildOptions()
     _writeNodeBeforeSimplification = false;
 }
 
-BuildOptions::BuildOptions(const BuildOptions& rhs)
+BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop):
+    osg::Object(rhs,copyop)
 {
     setBuildOptions(rhs);
 }

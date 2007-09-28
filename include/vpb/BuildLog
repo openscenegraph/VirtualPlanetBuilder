@@ -11,11 +11,45 @@
  * OpenSceneGraph Public License for more details.
 */
 
-#include <vpb/ProgressTracker>
+#ifndef BUILDLOG_H
+#define BUILDLOG_H 1
 
-using namespace vpb;
+#include <osg/Object>
+#include <osg/Notify>
 
-ProgressTracker::ProgressTracker()
+#include <OpenThreads/Mutex>
+
+#include <vpb/Export>
+
+
+namespace vpb
 {
+
+class VPB_EXPORT OperationLog : public osg::Object
+{
+    public:
+    
+        OperationLog(const std::string& name):
+            Object(true)
+        {
+            setName(name);
+        }
+
+        std::ostream& notify(osg::NotifySeverity level=osg::NOTICE);
+
+};
+
+class VPB_EXPORT BuildLog : public osg::Object
+{
+    public:
+    
+        BuildLog();
+    
+
+    protected:
+
+};
+
 }
 
+#endif

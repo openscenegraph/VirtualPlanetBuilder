@@ -15,7 +15,8 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/Export
 	${HEADER_PATH}/Source
 	${HEADER_PATH}/SpatialProperties
-	${HEADER_PATH}/ProgressTracker
+	${HEADER_PATH}/BuildLog
+	${HEADER_PATH}/Serializer
 	${HEADER_PATH}/Version
 )
 
@@ -23,11 +24,13 @@ ADD_LIBRARY(${LIB_NAME}
 	${VIRTUALPLANETBUILDER_USER_DEFINED_DYNAMIC_OR_STATIC}
 	${LIB_PUBLIC_HEADERS}
 	BuildOptions.cpp
+	BuildOptionsIO.cpp
 	BuildOperation.cpp
 	DatabaseBuilder.cpp
+	DatabaseBuilderIO.cpp
 	DataSet.cpp
 	Destination.cpp
-	ProgressTracker.cpp
+	BuildLog.cpp
 	Source.cpp
 	SpatialProperties.cpp
 	Version.cpp

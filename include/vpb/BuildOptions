@@ -28,14 +28,18 @@ namespace vpb
 {
 
 
-class VPB_EXPORT BuildOptions
+class VPB_EXPORT BuildOptions : public osg::Object
 {
     public:
     
         BuildOptions();
 
-        BuildOptions(const BuildOptions& rhs);
+        /** Copy constructor using CopyOp to manage deep vs shallow copy.*/
+        BuildOptions(const BuildOptions&,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
         
+        META_Object(vpb, BuildOptions);
+
+
         BuildOptions& operator = (const BuildOptions& rhs);
         
         void setBuildOptions(const BuildOptions& rhs);

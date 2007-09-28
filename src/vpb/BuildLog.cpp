@@ -11,43 +11,11 @@
  * OpenSceneGraph Public License for more details.
 */
 
-#include <vpb/DatabaseBuilder>
-
-#include <iostream>
-#include <string>
-#include <map>
-
-#include <osg/Vec3>
-#include <osg/Vec4>
-#include <osg/io_utils>
-
-#include <osgDB/ReadFile>
-#include <osgDB/Registry>
-#include <osgDB/Input>
-#include <osgDB/Output>
-#include <osgDB/ParameterOutput>
+#include <vpb/BuildLog>
 
 using namespace vpb;
 
-DatabaseBuilder::DatabaseBuilder()
-{
-}
-
-DatabaseBuilder::DatabaseBuilder(const DatabaseBuilder& db,const osg::CopyOp& copyop):
-    osgTerrain::TerrainTechnique(db, copyop),
-    _buildOptions(db._buildOptions)
-{
-}
-
-void DatabaseBuilder::init()
-{
-}
-
-void DatabaseBuilder::update(osgUtil::UpdateVisitor*)
-{
-}
-
-void DatabaseBuilder::cull(osgUtil::CullVisitor*)
+BuildLog::BuildLog()
 {
 }
 

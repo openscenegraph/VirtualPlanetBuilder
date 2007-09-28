@@ -37,6 +37,7 @@
 #include <vpb/Source>
 #include <vpb/Destination>
 #include <vpb/BuildOptions>
+#include <vpb/BuildLog>
 
 // forward declare so we can avoid tieing vpb to GDAL.
 class GDALDataset;
@@ -46,7 +47,7 @@ namespace vpb
 {
 
 
-class VPB_EXPORT DataSet : public osg::Referenced, public BuildOptions
+class VPB_EXPORT DataSet : public BuildOptions
 {
     public:
 
@@ -91,6 +92,10 @@ class VPB_EXPORT DataSet : public osg::Referenced, public BuildOptions
 
         DataSet();
         
+        void setBuildLog(BuildLog* bl) { _buildLog = bl; }
+        BuildLog* getBuildLog() { return _buildLog.get(); }
+        const BuildLog* getBuildLog() const { return _buildLog.get(); }
+        
 
         void addSource(Source* source);
         void addSource(CompositeSource* composite);
@@ -98,7 +103,7 @@ class VPB_EXPORT DataSet : public osg::Referenced, public BuildOptions
         bool addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum);
         bool addTerrain(osgTerrain::Terrain* terrain);
         
-        osgTerrain::Terrain* createTerrainRepresentation() const;
+        osgTerrain::Terrain* createTerrainRepresentation();
         
 
         void loadSources();
@@ -186,6 +191,7 @@ class VPB_EXPORT DataSet : public osg::Referenced, public BuildOptions
         unsigned int                                _numTextureLevels;
         osg::ref_ptr<osg::CoordinateSystemNode>     _intermediateCoordinateSystem;
 
+        osg::ref_ptr<BuildLog>      _buildLog;
         
 };
 

@@ -229,9 +229,12 @@ int new_main(osg::ArgumentParser& arguments)
     arguments.getApplicationUsage()->addCommandLineOption("-O","string option to pass to write plugins, use \" \" for multiple options");    
     // create DataSet.
 
+    vpb::DatabaseBuilder* databaseBuilder = new vpb::DatabaseBuilder;
+    vpb::BuildOptions* buildOptions = new vpb::BuildOptions;
+    databaseBuilder->setBuildOptions(buildOptions);
+
     osg::ref_ptr<osgTerrain::Terrain> terrain = new osgTerrain::Terrain;
-    terrain->setTerrainTechnique(new vpb::DatabaseBuilder);    
-    vpb::DatabaseBuilder* buildOptions = dynamic_cast<vpb::DatabaseBuilder*>(terrain->getTerrainTechnique());
+    terrain->setTerrainTechnique(databaseBuilder);    
 
     if (arguments.read("--version"))
     {
@@ -257,13 +260,22 @@ int new_main(osg::ArgumentParser& arguments)
                 vpb::DatabaseBuilder* loaded_db = dynamic_cast<vpb::DatabaseBuilder*>(loaded_terrain->getTerrainTechnique());
                 if (loaded_db)
                 {
-                    buildOptions = loaded_db;
+                    if (loaded_db->getBuildOptions())
+                    {
+                        buildOptions = loaded_db->getBuildOptions();
+                    }
+                    else
+                    {
+                        loaded_db->setBuildOptions(buildOptions);
+                    }
+                    
+                    databaseBuilder = loaded_db;
                     
                     osg::notify(osg::NOTICE)<<"Reassigning buildOptions"<<std::endl;
                 }
                 else
                 {
-                    loaded_terrain->setTerrainTechnique(buildOptions);
+                    loaded_terrain->setTerrainTechnique(databaseBuilder);
                     osg::notify(osg::NOTICE)<<"Reusing buildOptions"<<std::endl;
                 }
                 

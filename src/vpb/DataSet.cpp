@@ -1101,9 +1101,9 @@ bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
     }
  
     vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(terrain->getTerrainTechnique());
-    if (db)
+    if (db && db->getBuildOptions())
     {
-        setBuildOptions(*db);
+        setBuildOptions(*(db->getBuildOptions()));
     }
 
     if (terrain->getElevationLayer())
@@ -1123,7 +1123,7 @@ bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
     return true;
 }
 
-osgTerrain::Terrain* DataSet::createTerrainRepresentation() const
+osgTerrain::Terrain* DataSet::createTerrainRepresentation()
 {
     osg::ref_ptr<osgTerrain::Terrain> terrain = new osgTerrain::Terrain;
 
@@ -1219,7 +1219,8 @@ osgTerrain::Terrain* DataSet::createTerrainRepresentation() const
     }
     
     osg::ref_ptr<DatabaseBuilder> builder = new DatabaseBuilder;
-    builder->setBuildOptions(*this);
+    builder->setBuildOptions(new BuildOptions(*this));
+    builder->setBuildLog(getBuildLog());
     terrain->setTerrainTechnique(builder.get());
 
     return terrain.release();
@@ -1280,9 +1281,9 @@ int DataSet::run()
         if (terrain.valid())
         {
             DatabaseBuilder* db = dynamic_cast<DatabaseBuilder*>(terrain->getTerrainTechnique());
-            if (db) 
+            if (db && db->getBuildOptions()) 
             {
-                db->setIntermediateBuildName("");
+                db->getBuildOptions()->setIntermediateBuildName("");
             }
             osgDB::writeNodeFile(*terrain,getIntermediateBuildName());
         }
