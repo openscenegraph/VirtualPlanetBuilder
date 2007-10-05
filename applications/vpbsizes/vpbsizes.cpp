@@ -39,12 +39,15 @@ unsigned int numLevelsRequired(unsigned int numTilesLevel1, unsigned int s, bool
     return level;
 }
 
-double computeEfficiency(unsigned int numXTilesLevel1, unsigned int numYTilesLevel1, unsigned int s, bool wrap, unsigned int width, unsigned int height, unsigned int& numLevels)
+unsigned int numLevelsRequired(unsigned int numXTilesLevel1, unsigned int numYTilesLevel1, unsigned int s, bool wrap, unsigned int width, unsigned int height)
 {
-    numLevels = std::max(
+    return std::max(
         numLevelsRequired(numXTilesLevel1,s, wrap, width),
         numLevelsRequired(numYTilesLevel1,s, wrap, height) );
+}
 
+double computeEfficiency(unsigned int numXTilesLevel1, unsigned int numYTilesLevel1, unsigned int s, bool wrap, unsigned int width, unsigned int height, unsigned int numLevels)
+{
     unsigned int finalWidth = computeTotalSize(numXTilesLevel1, s, wrap, numLevels);
     unsigned int finalHeight = computeTotalSize(numYTilesLevel1, s, wrap, numLevels);
 
@@ -101,14 +104,26 @@ int main( int argc, char **argv )
 
     for(unsigned int i = 1; i<20; ++i)
     {
-        unsigned int numLevels;
-        double efficiency = computeEfficiency(numXTilesLevel1*i, numYTilesLevel1*i, s, wrap, width, height, numLevels);
-        unsigned int finalWidth = computeTotalSize(numXTilesLevel1*i, s, wrap, numLevels);
-        unsigned int finalHeight = computeTotalSize(numYTilesLevel1*i, s, wrap, numLevels);
-        std::cout<<" level 1 dimension = ("<<numXTilesLevel1*i<<", "<<numYTilesLevel1*i<<")"
-                 <<" numLevels = "<<numLevels
-                 <<" finalSize = ("<<finalWidth<<" "<<finalHeight<<")"
-                 <<" efficiency = "<<efficiency<<std::endl;
+        unsigned int numLevels = numLevelsRequired(numXTilesLevel1*i, numYTilesLevel1*i, s, wrap, width, height);
+        {
+            double efficiency = computeEfficiency(numXTilesLevel1*i, numYTilesLevel1*i, s, wrap, width, height, numLevels);
+            unsigned int finalWidth = computeTotalSize(numXTilesLevel1*i, s, wrap, numLevels);
+            unsigned int finalHeight = computeTotalSize(numYTilesLevel1*i, s, wrap, numLevels);
+            std::cout<<" level 1 dimension = ("<<numXTilesLevel1*i<<", "<<numYTilesLevel1*i<<")"
+                     <<" numLevels = "<<numLevels
+                     <<" finalSize = ("<<finalWidth<<" "<<finalHeight<<")"
+                     <<" efficiency = "<<efficiency;
+        }
+
+        {
+            --numLevels;
+            double efficiency = computeEfficiency(numXTilesLevel1*i, numYTilesLevel1*i, s, wrap, width, height, numLevels);
+            unsigned int finalWidth = computeTotalSize(numXTilesLevel1*i, s, wrap, numLevels);
+            unsigned int finalHeight = computeTotalSize(numYTilesLevel1*i, s, wrap, numLevels);
+            std::cout<<"\tnumLevels = "<<numLevels
+                     <<" finalSize = ("<<finalWidth<<" "<<finalHeight<<")"
+                     <<" undersampling = "<<efficiency<<std::endl;
+        }
     }
 
     return 0;
