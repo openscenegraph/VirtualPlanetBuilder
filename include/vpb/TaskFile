@@ -1,0 +1,151 @@
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+ *
+ * This library is open source and may be redistributed and/or modified under  
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * OpenSceneGraph Public License for more details.
+*/
+
+#ifndef TASKFILE_H
+#define TASKFILE_H 1
+
+
+#include <osg/ArgumentParser>
+#include <osg/OperationThread>
+#include <osg/Object>
+#include <osg/Notify>
+
+#include <OpenThreads/Mutex>
+#include <OpenThreads/Thread>
+
+#include <vpb/Export>
+
+#include <list>
+#include <string>
+#include <sstream>
+#include <fstream>
+
+#include <stdarg.h>
+
+namespace vpb
+{
+
+class VPB_EXPORT Parameter : public osg::ArgumentParser::Parameter
+{
+    public:
+        Parameter(bool& value) : osg::ArgumentParser::Parameter(value) {}
+
+        Parameter(float& value) : osg::ArgumentParser::Parameter(value) {}
+
+        Parameter(double& value) : osg::ArgumentParser::Parameter(value) {}
+
+        Parameter(int& value) : osg::ArgumentParser::Parameter(value) {}
+
+        Parameter(unsigned int& value) : osg::ArgumentParser::Parameter(value) {}
+
+        Parameter(std::string& value) : osg::ArgumentParser::Parameter(value) {}
+
+        Parameter(const Parameter& param) : osg::ArgumentParser::Parameter(param) {}
+        
+        bool getString(std::string& str);
+};
+
+class VPB_EXPORT TaskFile : public osg::Referenced
+{
+    public:
+    
+        enum Type
+        {
+            READ,
+            WRITE
+        };
+    
+        TaskFile(const std::string& filename, Type type);
+        
+        /** initialize the TaskFile from application arguments and get process, host details.*/
+        void init(osg::ArgumentParser& arguments);
+
+        /** get the application arguments from the details read from the task file.*/
+        void get(osg::ArgumentParser& arguments);
+        
+        /** run the task specified in the task file. */
+        void invoke(bool runInBackground);
+
+        /** Send a signal to the task. */
+        void signal(int signal);
+
+        /** Set a property on the TaskFile object.*/
+        void setProperty(const std::string& property, Parameter value);
+
+        /** Get a property from the TaskFile object.*/
+        bool getProperty(const std::string& property, Parameter value);
+
+        /** sync the task file, - reading from disk when a read TaskFile, and write when a writeTask file.
+          * return true if the settings changed since the last call to sync. */
+        bool sync();
+        
+        void report(std::ostream& out);
+
+    protected:
+
+        virtual ~TaskFile();
+
+        bool read();
+        bool write();
+
+        typedef std::map<std::string, std::string> PropertyMap;
+        PropertyMap _propertyMap;
+        
+        Type    _type;
+        int     _fileID;
+        int     _syncCount;
+        bool    _propertiesModified;
+        
+        int     _previousSize;
+        char*   _previousData;
+
+        int     _currentSize;
+        char*   _currentData;
+        
+        int     _argc;
+        char**  _argv;
+};
+
+class TaskFileOperation : public osg::Operation
+{
+    public:
+    
+        TaskFileOperation(TaskFile* taskFile):
+            osg::Operation("ReadTaskFile",true),
+            _taskFile(taskFile) {}
+
+        virtual void operator () (osg::Object*);
+        
+    protected:        
+
+        osg::ref_ptr<TaskFile> _taskFile;
+};
+
+class SleepOperation : public osg::Operation
+{
+    public:
+    
+        SleepOperation(unsigned int microSeconds):
+            osg::Operation("Sleep",true),
+            _microSeconds(microSeconds) {}
+
+        virtual void operator () (osg::Object*);
+        
+    protected:        
+
+        unsigned int _microSeconds;
+};
+
+}
+
+#endif

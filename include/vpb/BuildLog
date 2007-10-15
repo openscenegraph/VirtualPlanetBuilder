@@ -14,16 +14,20 @@
 #ifndef BUILDLOG_H
 #define BUILDLOG_H 1
 
+#include <stdarg.h>
+
 #include <osg/Object>
 #include <osg/Notify>
 #include <osg/Timer>
 
 #include <OpenThreads/Mutex>
+#include <OpenThreads/Thread>
 
-#include <vpb/Export>
+#include <vpb/TaskFile>
 
 #include <list>
 #include <sstream>
+#include <fstream>
 
 
 namespace vpb
@@ -31,20 +35,63 @@ namespace vpb
 
 class BuildOperation;
 class BuildLog;
+class OperationLog;
+
+extern void log(osg::NotifySeverity level, const char* message, ...);
+extern void log(osg::NotifySeverity level, const char* message, va_list args);
+
+extern void pushOperationLog(OperationLog* operationLog);
+extern void popOperationLog();
+
+struct Message : public osg::Referenced
+{
+    Message(double t, osg::NotifySeverity l, const std::string& s):
+        time(t),
+        level(l),
+        message(s),
+        thread(OpenThreads::Thread::CurrentThread())
+        {} 
+
+    double                  time;
+    osg::NotifySeverity     level;
+    std::string             message;
+    OpenThreads::Thread*    thread;
+};
+
+class VPB_EXPORT LogFile : public osg::Referenced
+{
+    public:
+    
+        LogFile(const std::string& filename);
+        
+        void write(Message* message);
+        
+        std::ofstream       _fout;
+        OpenThreads::Mutex  _mutex;
+        
+        osg::ref_ptr<TaskFile> _taskFile;
+};
 
 class VPB_EXPORT OperationLog : public osg::Object
 {
     public:
     
-        OperationLog(BuildLog* buildLog=0);
+        OperationLog();
 
-        OperationLog(BuildLog* buildLog, const std::string& name);
+        OperationLog(const std::string& name);
         
         OperationLog(const OperationLog& log, const osg::CopyOp& copyop = osg::CopyOp::SHALLOW_COPY);
 
         META_Object(vpb, OperationLog)
+        
+        void openLogFile(const std::string& filename) { _logFile = new LogFile(filename); }
+        
+        void setLogFile(LogFile* logFile) { _logFile = logFile; }
+        LogFile* getLogFile() { return _logFile.get(); }
 
-        std::ostream& operator() (osg::NotifySeverity level=osg::NOTICE);
+        void log(osg::NotifySeverity level, const char* message, ...);
+        
+        void log(osg::NotifySeverity level, const char* message, va_list args);
         
         void setStartPendingTime(double t) { _startPendingTime = t; }
         double getStartPendingTime() const { return _startPendingTime; }
@@ -58,8 +105,11 @@ class VPB_EXPORT OperationLog : public osg::Object
         double getWaitingTime() const { return _startRunningTime - _startPendingTime; }
         double getRunningTime() const { return _endRunningTime - _startRunningTime; }
         
-        void report(std::ostream& out);
+        virtual void report(std::ostream& out);
         
+        typedef std::list< osg::ref_ptr<Message> > Messages;
+        const Messages& getMessages() const { return _messages; }
+
     protected:
     
         virtual ~OperationLog();
@@ -67,21 +117,19 @@ class VPB_EXPORT OperationLog : public osg::Object
         double _startPendingTime;
         double _startRunningTime;
         double _endRunningTime;
-        
-        BuildLog* _buildLog;
-        
-        
-        typedef std::pair<double, std::ostringstream* > MessagePair;
-        typedef std::list<MessagePair> Messages;
-        Messages _messages;
 
+        Messages _messages;
+        
+        osg::ref_ptr<LogFile> _logFile;
 };
 
-class VPB_EXPORT BuildLog : public osg::Object
+class VPB_EXPORT BuildLog : public OperationLog
 {
     public:
     
         BuildLog();
+
+        BuildLog(const std::string& name);
 
         BuildLog(const BuildLog& bl, const osg::CopyOp& copyop = osg::CopyOp::SHALLOW_COPY);
         
@@ -101,9 +149,8 @@ class VPB_EXPORT BuildLog : public osg::Object
         void initStartTime();
         
         /** Get the current time.*/
-        double getCurrentTime() const { return _timer.time_s(); }
+        double getCurrentTime() const { return osg::Timer::instance()->time_s(); }
         
-
         /** Report if all outstanding operations have been completed. */
         bool isComplete() const;
 
@@ -112,15 +159,13 @@ class VPB_EXPORT BuildLog : public osg::Object
 
 
         /** Generate report. */
-        void report(std::ostream& out);
+        virtual void report(std::ostream& out);
 
     protected:
     
         virtual ~BuildLog() {}
 
         typedef std::list< osg::ref_ptr<OperationLog> > OperationLogs;
-
-        osg::Timer          _timer;
 
         mutable OpenThreads::Mutex  _pendingOperationsMutex;
         OperationLogs       _pendingOperations;

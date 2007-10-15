@@ -12,6 +12,7 @@
 */
 
 #include <vpb/SpatialProperties>
+#include <vpb/BuildLog>
 
 #include <osg/Notify>
 
@@ -34,14 +35,14 @@ CoordinateSystemType vpb::getCoordinateSystemType(const osg::CoordinateSystemNod
     
      
     
-    osg::notify(osg::INFO)<<"getCoordinateSystemType("<<projection_string<<")"<<std::endl;
-    osg::notify(osg::INFO)<<"    lhsSR.IsGeographic()="<<lhsSR.IsGeographic()<<std::endl;
-    osg::notify(osg::INFO)<<"    lhsSR.IsProjected()="<<lhsSR.IsProjected()<<std::endl;
-    osg::notify(osg::INFO)<<"    lhsSR.IsLocal()="<<lhsSR.IsLocal()<<std::endl;
+    log(osg::INFO,"getCoordinateSystemType(%s)",projection_string);
+    log(osg::INFO,"    lhsSR.IsGeographic()=%d",lhsSR.IsGeographic());
+    log(osg::INFO,"    lhsSR.IsProjected()=%d",lhsSR.IsProjected());
+    log(osg::INFO,"    lhsSR.IsLocal()=%d",lhsSR.IsLocal());
 
     free(projection_string);
 
-    if (strcmp(lhsSR.GetRoot()->GetValue(),"GEOCCS")==0) osg::notify(osg::INFO)<<"    lhsSR. is GEOCENTRIC "<<std::endl;
+    if (strcmp(lhsSR.GetRoot()->GetValue(),"GEOCCS")==0) log(osg::INFO,"    lhsSR. is GEOCENTRIC ");
     
 
     if (strcmp(lhsSR.GetRoot()->GetValue(),"GEOCCS")==0) return GEOCENTRIC;    
@@ -70,7 +71,7 @@ std::string vpb::coordinateSystemStringToWTK(const std::string& coordinateSystem
     }
     else
     {
-        osg::notify(osg::WARN)<<"Warning: coordinateSystem string not recognised."<<std::endl;
+        log(osg::WARN,"Warning: coordinateSystem string not recognised.");
         
     }
     
@@ -92,11 +93,11 @@ double vpb::getLinearUnits(const osg::CoordinateSystemNode* lhs)
 
     char* str;
     double result = lhsSR.GetLinearUnits(&str);
-    osg::notify(osg::INFO)<<"lhsSR.GetLinearUnits("<<str<<") "<<result<<std::endl;
+    log(osg::INFO,"lhsSR.GetLinearUnits(%s) %f",str,result);
 
-    osg::notify(osg::INFO)<<"lhsSR.IsGeographic() "<<lhsSR.IsGeographic()<<std::endl;
-    osg::notify(osg::INFO)<<"lhsSR.IsProjected() "<<lhsSR.IsProjected()<<std::endl;
-    osg::notify(osg::INFO)<<"lhsSR.IsLocal() "<<lhsSR.IsLocal()<<std::endl;
+    log(osg::INFO,"lhsSR.IsGeographic() %d",lhsSR.IsGeographic());
+    log(osg::INFO,"lhsSR.IsProjected() %d",lhsSR.IsProjected());
+    log(osg::INFO,"lhsSR.IsLocal() %d",lhsSR.IsLocal());
     
     return result;
 }
@@ -109,11 +110,11 @@ bool vpb::areCoordinateSystemEquivalent(const osg::CoordinateSystemNode* lhs,con
     // if one CS is NULL then true false
     if (!lhs || !rhs)
     {
-        osg::notify(osg::INFO)<<"areCoordinateSystemEquivalent lhs="<<lhs<<"  rhs="<<rhs<<" return true"<<std::endl;
+        log(osg::INFO,"areCoordinateSystemEquivalent lhs=%s  rhs=%s return true",lhs,rhs);
         return false;
     }
     
-    osg::notify(osg::INFO)<<"areCoordinateSystemEquivalent lhs="<<lhs->getCoordinateSystem()<<"  rhs="<<rhs->getCoordinateSystem()<<std::endl;
+    log(osg::INFO,"areCoordinateSystemEquivalent lhs=%s rhs=%s",lhs->getCoordinateSystem().c_str(),rhs->getCoordinateSystem().c_str());
 
     // use compare on ProjectionRef strings.
     if (lhs->getCoordinateSystem() == rhs->getCoordinateSystem()) return true;
@@ -141,10 +142,10 @@ bool vpb::areCoordinateSystemEquivalent(const osg::CoordinateSystemNode* lhs,con
 #if 0
     int result2 = lhsSR.IsSameGeogCS(&rhsSR);
 
-     osg::notify(osg::NOTICE)<<"areCoordinateSystemEquivalent "<<std::endl
+     log(osg::NOTICE)<<"areCoordinateSystemEquivalent "<<std::endl
               <<"LHS = "<<lhs->getCoordinateSystem()<<std::endl
               <<"RHS = "<<rhs->getCoordinateSystem()<<std::endl
-              <<"result = "<<result<<"  result2 = "<<result2<<std::endl;
+              <<"result = "<<result<<"  result2 = "<<result2);
 #endif
          return result ? true : false;
 }
@@ -162,7 +163,7 @@ void SpatialProperties::computeExtents()
         _extents.expandBy( osg::Vec3(_numValuesX,_numValuesY,0.0)*_geoTransform);
     _extents._isGeographic = getCoordinateSystemType(_cs.get())==GEOGRAPHIC;
 
-    osg::notify(osg::INFO)<<"DataSet::SpatialProperties::computeExtents() is geographic "<<_extents._isGeographic<<std::endl;
+    log(osg::INFO,"DataSet::SpatialProperties::computeExtents() is geographic %d",_extents._isGeographic);
 }
 
 

@@ -96,6 +96,10 @@ class VPB_EXPORT DataSet : public BuildOptions
         BuildLog* getBuildLog() { return _buildLog.get(); }
         const BuildLog* getBuildLog() const { return _buildLog.get(); }
         
+        void setTaskFile(TaskFile* taskFile) { _taskFile = taskFile; }
+        TaskFile* getTaskFile() { return _taskFile.get(); }
+        const TaskFile* getTaskFile() const { return _taskFile.get(); }
+
 
         void addSource(Source* source);
         void addSource(CompositeSource* composite);
@@ -154,6 +158,14 @@ class VPB_EXPORT DataSet : public BuildOptions
 
         unsigned int getNumOfTextureLevels() const { return _numTextureLevels; }
 
+        void log(osg::NotifySeverity level, const char* format, ...)
+        {
+            va_list args; va_start(args, format);
+            if (_buildLog.valid()) _buildLog->log(level, format, args);
+            else if (level<=osg::getNotifyLevel()) { vprintf(format, args); printf("\n"); }
+            va_end(args);
+        }
+
 
     protected:
 
@@ -191,7 +203,8 @@ class VPB_EXPORT DataSet : public BuildOptions
         unsigned int                                _numTextureLevels;
         osg::ref_ptr<osg::CoordinateSystemNode>     _intermediateCoordinateSystem;
 
-        osg::ref_ptr<BuildLog>      _buildLog;
+        osg::ref_ptr<BuildLog>                      _buildLog;
+        osg::ref_ptr<TaskFile>                      _taskFile;
         
 };
 

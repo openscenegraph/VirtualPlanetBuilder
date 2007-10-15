@@ -10,94 +10,100 @@
 */
 
 #include <vpb/BuildOperation>
+#include <vpb/TaskFile>
 
 #include <osgDB/ReadFile>
+#include <osgDB/FileUtils>
 #include <osgTerrain/Terrain>
 
 #include <iostream>
 
-struct OperationOne : public vpb::BuildOperation
+#include <netdb.h>
+#include <unistd.h>
+#include <stdio.h>
+
+#include <ext/stdio_filebuf.h>
+
+struct LoadOperation : public vpb::BuildOperation
 {
-    OperationOne(vpb::BuildLog* buildLog, unsigned int i):
-        vpb::BuildOperation(buildLog,"Operation One",false),
-        _i(i) {}
+    LoadOperation(vpb::BuildLog* buildLog, const std::string& filename):
+        vpb::BuildOperation(buildLog,"LoadOperation",false),
+        _filename(filename) {}
     
     virtual void build()
     {
-        log() << "one: "<<_i<<std::endl;
-        osg::ref_ptr<osg::Node> node = osgDB::readNodeFile("cow.osg");
+        std::cout<<"PID="<<getpid()<<std::endl;
+        // log("loading %s",_filename.c_str());
+        osg::ref_ptr<osg::Object> object = osgDB::readObjectFile(_filename+".gdal");
+        if (object.valid())
+        {
+            // log("succeded in loading %s",_filename.c_str());
+        }
+        else
+        {
+            // log("failed loading %s",_filename.c_str());
+        }
     }
     
-    unsigned int _i;
-
-};
-
-struct OperationTwo : public vpb::BuildOperation
-{
-    OperationTwo(vpb::BuildLog* buildLog, unsigned int i):
-        vpb::BuildOperation(buildLog,"Operation Two",false),
-        _i(i) {}
-    
-    virtual void build()
-    {
-        log() << "two: "<<_i<<std::endl;
-        osg::ref_ptr<osg::Node> node = osgDB::readNodeFile("glider.osg");
-    }
-    unsigned int _i;
-
+    std::string _filename;
 };
 
 int main( int argc, char **argv )
 {
-    // use an ArgumentParser object to manage the program arguments.
     osg::ArgumentParser arguments(&argc,argv);
-
-
-    osg::ref_ptr<vpb::BuildLog> buildLog = new vpb::BuildLog;
     
-    typedef std::list< osg::ref_ptr<osg::OperationThread> > Threads;
-    Threads threads;
-    
-    osg::ref_ptr<osg::OperationQueue> operationQueue = new osg::OperationQueue;
-    
-    unsigned int numThreads=1;
-    while(arguments.read("-t",numThreads)) {}
-    
-    for(unsigned int i=0; i<numThreads; ++i)
+    int signal=9;
+    std::string filename;
+    if (arguments.read("-k",filename, signal) || arguments.read("-k",filename))
     {
+        osg::ref_ptr<vpb::TaskFile> taskFile = new vpb::TaskFile(filename,vpb::TaskFile::READ);
+        taskFile->sync();
+        taskFile->signal(signal);
+    }
+
+    bool background = false;
+    if (arguments.read("-i",filename, background) || arguments.read("-i",filename))
+    {
+        osg::ref_ptr<vpb::TaskFile> taskFile = new vpb::TaskFile(filename,vpb::TaskFile::READ);
+        taskFile->sync();
+        taskFile->invoke(background);
+    }
+
+    if (arguments.read("-r",filename))
+    {
+        osg::ref_ptr<vpb::TaskFile> taskFile = new vpb::TaskFile(filename,vpb::TaskFile::READ);
+
         osg::ref_ptr<osg::OperationThread> thread = new osg::OperationThread;
-        thread->setOperationQueue(operationQueue.get());
-        threads.push_back(thread.get());
-        
+        thread->add(new vpb::TaskFileOperation(taskFile.get()));
+        thread->add(new vpb::SleepOperation(1000000));
         thread->startThread();
+        
+        sleep(10);
     }
-    
-    
-    unsigned int numOneOps=100;
-    while(arguments.read("-1",numOneOps)) {}
 
-    unsigned int numTwoOps=100;
-    while(arguments.read("-2",numTwoOps)) {}
-    
-    unsigned int i = 0;
-    unsigned int j = 0;
-    for(unsigned int i=0; 
-        i<numOneOps || j<numTwoOps;
-        ++i, ++j)
+    if (arguments.read("-w",filename))
     {
-        if (i<numOneOps) operationQueue->add(new OperationOne(buildLog.get(),i));
-        if (j<numTwoOps) operationQueue->add(new OperationTwo(buildLog.get(),j));
+
+        osg::ref_ptr<vpb::TaskFile> taskFile = new vpb::TaskFile(filename,vpb::TaskFile::WRITE);
+
+        taskFile->init(arguments);
+
+        osg::ref_ptr<osg::OperationThread> thread = new osg::OperationThread;
+        thread->add(new vpb::TaskFileOperation(taskFile.get()));
+        thread->add(new vpb::SleepOperation(1000000));
+        thread->startThread();
+        
+        unsigned int count = 0;
+        for(;;)
+        {
+            taskFile->setProperty("count",count);
+
+            usleep(100000);
+
+            ++count;
+        }        
+
     }
-    
-    osg::ref_ptr<osg::Operation> operation;
-    while ((operation=operationQueue->getNextOperation()).valid())
-    {
-        (*operation)(0);
-    }
-    
-    buildLog->waitForCompletion();
-    
-    buildLog->report(std::cout);
 
     return 0;
 }

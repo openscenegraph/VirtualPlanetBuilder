@@ -274,10 +274,10 @@ void DestinationTile::allocate()
         _terrain->_heightField->setYInterval(dem_dy);
 
         //float xMax = _terrain->_heightField->getOrigin().x()+_terrain->_heightField->getXInterval()*(float)(dem_numColumns-1);
-        //osg::notify(osg::INFO)<<"ErrorX = "<<xMax-_extents.xMax()<<std::endl;
+        //log(osg::INFO, "ErrorX = %f",xMax-_extents.xMax());
 
         //float yMax = _terrain->_heightField->getOrigin().y()+_terrain->_heightField->getYInterval()*(float)(dem_numRows-1);
-        //osg::notify(osg::INFO)<<"ErrorY = "<<yMax-_extents.yMax()<<std::endl;
+        //log(osg::INFO, "ErrorY = "<<yMax-_extents.yMax());
 
     }
 
@@ -309,14 +309,14 @@ void DestinationTile::setNeighbours(DestinationTile* left, DestinationTile* left
     _neighbour[ABOVE_LEFT] = above_left;
     
     
-//     osg::notify(osg::INFO)<<"LEFT="<<_neighbour[LEFT]<<std::endl;
-//     osg::notify(osg::INFO)<<"LEFT_BELOW="<<_neighbour[LEFT_BELOW]<<std::endl;
-//     osg::notify(osg::INFO)<<"BELOW="<<_neighbour[BELOW]<<std::endl;
-//     osg::notify(osg::INFO)<<"BELOW_RIGHT="<<_neighbour[BELOW_RIGHT]<<std::endl;
-//     osg::notify(osg::INFO)<<"RIGHT="<<_neighbour[RIGHT]<<std::endl;
-//     osg::notify(osg::INFO)<<"RIGHT_ABOVE="<<_neighbour[RIGHT_ABOVE]<<std::endl;
-//     osg::notify(osg::INFO)<<"ABOVE="<<_neighbour[ABOVE]<<std::endl;
-//     osg::notify(osg::INFO)<<"ABOVE_LEFT="<<_neighbour[ABOVE_LEFT]<<std::endl;
+//     log(osg::INFO,"LEFT="<<_neighbour[LEFT]);
+//     log(osg::INFO,"LEFT_BELOW="<<_neighbour[LEFT_BELOW]);
+//     log(osg::INFO,"BELOW="<<_neighbour[BELOW]);
+//     log(osg::INFO,"BELOW_RIGHT="<<_neighbour[BELOW_RIGHT]);
+//     log(osg::INFO,"RIGHT="<<_neighbour[RIGHT]);
+//     log(osg::INFO,"RIGHT_ABOVE="<<_neighbour[RIGHT_ABOVE]);
+//     log(osg::INFO,"ABOVE="<<_neighbour[ABOVE]);
+//     log(osg::INFO,"ABOVE_LEFT="<<_neighbour[ABOVE_LEFT]);
     
     for(int i=0;i<NUMBER_OF_POSITIONS;++i)
     {
@@ -330,7 +330,7 @@ void DestinationTile::checkNeighbouringTiles()
     {
         if (_neighbour[i] && _neighbour[i]->_neighbour[(i+4)%NUMBER_OF_POSITIONS]!=this)
         {
-            osg::notify(osg::INFO)<<"Error:: Tile "<<this<<"'s _neighbour["<<i<<"] does not point back to it."<<std::endl;
+            log(osg::INFO,"Error:: Tile %d's _neighbour[%d] does not point back to it.",this,i);
         }
     }
 }
@@ -577,7 +577,7 @@ const char* edgeString(DestinationTile::Position position)
 void DestinationTile::setTileComplete(bool complete)
 {
     _complete = complete;
-    osg::notify(osg::INFO)<<"setTileComplete("<<complete<<") for "<<_level<<"\t"<<_tileX<<"\t"<<_tileY<<std::endl;
+    log(osg::INFO,"setTileComplete(%d) for %d\t%d%d",complete,_level,_tileX,_tileY);
 }
 
 void DestinationTile::equalizeEdge(Position position)
@@ -610,8 +610,8 @@ void DestinationTile::equalizeEdge(Position position)
         osg::Image* image1 = _imagery[layerNum]._imagery->_image.get();
         osg::Image* image2 = tile2->_imagery[layerNum]._imagery->_image.get();
 
-        //osg::notify(osg::INFO)<<"Equalizing edge "<<edgeString(position)<<" of \t"<<_level<<"\t"<<_tileX<<"\t"<<_tileY
-        //         <<"  neighbour "<<tile2->_level<<"\t"<<tile2->_tileX<<"\t"<<tile2->_tileY<<std::endl;
+        //log(osg::INFO,"Equalizing edge "<<edgeString(position)<<" of \t"<<_level<<"\t"<<_tileX<<"\t"<<_tileY
+        //         <<"  neighbour "<<tile2->_level<<"\t"<<tile2->_tileX<<"\t"<<tile2->_tileY);
 
 
     //   if (_tileY==0) return;
@@ -623,8 +623,8 @@ void DestinationTile::equalizeEdge(Position position)
             image1->getDataType()==GL_UNSIGNED_BYTE)
         {
 
-            //osg::notify(osg::INFO)<<"   Equalizing image1= "<<image1<<                         " with image2 = "<<image2<<std::endl;
-            //osg::notify(osg::INFO)<<"              data1 = 0x"<<std::hex<<(int)image1->data()<<" with data2  = 0x"<<(int)image2->data()<<std::endl;
+            //log(osg::INFO,"   Equalizing image1= "<<image1<<                         " with image2 = "<<image2);
+            //log(osg::INFO,"              data1 = 0x"<<std::hex<<(int)image1->data()<<" with data2  = 0x"<<(int)image2->data());
 
             unsigned char* data1 = 0;
             unsigned char* data2 = 0;
@@ -640,7 +640,7 @@ void DestinationTile::equalizeEdge(Position position)
                 data2 = image2->data(image2->s()-1,1); // RIGHT hand side
                 delta2 = image2->getRowSizeInBytes();
                 num = (image1->t()==image2->t())?image2->t()-2:0; // note miss out corners.
-                //osg::notify(osg::INFO)<<"       left "<<num<<std::endl;
+                //log(osg::INFO,"       left "<<num);
                 break;
             case BELOW:
                 data1 = image1->data(1,0); // BELOW hand side
@@ -648,7 +648,7 @@ void DestinationTile::equalizeEdge(Position position)
                 data2 = image2->data(1,image2->t()-1); // ABOVE hand side
                 delta2 = 3;
                 num = (image1->s()==image2->s())?image2->s()-2:0; // note miss out corners.
-                //osg::notify(osg::INFO)<<"       below "<<num<<std::endl;
+                //log(osg::INFO,"       below "<<num);
                 break;
             case RIGHT:
                 data1 = image1->data(image1->s()-1,1); // LEFT hand side
@@ -656,7 +656,7 @@ void DestinationTile::equalizeEdge(Position position)
                 data2 = image2->data(0,1); // RIGHT hand side
                 delta2 = image2->getRowSizeInBytes();
                 num = (image1->t()==image2->t())?image2->t()-2:0; // note miss out corners.
-                //osg::notify(osg::INFO)<<"       right "<<num<<std::endl;
+                //log(osg::INFO,"       right "<<num);
                 break;
             case ABOVE:
                 data1 = image1->data(1,image1->t()-1); // ABOVE hand side
@@ -664,10 +664,10 @@ void DestinationTile::equalizeEdge(Position position)
                 data2 = image2->data(1,0); // BELOW hand side
                 delta2 = 3;
                 num = (image1->s()==image2->s())?image2->s()-2:0; // note miss out corners.
-                //osg::notify(osg::INFO)<<"       above "<<num<<std::endl;
+                //log(osg::INFO,"       above "<<num);
                 break;
             default :
-                //osg::notify(osg::INFO)<<"       default "<<num<<std::endl;
+                //log(osg::INFO,"       default "<<num);
                 break;
             }
 
@@ -698,7 +698,7 @@ void DestinationTile::equalizeEdge(Position position)
                 data1 += delta1;
                 data2 += delta2;
 
-                //osg::notify(osg::INFO)<<"    equalizing colour "<<(int)data1<<"  "<<(int)data2<<std::endl;
+                //log(osg::INFO,"    equalizing colour "<<(int)data1<<"  "<<(int)data2);
 
             }
 
@@ -710,7 +710,7 @@ void DestinationTile::equalizeEdge(Position position)
 
     if (heightField1 && heightField2)
     {
-        //osg::notify(osg::INFO)<<"   Equalizing heightfield"<<std::endl;
+        //log(osg::INFO,"   Equalizing heightfield");
 
         float* data1 = 0;
         float* data2 = 0;
@@ -830,7 +830,7 @@ void DestinationTile::equalizeEdge(Position position)
 
 void DestinationTile::equalizeBoundaries()
 {
-    osg::notify(osg::INFO)<<"DestinationTile::equalizeBoundaries()"<<std::endl;
+    log(osg::INFO,"DestinationTile::equalizeBoundaries()");
 
     equalizeCorner(LEFT_BELOW);
     equalizeCorner(BELOW_RIGHT);
@@ -865,7 +865,7 @@ void DestinationTile::optimizeResolution()
 
         if (minHeight==maxHeight)
         {
-            osg::notify(osg::INFO)<<"******* We have a flat tile ******* "<<std::endl;
+            log(osg::INFO,"******* We have a flat tile ******* ");
 
             unsigned int minimumSize = 8;
 
@@ -1016,7 +1016,7 @@ osg::StateSet* DestinationTile::createStateSet()
 
             texture->dirtyTextureObject();
 
-            osg::notify(osg::INFO)<<">>>>>>>>>>>>>>>compressed image.<<<<<<<<<<<<<<"<<std::endl;
+            log(osg::INFO,">>>>>>>>>>>>>>>compressed image.<<<<<<<<<<<<<<");
 
         }
         else
@@ -1044,7 +1044,7 @@ osg::StateSet* DestinationTile::createStateSet()
 
                 texture->dirtyTextureObject();
 
-                osg::notify(osg::INFO)<<">>>>>>>>>>>>>>>mip mapped image.<<<<<<<<<<<<<<"<<std::endl;
+                log(osg::INFO,">>>>>>>>>>>>>>>mip mapped image.<<<<<<<<<<<<<<");
 
             }
         }
@@ -1080,7 +1080,7 @@ osg::Node* DestinationTile::createHeightField()
 
     if (_terrain.valid() && _terrain->_heightField.valid())
     {
-        osg::notify(osg::INFO)<<"--- Have terrain build tile ----"<<std::endl;
+        log(osg::INFO,"--- Have terrain build tile ----");
 
         osg::HeightField* hf = _terrain->_heightField.get();
         
@@ -1090,7 +1090,7 @@ osg::Node* DestinationTile::createHeightField()
     }
     else 
     {
-        osg::notify(osg::INFO)<<"**** No terrain to build tile from use flat terrain fallback ****"<<std::endl;
+        log(osg::INFO,"**** No terrain to build tile from use flat terrain fallback ****");
         // create a dummy height field to file in the gap
         osg::HeightField* hf = new osg::HeightField;
         hf->allocate(2,2);
@@ -1149,7 +1149,7 @@ static inline osg::Vec3 computeLocalSkirtVector(const osg::EllipsoidModel* et, c
 
 osg::Node* DestinationTile::createPolygonal()
 {
-    osg::notify(osg::INFO)<<"--------- DestinationTile::createDrawableGeometry() ------------- "<<std::endl;
+    log(osg::INFO,"--------- DestinationTile::createDrawableGeometry() ------------- ");
 
     const osg::EllipsoidModel* et = _dataSet->getEllipsoidModel();
     bool mapLatLongsToXYZ = _dataSet->mapLatLongsToXYZ();
@@ -1159,7 +1159,7 @@ osg::Node* DestinationTile::createPolygonal()
     
     if (_terrain.valid() && _terrain->_heightField.valid())
     {
-        osg::notify(osg::INFO)<<"--- Have terrain build tile ----"<<std::endl;
+        log(osg::INFO,"--- Have terrain build tile ----");
         grid = _terrain->_heightField.get();
     }
     else
@@ -1176,7 +1176,7 @@ osg::Node* DestinationTile::createPolygonal()
             if (longitude_range>45.0) numColumns = (unsigned int)ceilf((float)numColumns*sqrtf(longitude_range/45.0));
             if (latitude_range>45.0) numRows = (unsigned int)ceilf((float)numRows*sqrtf(latitude_range/45.0));
             
-            osg::notify(osg::INFO)<<"numColumns = "<<numColumns<<"  numRows="<<numRows<<std::endl;
+            log(osg::INFO,"numColumns = %d numRows=%d",numColumns,numRows);
         }
         else
         {
@@ -1194,7 +1194,7 @@ osg::Node* DestinationTile::createPolygonal()
 
     if (!grid)
     {
-        osg::notify(osg::INFO)<<"**** No terrain to build tile from use flat terrain fallback ****"<<std::endl;
+        log(osg::INFO,"**** No terrain to build tile from use flat terrain fallback ****");
         
         return 0;
     }
@@ -1344,7 +1344,7 @@ osg::Node* DestinationTile::createPolygonal()
                 double phi = 2.0 * asin (d*0.5/globe_radius); // d/globe_radius;
                 double beta = theta+phi;
                 double cutoff = osg::PI_2 - 0.1;
-                //osg::notify(osg::INFO)<<"theta="<<theta<<"\tphi="<<phi<<" beta "<<beta<<std::endl;
+                //log(osg::INFO,"theta="<<theta<<"\tphi="<<phi<<" beta "<<beta);
                 if (phi<cutoff && beta<cutoff)
                 {
 
@@ -1357,7 +1357,7 @@ osg::Node* DestinationTile::createPolygonal()
                 }
                 else
                 {
-                    //osg::notify(osg::INFO)<<"Turning off cluster culling for wrap around tile."<<std::endl;
+                    //log(osg::INFO,"Turning off cluster culling for wrap around tile.");
                     useClusterCullingCallback = false;
                 }
             }
@@ -1591,13 +1591,13 @@ osg::Node* DestinationTile::createPolygonal()
     }
 
 #if 0
-    std::cout<<"Normals"<<std::endl;
+    std::cout<<"Normals");
     for(osg::Vec3Array::iterator nitr = n->begin();
         nitr != n->end();
         ++nitr)
     {
         osg::Vec3& normal = *nitr;
-        std::cout<<"   Local normal = "<<normal<< " vs "<<transformed_center_normal<<std::endl;
+        std::cout<<"   Local normal = "<<normal<< " vs "<<transformed_center_normal);
     }
 #endif
 
@@ -1786,7 +1786,7 @@ void DestinationTile::readFrom(CompositeSource* sourceGraph)
 {
     allocate();
 
-    osg::notify(osg::INFO)<<"DestinationTile::readFrom() "<<std::endl;
+    log(osg::INFO,"DestinationTile::readFrom() ");
     for(CompositeSource::source_iterator itr(sourceGraph);itr.valid();++itr)
     {
     
@@ -1795,8 +1795,8 @@ void DestinationTile::readFrom(CompositeSource* sourceGraph)
             _level>=source->getMinLevel() && _level<=source->getMaxLevel() && 
             (*itr)->getSourceData()) 
         {
-            osg::notify(osg::INFO)<<"DestinationTile::readFrom -> SourceData::read() "<<std::endl;
-            osg::notify(osg::INFO)<<"    destination._level="<<_level<<"\t"<<source->getMinLevel()<<"\t"<<source->getMaxLevel()<<std::endl;
+            log(osg::INFO,"DestinationTile::readFrom -> SourceData::read() ");
+            log(osg::INFO,"    destination._level=%d\t%d\t%d",_level,source->getMinLevel(),source->getMaxLevel());
 
             SourceData* data = (*itr)->getSourceData();
             if (source->getType()==Source::IMAGE)
@@ -1912,7 +1912,7 @@ void CompositeDestination::addRequiredResolutions(CompositeSource* sourceGraph)
 
 void CompositeDestination::readFrom(CompositeSource* sourceGraph)
 {
-    osg::notify(osg::INFO)<<"CompositeDestination::readFrom() "<<std::endl;
+    log(osg::INFO,"CompositeDestination::readFrom() ");
 
     // handle leaves
     for(TileList::iterator titr=_tiles.begin();
@@ -2122,7 +2122,10 @@ osg::Node* CompositeDestination::createScene()
                 
                 triple._callback->transform(matrix);
                 
-                osg::notify(osg::INFO)<<"cluster culling matrix "<<matrix<<std::endl;
+                log(osg::INFO,"cluster culling matrix %f\t%f\t%f\t%f",matrix(0,0),matrix(0,1),matrix(0,2),matrix(0,3));
+                log(osg::INFO,"                       %f\t%f\t%f\t%f",matrix(1,0),matrix(1,1),matrix(1,2),matrix(1,3));
+                log(osg::INFO,"                       %f\t%f\t%f\t%f",matrix(2,0),matrix(2,1),matrix(2,2),matrix(2,3));
+                log(osg::INFO,"                       %f\t%f\t%f\t%f",matrix(3,0),matrix(3,1),matrix(3,2),matrix(3,3));
 
                 // moving cluster culling callback myLOD node.
                 myLOD->setCullCallback(triple._callback);
@@ -2341,7 +2344,10 @@ osg::Node* CompositeDestination::createPagedLODScene()
                 
                 triple._callback->transform(matrix);
                 
-                osg::notify(osg::INFO)<<"cluster culling matrix "<<matrix<<std::endl;
+                log(osg::INFO,"cluster culling matrix %f\t%f\t%f\t%f",matrix(0,0),matrix(0,1),matrix(0,2),matrix(0,3));
+                log(osg::INFO,"                       %f\t%f\t%f\t%f",matrix(1,0),matrix(1,1),matrix(1,2),matrix(1,3));
+                log(osg::INFO,"                       %f\t%f\t%f\t%f",matrix(2,0),matrix(2,1),matrix(2,2),matrix(2,3));
+                log(osg::INFO,"                       %f\t%f\t%f\t%f",matrix(3,0),matrix(3,1),matrix(3,2),matrix(3,3));
 
                 // moving cluster culling callback pagedLOD node.
                 pagedLOD->setCullCallback(triple._callback);
@@ -2420,7 +2426,7 @@ void CompositeDestination::unrefLocalData()
         ++titr)
     {
         DestinationTile* tile = titr->get();
-        osg::notify(osg::INFO)<<"   unref tile level="<<tile->_level<<" X="<<tile->_tileX<<" Y="<<tile->_tileY<<std::endl;
+        log(osg::INFO,"   unref tile level=%d X=%d Y=%d",tile->_level, tile->_tileX, tile->_tileY);
         tile->unrefData();
     }
 }

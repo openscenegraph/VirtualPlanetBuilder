@@ -7,32 +7,34 @@ SET(LIB_NAME vpb)
 
 SET(HEADER_PATH ${VIRTUALPLANETBUILDER_SOURCE_DIR}/include/${LIB_NAME})
 SET(LIB_PUBLIC_HEADERS
-	${HEADER_PATH}/BuildOptions
+	${HEADER_PATH}/BuildLog
 	${HEADER_PATH}/BuildOperation
+	${HEADER_PATH}/BuildOptions
 	${HEADER_PATH}/DatabaseBuilder
 	${HEADER_PATH}/DataSet
 	${HEADER_PATH}/Destination
 	${HEADER_PATH}/Export
+	${HEADER_PATH}/Serializer
 	${HEADER_PATH}/Source
 	${HEADER_PATH}/SpatialProperties
-	${HEADER_PATH}/BuildLog
-	${HEADER_PATH}/Serializer
+	${HEADER_PATH}/TaskFile
 	${HEADER_PATH}/Version
 )
 
 ADD_LIBRARY(${LIB_NAME}
 	${VIRTUALPLANETBUILDER_USER_DEFINED_DYNAMIC_OR_STATIC}
 	${LIB_PUBLIC_HEADERS}
+	BuildLog.cpp
+	BuildOperation.cpp
 	BuildOptions.cpp
 	BuildOptionsIO.cpp
-	BuildOperation.cpp
 	DatabaseBuilder.cpp
 	DatabaseBuilderIO.cpp
 	DataSet.cpp
 	Destination.cpp
-	BuildLog.cpp
 	Source.cpp
 	SpatialProperties.cpp
+	TaskFile.cpp
 	Version.cpp
 )
 

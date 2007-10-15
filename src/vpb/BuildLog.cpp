@@ -14,20 +14,109 @@
 #include <vpb/BuildLog>
 #include <vpb/BuildOperation>
 
+#include <iostream>
+
 using namespace vpb;
 
-OperationLog::OperationLog(BuildLog* buildLog):
+struct ThreadLog
+{
+    typedef std::list<osg::ref_ptr<OperationLog> > OperationLogStack;
+    
+    void push(OperationLog* log) { _logStack.push_back(log); }
+    void pop() { if (!_logStack.empty()) _logStack.pop_back(); }
+    
+    void log(osg::NotifySeverity level, const char* message, va_list args)
+    { 
+        if (!_logStack.empty()) _logStack.back()->log(level, message, args);
+        else if (level<=osg::getNotifyLevel()) { vprintf(message, args); printf("\n"); }
+    }
+
+    OperationLogStack _logStack;
+    
+};
+
+typedef std::map<OpenThreads::Thread*, ThreadLog > OperationLogMap;
+static OpenThreads::Mutex s_opertionLogMapMutex;
+static OperationLogMap s_opertionLogMap;
+
+void vpb::log(osg::NotifySeverity level, const char* format, ...)
+{
+    OpenThreads::Thread* thread = OpenThreads::Thread::CurrentThread();
+
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_opertionLogMapMutex);
+    
+    ThreadLog& tl = s_opertionLogMap[thread];
+    
+    va_list args; va_start(args, format);
+    tl.log(level, format, args);
+    va_end(args);
+}
+
+void vpb::log(osg::NotifySeverity level, const char* message, va_list args)
+{
+    OpenThreads::Thread* thread = OpenThreads::Thread::CurrentThread();
+
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_opertionLogMapMutex);
+    
+    ThreadLog& tl = s_opertionLogMap[thread];
+    return tl.log(level, message, args);
+}
+
+void vpb::pushOperationLog(OperationLog* operationLog)
+{
+    OpenThreads::Thread* thread = OpenThreads::Thread::CurrentThread();
+
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_opertionLogMapMutex);
+    s_opertionLogMap[thread].push(operationLog);
+}
+
+void vpb::popOperationLog()
+{
+    OpenThreads::Thread* thread = OpenThreads::Thread::CurrentThread();
+
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_opertionLogMapMutex);
+    s_opertionLogMap[thread].pop();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//  LogFile
+
+
+LogFile::LogFile(const std::string& filename)
+{
+    _fout.open(filename.c_str());
+}
+
+void LogFile::write(Message* message)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
+    _fout<<message->time<<"\t:"<<message->message<<std::endl;
+    
+    if (_taskFile.valid())
+    {
+        _taskFile->setProperty("last message time",message->time);
+        _taskFile->setProperty("last message",message->message);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//  OperationLog
+
+OperationLog::OperationLog():
     Object(true),
-    _buildLog(buildLog),
     _startPendingTime(-1.0),
     _startRunningTime(-1.0),
     _endRunningTime(-1.0)
 {
 }
 
-OperationLog::OperationLog(BuildLog* buildLog, const std::string& name):
+OperationLog::OperationLog(const std::string& name):
     Object(true),
-    _buildLog(buildLog),
     _startPendingTime(-1.0),
     _startRunningTime(-1.0),
     _endRunningTime(-1.0)
@@ -38,7 +127,6 @@ OperationLog::OperationLog(BuildLog* buildLog, const std::string& name):
 
 OperationLog::OperationLog(const OperationLog& log, const osg::CopyOp& copyop):
     osg::Object(log,copyop),
-    _buildLog(log._buildLog),
     _startPendingTime(log._startPendingTime),
     _startRunningTime(log._startRunningTime),
     _endRunningTime(log._endRunningTime)
@@ -47,16 +135,28 @@ OperationLog::OperationLog(const OperationLog& log, const osg::CopyOp& copyop):
 
 OperationLog::~OperationLog()
 {
-    for(Messages::iterator itr = _messages.begin();
-        itr != _messages.end();
-        ++itr)
-    {
-        if (itr->second)
-        {
-            delete itr->second;
-            itr->second = 0;
-        }
-    }
+}
+
+void OperationLog::log(osg::NotifySeverity level, const char* format, ...)
+{
+    char str[1024];
+    va_list args; va_start(args, format);
+    vsprintf(str, format, args);
+    va_end(args);
+    
+    Message* message = new Message(osg::Timer::instance()->time_s(), level, str);
+    _messages.push_back(message);
+    if (_logFile.valid()) _logFile->write(message);
+}
+
+void OperationLog::log(osg::NotifySeverity level, const char* format, va_list args)
+{
+    char str[1024];
+    vsprintf(str, format, args);
+
+    Message* message = new Message(osg::Timer::instance()->time_s(), level, str);
+    _messages.push_back(message);
+    if (_logFile.valid()) _logFile->write(message);
 }
 
 void OperationLog::report(std::ostream& out)
@@ -66,35 +166,36 @@ void OperationLog::report(std::ostream& out)
         itr != _messages.end();
         ++itr)
     {
-        if (itr->second)
-        {
-            out<<"    "<<itr->first<<" : "<<(itr->second)->str();
-        }
+        out<<"    "<<(*itr)->time<<" : "<<(*itr)->message<<std::endl;
     }
     out<<std::endl;
 }
 
 
-std::ostream& OperationLog::operator() (osg::NotifySeverity level)
-{
-    _messages.push_back(MessagePair(_buildLog->getCurrentTime(), new std::ostringstream));
-    return *(_messages.back().second);
-}
+//////////////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//  BuildLog
 
 BuildLog::BuildLog():
-    osg::Object(true)
+    OperationLog()
 {
-    initStartTime();
+}
+
+BuildLog::BuildLog(const std::string& name):
+    OperationLog(name)
+{
 }
 
 BuildLog::BuildLog(const BuildLog& bl, const osg::CopyOp& copyop):
-    osg::Object(bl,copyop)
+    OperationLog(bl,copyop)
 {
 }
 
+
 void BuildLog::initStartTime()
 {
-    _timer.setStartTick(_timer.tick());
+    osg::Timer::instance()->setStartTick(osg::Timer::instance()->tick());
 }
 
 void BuildLog::pendingOperation(BuildOperation* operation)
@@ -162,7 +263,6 @@ void BuildLog::remove(OperationLogs& logs, OperationLog* log)
     }
 }
 
-
 bool BuildLog::isComplete() const
 {
     unsigned int numOutstandingOperations = 0;
@@ -193,6 +293,9 @@ void BuildLog::report(std::ostream& out)
 {
     out<<"BuildLog::report"<<std::endl;
     out<<"================"<<std::endl;
+    
+    OperationLog::report(out);
+    
     out<<std::endl<<"Pending Operations   "<<_pendingOperations.size()<<std::endl;
 
     for(OperationLogs::iterator itr = _pendingOperations.begin();

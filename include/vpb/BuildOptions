@@ -69,6 +69,12 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setIntermediateBuildName(const std::string& buildName) { _intermediateBuildName = buildName; }
         const std::string& getIntermediateBuildName() const { return _intermediateBuildName; }
 
+        void setLogFileName(const std::string& logFileName) { _logFileName = logFileName; }
+        const std::string& getLogFileName() const { return _logFileName; }
+
+        void setTaskFileName(const std::string& taskFileName) { _taskFileName = taskFileName; }
+        const std::string& getTaskFileName() const { return _taskFileName; }
+
         void setCommentString(const std::string& comment) { _comment = comment; }        
         const std::string& getCommentString() const { return _comment; }        
 
@@ -205,6 +211,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
         std::string                                 _directory;
         std::string                                 _imageExtension;
         std::string                                 _intermediateBuildName;
+        std::string                                 _logFileName;
+        std::string                                 _taskFileName;
         std::string                                 _tileBasename;
         std::string                                 _tileExtension;
         TextureType                                 _textureType;

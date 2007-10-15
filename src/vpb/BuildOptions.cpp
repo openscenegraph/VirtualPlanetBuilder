@@ -34,6 +34,8 @@ BuildOptions::BuildOptions():
     _geometryType = POLYGONAL;
     _imageExtension = ".dds";
     _intermediateBuildName = "";
+    _logFileName = "";
+    _taskFileName = "";
     _maxAnisotropy = 1.0;
     _maximumNumOfLevels = 30;
     _maximumTileImageSize = 256;
@@ -84,6 +86,8 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _geometryType = rhs._geometryType;
     _imageExtension = rhs._imageExtension;
     _intermediateBuildName = rhs._intermediateBuildName;
+    _logFileName = rhs._logFileName;
+    _taskFileName = rhs._taskFileName;
     _maxAnisotropy = rhs._maxAnisotropy;
     _maximumNumOfLevels = rhs._maximumNumOfLevels;
     _maximumTileImageSize = rhs._maximumTileImageSize;

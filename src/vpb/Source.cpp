@@ -145,7 +145,6 @@ SourceData* SourceData::readData(Source* source)
                     
                 if (hf)
                 {
-                    osg::notify(osg::INFO)<<"readData: HeightField recognised: "<<source->getFileName().c_str()<<std::endl;
                     SourceData* data = new SourceData(source);
 
                     // need to set vector or raster
@@ -221,7 +220,7 @@ SourceData* SourceData::readData(Source* source)
                 }
                 else if (gdalDataSet->GetGCPCount()>0 && gdalDataSet->GetGCPProjection())
                 {
-                    osg::notify(osg::INFO) << "    Using GCP's"<< std::endl;
+                    log(osg::INFO,"    Using GCP's");
 
 
                     /* -------------------------------------------------------------------- */
@@ -235,7 +234,7 @@ SourceData* SourceData::readData(Source* source)
 
                     if ( hTransformArg == NULL )
                     {
-                        osg::notify(osg::INFO)<<" failed to create transformer"<<std::endl;
+                        log(osg::INFO," failed to create transformer");
                         return NULL;
                     }
 
@@ -249,7 +248,7 @@ SourceData* SourceData::readData(Source* source)
                                                  adfDstGeoTransform, &nPixels, &nLines )
                         != CE_None )
                     {
-                        osg::notify(osg::INFO)<<" failed to create warp"<<std::endl;
+                        log(osg::INFO," failed to create warp");
                         return NULL;
                     }
 
@@ -266,7 +265,7 @@ SourceData* SourceData::readData(Source* source)
                 }
                 else
                 {
-                    osg::notify(osg::INFO) << "    No GeoTransform or GCP's - unable to compute position in space"<< std::endl;
+                    log(osg::INFO,"    No GeoTransform or GCP's - unable to compute position in space");
                     
                     data->_geoTransform.set( 1.0,    0.0,    0.0,    0.0,
                                              0.0,    1.0,    0.0,    0.0,
@@ -321,7 +320,7 @@ const SpatialProperties& SourceData::computeSpatialProperties(const osg::Coordin
         if (_gdalDataset)
         {
 
-            //osg::notify(osg::INFO)<<"Projecting bounding volume for "<<_source->getFileName()<<std::endl;
+            //log(osg::INFO,"Projecting bounding volume for "<<_source->getFileName());
 
             
             // insert into the _spatialPropertiesMap for future reuse.
@@ -339,7 +338,7 @@ const SpatialProperties& SourceData::computeSpatialProperties(const osg::Coordin
 
             if (!hTransformArg)
             {
-                osg::notify(osg::INFO)<<" failed to create transformer"<<std::endl;
+                log(osg::INFO," failed to create transformer");
                 return sp;
             }
         
@@ -350,7 +349,7 @@ const SpatialProperties& SourceData::computeSpatialProperties(const osg::Coordin
                                          adfDstGeoTransform, &nPixels, &nLines )
                 != CE_None )
             {
-                osg::notify(osg::INFO)<<" failed to create warp"<<std::endl;
+                log(osg::INFO," failed to create warp");
                 return sp;
             }
 
@@ -370,7 +369,7 @@ const SpatialProperties& SourceData::computeSpatialProperties(const osg::Coordin
         }
 
     }
-    osg::notify(osg::INFO)<<"DataSet::DataSource::assuming compatible coordinates."<<std::endl;
+    log(osg::INFO,"DataSet::DataSource::assuming compatible coordinates.");
     return *this;
 }
 
@@ -381,33 +380,33 @@ bool SourceData::intersects(const SpatialProperties& sp) const
 
 void SourceData::read(DestinationData& destination)
 {
-    osg::notify(osg::INFO)<<"A"<<std::endl;
+    log(osg::INFO,"A");
 
     if (!_source) return;
     
-    osg::notify(osg::INFO)<<"B"<<std::endl;
+    log(osg::INFO,"B");
 
     switch (_source->getType())
     {
     case(Source::IMAGE):
-        osg::notify(osg::INFO)<<"B.1"<<std::endl;
+        log(osg::INFO,"B.1");
         readImage(destination);
         break;
     case(Source::HEIGHT_FIELD):
-        osg::notify(osg::INFO)<<"B.2"<<std::endl;
+        log(osg::INFO,"B.2");
         readHeightField(destination);
         break;
     case(Source::MODEL):
-        osg::notify(osg::INFO)<<"B.3"<<std::endl;
+        log(osg::INFO,"B.3");
         readModels(destination);
         break;
     }
-    osg::notify(osg::INFO)<<"C"<<std::endl;
+    log(osg::INFO,"C");
 }
 
 void SourceData::readImage(DestinationData& destination)
 {
-    osg::notify(osg::INFO)<<std::endl<<"readImage "<<std::endl;
+    log(osg::INFO,"readImage ");
 
     if (destination._image.valid())
     {
@@ -422,20 +421,20 @@ void SourceData::readImage(DestinationData& destination)
         for(unsigned int ic = 0; ic < numXChecks; ++ic, xoffset += 360.0)
         {
         
-            osg::notify(osg::INFO)<<"Testing "<<xoffset<<std::endl;
-            osg::notify(osg::INFO)<<"  s_bb "<<s_bb.xMin()+xoffset<<" "<<s_bb.xMax()+xoffset<<std::endl;
-            osg::notify(osg::INFO)<<"  d_bb "<<d_bb.xMin()<<" "<<d_bb.xMax()<<std::endl;
+            log(osg::INFO,"Testing %f",xoffset);
+            log(osg::INFO,"  s_bb %f %f",s_bb.xMin()+xoffset,s_bb.xMax()+xoffset);
+            log(osg::INFO,"  d_bb %f %f",d_bb.xMin(),d_bb.xMax());
         
             GeospatialExtents intersect_bb(d_bb.intersection(s_bb, xoffset));
             if (!intersect_bb.valid())
             {   
-                osg::notify(osg::INFO)<<"Reading image but it does not intesection destination - ignoring"<<std::endl;
+                log(osg::INFO,"Reading image but it does not intesection destination - ignoring");
                 continue;
             }
 
-            osg::notify(osg::INFO)<<"readImage s_bb is geographic "<<s_bb._isGeographic<<std::endl;
-            osg::notify(osg::INFO)<<"readImage d_bb is geographic "<<d_bb._isGeographic<<std::endl;
-            osg::notify(osg::INFO)<<"readImage intersect_bb is geographic "<<intersect_bb._isGeographic<<std::endl;
+            log(osg::INFO,"readImage s_bb is geographic %d",s_bb._isGeographic);
+            log(osg::INFO,"readImage d_bb is geographic %d",d_bb._isGeographic);
+            log(osg::INFO,"readImage intersect_bb is geographic %d",intersect_bb._isGeographic);
 
 
 
@@ -449,8 +448,8 @@ void SourceData::readImage(DestinationData& destination)
            int destWidth = osg::minimum((int)ceilf((float)destination._image->s()*(intersect_bb.xMax()-d_bb.xMin())/(d_bb.xMax()-d_bb.xMin())),(int)destination._image->s())-destX;
            int destHeight = osg::minimum((int)ceilf((float)destination._image->t()*(intersect_bb.yMax()-d_bb.yMin())/(d_bb.yMax()-d_bb.yMin())),(int)destination._image->t())-destY;
 
-            osg::notify(osg::INFO)<<"   copying from "<<windowX<<"\t"<<windowY<<"\t"<<windowWidth<<"\t"<<windowHeight<<std::endl;
-            osg::notify(osg::INFO)<<"             to "<<destX<<"\t"<<destY<<"\t"<<destWidth<<"\t"<<destHeight<<std::endl;
+            log(osg::INFO,"   copying from %d\t%d\t%d\t%d",windowX,windowY,windowWidth,windowHeight);
+            log(osg::INFO,"             to %d\t%d\t%d\t%d",destX,destY,destWidth,destHeight);
 
             int readWidth = destWidth;
             int readHeight = destHeight;
@@ -485,7 +484,7 @@ void SourceData::readImage(DestinationData& destination)
 
                 int pixelSpace=numSourceComponents*numBytesPerPixel;
 
-                osg::notify(osg::INFO) << "reading RGB"<<std::endl;
+                log(osg::INFO,"reading RGB");
 
                 unsigned char* tempImage = new unsigned char[readWidth*readHeight*pixelSpace];
 
@@ -635,7 +634,7 @@ void SourceData::readImage(DestinationData& destination)
                                     dest[1] = src[1];
                                     dest[2] = src[2];
                                     if (numSourceComponents==4) dest[3] = src[3];
-                                    //std::cout<<"copy"<<std::endl;
+                                    //std::cout<<"copy");
                                 }
                                 else  // need to interpolate j axis.
                                 {
@@ -648,7 +647,7 @@ void SourceData::readImage(DestinationData& destination)
                                     dest[1] = (unsigned char)((float)src_0[1]*r_0 + (float)src_1[1]*r_1);
                                     dest[2] = (unsigned char)((float)src_0[2]*r_0 + (float)src_1[2]*r_1);
                                     if (numSourceComponents==4) dest[3] = (unsigned char)((float)src_0[3]*r_0 + (float)src_1[3]*r_1);
-                                    //std::cout<<"interpolate j axis"<<std::endl;
+                                    //std::cout<<"interpolate j axis");
                                 }
                             }
                             else // need to interpolate i axis.
@@ -664,7 +663,7 @@ void SourceData::readImage(DestinationData& destination)
                                     dest[1] = (unsigned char)((float)src_0[1]*r_0 + (float)src_1[1]*r_1);
                                     dest[2] = (unsigned char)((float)src_0[2]*r_0 + (float)src_1[2]*r_1);
                                     if (numSourceComponents==4) dest[3] = (unsigned char)((float)src_0[3]*r_0 + (float)src_1[3]*r_1);
-                                    //std::cout<<"interpolate i axis"<<std::endl;
+                                    //std::cout<<"interpolate i axis");
                                 }
                                 else  // need to interpolate i and j axis.
                                 {
@@ -680,7 +679,7 @@ void SourceData::readImage(DestinationData& destination)
                                     dest[1] = (unsigned char)(((float)src_0[1])*r_0 + ((float)src_1[1])*r_1 + ((float)src_2[1])*r_2 + ((float)src_3[1])*r_3);
                                     dest[2] = (unsigned char)(((float)src_0[2])*r_0 + ((float)src_1[2])*r_1 + ((float)src_2[2])*r_2 + ((float)src_3[2])*r_3);
                                     if (numSourceComponents==4) dest[3] = (unsigned char)(((float)src_0[3])*r_0 + ((float)src_1[3])*r_1 + ((float)src_2[3])*r_2 + ((float)src_3[3])*r_3);
-                                    //std::cout<<"interpolate i & j axis"<<std::endl;
+                                    //std::cout<<"interpolate i & j axis");
                                 }
                             }
 
@@ -756,7 +755,7 @@ void SourceData::readImage(DestinationData& destination)
             }
             else
             {
-                osg::notify(osg::INFO)<<"Warning image not read as Red, Blue and Green bands not present"<<std::endl;
+                log(osg::INFO,"Warning image not read as Red, Blue and Green bands not present");
             }
         }
     }
@@ -764,11 +763,11 @@ void SourceData::readImage(DestinationData& destination)
 
 void SourceData::readHeightField(DestinationData& destination)
 {
-    osg::notify(osg::INFO)<<"\nIn SourceData::readHeightField"<<std::endl;
+    log(osg::INFO,"In SourceData::readHeightField");
 
     if (destination._heightField.valid())
     {
-        osg::notify(osg::INFO)<<"Reading height field"<<std::endl;
+        log(osg::INFO,"Reading height field");
 
         GeospatialExtents s_bb = getExtents(destination._cs.get());
         GeospatialExtents d_bb = destination._extents;
@@ -780,15 +779,15 @@ void SourceData::readHeightField(DestinationData& destination)
         for(unsigned int ic = 0; ic < numXChecks; ++ic, xoffset += 360.0)
         {
         
-            osg::notify(osg::INFO)<<"Testing "<<xoffset<<std::endl;
-            osg::notify(osg::INFO)<<"  s_bb "<<s_bb.xMin()+xoffset<<" "<<s_bb.xMax()+xoffset<<std::endl;
-            osg::notify(osg::INFO)<<"  d_bb "<<d_bb.xMin()<<" "<<d_bb.xMax()<<std::endl;
+            log(osg::INFO,"Testing %f",xoffset);
+            log(osg::INFO,"  s_bb %f %f",s_bb.xMin()+xoffset,s_bb.xMax()+xoffset);
+            log(osg::INFO,"  d_bb %f %f",d_bb.xMin(),d_bb.xMax());
         
             GeospatialExtents intersect_bb(d_bb.intersection(s_bb, xoffset));
 
             if (!intersect_bb.valid())
             {
-                osg::notify(osg::INFO)<<"Reading height field but it does not intesection destination - ignoring"<<std::endl;
+                log(osg::INFO,"Reading height field but it does not intesection destination - ignoring");
                 continue;
             }
 
@@ -858,46 +857,46 @@ void SourceData::readHeightField(DestinationData& destination)
             if (bandSelected)
             {
 
-                if (bandSelected->GetUnitType()) osg::notify(osg::INFO) << "bandSelected->GetUnitType()=" << bandSelected->GetUnitType()<<std::endl;
-                else osg::notify(osg::INFO) << "bandSelected->GetUnitType()= null" <<std::endl;
+                if (bandSelected->GetUnitType()) log(osg::INFO, "bandSelected->GetUnitType()= %d",bandSelected->GetUnitType());
+                else log(osg::INFO, "bandSelected->GetUnitType()= null" );
 
 
                 int success = 0;
                 float noDataValue = bandSelected->GetNoDataValue(&success);
                 if (success)
                 {
-                    osg::notify(osg::INFO)<<"We have NoDataValue = "<<noDataValue<<std::endl;
+                    log(osg::INFO,"We have NoDataValue = %f",noDataValue);
                 }
                 else
                 {
-                    osg::notify(osg::INFO)<<"We have no NoDataValue"<<std::endl;
+                    log(osg::INFO,"We have no NoDataValue");
                     noDataValue = 0.0f;
                 }
 
                 float offset = bandSelected->GetOffset(&success);
                 if (success)
                 {
-                    osg::notify(osg::INFO)<<"We have Offset = "<<offset<<std::endl;
+                    log(osg::INFO,"We have Offset = %f",offset);
                 }
                 else
                 {
-                    osg::notify(osg::INFO)<<"We have no Offset"<<std::endl;
+                    log(osg::INFO,"We have no Offset");
                     offset = 0.0f;
                 }
 
                 float scale = bandSelected->GetScale(&success);
                 if (success)
                 {
-                    osg::notify(osg::INFO)<<"We have Scale = "<<scale<<std::endl;
+                    log(osg::INFO,"We have Scale = %f",scale);
                 }
                 else
                 {
                     scale = destination._dataSet->getVerticalScale();
-                    osg::notify(osg::INFO)<<"We have no Scale from file so use DataSet vertical scale of "<<scale<<std::endl;
+                    log(osg::INFO,"We have no Scale from file so use DataSet vertical scale of %f",scale);
 
                 }
 
-                osg::notify(osg::INFO)<<"********* getLinearUnits = "<<getLinearUnits(_cs.get())<<std::endl;
+                log(osg::INFO,"********* getLinearUnits = %f",getLinearUnits(_cs.get()));
 
                 // raad the data.
                 osg::HeightField* hf = destination._heightField.get();
@@ -938,8 +937,8 @@ void SourceData::readHeightField(DestinationData& destination)
                    int windowWidth = osg::minimum((int)ceilf((float)_numValuesX*(intersect_bb.xMax()-xoffset-s_bb.xMin())/(s_bb.xMax()-s_bb.xMin())),(int)_numValuesX)-windowX;
                    int windowHeight = osg::minimum((int)ceilf((float)_numValuesY*(intersect_bb.yMax()-s_bb.yMin())/(s_bb.yMax()-s_bb.yMin())),(int)_numValuesY)-windowY;
 
-                    osg::notify(osg::INFO)<<"   copying from "<<windowX<<"\t"<<windowY<<"\t"<<windowWidth<<"\t"<<windowHeight<<std::endl;
-                    osg::notify(osg::INFO)<<"             to "<<destX<<"\t"<<destY<<"\t"<<destWidth<<"\t"<<destHeight<<std::endl;
+                    log(osg::INFO,"   copying from %d\t%s\t%d\t%d",windowX,windowY,windowWidth,windowHeight);
+                    log(osg::INFO,"             to %d\t%s\t%d\t%d",destX,destY,destWidth,destHeight);
 
                     // read data into temporary array
                     float* heightData = new float [ destWidth*destHeight ];
@@ -972,7 +971,7 @@ void SourceData::readModels(DestinationData& destination)
 {
     if (_model.valid())
     {
-        osg::notify(osg::INFO)<<"Raading model"<<std::endl;
+        log(osg::INFO,"Raading model");
         destination._models.push_back(_model);
     }
 }
@@ -1020,7 +1019,7 @@ void Source::setSortValueFromSourceDataResolution()
 
 void Source::loadSourceData()
 {
-    osg::notify(osg::INFO)<<"Source::loadSourceData() "<<_filename<<std::endl;
+    log(osg::INFO,"Source::loadSourceData() %s",_filename.c_str());
     
     _sourceData = SourceData::readData(this);
     
@@ -1033,20 +1032,24 @@ void Source::assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy()
     {
         _sourceData->_cs = _cs;
         
-        osg::notify(osg::INFO)<<"assigning CS from Source to Data."<<std::endl;
+        log(osg::INFO,"assigning CS from Source to Data.");
         
     }
     else
     {
         _cs = _sourceData->_cs;
-        osg::notify(osg::INFO)<<"assigning CS from Data to Source."<<std::endl;
+        log(osg::INFO,"assigning CS from Data to Source.");
     }
     
     if (getGeoTransformPolicy()==PREFER_CONFIG_SETTINGS)
     {
         _sourceData->_geoTransform = _geoTransform;
 
-        osg::notify(osg::INFO)<<"assigning GeoTransform from Source to Data."<<_geoTransform<<std::endl;
+        log(osg::INFO,"assigning GeoTransform from Source to Data:");
+        log(osg::INFO,"           %f\t%f\t%f\t%f",_geoTransform(0,0),_geoTransform(0,1),_geoTransform(0,2),_geoTransform(0,3));
+        log(osg::INFO,"           %f\t%f\t%f\t%f",_geoTransform(1,0),_geoTransform(1,1),_geoTransform(1,2),_geoTransform(1,3));
+        log(osg::INFO,"           %f\t%f\t%f\t%f",_geoTransform(2,0),_geoTransform(2,1),_geoTransform(2,2),_geoTransform(2,3));
+        log(osg::INFO,"           %f\t%f\t%f\t%f",_geoTransform(3,0),_geoTransform(3,1),_geoTransform(3,2),_geoTransform(3,3));
 
     }
     else if (getGeoTransformPolicy()==PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION)
@@ -1090,14 +1093,22 @@ void Source::assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy()
         _sourceData->_geoTransform = _geoTransform;
 #endif
 
-        osg::notify(osg::INFO)<<"assigning GeoTransform from Source to Data based on file resolution."<<_geoTransform<<std::endl;
+        log(osg::INFO,"assigning GeoTransform from Source to Data based on file resolution:");
+        log(osg::INFO,"           %f\t%f\t%f\t%f",_geoTransform(0,0),_geoTransform(0,1),_geoTransform(0,2),_geoTransform(0,3));
+        log(osg::INFO,"           %f\t%f\t%f\t%f",_geoTransform(1,0),_geoTransform(1,1),_geoTransform(1,2),_geoTransform(1,3));
+        log(osg::INFO,"           %f\t%f\t%f\t%f",_geoTransform(2,0),_geoTransform(2,1),_geoTransform(2,2),_geoTransform(2,3));
+        log(osg::INFO,"           %f\t%f\t%f\t%f",_geoTransform(3,0),_geoTransform(3,1),_geoTransform(3,2),_geoTransform(3,3));
 
     }
     else
     {
         _geoTransform = _sourceData->_geoTransform;
-        osg::notify(osg::INFO)<<"assigning GeoTransform from Data to Source."<<_geoTransform<<std::endl;
-    }
+        log(osg::INFO,"assigning GeoTransform from Data to Source:");
+        log(osg::INFO,"           %f\t%f\t%f\t%f",_geoTransform(0,0),_geoTransform(0,1),_geoTransform(0,2),_geoTransform(0,3));
+        log(osg::INFO,"           %f\t%f\t%f\t%f",_geoTransform(1,0),_geoTransform(1,1),_geoTransform(1,2),_geoTransform(1,3));
+        log(osg::INFO,"           %f\t%f\t%f\t%f",_geoTransform(2,0),_geoTransform(2,1),_geoTransform(2,2),_geoTransform(2,3));
+        log(osg::INFO,"           %f\t%f\t%f\t%f",_geoTransform(3,0),_geoTransform(3,1),_geoTransform(3,2),_geoTransform(3,3));
+}
     
     _sourceData->computeExtents();
     
@@ -1119,13 +1130,13 @@ bool Source::needReproject(const osg::CoordinateSystemNode* cs, double minResolu
     // always need to reproject imagery with GCP's.
     if (_sourceData->_hasGCPs)
     {
-        osg::notify(osg::INFO)<<"Need to to reproject due to presence of GCP's"<<std::endl;
+        log(osg::INFO,"Need to to reproject due to presence of GCP's");
         return true;
     }
 
     if (!areCoordinateSystemEquivalent(_cs.get(),cs))
     {
-        osg::notify(osg::INFO)<<"Need to do reproject !areCoordinateSystemEquivalent(_cs.get(),cs)"<<std::endl;
+        log(osg::INFO,"Need to do reproject !areCoordinateSystemEquivalent(_cs.get(),cs)");
 
         return true;
     }
@@ -1149,19 +1160,19 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
     if (!_sourceData) return 0;
     if (_type==MODEL) return 0;
     
-    osg::notify(osg::NOTICE)<<"reprojecting to file "<<filename<<std::endl;
+    log(osg::NOTICE,"reprojecting to file %s",filename.c_str());
 
     GDALDriverH hDriver = GDALGetDriverByName( "GTiff" );
         
     if (hDriver == NULL)
     {       
-    osg::notify(osg::INFO)<<"Unable to load driver for "<<"GTiff"<<std::endl;
+        log(osg::INFO,"Unable to load driver for GTiff");
         return 0;
     }
     
     if (GDALGetMetadataItem( hDriver, GDAL_DCAP_CREATE, NULL ) == NULL )
     {
-        osg::notify(osg::INFO)<<"GDAL driver does not support create for "<<osgDB::getFileExtension(filename)<<std::endl;
+        log(osg::INFO,"GDAL driver does not support create for %s",osgDB::getFileExtension(filename).c_str());
         return 0;
     }
 
@@ -1176,7 +1187,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
 
     if (!hTransformArg)
     {
-        osg::notify(osg::INFO)<<" failed to create transformer"<<std::endl;
+        log(osg::INFO," failed to create transformer");
         return 0;
     }
 
@@ -1187,18 +1198,18 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
                                  adfDstGeoTransform, &nPixels, &nLines )
         != CE_None )
     {
-        osg::notify(osg::INFO)<<" failed to create warp"<<std::endl;
+        log(osg::INFO," failed to create warp");
         return 0;
     }
     
     if (targetResolution>0.0f)
     {
-        osg::notify(osg::INFO)<<"recomputing the target transform size"<<std::endl;
+        log(osg::INFO,"recomputing the target transform size");
         
         double currentResolution = sqrt(osg::square(adfDstGeoTransform[1])+osg::square(adfDstGeoTransform[2])+
                                         osg::square(adfDstGeoTransform[4])+osg::square(adfDstGeoTransform[5]));
 
-        osg::notify(osg::INFO)<<"        default computed resolution "<<currentResolution<<" nPixels="<<nPixels<<" nLines="<<nLines<<std::endl;
+        log(osg::INFO,"        default computed resolution %f nPixels=%d nLines=%d",currentResolution,nPixels,nLines);
 
         double extentsPixels = sqrt(osg::square(adfDstGeoTransform[1])+osg::square(adfDstGeoTransform[2]))*(double)(nPixels-1);
         double extentsLines = sqrt(osg::square(adfDstGeoTransform[4])+osg::square(adfDstGeoTransform[5]))*(double)(nLines-1);
@@ -1209,14 +1220,14 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
         adfDstGeoTransform[4] *= ratio;
         adfDstGeoTransform[5] *= ratio;
         
-        osg::notify(osg::INFO)<<"    extentsPixels="<<extentsPixels<<std::endl;
-        osg::notify(osg::INFO)<<"    extentsLines="<<extentsLines<<std::endl;
-        osg::notify(osg::INFO)<<"    targetResolution="<<targetResolution<<std::endl;
+        log(osg::INFO,"    extentsPixels=%d",extentsPixels);
+        log(osg::INFO,"    extentsLines=%d",extentsLines);
+        log(osg::INFO,"    targetResolution=%d",targetResolution);
         
         nPixels = (int)ceil(extentsPixels/sqrt(osg::square(adfDstGeoTransform[1])+osg::square(adfDstGeoTransform[2])))+1;
         nLines = (int)ceil(extentsLines/sqrt(osg::square(adfDstGeoTransform[4])+osg::square(adfDstGeoTransform[5])))+1;
 
-        osg::notify(osg::INFO)<<"        target computed resolution "<<targetResolution<<" nPixels="<<nPixels<<" nLines="<<nLines<<std::endl;
+        log(osg::INFO,"        target computed resolution %f nPixels=%d nLines=%d",targetResolution,nPixels,nLines);
         
     }
 
@@ -1259,7 +1270,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
     GDALTransformerFunc pfnTransformer = GDALGenImgProjTransform;
 
     
-    osg::notify(osg::INFO)<<"Setting projection "<<cs->getCoordinateSystem()<<std::endl;
+    log(osg::INFO,"Setting projection %s",cs->getCoordinateSystem().c_str());
 
 /* -------------------------------------------------------------------- */
 /*      Copy the color table, if required.                              */
@@ -1281,10 +1292,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
     psWO->pfnTransformer = pfnTransformer;
     psWO->pTransformerArg = hTransformArg;
 
-    if(osg::isNotifyEnabled(osg::NotifySeverity(osg::INFO)))
-      psWO->pfnProgress = GDALTermProgress;
-    else 
-      psWO->pfnProgress = GDALDummyProgress;
+    psWO->pfnProgress = GDALTermProgress;
       
 /* -------------------------------------------------------------------- */
 /*      Setup band mapping.                                             */
@@ -1319,7 +1327,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
         double new_noDataValue = 0;
         if (success)
         {
-            osg::notify(osg::INFO)<<"\tassinging no data value "<<noDataValue<<" to band "<<i+1<<std::endl;
+            log(osg::INFO,"\tassinging no data value %f to band %d", noDataValue,i+1);
 
             psWO->padfSrcNoDataReal[i] = noDataValue;
             psWO->padfSrcNoDataImag[i] = 0.0;
@@ -1367,7 +1375,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
                                GDALGetRasterYSize( hDstDS ) );
     }
 
-    osg::notify(osg::INFO)<<"new projection is "<<GDALGetProjectionRef(hDstDS)<<std::endl;
+    log(osg::INFO,"new projection is %s",GDALGetProjectionRef(hDstDS));
 
 /* -------------------------------------------------------------------- */
 /*      Cleanup.                                                        */

@@ -15,6 +15,7 @@
 #define SOURCE_H 1
 
 #include <vpb/SpatialProperties>
+#include <vpb/BuildLog>
 #include <osg/Shape>
 
 // forward declare so we can avoid tieing vpb to GDAL.
@@ -372,7 +373,6 @@ public:
             _positionStack.pop_back();
             return advance();
         }
-
 
     protected:
 

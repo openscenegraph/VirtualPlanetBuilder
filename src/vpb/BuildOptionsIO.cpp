@@ -151,6 +151,8 @@ public:
         ADD_STRING_PROPERTY(DestinationImageExtension);
         ADD_STRING_PROPERTY(ArchiveName);
         ADD_STRING_PROPERTY(IntermediateBuildName);
+        ADD_STRING_PROPERTY(LogFileName);
+        ADD_STRING_PROPERTY(TaskFileName);
         ADD_STRING_PROPERTY(CommentString);
         
         ADD_ENUM_PROPERTY_TWO_VALUES(DatabaseType, LOD_DATABASE, PagedLOD_DATABASE)

@@ -19,17 +19,28 @@ BuildOperation::BuildOperation(BuildLog* buildLog, const std::string& name, bool
     osg::Operation(name,keep),
     _buildLog(buildLog)
 {
-    _log = new OperationLog(buildLog, name);
+    _log = new OperationLog(name);
     
-    if (_buildLog.valid()) _buildLog->pendingOperation(this);
+    if (_buildLog.valid())
+    {
+        _buildLog->pendingOperation(this);
+    }
 }
 
 void BuildOperation::operator () (osg::Object*)
 {
-    if (_buildLog.valid()) _buildLog->runningOperation(this);
+    pushOperationLog(_log.get());
+
+    if (_buildLog.valid())
+    {
+        _buildLog->runningOperation(this);
+        _log->setLogFile(_buildLog->getLogFile());
+    }
     
     build();
     
     if (_buildLog.valid()) _buildLog->completedOperation(this);
+    
+    popOperationLog();
 }
 

@@ -116,7 +116,7 @@ public:
     osg::Node* createPolygonal();
 
     void unrefData();
-
+    
 
     DataSet*                                    _dataSet;
     std::string                                 _name;
