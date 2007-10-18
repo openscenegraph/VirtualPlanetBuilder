@@ -103,6 +103,12 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setBuildOverlays(bool flag) { _buildOverlays = flag; }
         bool getBuildOverlays() const { return _buildOverlays; }
 
+        void setReprojectSources(bool flag) { _reprojectSources = flag; }
+        bool getReprojectSources() const { return _reprojectSources; }
+
+        void setGenerateTiles(bool flag) { _generateTiles = flag; }
+        bool getGenerateTiles() const { return _generateTiles; }
+
         void setConvertFromGeographicToGeocentric(bool flag) { _convertFromGeographicToGeocentric = flag; }
         bool getConvertFromGeographicToGeocentric() const { return _convertFromGeographicToGeocentric; }
 
@@ -185,9 +191,26 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setMaximumNumOfLevels(unsigned int levels) { _maximumNumOfLevels = levels; }
         unsigned int getMaximumNumOfLevels() const { return _maximumNumOfLevels; }
 
+        void setRecordSubtileFileNamesOnLeafTile(bool recordSubtileFileNamesOnLeafTile) { _recordSubtileFileNamesOnLeafTile = recordSubtileFileNamesOnLeafTile; }
+        bool getRecordSubtileFileNamesOnLeafTile() const { return _recordSubtileFileNamesOnLeafTile; }
+
+        void setGenerateSubtile(bool generateSubtile) { _generateSubtile = generateSubtile; }
+        bool getGenerateSubtile() const { return _generateSubtile; }
+
+        void setSubtileLevel(unsigned int level) { _subtileLevel = level; }
+        unsigned int getSubtileLevel() const { return _subtileLevel; }
+
+        void setSubtileX(unsigned int x) { _subtileX = x; }
+        unsigned int getSubtileX() const { return _subtileX; }
+
+        void setSubtileY(unsigned int y) { _subtileY = y; }
+        unsigned int getSubtileY() const { return _subtileY; }
+
     protected:
 
         bool                                        _buildOverlays;
+        bool                                        _reprojectSources;
+        bool                                        _generateTiles;
         bool                                        _convertFromGeographicToGeocentric;
         bool                                        _decorateWithCoordinateSystemNode;
         bool                                        _decorateWithMultiTextureControl;
@@ -219,6 +242,12 @@ class VPB_EXPORT BuildOptions : public osg::Object
         unsigned int                                _maximumNumOfLevels;
         unsigned int                                _maximumTileImageSize;
         unsigned int                                _maximumTileTerrainSize;
+        
+        bool                                        _recordSubtileFileNamesOnLeafTile;
+        bool                                        _generateSubtile;
+        unsigned int                                _subtileLevel;
+        unsigned int                                _subtileX;
+        unsigned int                                _subtileY;
 };
 
 }
