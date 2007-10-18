@@ -44,7 +44,9 @@ MACRO(FIND_OSG_LIBRARY MYLIBRARY MYLIBRARYNAME)
         ~/Library/Frameworks
         /Library/Frameworks
         /usr/local/lib
+        /usr/local/lib64
         /usr/lib
+        /usr/lib64
         /sw/lib
         /opt/local/lib
         /opt/csw/lib
@@ -67,7 +69,9 @@ MACRO(FIND_OSG_LIBRARY MYLIBRARY MYLIBRARYNAME)
         ~/Library/Frameworks
         /Library/Frameworks
         /usr/local/lib
+        /usr/local/lib64
         /usr/lib
+        /usr/lib64
         /sw/lib
         /opt/local/lib
         /opt/csw/lib
