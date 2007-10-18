@@ -171,6 +171,8 @@ public:
         ADD_FLOAT_PROPERTY(MaxAnisotropy);
         
         ADD_BOOL_PROPERTY(BuildOverlays);
+        ADD_BOOL_PROPERTY(ReprojectSources);
+        ADD_BOOL_PROPERTY(GenerateTiles);
         ADD_BOOL_PROPERTY(ConvertFromGeographicToGeocentric);
         ADD_BOOL_PROPERTY(UseLocalTileTransform);
         ADD_BOOL_PROPERTY(SimplifyTerrain);
@@ -191,6 +193,11 @@ public:
 
         ADD_UINT_PROPERTY(MaximumNumOfLevels);
         
+        ADD_BOOL_PROPERTY(RecordSubtileFileNamesOnLeafTile);
+        ADD_BOOL_PROPERTY(GenerateFromSubtile);
+        ADD_UINT_PROPERTY(SubtileLevel);
+        ADD_UINT_PROPERTY(SubtileX);
+        ADD_UINT_PROPERTY(SubtileY);
     }
     
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)

@@ -22,6 +22,8 @@ BuildOptions::BuildOptions():
 {
     _archiveName = "";
     _buildOverlays = false;
+    _reprojectSources = true;
+    _generateTiles = true;
     _comment = "";
     _convertFromGeographicToGeocentric = false;
     _databaseType = PagedLOD_DATABASE;
@@ -51,6 +53,12 @@ BuildOptions::BuildOptions():
     _useLocalTileTransform = true;
     _verticalScale = 1.0f;
     _writeNodeBeforeSimplification = false;
+    
+    _recordSubtileFileNamesOnLeafTile = false;
+    _generateFromSubtile = false;
+    _subtileLevel = 0;
+    _subtileX = 0;
+    _subtileY = 0;
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop):
@@ -73,6 +81,8 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
 {
     _archiveName = rhs._archiveName;
     _buildOverlays = rhs._buildOverlays;
+    _reprojectSources = rhs._reprojectSources;
+    _generateTiles = rhs._generateTiles;
     _comment = rhs._comment;
     _convertFromGeographicToGeocentric = rhs._convertFromGeographicToGeocentric;
     _databaseType = rhs._databaseType;
@@ -103,6 +113,11 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _useLocalTileTransform = rhs._useLocalTileTransform;
     _verticalScale = rhs._verticalScale;
     _writeNodeBeforeSimplification = rhs._writeNodeBeforeSimplification;
+    _recordSubtileFileNamesOnLeafTile = rhs._recordSubtileFileNamesOnLeafTile;
+    _generateFromSubtile = rhs._generateFromSubtile;
+    _subtileLevel = rhs._subtileLevel;
+    _subtileX = rhs._subtileX;
+    _subtileY = rhs._subtileY;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)

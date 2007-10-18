@@ -553,17 +553,25 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
             
             if (source && source->needReproject(_intermediateCoordinateSystem.get()))
             {
-                // do the reprojection to a tempory file.
-                std::string newFileName = temporyFilePrefix + osgDB::getStrippedName(source->getFileName()) + ".tif";
-                
-                Source* newSource = source->doReproject(newFileName,_intermediateCoordinateSystem.get());
-                
-                // replace old source by new one.
-                if (newSource) *itr = newSource;
+            
+                if (getReprojectSources())
+                {
+                    // do the reprojection to a tempory file.
+                    std::string newFileName = temporyFilePrefix + osgDB::getStrippedName(source->getFileName()) + ".tif";
+
+                    Source* newSource = source->doReproject(newFileName,_intermediateCoordinateSystem.get());
+
+                    // replace old source by new one.
+                    if (newSource) *itr = newSource;
+                    else
+                    {
+                        log(osg::WARN, "Failed to reproject %s",source->getFileName().c_str());
+                        *itr = 0;
+                    }
+                }
                 else
                 {
-                    log(osg::WARN, "Failed to reproject %s",source->getFileName().c_str());
-                    *itr = 0;
+                    log(osg::WARN, "Source file %s requires reprojection, but reprojection switched off.",source->getFileName().c_str());
                 }
             }
         }
@@ -1285,18 +1293,26 @@ int DataSet::run()
         }
     }
 
+    if (getGenerateTiles())
     {
-        // dummy Viewer to get round silly Windows autoregistration problem for GraphicsWindowWin32.cpp
-        osgViewer::Viewer viewer;
-
-        MyGraphicsContext context(getBuildLog());
-        if (!context.valid())
+        if (getTextureType()==COMPRESSED_TEXTURE || getTextureType()==COMPRESSED_RGBA_TEXTURE)
         {
-            log(osg::NOTICE,"Error: Unable to create graphis context - cannot run osgdem");
-            return 1;
-        }
+            // dummy Viewer to get round silly Windows autoregistration problem for GraphicsWindowWin32.cpp
+            osgViewer::Viewer viewer;
 
-        writeDestination();
+            MyGraphicsContext context(getBuildLog());
+            if (!context.valid())
+            {
+                log(osg::NOTICE,"Error: Unable to create graphis context - cannot run database build, try disabling use of compressed textures.");
+                return 1;
+            }
+
+            writeDestination();
+        }
+        else
+        {
+            writeDestination();
+        }
     }
 
     if (getBuildLog())

@@ -199,7 +199,10 @@ void vpb::getSourceUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--yy","");     
     usage.addCommandLineOption("--yt","");     
     usage.addCommandLineOption("--zz","");     
-    usage.addCommandLineOption("--zt","");     
+    usage.addCommandLineOption("--zt","");
+    usage.addCommandLineOption("--BuildOverlays [True/False]","Switch on/off the building of overlay within the source imagery. Overlays can help reduce texture aliasing artificats.");   
+    usage.addCommandLineOption("--ReprojectSources [True/False]","Switch on/off the reprojection of any source imagery that aren't in the correct projection for the database build.");   
+    usage.addCommandLineOption("--GenerateTiles [True/False]","Switch on/off the generation of the output database tiles.");
     usage.addCommandLineOption("--version","Print out version");     
     usage.addCommandLineOption("--version-number","Print out version number only.");     
     usage.addCommandLineOption("--tile-image-size","Set the tile maximum image size");
@@ -233,6 +236,16 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
     {
         buildOptions->setDestinationExtents(vpb::GeospatialExtents(x,y,x+w,y+h,false)); // FIXME - need to check whether we a geographic extents of not
     }
+
+    bool flag;
+    while(arguments.read("--BuildOverlays",flag)) { buildOptions->setBuildOverlays(flag); }
+    while(arguments.read("--BuildOverlays")) { buildOptions->setBuildOverlays(true); }
+
+    while(arguments.read("--ReprojectSources",flag)) { buildOptions->setReprojectSources(flag); }
+    while(arguments.read("--ReprojectSources")) { buildOptions->setReprojectSources(true); }
+
+    while(arguments.read("--GenerateTiles",flag)) { buildOptions->setGenerateTiles(flag); }
+    while(arguments.read("--GenerateTiles")) { buildOptions->setGenerateTiles(true); }
 
     std::string buildname;    
     while (arguments.read("--ibn",buildname))
