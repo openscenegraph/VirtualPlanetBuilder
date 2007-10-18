@@ -11,6 +11,7 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/BuildOperation
 	${HEADER_PATH}/BuildOptions
 	${HEADER_PATH}/DatabaseBuilder
+	${HEADER_PATH}/Commandline
 	${HEADER_PATH}/DataSet
 	${HEADER_PATH}/Destination
 	${HEADER_PATH}/Export
@@ -28,6 +29,7 @@ ADD_LIBRARY(${LIB_NAME}
 	BuildOperation.cpp
 	BuildOptions.cpp
 	BuildOptionsIO.cpp
+	Commandline.cpp
 	DatabaseBuilder.cpp
 	DatabaseBuilderIO.cpp
 	DataSet.cpp
