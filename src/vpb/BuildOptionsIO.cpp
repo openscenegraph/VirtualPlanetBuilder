@@ -194,7 +194,7 @@ public:
         ADD_UINT_PROPERTY(MaximumNumOfLevels);
         
         ADD_BOOL_PROPERTY(RecordSubtileFileNamesOnLeafTile);
-        ADD_BOOL_PROPERTY(GenerateFromSubtile);
+        ADD_BOOL_PROPERTY(GenerateSubtile);
         ADD_UINT_PROPERTY(SubtileLevel);
         ADD_UINT_PROPERTY(SubtileX);
         ADD_UINT_PROPERTY(SubtileY);

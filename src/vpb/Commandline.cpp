@@ -247,6 +247,15 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
     while(arguments.read("--GenerateTiles",flag)) { buildOptions->setGenerateTiles(flag); }
     while(arguments.read("--GenerateTiles")) { buildOptions->setGenerateTiles(true); }
 
+    unsigned int subtileLevel, subtileX, subtileY;
+    while(arguments.read("--subtile",subtileLevel, subtileX, subtileY))
+    {
+        buildOptions->setGenerateSubtile(true);
+        buildOptions->setSubtileLevel(subtileLevel);
+        buildOptions->setSubtileX(subtileX);
+        buildOptions->setSubtileY(subtileY);
+    }
+
     std::string buildname;    
     while (arguments.read("--ibn",buildname))
     {

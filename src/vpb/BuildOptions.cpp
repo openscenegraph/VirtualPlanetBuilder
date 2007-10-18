@@ -55,7 +55,7 @@ BuildOptions::BuildOptions():
     _writeNodeBeforeSimplification = false;
     
     _recordSubtileFileNamesOnLeafTile = false;
-    _generateFromSubtile = false;
+    _generateSubtile = false;
     _subtileLevel = 0;
     _subtileX = 0;
     _subtileY = 0;
@@ -114,7 +114,7 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _verticalScale = rhs._verticalScale;
     _writeNodeBeforeSimplification = rhs._writeNodeBeforeSimplification;
     _recordSubtileFileNamesOnLeafTile = rhs._recordSubtileFileNamesOnLeafTile;
-    _generateFromSubtile = rhs._generateFromSubtile;
+    _generateSubtile = rhs._generateSubtile;
     _subtileLevel = rhs._subtileLevel;
     _subtileX = rhs._subtileX;
     _subtileY = rhs._subtileY;
