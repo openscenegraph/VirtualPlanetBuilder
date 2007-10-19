@@ -19,6 +19,7 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/Source
 	${HEADER_PATH}/SpatialProperties
 	${HEADER_PATH}/TaskFile
+	${HEADER_PATH}/TaskManager
 	${HEADER_PATH}/Version
 )
 
@@ -37,6 +38,7 @@ ADD_LIBRARY(${LIB_NAME}
 	Source.cpp
 	SpatialProperties.cpp
 	TaskFile.cpp
+	TaskManager.cpp
 	Version.cpp
 )
 
