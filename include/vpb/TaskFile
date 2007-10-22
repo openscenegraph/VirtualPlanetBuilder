@@ -23,97 +23,34 @@
 #include <OpenThreads/Mutex>
 #include <OpenThreads/Thread>
 
-#include <vpb/Export>
-
-#include <list>
-#include <string>
-#include <sstream>
-#include <fstream>
-
-#include <stdarg.h>
+#include <vpb/PropertyFile>
 
 namespace vpb
 {
 
-class VPB_EXPORT Parameter : public osg::ArgumentParser::Parameter
+class VPB_EXPORT TaskFile : public PropertyFile
 {
     public:
-        Parameter(bool& value) : osg::ArgumentParser::Parameter(value) {}
-
-        Parameter(float& value) : osg::ArgumentParser::Parameter(value) {}
-
-        Parameter(double& value) : osg::ArgumentParser::Parameter(value) {}
-
-        Parameter(int& value) : osg::ArgumentParser::Parameter(value) {}
-
-        Parameter(unsigned int& value) : osg::ArgumentParser::Parameter(value) {}
-
-        Parameter(std::string& value) : osg::ArgumentParser::Parameter(value) {}
-
-        Parameter(const Parameter& param) : osg::ArgumentParser::Parameter(param) {}
+    
         
-        bool getString(std::string& str);
-};
-
-class VPB_EXPORT TaskFile : public osg::Referenced
-{
-    public:
-    
-        enum Type
-        {
-            READ,
-            WRITE
-        };
-    
         TaskFile(const std::string& filename, Type type);
         
-        /** initialize the TaskFile from application arguments and get process, host details.*/
         void init(osg::ArgumentParser& arguments);
 
-        /** get the application arguments from the details read from the task file.*/
         void get(osg::ArgumentParser& arguments);
-        
+
         /** run the task specified in the task file. */
         void invoke(bool runInBackground);
 
         /** Send a signal to the task. */
         void signal(int signal);
 
-        /** Set a property on the TaskFile object.*/
-        void setProperty(const std::string& property, Parameter value);
-
-        /** Get a property from the TaskFile object.*/
-        bool getProperty(const std::string& property, Parameter value);
-
-        /** sync the task file, - reading from disk when a read TaskFile, and write when a writeTask file.
-          * return true if the settings changed since the last call to sync. */
-        bool sync();
-        
-        void report(std::ostream& out);
-
     protected:
 
         virtual ~TaskFile();
-
-        bool read();
-        bool write();
-
-        typedef std::map<std::string, std::string> PropertyMap;
-        PropertyMap _propertyMap;
         
-        Type    _type;
-        int     _fileID;
-        int     _syncCount;
-        bool    _propertiesModified;
-        
-        int     _previousSize;
-        char*   _previousData;
-
-        int     _currentSize;
-        char*   _currentData;
-        
-        int     _argc;
-        char**  _argv;
+        int             _argc;
+        char**          _argv;
 };
 
 class TaskFileOperation : public osg::Operation

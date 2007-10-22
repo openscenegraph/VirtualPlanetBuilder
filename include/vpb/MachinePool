@@ -1,0 +1,90 @@
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+ *
+ * This library is open source and may be redistributed and/or modified under  
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * OpenSceneGraph Public License for more details.
+*/
+
+#ifndef HOSTS_H
+#define HOSTS_H 1
+
+#include <osg/Referenced>
+#include <osg/OperationThread>
+
+#include <vpb/TaskFile>
+
+namespace vpb
+{
+
+class VPB_EXPORT MachineOperation : public osg::Operation
+{
+    public:
+    
+        MachineOperation(TaskFile* taskFile);
+        
+        /** Use TemplateMethod pattern to case calling object to Machine.*/
+        virtual void operator () (osg::Object* object);
+        
+        osg::ref_ptr<TaskFile> _taskFile;
+};
+        
+
+typedef std::list< osg::ref_ptr<osg::OperationsThread> > Threads;
+
+class VPB_EXPORT Machine : public osg::Object
+{
+    public:
+    
+        Machine(const std::string& hostname, const std::string& commandPrefix, const std::string& commandPostfix, int numThreads=-1);
+        
+        void setOperationQueue(osg::OperationQueue* queue);
+        
+        const std::string& getHostName() const { return _hostname; }
+        const std::string& getCommandPrefix() const { return _commandPrefix; }
+        const std::string& getCommandPostfix() const { return _commandPostfix; }
+
+        Threads& getThreads() { return _threads; }
+
+    protected:
+    
+        virtual ~Machine();
+
+        std::string                         _hostname;
+        std::string                         _commandPrefix;
+        std::string                         _commandPostfix;
+        
+        Threads                             _threads;
+
+};
+
+class VPB_EXPORT MachinePool : public osg::Referenced
+{
+    public:
+    
+        MachinePool();
+        
+        void addMachine(const std::string& hostname,const std::string& commandPrefix, const std::string& commandPostfix, int numThreads=-1);
+
+        void addMachine(Machine* machine);
+        
+        void run(TaskFile* taskFile);
+        
+        void waitForCompletion();
+
+    protected:
+
+        virtual ~MachinePool();
+        
+        osg::ref_ptr<osg::OperationQueue> _operationQueue;
+};
+
+}
+
+#endif
+

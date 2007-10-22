@@ -10,11 +10,13 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/BuildLog
 	${HEADER_PATH}/BuildOperation
 	${HEADER_PATH}/BuildOptions
-	${HEADER_PATH}/DatabaseBuilder
 	${HEADER_PATH}/Commandline
+	${HEADER_PATH}/DatabaseBuilder
 	${HEADER_PATH}/DataSet
 	${HEADER_PATH}/Destination
 	${HEADER_PATH}/Export
+	${HEADER_PATH}/MachinePool
+	${HEADER_PATH}/PropertyFile
 	${HEADER_PATH}/Serializer
 	${HEADER_PATH}/Source
 	${HEADER_PATH}/SpatialProperties
@@ -35,6 +37,8 @@ ADD_LIBRARY(${LIB_NAME}
 	DatabaseBuilderIO.cpp
 	DataSet.cpp
 	Destination.cpp
+        MachinePool.cpp
+        PropertyFile.cpp
 	Source.cpp
 	SpatialProperties.cpp
 	TaskFile.cpp

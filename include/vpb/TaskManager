@@ -16,6 +16,7 @@
 
 
 #include <vpb/DataSet>
+#include <vpb/MachinePool>
 #include <vpb/TaskFile>
 
 namespace vpb
@@ -28,19 +29,41 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         TaskManager();
         
         /** initialize the TaskManager from application arguments and get process, host details.*/
-        void init(osg::ArgumentParser& arguments);
+        int read(osg::ArgumentParser& arguments);
 
         void setSource(osgTerrain::Terrain* terrain);
-        
         osgTerrain::Terrain* getSource();
+
+        /** Set the MachinePool that specifies the available machines that can be used to run the task.*/        
+        void setMachinePool(MachinePool* machinePool);
+
+        /** Get the MachinePool that specifies the available machines that can be used to run the task.*/        
+        MachinePool* getMachinePool();
         
+        /** start a new set of tasks.*/
+        void nextTaskSet();
+        
+        /** add a task to the current task set.*/
+        void addTask(TaskFile* task);
+        void addTask(const std::string& taskFileName);
+        void addTask(const std::string& taskFileName, const std::string& application, const std::string& arguments);
+        
+        /** run all the tasks.*/
         void run();
 
     protected:
 
         virtual ~TaskManager();
         
-        osg::ref_ptr<osgTerrain::Terrain> _source;
+        typedef std::list< osg::ref_ptr<TaskFile> > TaskSet;
+        typedef std::list< TaskSet > TaskSetList;
+
+        osg::ref_ptr<MachinePool>           _machinePool;
+        osg::ref_ptr<TaskFile>              _taskFile;
+        osg::ref_ptr<osgTerrain::Terrain>   _terrain;
+        
+        TaskSetList                         _taskSetList;
+        
 };
 
 }

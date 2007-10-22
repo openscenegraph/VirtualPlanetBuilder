@@ -50,6 +50,9 @@ struct LoadOperation : public vpb::BuildOperation
 
 int main( int argc, char **argv )
 {
+
+    std::cout<<"Result = "<<system("vpbinfo --number-cores")<<std::endl;
+
     osg::ArgumentParser arguments(&argc,argv);
     
     int signal=9;
