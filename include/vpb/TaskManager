@@ -58,7 +58,10 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         bool read(const std::string& filename);
 
         /** read the task list from file.*/
-        bool write(const std::string& filename);
+        bool write(const std::string& filename) const;
+        
+        /** Helper method for creating task file names.*/
+        std::string createUniqueTaskFileName(const std::string application, const std::string& arguments);
 
     protected:
 

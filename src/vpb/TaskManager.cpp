@@ -16,6 +16,10 @@
 #include <vpb/DatabaseBuilder>
 #include <osgDB/ReadFile>
 
+#include <osgDB/Input>
+#include <osgDB/Output>
+#include <osgDB/FileUtils>
+
 #include <iostream>
 
 using namespace vpb;
@@ -69,6 +73,8 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     if (!machinePoolFileName.empty())
     {
         _machinePool->read(machinePoolFileName);
+        
+        _machinePool->write("test.machines");
     }
 
     std::string taskSetFileName;
@@ -138,6 +144,11 @@ void TaskManager::addTask(const std::string& taskFileName, const std::string& ap
 
         addTask(taskFile.get());
     }
+}
+
+std::string TaskManager::createUniqueTaskFileName(const std::string application, const std::string& arguments)
+{
+    return "taskfile.task";
 }
 
 void TaskManager::buildWithoutSlaves()
@@ -226,11 +237,94 @@ void TaskManager::run()
 
 bool TaskManager::read(const std::string& filename)
 {
-    std::cout<<"TaskManager::read() still in developement."<<std::endl;
+    std::string foundFile = osgDB::findDataFile(filename);
+    if (foundFile.empty())
+    {
+        std::cout<<"Error: could not find task file '"<<filename<<"'"<<std::endl;
+        return false;
+    }
+
+    std::ifstream fin(foundFile.c_str());
+    
+    if (fin)
+    {
+        _taskSetList.clear();
+    
+        osgDB::Input fr;
+        fr.attach(&fin);
+        
+        while(!fr.eof())
+        {        
+            bool itrAdvanced = false;
+        
+            if (fr.matchSequence("exec {"))
+            {
+                int local_entry = fr[0].getNoNestedBrackets();
+
+                fr += 2;
+
+                std::string application;
+                std::string arguments;
+
+                while (!fr.eof() && fr[0].getNoNestedBrackets()>local_entry)
+                {
+                    if (fr[0].getStr())
+                    {
+                        if (application.empty()) application = fr[0].getStr();
+                        else if (application.empty()) 
+                        {
+                            arguments = fr[0].getStr();
+                        }
+                        else
+                        {
+                            arguments += std::string(" ") + std::string(fr[0].getStr());
+                        }
+                    }
+                    ++fr;
+                }
+                
+                if (!application.empty())
+                {
+                    nextTaskSet();
+                    addTask(
+                        createUniqueTaskFileName(application,arguments),
+                        application,
+                        arguments);
+                }
+
+                ++fr;
+
+            }
+            
+            if (fr.matchSequence("Tasks {"))
+            {
+                nextTaskSet();
+
+                int local_entry = fr[0].getNoNestedBrackets();
+
+                fr += 2;
+
+                while (!fr.eof() && fr[0].getNoNestedBrackets()>local_entry)
+                {
+                    bool localAdvanced = false;
+
+                    if (!localAdvanced) ++fr;
+                }
+
+                ++fr;
+
+                itrAdvanced = true;
+
+            }
+            
+            if (!itrAdvanced) ++fr;
+        }        
+    }
+    
     return false;
 }
 
-bool TaskManager::write(const std::string& filename)
+bool TaskManager::write(const std::string& filename) const
 {
     std::cout<<"TaskManager::write() still in developement."<<std::endl;
     return false;

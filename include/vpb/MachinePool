@@ -104,7 +104,7 @@ class VPB_EXPORT MachinePool : public osg::Referenced
         
         bool read(const std::string& filename);
 
-        bool write(const std::string& filename);
+        bool write(const std::string& filename) const;
 
     protected:
 

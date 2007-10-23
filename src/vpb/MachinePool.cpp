@@ -16,6 +16,10 @@
 
 #include <osg/GraphicsThread>
 
+#include <osgDB/Input>
+#include <osgDB/Output>
+#include <osgDB/FileUtils>
+
 #include <iostream>
 
 using namespace vpb;
@@ -215,12 +219,86 @@ unsigned int MachinePool::getNumThreadsActive() const
 
 bool MachinePool::read(const std::string& filename)
 {
-    std::cout<<"MachinePool::read() still in developement."<<std::endl;
-    return false;
+    std::string foundFile = osgDB::findDataFile(filename);
+    if (foundFile.empty())
+    {
+        std::cout<<"Error: could not find machine specification file '"<<filename<<"'"<<std::endl;
+        return false;
+    }
+
+    std::ifstream fin(foundFile.c_str());
+    
+    if (fin)
+    {
+        _machines.clear();
+    
+        osgDB::Input fr;
+        fr.attach(&fin);
+        
+        while(!fr.eof())
+        {        
+            bool itrAdvanced = false;
+        
+            if (fr.matchSequence("Machine {"))
+            {
+                int local_entry = fr[0].getNoNestedBrackets();
+
+                fr += 2;
+
+                std::string hostname;
+                std::string prefix;
+                std::string postfix;
+                int numThreads=-1;
+
+                while (!fr.eof() && fr[0].getNoNestedBrackets()>local_entry)
+                {
+                    bool localAdvanced = false;
+
+                    if (fr.read("hostname",hostname)) localAdvanced = true;
+                    if (fr.read("prefix",prefix)) localAdvanced = true;
+                    if (fr.read("postfix",postfix)) localAdvanced = true;
+                    if (fr.read("threads",numThreads)) localAdvanced = true;
+
+                    if (!localAdvanced) ++fr;
+                }
+
+                addMachine(hostname,prefix,postfix,numThreads);
+
+                ++fr;
+
+                itrAdvanced = true;
+            }
+
+            if (!itrAdvanced) ++fr;
+        }        
+    }
+    
+    return true;
 }
 
-bool MachinePool::write(const std::string& filename)
+bool MachinePool::write(const std::string& filename) const
 {
-    std::cout<<"MachinePool::write() still in developement."<<std::endl;
-    return false;
+    osgDB::Output fout(filename.c_str());
+    
+    for(Machines::const_iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        const Machine* machine = itr->get();
+    
+        if (itr != _machines.begin()) fout.indent()<<std::endl;
+
+        fout.indent()<<"Machine {"<<std::endl;
+        fout.moveIn();
+        
+        if (!machine->getHostName().empty()) fout.indent()<<"hostname "<<machine->getHostName()<<std::endl;
+        if (!machine->getCommandPrefix().empty()) fout.indent()<<"prefix "<<machine->getCommandPrefix()<<std::endl;
+        if (!machine->getCommandPostfix().empty()) fout.indent()<<"postfix "<<machine->getCommandPostfix()<<std::endl;
+        if (machine->getNumThreads()>0) fout.indent()<<"threads "<<machine->getNumThreads()<<std::endl;
+        
+        fout.moveOut();
+        fout.indent()<<"}"<<std::endl;
+    }
+    
+    return true;
 }
