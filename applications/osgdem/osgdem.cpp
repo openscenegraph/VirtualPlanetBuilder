@@ -53,15 +53,14 @@ int main(int argc, char** argv)
     }
 
     std::string taskFileName;
-    osg::ref_ptr<vpb::TaskFile> taskFile;
+    osg::ref_ptr<vpb::Task> taskFile;
     while (arguments.read("--task",taskFileName))
     {
         if (!taskFileName.empty())
         {
-            taskFile = new vpb::TaskFile(taskFileName,vpb::TaskFile::WRITE);
+            taskFile = new vpb::Task(taskFileName,vpb::Task::WRITE);
             taskFile->init(arguments);
-            std::string status("running");
-            taskFile->setProperty("status",status);
+            taskFile->setStatus(vpb::Task::RUNNING);
             taskFile->sync();
         }
     }
@@ -104,7 +103,6 @@ int main(int argc, char** argv)
     int result = vpb::readSourceArguments(std::cout, arguments, terrain.get());
     if (result) return result;
 
-
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();
 
@@ -146,7 +144,7 @@ int main(int argc, char** argv)
 
             if (taskFile.valid())
             {
-                dataset->setTaskFile(taskFile.get());
+                dataset->setTask(taskFile.get());
             }
 
             dataset->addTerrain(terrain.get());
@@ -168,8 +166,7 @@ int main(int argc, char** argv)
 
     if (taskFile.valid())
     {
-        std::string status("completed");
-        taskFile->setProperty("status",status);
+        taskFile->setStatus(vpb::Task::COMPLETED);
         taskFile->sync();
     }
     

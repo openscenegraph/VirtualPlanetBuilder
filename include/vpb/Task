@@ -11,8 +11,8 @@
  * OpenSceneGraph Public License for more details.
 */
 
-#ifndef TASKFILE_H
-#define TASKFILE_H 1
+#ifndef TASK_H
+#define TASK_H 1
 
 
 #include <osg/ArgumentParser>
@@ -28,12 +28,12 @@
 namespace vpb
 {
 
-class VPB_EXPORT TaskFile : public PropertyFile
+class VPB_EXPORT Task : public PropertyFile
 {
     public:
     
         
-        TaskFile(const std::string& filename, Type type);
+        Task(const std::string& filename, Type type);
         
         void init(osg::ArgumentParser& arguments);
 
@@ -45,27 +45,37 @@ class VPB_EXPORT TaskFile : public PropertyFile
         /** Send a signal to the task. */
         void signal(int signal);
 
+        enum Status
+        {
+            PENDING,
+            RUNNING,
+            COMPLETED
+        };
+        
+        void setStatus(Status status);
+        Status getStatus() const;
+
     protected:
 
-        virtual ~TaskFile();
+        virtual ~Task();
         
         int             _argc;
         char**          _argv;
 };
 
-class TaskFileOperation : public osg::Operation
+class TaskOperation : public osg::Operation
 {
     public:
     
-        TaskFileOperation(TaskFile* taskFile):
-            osg::Operation("ReadTaskFile",true),
-            _taskFile(taskFile) {}
+        TaskOperation(Task* Task):
+            osg::Operation("ReadTask",true),
+            _task(Task) {}
 
         virtual void operator () (osg::Object*);
         
     protected:        
 
-        osg::ref_ptr<TaskFile> _taskFile;
+        osg::ref_ptr<Task> _task;
 };
 
 class SleepOperation : public osg::Operation

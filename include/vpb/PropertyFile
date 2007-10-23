@@ -93,7 +93,7 @@ class VPB_EXPORT PropertyFile : public osg::Referenced
         void setProperty(const std::string& property, Parameter value);
 
         /** Get a property from the TaskFile object.*/
-        bool getProperty(const std::string& property, Parameter value);
+        bool getProperty(const std::string& property, Parameter value) const;
 
         /** sync the task file, - reading from disk when a read TaskFile, and write when a writeTask file.
           * return true if the settings changed since the last call to sync. */

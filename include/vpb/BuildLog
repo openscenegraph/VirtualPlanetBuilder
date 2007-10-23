@@ -23,7 +23,7 @@
 #include <OpenThreads/Mutex>
 #include <OpenThreads/Thread>
 
-#include <vpb/TaskFile>
+#include <vpb/Task>
 
 #include <list>
 #include <sstream>
@@ -69,7 +69,7 @@ class VPB_EXPORT LogFile : public osg::Referenced
         std::ofstream       _fout;
         OpenThreads::Mutex  _mutex;
         
-        osg::ref_ptr<TaskFile> _taskFile;
+        osg::ref_ptr<Task>  _taskFile;
 };
 
 class VPB_EXPORT OperationLog : public osg::Object

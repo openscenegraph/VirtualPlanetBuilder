@@ -17,7 +17,7 @@
 #include <osg/Referenced>
 #include <osg/OperationThread>
 
-#include <vpb/TaskFile>
+#include <vpb/Task>
 
 namespace vpb
 {
@@ -26,12 +26,23 @@ class VPB_EXPORT MachineOperation : public osg::Operation
 {
     public:
     
-        MachineOperation(TaskFile* taskFile);
+        MachineOperation(Task* Task);
         
         /** Use TemplateMethod pattern to case calling object to Machine.*/
         virtual void operator () (osg::Object* object);
         
-        osg::ref_ptr<TaskFile> _taskFile;
+        osg::ref_ptr<Task> _Task;
+};
+
+class VPB_EXPORT BlockOperation : public osg::Operation, public OpenThreads::Block
+{
+    public:
+    
+        BlockOperation();
+
+        virtual void release();
+
+        virtual void operator () (osg::Object* object);
 };
         
 
@@ -41,7 +52,13 @@ class VPB_EXPORT Machine : public osg::Object
 {
     public:
     
+        Machine();
+    
+        Machine(const Machine&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+
         Machine(const std::string& hostname, const std::string& commandPrefix, const std::string& commandPostfix, int numThreads=-1);
+        
+        META_Object(vpb, Machine)
         
         void setOperationQueue(osg::OperationQueue* queue);
         
@@ -50,6 +67,10 @@ class VPB_EXPORT Machine : public osg::Object
         const std::string& getCommandPostfix() const { return _commandPostfix; }
 
         Threads& getThreads() { return _threads; }
+        
+        unsigned int getNumThreads() const { return _threads.size(); }
+
+        unsigned int getNumThreadsActive() const;
 
     protected:
     
@@ -73,15 +94,26 @@ class VPB_EXPORT MachinePool : public osg::Referenced
 
         void addMachine(Machine* machine);
         
-        void run(TaskFile* taskFile);
+        void run(Task* Task);
         
         void waitForCompletion();
+        
+        unsigned int getNumThreads() const;
+
+        unsigned int getNumThreadsActive() const;
+        
+        bool read(const std::string& filename);
+
+        bool write(const std::string& filename);
 
     protected:
 
         virtual ~MachinePool();
         
         osg::ref_ptr<osg::OperationQueue> _operationQueue;
+        
+        typedef std::list< osg::ref_ptr<Machine> > Machines;
+        Machines _machines;
 };
 
 }

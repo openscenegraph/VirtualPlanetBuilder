@@ -107,12 +107,12 @@ void PropertyFile::setProperty(const std::string& property, Parameter value)
     if (_propertyMap[property] != originalValue) _propertiesModified=true;
 }
 
-bool PropertyFile::getProperty(const std::string& property, Parameter value)
+bool PropertyFile::getProperty(const std::string& property, Parameter value) const
 {
-    PropertyMap::iterator itr = _propertyMap.find(property);
+    PropertyMap::const_iterator itr = _propertyMap.find(property);
     if (itr != _propertyMap.end())
     {
-        const std::string field = _propertyMap[property];
+        std::string field = itr->second;
         if (value.valid(field.c_str()))
         {
             value.assign(field.c_str());

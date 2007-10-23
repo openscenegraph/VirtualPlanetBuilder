@@ -11,7 +11,7 @@
  * OpenSceneGraph Public License for more details.
 */
 
-#include <vpb/TaskFile>
+#include <vpb/Task>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -21,18 +21,18 @@
 
 using namespace vpb;
 
-TaskFile::TaskFile(const std::string& filename, Type type):
+Task::Task(const std::string& filename, Type type):
     PropertyFile(filename,type),
     _argc(0),
     _argv(0)
 {
 }
 
-TaskFile::~TaskFile()
+Task::~Task()
 {
 }
 
-void TaskFile::init(osg::ArgumentParser& arguments)
+void Task::init(osg::ArgumentParser& arguments)
 {
     std::string application(arguments[0]);
     std::string args;
@@ -80,7 +80,7 @@ void TaskFile::init(osg::ArgumentParser& arguments)
     setProperty("tablesize",tabelsize);
 }
 
-void TaskFile::get(osg::ArgumentParser& arguments)
+void Task::get(osg::ArgumentParser& arguments)
 {
     std::string application;
     std::string args;
@@ -93,7 +93,7 @@ void TaskFile::get(osg::ArgumentParser& arguments)
     }
 }
 
-void TaskFile::invoke(bool runInBackground)
+void Task::invoke(bool runInBackground)
 {
     std::string application;
     if (getProperty("application",application))
@@ -113,7 +113,7 @@ void TaskFile::invoke(bool runInBackground)
     }
 }
 
-void TaskFile::signal(int signal)
+void Task::signal(int signal)
 {
     std::string pid;
     if (getProperty("pid", pid))
@@ -125,10 +125,36 @@ void TaskFile::signal(int signal)
     }
 }
 
-void TaskFileOperation::operator () (osg::Object*)
+void Task::setStatus(Status status)
 {
-    _taskFile->sync();
-    _taskFile->report(std::cout);
+    switch(status)
+    {
+        case(RUNNING):
+            setProperty("status","running"); 
+            break;
+        case(COMPLETED):
+            setProperty("status","completed");
+            break;
+        default:
+            setProperty("status","pending");
+            break;
+    }
+}
+
+Task::Status Task::getStatus() const
+{
+    std::string status;
+    getProperty("status",status);
+    if (status=="running") return RUNNING;
+    if (status=="completed") return COMPLETED;
+    return PENDING;
+}
+
+
+void TaskOperation::operator () (osg::Object*)
+{
+    _task->sync();
+    _task->report(std::cout);
 }
 
 void SleepOperation::operator () (osg::Object*)

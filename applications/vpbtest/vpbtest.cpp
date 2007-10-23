@@ -10,7 +10,7 @@
 */
 
 #include <vpb/BuildOperation>
-#include <vpb/TaskFile>
+#include <vpb/Task>
 
 #include <osgDB/ReadFile>
 #include <osgDB/FileUtils>
@@ -59,7 +59,7 @@ int main( int argc, char **argv )
     std::string filename;
     if (arguments.read("-k",filename, signal) || arguments.read("-k",filename))
     {
-        osg::ref_ptr<vpb::TaskFile> taskFile = new vpb::TaskFile(filename,vpb::TaskFile::READ);
+        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename,vpb::Task::READ);
         taskFile->sync();
         taskFile->signal(signal);
     }
@@ -67,17 +67,17 @@ int main( int argc, char **argv )
     bool background = false;
     if (arguments.read("-i",filename, background) || arguments.read("-i",filename))
     {
-        osg::ref_ptr<vpb::TaskFile> taskFile = new vpb::TaskFile(filename,vpb::TaskFile::READ);
+        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename,vpb::Task::READ);
         taskFile->sync();
         taskFile->invoke(background);
     }
 
     if (arguments.read("-r",filename))
     {
-        osg::ref_ptr<vpb::TaskFile> taskFile = new vpb::TaskFile(filename,vpb::TaskFile::READ);
+        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename,vpb::Task::READ);
 
         osg::ref_ptr<osg::OperationThread> thread = new osg::OperationThread;
-        thread->add(new vpb::TaskFileOperation(taskFile.get()));
+        thread->add(new vpb::TaskOperation(taskFile.get()));
         thread->add(new vpb::SleepOperation(1000000));
         thread->startThread();
         
@@ -87,12 +87,12 @@ int main( int argc, char **argv )
     if (arguments.read("-w",filename))
     {
 
-        osg::ref_ptr<vpb::TaskFile> taskFile = new vpb::TaskFile(filename,vpb::TaskFile::WRITE);
+        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename,vpb::Task::WRITE);
 
         taskFile->init(arguments);
 
         osg::ref_ptr<osg::OperationThread> thread = new osg::OperationThread;
-        thread->add(new vpb::TaskFileOperation(taskFile.get()));
+        thread->add(new vpb::TaskOperation(taskFile.get()));
         thread->add(new vpb::SleepOperation(1000000));
         thread->startThread();
         

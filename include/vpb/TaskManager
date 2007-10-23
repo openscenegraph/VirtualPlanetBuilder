@@ -17,7 +17,7 @@
 
 #include <vpb/DataSet>
 #include <vpb/MachinePool>
-#include <vpb/TaskFile>
+#include <vpb/Task>
 
 namespace vpb
 {
@@ -44,22 +44,31 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         void nextTaskSet();
         
         /** add a task to the current task set.*/
-        void addTask(TaskFile* task);
+        void addTask(Task* task);
         void addTask(const std::string& taskFileName);
         void addTask(const std::string& taskFileName, const std::string& application, const std::string& arguments);
         
+        /** build the database directly without using slaves.*/
+        void buildWithoutSlaves();
+
         /** run all the tasks.*/
         void run();
+        
+        /** read the task list from file.*/
+        bool read(const std::string& filename);
+
+        /** read the task list from file.*/
+        bool write(const std::string& filename);
 
     protected:
 
         virtual ~TaskManager();
         
-        typedef std::list< osg::ref_ptr<TaskFile> > TaskSet;
+        typedef std::list< osg::ref_ptr<Task> > TaskSet;
         typedef std::list< TaskSet > TaskSetList;
 
         osg::ref_ptr<MachinePool>           _machinePool;
-        osg::ref_ptr<TaskFile>              _taskFile;
+        osg::ref_ptr<Task>                  _taskFile;
         osg::ref_ptr<osgTerrain::Terrain>   _terrain;
         
         TaskSetList                         _taskSetList;

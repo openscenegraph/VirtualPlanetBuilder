@@ -96,9 +96,9 @@ class VPB_EXPORT DataSet : public BuildOptions
         BuildLog* getBuildLog() { return _buildLog.get(); }
         const BuildLog* getBuildLog() const { return _buildLog.get(); }
         
-        void setTaskFile(TaskFile* taskFile) { _taskFile = taskFile; }
-        TaskFile* getTaskFile() { return _taskFile.get(); }
-        const TaskFile* getTaskFile() const { return _taskFile.get(); }
+        void setTask(Task* taskFile) { _taskFile = taskFile; }
+        Task* getTask() { return _taskFile.get(); }
+        const Task* getTask() const { return _taskFile.get(); }
 
 
         void addSource(Source* source);
@@ -204,7 +204,7 @@ class VPB_EXPORT DataSet : public BuildOptions
         osg::ref_ptr<osg::CoordinateSystemNode>     _intermediateCoordinateSystem;
 
         osg::ref_ptr<BuildLog>                      _buildLog;
-        osg::ref_ptr<TaskFile>                      _taskFile;
+        osg::ref_ptr<Task>                          _taskFile;
         
 };
 

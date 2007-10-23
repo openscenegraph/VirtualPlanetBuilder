@@ -20,7 +20,7 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/Serializer
 	${HEADER_PATH}/Source
 	${HEADER_PATH}/SpatialProperties
-	${HEADER_PATH}/TaskFile
+	${HEADER_PATH}/Task
 	${HEADER_PATH}/TaskManager
 	${HEADER_PATH}/Version
 )
@@ -41,7 +41,7 @@ ADD_LIBRARY(${LIB_NAME}
         PropertyFile.cpp
 	Source.cpp
 	SpatialProperties.cpp
-	TaskFile.cpp
+	Task.cpp
 	TaskManager.cpp
 	Version.cpp
 )

@@ -22,6 +22,7 @@ using namespace vpb;
 
 TaskManager::TaskManager()
 {
+    _machinePool = new MachinePool;
 }
 
 TaskManager::~TaskManager()
@@ -62,6 +63,22 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     int result = vpb::readSourceArguments(std::cout, arguments, _terrain.get());
     if (result) return result;
 
+    std::string machinePoolFileName;
+    while (arguments.read("--machines",machinePoolFileName)) {}
+
+    if (!machinePoolFileName.empty())
+    {
+        _machinePool->read(machinePoolFileName);
+    }
+
+    std::string taskSetFileName;
+    while (arguments.read("--tasks",taskSetFileName)) {}
+
+    if (!taskSetFileName.empty())
+    {
+        read(taskSetFileName);
+    }
+
     return 0;
 }
 
@@ -93,7 +110,7 @@ void TaskManager::nextTaskSet()
     _taskSetList.push_back(TaskSet());
 }
 
-void TaskManager::addTask(TaskFile* task)
+void TaskManager::addTask(Task* task)
 {
     if (!task) return;
 
@@ -104,13 +121,13 @@ void TaskManager::addTask(TaskFile* task)
 
 void TaskManager::addTask(const std::string& taskFileName)
 {
-    osg::ref_ptr<TaskFile> taskFile = new TaskFile(taskFileName,TaskFile::READ);
+    osg::ref_ptr<Task> taskFile = new Task(taskFileName,Task::READ);
     if (taskFile->valid()) addTask(taskFile.get());
 }
 
 void TaskManager::addTask(const std::string& taskFileName, const std::string& application, const std::string& arguments)
 {
-    osg::ref_ptr<TaskFile> taskFile = new TaskFile(taskFileName,TaskFile::READ);
+    osg::ref_ptr<Task> taskFile = new Task(taskFileName,Task::READ);
 
     if (taskFile->valid())
     {
@@ -123,8 +140,9 @@ void TaskManager::addTask(const std::string& taskFileName, const std::string& ap
     }
 }
 
-void TaskManager::run()
+void TaskManager::buildWithoutSlaves()
 {
+
     if (_terrain.valid())
     {
         try 
@@ -141,7 +159,7 @@ void TaskManager::run()
 
             if (_taskFile.valid())
             {
-                dataset->setTaskFile(_taskFile.get());
+                dataset->setTask(_taskFile.get());
             }
 
             dataset->addTerrain(_terrain.get());
@@ -163,3 +181,57 @@ void TaskManager::run()
 }
 
 
+void TaskManager::run()
+{
+    std::cout<<"Begining run"<<std::endl;
+    for(TaskSetList::iterator tsItr = _taskSetList.begin();
+        tsItr != _taskSetList.end();
+        ++tsItr)
+    {
+        for(TaskSet::iterator itr = tsItr->begin();
+            itr != tsItr->end();
+            ++itr)
+        {
+            Task* task = itr->get();
+            Task::Status status = task->getStatus();
+            switch(status)
+            {
+                case(Task::RUNNING):
+                {
+                    // do we check to see if this process is still running?
+                    // do we kill this process?
+                    std::cout<<"Task claims still to be running: "<<task->getFileName()<<std::endl;
+                    break;
+                }
+                case(Task::COMPLETED):
+                {
+                    // task already completed so we can ignore it.
+                    std::cout<<"Task claims to have been completed: "<<task->getFileName()<<std::endl;
+                    break;
+                }
+                default:
+                {
+                    // do we check to see if this process is still running?
+                    // do we kill this process?
+                    getMachinePool()->run(task);
+                    break;
+                }
+            }
+            // now need to wait till all dispatched tasks are complete.
+            getMachinePool()->waitForCompletion();
+        }
+    }
+    std::cout<<"Finished run"<<std::endl;
+}
+
+bool TaskManager::read(const std::string& filename)
+{
+    std::cout<<"TaskManager::read() still in developement."<<std::endl;
+    return false;
+}
+
+bool TaskManager::write(const std::string& filename)
+{
+    std::cout<<"TaskManager::write() still in developement."<<std::endl;
+    return false;
+}
