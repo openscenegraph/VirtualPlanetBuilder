@@ -59,8 +59,12 @@ void MachineOperation::operator () (osg::Object* object)
             {
                 executionString += std::string(" ") + machine->getCommandPrefix();
             }
+            
+            std::cout<<"running "<<executionString<<std::endl;
 
             system(executionString.c_str());
+
+            std::cout<<"completed "<<executionString<<std::endl;
         }
     }
 }

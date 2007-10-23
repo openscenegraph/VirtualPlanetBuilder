@@ -67,6 +67,9 @@ class VPB_EXPORT TaskManager : public osg::Referenced
 
         virtual ~TaskManager();
         
+        Task* readTask(osgDB::Input& fr, bool& itrAdvanced);
+        bool writeTask(osgDB::Output& fout, const Task* task) const;
+        
         typedef std::list< osg::ref_ptr<Task> > TaskSet;
         typedef std::list< TaskSet > TaskSetList;
 

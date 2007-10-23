@@ -74,7 +74,9 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     {
         _machinePool->read(machinePoolFileName);
         
+#if 0        
         _machinePool->write("test.machines");
+#endif
     }
 
     std::string taskSetFileName;
@@ -83,6 +85,9 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     if (!taskSetFileName.empty())
     {
         read(taskSetFileName);
+#if 0        
+        write("test.tasks");
+#endif
     }
 
     return 0;
@@ -235,6 +240,65 @@ void TaskManager::run()
     std::cout<<"Finished run"<<std::endl;
 }
 
+Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
+{
+    if (fr.matchSequence("exec {"))
+    {
+        int local_entry = fr[0].getNoNestedBrackets();
+
+        fr += 2;
+
+        std::string application;
+        std::string arguments;
+
+        while (!fr.eof() && fr[0].getNoNestedBrackets()>local_entry)
+        {
+            if (fr[0].getStr())
+            {
+                if (application.empty())
+                {
+                    // first entry is the application
+                    application = fr[0].getStr();
+                }
+                else if (arguments.empty()) 
+                {
+                    // next entry is the arugment
+                    arguments = fr[0].getStr();
+                }
+                else
+                {
+                    // subsequent entries and appended to arguments
+                    arguments += std::string(" ") + std::string(fr[0].getStr());
+                }
+            }
+            ++fr;
+        }
+
+        if (!application.empty())
+        {
+            osg::ref_ptr<Task> task = new Task(createUniqueTaskFileName(application,arguments),Task::READ);
+
+            if (task->valid())
+            {
+                task->setProperty("application",application);
+                task->setProperty("arguments",arguments);
+
+                task->write();
+
+                return task.release();
+            }
+        }
+
+        ++fr;
+        
+        itrAdvanced = true;
+
+    }
+    
+    return 0;
+}
+
+
 bool TaskManager::read(const std::string& filename)
 {
     std::string foundFile = osgDB::findDataFile(filename);
@@ -257,43 +321,11 @@ bool TaskManager::read(const std::string& filename)
         {        
             bool itrAdvanced = false;
         
-            if (fr.matchSequence("exec {"))
+            Task* task = readTask(fr, itrAdvanced);
+            if (task)
             {
-                int local_entry = fr[0].getNoNestedBrackets();
-
-                fr += 2;
-
-                std::string application;
-                std::string arguments;
-
-                while (!fr.eof() && fr[0].getNoNestedBrackets()>local_entry)
-                {
-                    if (fr[0].getStr())
-                    {
-                        if (application.empty()) application = fr[0].getStr();
-                        else if (application.empty()) 
-                        {
-                            arguments = fr[0].getStr();
-                        }
-                        else
-                        {
-                            arguments += std::string(" ") + std::string(fr[0].getStr());
-                        }
-                    }
-                    ++fr;
-                }
-                
-                if (!application.empty())
-                {
-                    nextTaskSet();
-                    addTask(
-                        createUniqueTaskFileName(application,arguments),
-                        application,
-                        arguments);
-                }
-
-                ++fr;
-
+                nextTaskSet();
+                addTask(task);
             }
             
             if (fr.matchSequence("Tasks {"))
@@ -307,6 +339,12 @@ bool TaskManager::read(const std::string& filename)
                 while (!fr.eof() && fr[0].getNoNestedBrackets()>local_entry)
                 {
                     bool localAdvanced = false;
+
+                    Task* task = readTask(fr, localAdvanced);
+                    if (task)
+                    {
+                        addTask(task);
+                    }
 
                     if (!localAdvanced) ++fr;
                 }
@@ -324,8 +362,53 @@ bool TaskManager::read(const std::string& filename)
     return false;
 }
 
+bool TaskManager::writeTask(osgDB::Output& fout, const Task* task) const
+{
+    std::string application;
+    std::string arguments;
+    if (task->getProperty("application",application))
+    {
+        if (task->getProperty("arguments",arguments))
+        {
+            application += std::string(" ") + arguments;
+        }
+
+        fout.indent()<<"exec { "<<application<<" }"<<std::endl;
+    }
+    return true;
+}
+
 bool TaskManager::write(const std::string& filename) const
 {
-    std::cout<<"TaskManager::write() still in developement."<<std::endl;
+    osgDB::Output fout(filename.c_str());
+
+    for(TaskSetList::const_iterator tsItr = _taskSetList.begin();
+        tsItr != _taskSetList.end();
+        ++tsItr)
+    {
+        const TaskSet& taskSet = *tsItr;
+
+        if (taskSet.size()==1)
+        {
+            writeTask(fout,taskSet.front().get());
+        }
+        else if (taskSet.size()>1)
+        {        
+            fout.indent()<<"Tasks {"<<std::endl;
+            fout.moveIn();
+
+            for(TaskSet::const_iterator itr = taskSet.begin();
+                itr != taskSet.end();
+                ++itr)
+            {
+                writeTask(fout,itr->get());
+            }
+
+            fout.moveOut();
+            fout.indent()<<"}"<<std::endl;
+        }
+    }
+    
+
     return false;
 }
