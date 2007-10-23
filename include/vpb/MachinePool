@@ -26,12 +26,12 @@ class VPB_EXPORT MachineOperation : public osg::Operation
 {
     public:
     
-        MachineOperation(Task* Task);
+        MachineOperation(Task* task);
         
         /** Use TemplateMethod pattern to case calling object to Machine.*/
         virtual void operator () (osg::Object* object);
         
-        osg::ref_ptr<Task> _Task;
+        osg::ref_ptr<Task> _task;
 };
 
 class VPB_EXPORT BlockOperation : public osg::Operation, public OpenThreads::Block
@@ -59,6 +59,8 @@ class VPB_EXPORT Machine : public osg::Object
         Machine(const std::string& hostname, const std::string& commandPrefix, const std::string& commandPostfix, int numThreads=-1);
         
         META_Object(vpb, Machine)
+        
+        void startThreads();
         
         void setOperationQueue(osg::OperationQueue* queue);
         

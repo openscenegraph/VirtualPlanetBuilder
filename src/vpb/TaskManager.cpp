@@ -200,6 +200,7 @@ void TaskManager::buildWithoutSlaves()
 void TaskManager::run()
 {
     std::cout<<"Begining run"<<std::endl;
+    
     for(TaskSetList::iterator tsItr = _taskSetList.begin();
         tsItr != _taskSetList.end();
         ++tsItr)
@@ -227,16 +228,19 @@ void TaskManager::run()
                 }
                 default:
                 {
-                    // do we check to see if this process is still running?
-                    // do we kill this process?
+                    // run the task
                     getMachinePool()->run(task);
                     break;
                 }
             }
-            // now need to wait till all dispatched tasks are complete.
-            getMachinePool()->waitForCompletion();
+
         }
+
+        // now need to wait till all dispatched tasks are complete.
+        getMachinePool()->waitForCompletion();
     }
+
+
     std::cout<<"Finished run"<<std::endl;
 }
 

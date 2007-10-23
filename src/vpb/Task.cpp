@@ -127,18 +127,20 @@ void Task::signal(int signal)
 
 void Task::setStatus(Status status)
 {
+    std::string statusString;
     switch(status)
     {
         case(RUNNING):
-            setProperty("status","running"); 
+            statusString = "running";
             break;
         case(COMPLETED):
-            setProperty("status","completed");
+            statusString = "completed";
             break;
         default:
-            setProperty("status","pending");
+            statusString = "pending";
             break;
     }
+    setProperty("status",statusString);
 }
 
 Task::Status Task::getStatus() const

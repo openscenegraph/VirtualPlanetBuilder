@@ -28,10 +28,12 @@ using namespace vpb;
 //
 //  MachineOperation
 //
-MachineOperation::MachineOperation(Task* Task):
-    osg::Operation(Task->getFileName(), false),
-    _Task(Task)
+MachineOperation::MachineOperation(Task* task):
+    osg::Operation(task->getFileName(), false),
+    _task(task)
 {
+    _task->setStatus(Task::PENDING);
+    _task->write();
 }
 
 void MachineOperation::operator () (osg::Object* object)
@@ -40,17 +42,19 @@ void MachineOperation::operator () (osg::Object* object)
     if (machine)
     {
 
+        std::cout<<"MachineOperation::operator() hostname="<<machine->getHostName()<<std::endl;
+
         std::string application;
-        if (_Task->getProperty("application",application))
+        if (_task->getProperty("application",application))
         {
-            _Task->setProperty("hostname",machine->getHostName());
-            
-            _Task->write();
+            _task->setProperty("hostname",machine->getHostName());
+            _task->setStatus(Task::RUNNING);
+            _task->write();
 
             std::string executionString = machine->getCommandPrefix() + std::string(" ") + application;
 
             std::string arguments;
-            if (_Task->getProperty("arguments",arguments))
+            if (_task->getProperty("arguments",arguments))
             {
                 executionString += std::string(" ") + arguments;
             }
@@ -63,6 +67,9 @@ void MachineOperation::operator () (osg::Object* object)
             std::cout<<"running "<<executionString<<std::endl;
 
             system(executionString.c_str());
+            
+            _task->setStatus(Task::COMPLETED);
+            _task->write();
 
             std::cout<<"completed "<<executionString<<std::endl;
         }
@@ -127,6 +134,19 @@ Machine::~Machine()
 {
 }
 
+void Machine::startThreads()
+{
+    std::cout<<"Machine::startThreads() hostname="<<_hostname<<std::endl;
+    for(Threads::iterator itr = _threads.begin();
+        itr != _threads.end();
+        ++itr)
+    {
+        std::cout<<"  Started thread"<<std::endl;
+    
+        (*itr)->startThread();
+    }
+}
+
 void Machine::setOperationQueue(osg::OperationQueue* queue)
 {
     for(Threads::iterator itr = _threads.begin();
@@ -149,6 +169,7 @@ unsigned int Machine::getNumThreadsActive() const
             ++numThreadsActive;
         }
     }
+    return numThreadsActive;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -174,27 +195,39 @@ void MachinePool::addMachine(Machine* machine)
 {
     machine->setOperationQueue(_operationQueue.get());
     
+    machine->startThreads();
+    
     _machines.push_back(machine);
 }
 
 void MachinePool::run(Task* task)
 {
+    std::cout<<"Adding Task to MachinePool::OperationQueue "<<task->getFileName()<<std::endl;
     _operationQueue->add(new MachineOperation(task));
 }
 
 void MachinePool::waitForCompletion()
 {
-    osg::ref_ptr<BlockOperation> block = new BlockOperation;
+    osg::ref_ptr<BlockOperation> blockOp = new BlockOperation;
+    
+    // std::cout<<"MachinePool::waitForCompletion : Adding block to queue"<<std::endl;
     
     // wait till the operaion queu has been flushed.
-    _operationQueue->add(block.get());
+    _operationQueue->add(blockOp.get());
     
+    std::cout<<"MachinePool::waitForCompletion : Waiting for block to complete"<<std::endl;
+    blockOp->block();
+    
+    // std::cout<<"MachinePool::waitForCompletion : Block completed"<<std::endl;
 
     // there can still be operations running though so need to double check.
     while(getNumThreadsActive()>0)
     {
+        // std::cout<<"MachinePool::waitForCompletion : Waiting for threads to complete"<<std::endl;
         OpenThreads::Thread::YieldCurrentThread();
     }
+
+    // std::cout<<"MachinePool::waitForCompletion : finished"<<std::endl;
 }
 
 unsigned int MachinePool::getNumThreads() const
