@@ -295,6 +295,7 @@ bool MachinePool::read(const std::string& filename)
                     if (fr.read("prefix",prefix)) localAdvanced = true;
                     if (fr.read("postfix",postfix)) localAdvanced = true;
                     if (fr.read("threads",numThreads)) localAdvanced = true;
+                    if (fr.read("processes",numThreads)) localAdvanced = true;
 
                     if (!localAdvanced) ++fr;
                 }
@@ -331,7 +332,7 @@ bool MachinePool::write(const std::string& filename) const
         if (!machine->getHostName().empty()) fout.indent()<<"hostname "<<machine->getHostName()<<std::endl;
         if (!machine->getCommandPrefix().empty()) fout.indent()<<"prefix "<<machine->getCommandPrefix()<<std::endl;
         if (!machine->getCommandPostfix().empty()) fout.indent()<<"postfix "<<machine->getCommandPostfix()<<std::endl;
-        if (machine->getNumThreads()>0) fout.indent()<<"threads "<<machine->getNumThreads()<<std::endl;
+        if (machine->getNumThreads()>0) fout.indent()<<"processes "<<machine->getNumThreads()<<std::endl;
         
         fout.moveOut();
         fout.indent()<<"}"<<std::endl;

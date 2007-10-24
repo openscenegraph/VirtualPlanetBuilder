@@ -16,6 +16,7 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/Destination
 	${HEADER_PATH}/Export
 	${HEADER_PATH}/MachinePool
+	${HEADER_PATH}/FileSystem
 	${HEADER_PATH}/PropertyFile
 	${HEADER_PATH}/Serializer
 	${HEADER_PATH}/Source
@@ -37,6 +38,7 @@ ADD_LIBRARY(${LIB_NAME}
 	DatabaseBuilderIO.cpp
 	DataSet.cpp
 	Destination.cpp
+	FileSystem.cpp
         MachinePool.cpp
         PropertyFile.cpp
 	Source.cpp
