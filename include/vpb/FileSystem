@@ -49,12 +49,12 @@ class VPB_EXPORT FileSystem : public osg::Referenced
         std::string         _machineFileName;
 };
 
-osgDB::FilePathList& getSourcePaths() { return FileSystem::instance()->getSourcePaths(); }
-std::string& getDestinationDirectory() { return FileSystem::instance()->getDestinationDirectory(); }
-std::string& getIntermediateDirectory() { return FileSystem::instance()->getIntermediateDirectory(); }
-std::string& getLogDirectory() { return FileSystem::instance()->getLogDirectory(); }
-std::string& getTaskDirectory() { return FileSystem::instance()->getTaskDirectory(); }
-std::string& getMachineFileName() { return FileSystem::instance()->getMachineFileName(); }
+extern VPB_EXPORT osgDB::FilePathList& getSourcePaths();
+extern VPB_EXPORT std::string& getDestinationDirectory();
+extern VPB_EXPORT std::string& getIntermediateDirectory();
+extern VPB_EXPORT std::string& getLogDirectory();
+extern VPB_EXPORT std::string& getTaskDirectory();
+extern VPB_EXPORT std::string& getMachineFileName();
 
 }
 

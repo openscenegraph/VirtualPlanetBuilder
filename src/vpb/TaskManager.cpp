@@ -14,6 +14,8 @@
 #include <vpb/TaskManager>
 #include <vpb/Commandline>
 #include <vpb/DatabaseBuilder>
+#include <vpb/FileSystem>
+
 #include <osgDB/ReadFile>
 
 #include <osgDB/Input>
@@ -70,6 +72,8 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     std::string machinePoolFileName;
     while (arguments.read("--machines",machinePoolFileName)) {}
 
+    if (machinePoolFileName.empty()) machinePoolFileName = vpb::getMachineFileName();
+
     if (!machinePoolFileName.empty())
     {
         _machinePool->read(machinePoolFileName);
@@ -78,6 +82,8 @@ int TaskManager::read(osg::ArgumentParser& arguments)
         _machinePool->write("test.machines");
 #endif
     }
+    
+    
 
     std::string taskSetFileName;
     while (arguments.read("--tasks",taskSetFileName)) {}

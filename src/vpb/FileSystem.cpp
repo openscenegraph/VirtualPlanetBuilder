@@ -68,3 +68,10 @@ void FileSystem::readEnvironmentVariables()
         _machineFileName = str;
     }
 }
+
+osgDB::FilePathList& vpb::getSourcePaths() { return FileSystem::instance()->getSourcePaths(); }
+std::string& vpb::getDestinationDirectory() { return FileSystem::instance()->getDestinationDirectory(); }
+std::string& vpb::getIntermediateDirectory() { return FileSystem::instance()->getIntermediateDirectory(); }
+std::string& vpb::getLogDirectory() { return FileSystem::instance()->getLogDirectory(); }
+std::string& vpb::getTaskDirectory() { return FileSystem::instance()->getTaskDirectory(); }
+std::string& vpb::getMachineFileName() { return FileSystem::instance()->getMachineFileName(); }
