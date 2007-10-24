@@ -46,13 +46,16 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         /** add a task to the current task set.*/
         void addTask(Task* task);
         void addTask(const std::string& taskFileName);
-        void addTask(const std::string& taskFileName, const std::string& application, const std::string& arguments);
+        void addTask(const std::string& taskFileName, const std::string& application);
         
         /** build the database directly without using slaves.*/
         void buildWithoutSlaves();
 
         /** run all the tasks.*/
         void run();
+        
+        /** Clear the TaskSetList.*/
+        void clearTaskSetList();
         
         /** read the task list from file.*/
         bool read(const std::string& filename);
@@ -61,7 +64,7 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         bool write(const std::string& filename) const;
         
         /** Helper method for creating task file names.*/
-        std::string createUniqueTaskFileName(const std::string application, const std::string& arguments);
+        std::string createUniqueTaskFileName(const std::string application);
 
     protected:
 

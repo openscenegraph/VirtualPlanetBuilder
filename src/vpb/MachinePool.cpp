@@ -53,12 +53,6 @@ void MachineOperation::operator () (osg::Object* object)
 
             std::string executionString = machine->getCommandPrefix() + std::string(" ") + application;
 
-            std::string arguments;
-            if (_task->getProperty("arguments",arguments))
-            {
-                executionString += std::string(" ") + arguments;
-            }
-
             if (machine->getCommandPrefix().empty())
             {
                 executionString += std::string(" ") + machine->getCommandPrefix();
@@ -66,12 +60,27 @@ void MachineOperation::operator () (osg::Object* object)
             
             std::cout<<"running "<<executionString<<std::endl;
 
-            system(executionString.c_str());
+            int result = system(executionString.c_str());
             
-            _task->setStatus(Task::COMPLETED);
-            _task->write();
+            // read any updates to the task written to file by the application.
+            _task->read();
+            
+            if (result==0)
+            {
+                // success
+                _task->setStatus(Task::COMPLETED);
+                _task->write();
+            }
+            else
+            {
+                // failure
+                _task->setStatus(Task::FAILED);
+                _task->setProperty("error code",result);
+                _task->write();
+            }
+            
 
-            std::cout<<"completed "<<executionString<<std::endl;
+            std::cout<<"completed "<<executionString<<" result="<<result<<std::endl;
         }
     }
 }
@@ -254,6 +263,11 @@ unsigned int MachinePool::getNumThreadsActive() const
     return numThreadsActive;
 }
 
+void MachinePool::clear()
+{
+    _machines.clear();
+}
+
 bool MachinePool::read(const std::string& filename)
 {
     std::string foundFile = osgDB::findDataFile(filename);
@@ -267,14 +281,19 @@ bool MachinePool::read(const std::string& filename)
     
     if (fin)
     {
-        _machines.clear();
-    
         osgDB::Input fr;
         fr.attach(&fin);
         
         while(!fr.eof())
         {        
             bool itrAdvanced = false;
+
+            std::string readFilename;
+            if (fr.read("file",readFilename))
+            {
+                read(readFilename);
+                ++itrAdvanced;
+            }
         
             if (fr.matchSequence("Machine {"))
             {

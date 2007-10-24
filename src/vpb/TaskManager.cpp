@@ -91,7 +91,7 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     if (!taskSetFileName.empty())
     {
         read(taskSetFileName);
-#if 0        
+#if 1        
         write("test.tasks");
 #endif
     }
@@ -142,14 +142,13 @@ void TaskManager::addTask(const std::string& taskFileName)
     if (taskFile->valid()) addTask(taskFile.get());
 }
 
-void TaskManager::addTask(const std::string& taskFileName, const std::string& application, const std::string& arguments)
+void TaskManager::addTask(const std::string& taskFileName, const std::string& application)
 {
     osg::ref_ptr<Task> taskFile = new Task(taskFileName,Task::READ);
 
     if (taskFile->valid())
     {
         taskFile->setProperty("application",application);
-        taskFile->setProperty("arguments",arguments);
 
         taskFile->write();    
 
@@ -157,7 +156,7 @@ void TaskManager::addTask(const std::string& taskFileName, const std::string& ap
     }
 }
 
-std::string TaskManager::createUniqueTaskFileName(const std::string application, const std::string& arguments)
+std::string TaskManager::createUniqueTaskFileName(const std::string application)
 {
     return "taskfile.task";
 }
@@ -232,7 +231,14 @@ void TaskManager::run()
                     std::cout<<"Task claims to have been completed: "<<task->getFileName()<<std::endl;
                     break;
                 }
-                default:
+                case(Task::FAILED):
+                {
+                    // run the task
+                    std::cout<<"Task previously failed attempting re-run: "<<task->getFileName()<<std::endl;
+                    getMachinePool()->run(task);
+                    break;
+                }
+                case(Task::PENDING):
                 {
                     // run the task
                     getMachinePool()->run(task);
@@ -244,10 +250,54 @@ void TaskManager::run()
 
         // now need to wait till all dispatched tasks are complete.
         getMachinePool()->waitForCompletion();
+
+        // tally up the tasks to see how we've done.
+        unsigned int tasksPending = 0;        
+        unsigned int tasksRunning = 0;        
+        unsigned int tasksCompleted = 0;        
+        unsigned int tasksFailed = 0;        
+        for(TaskSet::iterator itr = tsItr->begin();
+            itr != tsItr->end();
+            ++itr)
+        {
+            Task* task = itr->get();
+            Task::Status status = task->getStatus();
+            switch(status)
+            {
+                case(Task::RUNNING):
+                {
+                    ++tasksPending;
+                    break;
+                }
+                case(Task::COMPLETED):
+                {
+                    ++tasksCompleted;
+                    break;
+                }
+                case(Task::FAILED):
+                {
+                    ++tasksFailed;
+                    break;
+                }
+                case(Task::PENDING):
+                {
+                    ++tasksPending;
+                    break;
+                }
+            }
+        }
+        
+        std::cout<<"tasksPending="<<tasksPending<<" taskCompleted="<<tasksCompleted<<" taskRunning="<<tasksRunning<<" tasksFailed="<<tasksFailed<<std::endl;
+        
     }
 
 
     std::cout<<"Finished run"<<std::endl;
+}
+
+void TaskManager::clearTaskSetList()
+{
+    _taskSetList.clear();
 }
 
 Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
@@ -259,8 +309,7 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
         fr += 2;
 
         std::string application;
-        std::string arguments;
-
+ 
         while (!fr.eof() && fr[0].getNoNestedBrackets()>local_entry)
         {
             if (fr[0].getStr())
@@ -270,15 +319,10 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
                     // first entry is the application
                     application = fr[0].getStr();
                 }
-                else if (arguments.empty()) 
-                {
-                    // next entry is the arugment
-                    arguments = fr[0].getStr();
-                }
                 else
                 {
                     // subsequent entries and appended to arguments
-                    arguments += std::string(" ") + std::string(fr[0].getStr());
+                    application += std::string(" ") + std::string(fr[0].getStr());
                 }
             }
             ++fr;
@@ -286,12 +330,11 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
 
         if (!application.empty())
         {
-            osg::ref_ptr<Task> task = new Task(createUniqueTaskFileName(application,arguments),Task::READ);
+            osg::ref_ptr<Task> task = new Task(createUniqueTaskFileName(application),Task::READ);
 
             if (task->valid())
             {
                 task->setProperty("application",application);
-                task->setProperty("arguments",arguments);
 
                 task->write();
 
@@ -308,7 +351,6 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
     return 0;
 }
 
-
 bool TaskManager::read(const std::string& filename)
 {
     std::string foundFile = osgDB::findDataFile(filename);
@@ -322,8 +364,6 @@ bool TaskManager::read(const std::string& filename)
     
     if (fin)
     {
-        _taskSetList.clear();
-    
         osgDB::Input fr;
         fr.attach(&fin);
         
@@ -331,6 +371,14 @@ bool TaskManager::read(const std::string& filename)
         {        
             bool itrAdvanced = false;
         
+            std::string readFilename;
+            if (fr.read("file",readFilename))
+            {
+                nextTaskSet();
+                read(readFilename);
+                ++itrAdvanced;
+            }
+
             Task* task = readTask(fr, itrAdvanced);
             if (task)
             {
@@ -378,11 +426,6 @@ bool TaskManager::writeTask(osgDB::Output& fout, const Task* task) const
     std::string arguments;
     if (task->getProperty("application",application))
     {
-        if (task->getProperty("arguments",arguments))
-        {
-            application += std::string(" ") + arguments;
-        }
-
         fout.indent()<<"exec { "<<application<<" }"<<std::endl;
     }
     return true;

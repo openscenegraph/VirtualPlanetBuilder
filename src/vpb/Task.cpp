@@ -34,16 +34,14 @@ Task::~Task()
 
 void Task::init(osg::ArgumentParser& arguments)
 {
-    std::string application(arguments[0]);
-    std::string args;
-    for(unsigned int i=1; i<arguments.argc(); ++i)
+    std::string application;
+    for(unsigned int i=0; i<arguments.argc(); ++i)
     {
-        if (i>1) args += " ";
-        args += arguments[i];
+        if (i>1) application += " ";
+        application += arguments[i];;
     }
 
     setProperty("application", application);
-    setProperty("arguments", args);
     
     int pid = getpid();
     setProperty("pid",pid);
@@ -82,15 +80,7 @@ void Task::init(osg::ArgumentParser& arguments)
 
 void Task::get(osg::ArgumentParser& arguments)
 {
-    std::string application;
-    std::string args;
-    if (getProperty("application",application))
-    {
-    }
-    
-    if (getProperty("arguments",args))
-    {
-    }
+    std::cout<<"Task::get(osg::ArgumentParser&) not implemented yet"<<std::endl;
 }
 
 void Task::invoke(bool runInBackground)
@@ -98,12 +88,6 @@ void Task::invoke(bool runInBackground)
     std::string application;
     if (getProperty("application",application))
     {
-        std::string args;
-        if (getProperty("arguments",args))
-        {
-            application += std::string(" ") + args;
-        }
-        
         if (runInBackground)
         {
             application += std::string(" &");
@@ -136,6 +120,9 @@ void Task::setStatus(Status status)
         case(COMPLETED):
             statusString = "completed";
             break;
+        case(FAILED):
+            statusString = "failed";
+            break;
         default:
             statusString = "pending";
             break;
@@ -148,6 +135,7 @@ Task::Status Task::getStatus() const
     std::string status;
     getProperty("status",status);
     if (status=="running") return RUNNING;
+    if (status=="failed") return FAILED;
     if (status=="completed") return COMPLETED;
     return PENDING;
 }
