@@ -20,6 +20,8 @@
 #include <osgDB/Output>
 #include <osgDB/FileUtils>
 
+#include <unistd.h>
+
 #include <iostream>
 
 using namespace vpb;
@@ -44,20 +46,43 @@ void MachineOperation::operator () (osg::Object* object)
 
         std::cout<<"MachineOperation::operator() hostname="<<machine->getHostName()<<std::endl;
 
+        char hostname[1024];
+        gethostname(hostname, sizeof(hostname));
+
+        bool runningRemotely = machine->getHostName()!=hostname;
+
         std::string application;
         if (_task->getProperty("application",application))
         {
             _task->setProperty("hostname",machine->getHostName());
             _task->setStatus(Task::RUNNING);
             _task->write();
-
-            std::string executionString = machine->getCommandPrefix() + std::string(" ") + application;
-
-            if (machine->getCommandPrefix().empty())
-            {
-                executionString += std::string(" ") + machine->getCommandPrefix();
-            }
             
+            
+            std::string executionString;
+            
+            if (!machine->getCommandPrefix().empty())
+            {
+                executionString = machine->getCommandPrefix() + std::string(" ") + application;
+            }
+            else if (runningRemotely)
+            {
+                executionString = std::string("ssh ") +
+                                  machine->getHostName() +
+                                  std::string(" \"") +
+                                  application +
+                                  std::string("\"");
+            }
+            else
+            {
+                executionString = application;
+            }
+
+            if (!machine->getCommandPostfix().empty())
+            {
+                executionString += std::string(" ") + machine->getCommandPostfix();
+            }
+
             std::cout<<"running "<<executionString<<std::endl;
 
             int result = system(executionString.c_str());

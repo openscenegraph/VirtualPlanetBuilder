@@ -202,10 +202,15 @@ void TaskManager::buildWithoutSlaves()
 }
 
 
-void TaskManager::run()
+bool TaskManager::run()
 {
     std::cout<<"Begining run"<<std::endl;
     
+    unsigned int tasksPending = 0;        
+    unsigned int tasksRunning = 0;        
+    unsigned int tasksCompleted = 0;        
+    unsigned int tasksFailed = 0;        
+
     for(TaskSetList::iterator tsItr = _taskSetList.begin();
         tsItr != _taskSetList.end();
         ++tsItr)
@@ -252,10 +257,10 @@ void TaskManager::run()
         getMachinePool()->waitForCompletion();
 
         // tally up the tasks to see how we've done.
-        unsigned int tasksPending = 0;        
-        unsigned int tasksRunning = 0;        
-        unsigned int tasksCompleted = 0;        
-        unsigned int tasksFailed = 0;        
+        tasksPending = 0;        
+        tasksRunning = 0;        
+        tasksCompleted = 0;        
+        tasksFailed = 0;        
         for(TaskSet::iterator itr = tsItr->begin();
             itr != tsItr->end();
             ++itr)
@@ -288,11 +293,15 @@ void TaskManager::run()
         }
         
         std::cout<<"tasksPending="<<tasksPending<<" taskCompleted="<<tasksCompleted<<" taskRunning="<<tasksRunning<<" tasksFailed="<<tasksFailed<<std::endl;
+    
+        if (tasksFailed != 0) break;
         
     }
+    
+    if (tasksFailed==0) std::cout<<"Finished run successfully"<<std::endl;
+    else std::cout<<"Finished run, but failed on "<<tasksFailed<<" tasks"<<std::endl;
 
-
-    std::cout<<"Finished run"<<std::endl;
+    return tasksFailed != 0;
 }
 
 void TaskManager::clearTaskSetList()

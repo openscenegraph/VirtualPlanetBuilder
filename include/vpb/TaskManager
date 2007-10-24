@@ -52,7 +52,7 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         void buildWithoutSlaves();
 
         /** run all the tasks.*/
-        void run();
+        bool run();
         
         /** Clear the TaskSetList.*/
         void clearTaskSetList();
