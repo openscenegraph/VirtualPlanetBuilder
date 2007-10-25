@@ -35,6 +35,9 @@ int main(int argc, char** argv)
     bool buildWithoutSlaves = false;
     while (arguments.read("--build")) { buildWithoutSlaves=true; } 
     
+    std::string tasksOutputFileName;
+    while (arguments.read("--to",tasksOutputFileName));
+
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();
 
@@ -42,6 +45,13 @@ int main(int argc, char** argv)
     if (arguments.errors())
     {
         arguments.writeErrorMessages(std::cout);
+        return 1;
+    }
+    
+    if (!tasksOutputFileName.empty())
+    {
+        taskManager->generateTasksFromSource();
+        taskManager->write(tasksOutputFileName);
         return 1;
     }
 

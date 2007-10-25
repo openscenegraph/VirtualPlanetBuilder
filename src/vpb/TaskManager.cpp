@@ -231,6 +231,49 @@ void TaskManager::buildWithoutSlaves()
     }
 }
 
+bool TaskManager::generateTasksFromSource()
+{
+    bool result = false;
+    
+    if (_terrain.valid())
+    {
+        try 
+        {
+            osg::ref_ptr<vpb::DataSet> dataset = new vpb::DataSet;
+
+            vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrain->getTerrainTechnique());
+            vpb::BuildOptions* bo = db ? db->getBuildOptions() : 0;
+
+            if (bo && !(bo->getLogFileName().empty()))
+            {
+                dataset->setBuildLog(new vpb::BuildLog);
+            }
+
+            if (_taskFile.valid())
+            {
+                dataset->setTask(_taskFile.get());
+            }
+
+            dataset->addTerrain(_terrain.get());
+
+            result = dataset->generateTasks(this);
+
+            if (dataset->getBuildLog())
+            {
+                dataset->getBuildLog()->report(std::cout);
+            }
+            
+        }
+        catch(...)
+        {
+            printf("Caught exception.\n");
+        }
+
+    }
+    
+    return result;
+}
+
 
 bool TaskManager::run()
 {

@@ -19,6 +19,9 @@
 namespace vpb
 {
 
+// forward declare
+class DestinationTile;
+class CompositeDestination;
 class DataSet;
 
 struct DestinationData : public osg::Referenced, SpatialProperties
@@ -44,6 +47,17 @@ struct DestinationData : public osg::Referenced, SpatialProperties
     ModelList                                   _models;
 };
 
+
+
+class DestinationVisitor
+{
+public:
+
+    virtual void traverse(CompositeDestination&);    
+    virtual void apply(CompositeDestination& cd);
+    virtual void apply(DestinationTile&);
+};
+
 class VPB_EXPORT DestinationTile : public osg::Referenced, public SpatialProperties
 {
 public:
@@ -64,6 +78,8 @@ public:
 
 
     DestinationTile();
+    
+    void accept(DestinationVisitor& visitor) { visitor.apply(*this); }
 
     void computeNeighboursFromQuadMap();
 
@@ -194,6 +210,8 @@ public:
         _type(GROUP),
         _maxVisibleDistance(FLT_MAX),
         _subTileGenerated(false)  {}
+
+    void accept(DestinationVisitor& visitor) { visitor.apply(*this); }
 
     void computeNeighboursFromQuadMap();
 

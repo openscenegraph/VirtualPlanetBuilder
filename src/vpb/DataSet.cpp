@@ -30,6 +30,7 @@
 
 #include <vpb/DataSet>
 #include <vpb/DatabaseBuilder>
+#include <vpb/TaskManager>
 
 // GDAL includes
 #include <gdal_priv.h>
@@ -1263,6 +1264,66 @@ class MyGraphicsContext {
 };
 
 
+class CollectSubtiles : public DestinationVisitor
+{
+public:
+
+    CollectSubtiles(unsigned int level):
+        _level(level) {}
+
+    virtual void apply(CompositeDestination& cd)
+    {
+        if (cd._level<_level) traverse(cd);
+        else if (cd._level==_level) _subtileList.push_back(&cd);
+    }
+
+    typedef std::list< osg::ref_ptr<CompositeDestination> > SubtileList;
+    unsigned int    _level;
+    SubtileList     _subtileList;
+
+};
+
+bool DataSet::generateTasks(TaskManager* taskManager)
+{
+    if (getDistributedBuildSplitLevel()==0) return false;
+
+    if (getBuildLog())
+    {
+        pushOperationLog(getBuildLog());
+        
+        if (!getLogFileName().empty()) getBuildLog()->openLogFile(getLogFileName());
+        
+        // getBuildLog()->setLogStream(getBuildLog()->getLogStreamForThread(OpenThreads::Thread::CurrentThread()));
+    }
+
+    loadSources();
+
+    computeDestinationGraphFromSources(getDistributedBuildSplitLevel()+1);
+
+    if (_destinationGraph.valid())
+    {
+        CollectSubtiles cs(getDistributedBuildSplitLevel());
+        
+        _destinationGraph->accept(cs);
+        
+        std::cout<<"Subtiles collected:"<<std::endl;
+        for(CollectSubtiles::SubtileList::iterator itr = cs._subtileList.begin();
+            itr != cs._subtileList.end();
+            ++itr)
+        {
+            CompositeDestination* cd = itr->get();
+            std::cout<<"  "<<cd->getSubTileName()<<" \t"<<cd->_level<<" \t"<<cd->_tileX<<" \t"<<cd->_tileY<<std::endl;
+        }
+        std::cout<<std::endl;
+    }
+
+    if (getBuildLog())
+    {
+        popOperationLog();
+    }
+    
+    return true;
+}
 
 int DataSet::run()
 {

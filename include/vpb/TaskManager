@@ -51,6 +51,9 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         /** build the database directly without using slaves.*/
         void buildWithoutSlaves();
 
+        /** generate the tasks required to do a incremental/distributed build from the source definition.*/
+        bool generateTasksFromSource();
+
         /** run all the tasks.*/
         bool run();
         
@@ -78,6 +81,7 @@ class VPB_EXPORT TaskManager : public osg::Referenced
 
         osg::ref_ptr<MachinePool>           _machinePool;
         osg::ref_ptr<Task>                  _taskFile;
+        
         osg::ref_ptr<osgTerrain::Terrain>   _terrain;
         
         TaskSetList                         _taskSetList;

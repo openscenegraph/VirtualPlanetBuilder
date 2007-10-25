@@ -46,6 +46,7 @@ class GDALRasterBand;
 namespace vpb
 {
 
+class TaskManager;
 
 class VPB_EXPORT DataSet : public BuildOptions
 {
@@ -141,6 +142,8 @@ class VPB_EXPORT DataSet : public BuildOptions
         
         osg::Node* getDestinationRootNode() { return _rootNode.get(); }
         
+        bool generateTasks(TaskManager* taskManager);
+
         int run();
 
         // helper functions for handling optional archive

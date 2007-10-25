@@ -36,6 +36,43 @@ using namespace vpb;
 
 #define SHIFT_RASTER_BY_HALF_CELL
 
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//  DestinationVisitor
+//
+void DestinationVisitor::traverse(CompositeDestination& cd)
+{
+    for(CompositeDestination::ChildList::iterator citr = cd._children.begin();
+        citr != cd._children.end();
+        ++citr)
+    {
+        (*citr)->accept(*this);
+    }
+    
+    for(CompositeDestination::TileList::iterator titr = cd._tiles.begin();
+        titr != cd._tiles.end();
+        ++titr)
+    {
+        (*titr)->accept(*this);
+    }
+}
+
+void DestinationVisitor::apply(CompositeDestination& cd)
+{
+    traverse(cd);
+}
+
+void DestinationVisitor::apply(DestinationTile& dt)
+{
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//  DestinationTile
+//
+
 DestinationTile::DestinationTile():
     _dataSet(0),
     _level(0),
