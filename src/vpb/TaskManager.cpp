@@ -17,6 +17,8 @@
 #include <vpb/FileSystem>
 
 #include <osgDB/ReadFile>
+#include <osgDB/WriteFile>
+#include <osg/Math>
 
 #include <osgDB/Input>
 #include <osgDB/Output>
@@ -69,6 +71,33 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     int result = vpb::readSourceArguments(std::cout, arguments, _terrain.get());
     if (result) return result;
 
+    DatabaseBuilder* db = dynamic_cast<DatabaseBuilder*>(_terrain->getTerrainTechnique());
+    BuildOptions* bo = db->getBuildOptions();
+    if (bo)
+    {
+        if (bo->getDistributedBuildSplitLevel()==0)
+        {
+            unsigned int maxLevel = bo->getMaximumNumOfLevels();
+            unsigned int halfLevel = maxLevel / 2;
+            if (halfLevel>=2)
+            {
+                bo->setDistributedBuildSplitLevel(osg::minimum(halfLevel,4u));
+            }
+        }
+    }
+
+    if (!terrainOutputName.empty())
+    {
+        if (_terrain.valid())
+        {
+            osgDB::writeNodeFile(*_terrain, terrainOutputName);
+        }
+        else
+        {
+            osg::notify(osg::NOTICE)<<"Error: unable to create terrain output \""<<terrainOutputName<<"\""<<std::endl;
+        }
+    }
+
     std::string machinePoolFileName;
     while (arguments.read("--machines",machinePoolFileName)) {}
 
@@ -95,6 +124,7 @@ int TaskManager::read(osg::ArgumentParser& arguments)
         write("test.tasks");
 #endif
     }
+    
 
     return 0;
 }

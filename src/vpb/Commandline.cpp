@@ -211,6 +211,7 @@ void vpb::getSourceUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("-O","string option to pass to write plugins, use \" \" for multiple options");    
     usage.addCommandLineOption("--subtile <LOD> <X> <Y>","Set the subtile to begin the build from.");
     usage.addCommandLineOption("--record-subtile-on-leaf-tiles","Enable the setting of the subtile file name of the leaf tiles.");
+    usage.addCommandLineOption("--split","Set the distributed build split level.");
 }
 
 int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrain)
@@ -256,6 +257,12 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
         buildOptions->setSubtileLevel(subtileLevel);
         buildOptions->setSubtileX(subtileX);
         buildOptions->setSubtileY(subtileY);
+    }
+
+    unsigned int splitLevel;
+    while(arguments.read("--split",splitLevel))
+    {
+        buildOptions->setDistributedBuildSplitLevel(splitLevel);
     }
 
     while(arguments.read("--record-subtile-on-leaf-tiles"))
