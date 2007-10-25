@@ -31,6 +31,7 @@
 #include <vpb/DataSet>
 #include <vpb/DatabaseBuilder>
 #include <vpb/TaskManager>
+#include <vpb/FileSystem>
 
 // GDAL includes
 #include <gdal_priv.h>
@@ -1306,13 +1307,37 @@ bool DataSet::generateTasks(TaskManager* taskManager)
         
         _destinationGraph->accept(cs);
         
+        std::string sourceFile("source.vpb");
+        std::string basename("build");// = getDestinationTileBaseName();
+        std::string taskDirectory = getTaskDirectory();
+        if (!taskDirectory.empty()) taskDirectory += "/";
+        
+        // create root task
+        {
+            std::ostringstream taskfile;
+            taskfile<<taskDirectory<<basename<<"_root.task";
+
+            std::ostringstream app;
+            app<<"osgdem -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSplitLevel();
+
+            std::cout<<"Taskfile: "<<taskfile.str()<<" app: "<<app.str()<<std::endl;
+        }
+        
+        
         std::cout<<"Subtiles collected:"<<std::endl;
         for(CollectSubtiles::SubtileList::iterator itr = cs._subtileList.begin();
             itr != cs._subtileList.end();
             ++itr)
         {
             CompositeDestination* cd = itr->get();
-            std::cout<<"  "<<cd->getSubTileName()<<" \t"<<cd->_level<<" \t"<<cd->_tileX<<" \t"<<cd->_tileY<<std::endl;
+            
+            std::ostringstream taskfile;
+            taskfile<<taskDirectory<<basename<<"_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".task";
+
+            std::ostringstream app;
+            app<<"osgdem -s "<<sourceFile<<" --subtile "<<cd->_level<<" "<<cd->_tileX<<" "<<cd->_tileY;
+            
+            std::cout<<"Taskfile: "<<taskfile.str()<<" app: "<<app.str()<<std::endl;
         }
         std::cout<<std::endl;
     }
