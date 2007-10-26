@@ -69,6 +69,15 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         /** Helper method for creating task file names.*/
         std::string createUniqueTaskFileName(const std::string application);
 
+        typedef std::list< osg::ref_ptr<Task> > TaskSet;
+        typedef std::list< TaskSet > TaskSetList;
+        
+        BuildOptions* getBuildOptions();
+        
+        bool hasTasks() const { return !(_taskSetList.empty() || _taskSetList.front().empty()); }
+        
+        TaskSetList& getTaskSetList() { return _taskSetList; }
+        
     protected:
 
         virtual ~TaskManager();
@@ -76,8 +85,6 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         Task* readTask(osgDB::Input& fr, bool& itrAdvanced);
         bool writeTask(osgDB::Output& fout, const Task* task) const;
         
-        typedef std::list< osg::ref_ptr<Task> > TaskSet;
-        typedef std::list< TaskSet > TaskSetList;
 
         osg::ref_ptr<MachinePool>           _machinePool;
         osg::ref_ptr<Task>                  _taskFile;

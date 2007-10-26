@@ -1320,11 +1320,11 @@ bool DataSet::generateTasks(TaskManager* taskManager)
             std::ostringstream app;
             app<<"osgdem -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSplitLevel();
 
-            std::cout<<"Taskfile: "<<taskfile.str()<<" app: "<<app.str()<<std::endl;
+            taskManager->addTask(taskfile.str(), app.str());
         }
         
+        taskManager->nextTaskSet();
         
-        std::cout<<"Subtiles collected:"<<std::endl;
         for(CollectSubtiles::SubtileList::iterator itr = cs._subtileList.begin();
             itr != cs._subtileList.end();
             ++itr)
@@ -1336,8 +1336,8 @@ bool DataSet::generateTasks(TaskManager* taskManager)
 
             std::ostringstream app;
             app<<"osgdem -s "<<sourceFile<<" --subtile "<<cd->_level<<" "<<cd->_tileX<<" "<<cd->_tileY;
-            
-            std::cout<<"Taskfile: "<<taskfile.str()<<" app: "<<app.str()<<std::endl;
+
+            taskManager->addTask(taskfile.str(), app.str());
         }
         std::cout<<std::endl;
     }

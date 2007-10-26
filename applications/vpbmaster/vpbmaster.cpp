@@ -61,6 +61,16 @@ int main(int argc, char** argv)
     }
     else
     {
+        if (!taskManager->hasTasks())
+        {
+            taskManager->generateTasksFromSource();
+            
+            tasksOutputFileName = taskManager->getBuildOptions()->getDestinationTileBaseName() + std::string(".tasks");
+            taskManager->write(tasksOutputFileName);
+            
+            std::cout<<"Tasks file = "<<tasksOutputFileName<<std::endl;
+        }
+    
         taskManager->run();
     }
     

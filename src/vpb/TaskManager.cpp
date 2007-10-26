@@ -274,7 +274,6 @@ bool TaskManager::generateTasksFromSource()
     return result;
 }
 
-
 bool TaskManager::run()
 {
     std::cout<<"Begining run"<<std::endl;
@@ -546,4 +545,10 @@ bool TaskManager::write(const std::string& filename) const
     
 
     return false;
+}
+
+BuildOptions* TaskManager::getBuildOptions()
+{
+    vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrain->getTerrainTechnique());
+    return db ? db->getBuildOptions() : 0;
 }
