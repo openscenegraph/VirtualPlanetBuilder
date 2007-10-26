@@ -74,10 +74,17 @@ int main(int argc, char** argv)
             taskManager->generateTasksFromSource();
             taskManager->writeTasks(tasksOutputFileName);
             
-            std::cout<<"Tasks file = "<<tasksOutputFileName<<std::endl;
+            std::cout<<"Generated tasks file = "<<tasksOutputFileName<<std::endl;
         }
     
-        taskManager->run();
+        if (taskManager->hasMachines())
+        {
+            taskManager->run();
+        }
+        else
+        {
+            std::cout<<"Cannot run build without machines assigned, please pass in a machines definiation file via --machines <file>."<<std::endl;
+        }
     }
     
     return 0;

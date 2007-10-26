@@ -89,6 +89,8 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         
         BuildOptions* getBuildOptions();
         
+        bool hasMachines() const { return _machinePool->getNumThreads()!=0; }
+
         bool hasTasks() const { return !(_taskSetList.empty() || _taskSetList.front().empty()); }
         
         TaskSetList& getTaskSetList() { return _taskSetList; }
