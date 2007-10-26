@@ -1309,17 +1309,17 @@ bool DataSet::generateTasks(TaskManager* taskManager)
         
         std::string sourceFile = taskManager->getSourceFileName();
         
-        std::string basename("build");// = getDestinationTileBaseName();
+        std::string basename = taskManager->getBuildName();
         std::string taskDirectory = getTaskDirectory();
         if (!taskDirectory.empty()) taskDirectory += "/";
         
         // create root task
         {
             std::ostringstream taskfile;
-            taskfile<<taskDirectory<<basename<<"_L0_X0_Y0.task";
+            taskfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.task";
 
             std::ostringstream logfile;
-            logfile<<taskDirectory<<basename<<"_L0_X0_Y0.log";
+            logfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.log";
 
             std::ostringstream app;
             app<<"osgdem -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSplitLevel()<<" --task "<<taskfile.str()<<" --log "<<logfile.str();

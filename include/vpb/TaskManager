@@ -60,6 +60,10 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         /** Clear the TaskSetList.*/
         void clearTaskSetList();
         
+        void setBuildName(const std::string& buildName) { _buildName; }
+        const std::string&getBuildName() const { return _buildName; }
+        
+        
         /** read the task list from file.*/
         bool writeSource(const std::string& filename);
 
@@ -96,6 +100,7 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         Task* readTask(osgDB::Input& fr, bool& itrAdvanced);
         bool writeTask(osgDB::Output& fout, const Task* task) const;
         
+        std::string                         _buildName;
 
         osg::ref_ptr<MachinePool>           _machinePool;
         osg::ref_ptr<Task>                  _taskFile;

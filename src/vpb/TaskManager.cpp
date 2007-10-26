@@ -31,6 +31,7 @@ using namespace vpb;
 TaskManager::TaskManager()
 {
     _machinePool = new MachinePool;
+    _buildName = "build";
 }
 
 TaskManager::~TaskManager()
@@ -52,6 +53,10 @@ int TaskManager::read(osg::ArgumentParser& arguments)
 
     int result = vpb::readSourceArguments(std::cout, arguments, _terrain.get());
     if (result) return result;
+    
+        
+    while (arguments.read("--build-name",_buildName)) {}
+    
 
     DatabaseBuilder* db = dynamic_cast<DatabaseBuilder*>(_terrain->getTerrainTechnique());
     BuildOptions* bo = db->getBuildOptions();

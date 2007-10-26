@@ -100,6 +100,9 @@ int main(int argc, char** argv)
     std::string terrainOutputName;
     while (arguments.read("--so",terrainOutputName)) {}
 
+    bool report = false;
+    while (arguments.read("--report")) { report = true; }
+
     int result = vpb::readSourceArguments(std::cout, arguments, terrain.get());
     if (result) return result;
 
@@ -151,7 +154,7 @@ int main(int argc, char** argv)
 
             int result = dataset->run();
 
-            if (dataset->getBuildLog())
+            if (dataset->getBuildLog() && report)
             {
                 dataset->getBuildLog()->report(std::cout);
             }
