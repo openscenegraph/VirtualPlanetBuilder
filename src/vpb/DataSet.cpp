@@ -1307,7 +1307,8 @@ bool DataSet::generateTasks(TaskManager* taskManager)
         
         _destinationGraph->accept(cs);
         
-        std::string sourceFile("source.vpb");
+        std::string sourceFile = taskManager->getSourceFileName();
+        
         std::string basename("build");// = getDestinationTileBaseName();
         std::string taskDirectory = getTaskDirectory();
         if (!taskDirectory.empty()) taskDirectory += "/";
@@ -1315,7 +1316,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
         // create root task
         {
             std::ostringstream taskfile;
-            taskfile<<taskDirectory<<basename<<"_root.task";
+            taskfile<<taskDirectory<<basename<<"_L0_X0_Y0.task";
 
             std::ostringstream app;
             app<<"osgdem -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSplitLevel();
@@ -1332,7 +1333,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
             CompositeDestination* cd = itr->get();
             
             std::ostringstream taskfile;
-            taskfile<<taskDirectory<<basename<<"_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".task";
+            taskfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".task";
 
             std::ostringstream app;
             app<<"osgdem -s "<<sourceFile<<" --subtile "<<cd->_level<<" "<<cd->_tileX<<" "<<cd->_tileY;

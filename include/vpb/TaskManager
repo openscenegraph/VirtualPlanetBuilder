@@ -61,10 +61,21 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         void clearTaskSetList();
         
         /** read the task list from file.*/
-        bool read(const std::string& filename);
+        bool writeSource(const std::string& filename);
 
         /** read the task list from file.*/
-        bool write(const std::string& filename) const;
+        bool readSource(const std::string& filename);
+        
+        const std::string& getSourceFileName() { return _sourceFileName; }
+
+        /** read the task list from file.*/
+        bool readTasks(const std::string& filename);
+
+        /** read the task list from file.*/
+        bool writeTasks(const std::string& filename);
+        
+        const std::string& getTasksFileName() { return _tasksFileName; }
+        
         
         /** Helper method for creating task file names.*/
         std::string createUniqueTaskFileName(const std::string application);
@@ -89,8 +100,10 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         osg::ref_ptr<MachinePool>           _machinePool;
         osg::ref_ptr<Task>                  _taskFile;
         
+        std::string                         _sourceFileName;
         osg::ref_ptr<osgTerrain::Terrain>   _terrain;
         
+        std::string                         _tasksFileName;
         TaskSetList                         _taskSetList;
         
 };

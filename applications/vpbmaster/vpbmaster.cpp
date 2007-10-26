@@ -50,8 +50,11 @@ int main(int argc, char** argv)
     
     if (!tasksOutputFileName.empty())
     {
+        std::string sourceFileName = taskManager->getBuildOptions()->getDestinationTileBaseName() + std::string(".source");
+        taskManager->writeSource(tasksOutputFileName);
+
         taskManager->generateTasksFromSource();
-        taskManager->write(tasksOutputFileName);
+        taskManager->writeTasks(tasksOutputFileName);
         return 1;
     }
 
@@ -63,10 +66,13 @@ int main(int argc, char** argv)
     {
         if (!taskManager->hasTasks())
         {
-            taskManager->generateTasksFromSource();
-            
+            std::string sourceFileName = taskManager->getBuildOptions()->getDestinationTileBaseName() + std::string(".source");
             tasksOutputFileName = taskManager->getBuildOptions()->getDestinationTileBaseName() + std::string(".tasks");
-            taskManager->write(tasksOutputFileName);
+
+            taskManager->writeSource(sourceFileName);
+
+            taskManager->generateTasksFromSource();
+            taskManager->writeTasks(tasksOutputFileName);
             
             std::cout<<"Tasks file = "<<tasksOutputFileName<<std::endl;
         }

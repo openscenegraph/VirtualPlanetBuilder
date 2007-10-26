@@ -42,25 +42,7 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     std::string sourceName;
     while (arguments.read("-s",sourceName))
     {
-        osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(sourceName);
-        if (node.valid())
-        {
-            osgTerrain::Terrain* loaded_terrain = dynamic_cast<osgTerrain::Terrain*>(node.get());
-            if (loaded_terrain) 
-            {
-                _terrain = loaded_terrain;
-            }
-            else
-            {
-                osg::notify(osg::NOTICE)<<"Error: source file \""<<sourceName<<"\" not suitable terrain data."<<std::endl;
-                return 1;
-            }
-        }
-        else
-        {
-            osg::notify(osg::NOTICE)<<"Error: unable to load source file \""<<sourceName<<"\""<<std::endl;
-            return 1;
-        }
+        readSource(sourceName);
     }
     
     if (!_terrain) _terrain = new osgTerrain::Terrain;
@@ -119,9 +101,9 @@ int TaskManager::read(osg::ArgumentParser& arguments)
 
     if (!taskSetFileName.empty())
     {
-        read(taskSetFileName);
+        readTasks(taskSetFileName);
 #if 1        
-        write("test.tasks");
+        writeTasks("test.tasks");
 #endif
     }
     
@@ -413,6 +395,48 @@ bool TaskManager::run()
     return tasksFailed != 0;
 }
 
+
+bool TaskManager::writeSource(const std::string& filename)
+{
+    if (_terrain.valid())
+    {
+        _sourceFileName = filename;
+    
+        osgDB::writeNodeFile(*_terrain, _sourceFileName);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool TaskManager::readSource(const std::string& filename)
+{
+    osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(filename);
+    if (node.valid())
+    {
+        osgTerrain::Terrain* loaded_terrain = dynamic_cast<osgTerrain::Terrain*>(node.get());
+        if (loaded_terrain) 
+        {
+            _sourceFileName = filename;
+            _terrain = loaded_terrain;
+            return true;
+        }
+        else
+        {
+            osg::notify(osg::NOTICE)<<"Error: source file \""<<filename<<"\" not suitable terrain data."<<std::endl;
+            return false;
+        }
+    }
+    else
+    {
+        osg::notify(osg::NOTICE)<<"Error: unable to load source file \""<<filename<<"\""<<std::endl;
+        return false;
+    }
+    
+}
+
 void TaskManager::clearTaskSetList()
 {
     _taskSetList.clear();
@@ -469,7 +493,7 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
     return 0;
 }
 
-bool TaskManager::read(const std::string& filename)
+bool TaskManager::readTasks(const std::string& filename)
 {
     std::string foundFile = osgDB::findDataFile(filename);
     if (foundFile.empty())
@@ -477,6 +501,8 @@ bool TaskManager::read(const std::string& filename)
         std::cout<<"Error: could not find task file '"<<filename<<"'"<<std::endl;
         return false;
     }
+
+    _tasksFileName = filename;
 
     std::ifstream fin(foundFile.c_str());
     
@@ -493,7 +519,7 @@ bool TaskManager::read(const std::string& filename)
             if (fr.read("file",readFilename))
             {
                 nextTaskSet();
-                read(readFilename);
+                readTasks(readFilename);
                 ++itrAdvanced;
             }
 
@@ -549,8 +575,10 @@ bool TaskManager::writeTask(osgDB::Output& fout, const Task* task) const
     return true;
 }
 
-bool TaskManager::write(const std::string& filename) const
+bool TaskManager::writeTasks(const std::string& filename)
 {
+    _tasksFileName = filename;
+    
     osgDB::Output fout(filename.c_str());
 
     for(TaskSetList::const_iterator tsItr = _taskSetList.begin();
@@ -581,7 +609,7 @@ bool TaskManager::write(const std::string& filename) const
     }
     
 
-    return false;
+    return true;
 }
 
 BuildOptions* TaskManager::getBuildOptions()
