@@ -27,6 +27,9 @@
 #include <osgDB/Output>
 #include <osgDB/ParameterOutput>
 
+#include <osgDB/FileNameUtils>
+#include <osgDB/FileUtils>
+
 using namespace vpb;
 
 
@@ -74,3 +77,112 @@ bool DatabaseBuilder_writeLocalData(const osg::Object& obj, osgDB::Output& fw)
 
     return true;
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//  VPBReaderWriter
+//
+                        
+
+class VPBReaderWriter : public osgDB::ReaderWriter
+{
+    public:
+        virtual const char* className() const { return "VPB Reader/Writer"; }
+
+        virtual bool acceptsExtension(const std::string& extension) const
+        {
+            return osgDB::equalCaseInsensitive(extension,"vpb") || osgDB::equalCaseInsensitive(extension,"source");
+        }
+
+        virtual ReadResult readNode(const std::string& file, const Options* opt) const
+        {
+            std::string ext = osgDB::getFileExtension(file);
+            if (!acceptsExtension(ext)) return ReadResult::FILE_NOT_HANDLED;
+
+            std::string fileName = osgDB::findDataFile( file, opt );
+            if (fileName.empty()) return ReadResult::FILE_NOT_FOUND;
+
+            // code for setting up the database path so that internally referenced file are searched for on relative paths. 
+            osg::ref_ptr<Options> local_opt = opt ? static_cast<Options*>(opt->clone(osg::CopyOp::SHALLOW_COPY)) : new Options;
+            local_opt->setDatabasePath(osgDB::getFilePath(fileName));
+
+            std::ifstream fin(fileName.c_str());
+            if (fin)
+            {
+                return readNode(fin, local_opt.get());
+            }
+            return 0L;
+                        
+        }
+        
+        virtual ReadResult readNode(std::istream& fin, const Options* options) const
+        {
+            fin.imbue(std::locale::classic());
+
+            osgDB::Input fr;
+            fr.attach(&fin);
+            fr.setOptions(options);
+            
+            typedef std::vector<osg::Node*> NodeList;
+            NodeList nodeList;
+
+            // load all nodes in file, placing them in a group.
+            while(!fr.eof())
+            {
+                osg::Node *node = fr.readNode();
+                if (node) nodeList.push_back(node);
+                else fr.advanceOverCurrentFieldOrBlock();
+            }
+
+            if  (nodeList.empty())
+            {
+                return ReadResult("No data loaded");
+            }
+            else if (nodeList.size()==1)
+            {
+                return nodeList.front();
+            }
+            else
+            {
+                osg::Group* group = new osg::Group;
+                group->setName("import group");
+                for(NodeList::iterator itr=nodeList.begin();
+                    itr!=nodeList.end();
+                    ++itr)
+                {
+                    group->addChild(*itr);
+                }
+                return group;
+            }
+
+        }
+
+        virtual WriteResult writeNode(const osg::Node& node,const std::string& fileName, const osgDB::ReaderWriter::Options* options) const
+        {
+            std::string ext = osgDB::getFileExtension(fileName);
+            if (!acceptsExtension(ext)) return WriteResult::FILE_NOT_HANDLED;
+
+
+            osgDB::Output fout(fileName.c_str());
+            if (fout)
+            {
+                fout.setOptions(options);
+
+                fout.imbue(std::locale::classic());
+
+                // setPrecision(fout,options);
+
+                fout.writeObject(node);
+                fout.close();
+                return WriteResult::FILE_SAVED;
+            }
+            return WriteResult("Unable to open file for output");
+        }
+};
+        
+
+// now register with Registry to instantiate the above
+// reader/writer.
+REGISTER_OSGPLUGIN(vpb, VPBReaderWriter)

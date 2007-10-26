@@ -278,11 +278,6 @@ bool TaskManager::run()
 {
     std::cout<<"Begining run"<<std::endl;
     
-    unsigned int tasksPending = 0;        
-    unsigned int tasksRunning = 0;        
-    unsigned int tasksCompleted = 0;        
-    unsigned int tasksFailed = 0;        
-
     for(TaskSetList::iterator tsItr = _taskSetList.begin();
         tsItr != _taskSetList.end();
         ++tsItr)
@@ -328,11 +323,11 @@ bool TaskManager::run()
         // now need to wait till all dispatched tasks are complete.
         getMachinePool()->waitForCompletion();
 
-        // tally up the tasks to see how we've done.
-        tasksPending = 0;        
-        tasksRunning = 0;        
-        tasksCompleted = 0;        
-        tasksFailed = 0;        
+        // tally up the tasks to see how we've done on this TasksSet
+        unsigned int tasksPending = 0;        
+        unsigned int tasksRunning = 0;        
+        unsigned int tasksCompleted = 0;        
+        unsigned int tasksFailed = 0;        
         for(TaskSet::iterator itr = tsItr->begin();
             itr != tsItr->end();
             ++itr)
@@ -363,13 +358,55 @@ bool TaskManager::run()
                 }
             }
         }
+        std::cout<<"End of TaskSet: tasksPending="<<tasksPending<<" taskCompleted="<<tasksCompleted<<" taskRunning="<<tasksRunning<<" tasksFailed="<<tasksFailed<<std::endl;
         
-        std::cout<<"tasksPending="<<tasksPending<<" taskCompleted="<<tasksCompleted<<" taskRunning="<<tasksRunning<<" tasksFailed="<<tasksFailed<<std::endl;
     
         if (tasksFailed != 0) break;
         
     }
     
+    // tally up the tasks to see how we've done overall
+    unsigned int tasksPending = 0;        
+    unsigned int tasksRunning = 0;        
+    unsigned int tasksCompleted = 0;        
+    unsigned int tasksFailed = 0;        
+    for(TaskSetList::iterator tsItr = _taskSetList.begin();
+        tsItr != _taskSetList.end();
+        ++tsItr)
+    {
+        for(TaskSet::iterator itr = tsItr->begin();
+            itr != tsItr->end();
+            ++itr)
+        {
+            Task* task = itr->get();
+            Task::Status status = task->getStatus();
+            switch(status)
+            {
+                case(Task::RUNNING):
+                {
+                    ++tasksPending;
+                    break;
+                }
+                case(Task::COMPLETED):
+                {
+                    ++tasksCompleted;
+                    break;
+                }
+                case(Task::FAILED):
+                {
+                    ++tasksFailed;
+                    break;
+                }
+                case(Task::PENDING):
+                {
+                    ++tasksPending;
+                    break;
+                }
+            }
+        }
+    }
+    std::cout<<"End of run: tasksPending="<<tasksPending<<" taskCompleted="<<tasksCompleted<<" taskRunning="<<tasksRunning<<" tasksFailed="<<tasksFailed<<std::endl;
+
     if (tasksFailed==0) std::cout<<"Finished run successfully"<<std::endl;
     else std::cout<<"Finished run, but failed on "<<tasksFailed<<" tasks"<<std::endl;
 
