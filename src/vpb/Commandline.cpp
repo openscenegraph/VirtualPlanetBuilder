@@ -325,9 +325,6 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
     std::string archiveName;
     while (arguments.read("-a",archiveName)) { buildOptions->setArchiveName(archiveName); }
 
-    buildOptions->setDestinationName("output.ive");
-
-
     unsigned int numLevels = 10;
     while (arguments.read("-l",numLevels)) { buildOptions->setMaximumNumOfLevels(numLevels); }
 

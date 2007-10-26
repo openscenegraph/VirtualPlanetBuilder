@@ -106,6 +106,12 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
                                                       unsigned int maxNumLevels)
 {
 
+    if (getGenerateSubtile() &&
+        (currentLevel == getSubtileLevel()) &&
+        (currentX != getSubtileX()) &&
+        (currentX != getSubtileY())) return 0;
+    
+
     CompositeDestination* destinationGraph = new CompositeDestination(cs,extents);
 
     if (mapLatLongsToXYZ())
@@ -221,7 +227,7 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
             GeospatialExtents top_left(extents.xMin(),yCenter,xCenter,extents.yMax(), extents._isGeographic);
             GeospatialExtents top_right(xCenter,yCenter,extents.xMax(),extents.yMax(), extents._isGeographic);
 
-            destinationGraph->_children.push_back(createDestinationGraph(destinationGraph,
+            destinationGraph->addChild(createDestinationGraph(destinationGraph,
                                                                          cs,
                                                                          bottom_left,
                                                                          maxImageSize,
@@ -231,7 +237,7 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
                                                                          newY,
                                                                          maxNumLevels));
 
-            destinationGraph->_children.push_back(createDestinationGraph(destinationGraph,
+            destinationGraph->addChild(createDestinationGraph(destinationGraph,
                                                                          cs,
                                                                          bottom_right,
                                                                          maxImageSize,
@@ -241,7 +247,7 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
                                                                          newY,
                                                                          maxNumLevels));
 
-            destinationGraph->_children.push_back(createDestinationGraph(destinationGraph,
+            destinationGraph->addChild(createDestinationGraph(destinationGraph,
                                                                          cs,
                                                                          top_left,
                                                                          maxImageSize,
@@ -251,7 +257,7 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
                                                                          newY+1,
                                                                          maxNumLevels));
 
-            destinationGraph->_children.push_back(createDestinationGraph(destinationGraph,
+            destinationGraph->addChild(createDestinationGraph(destinationGraph,
                                                                          cs,
                                                                          top_right,
                                                                          maxImageSize,
@@ -280,7 +286,7 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
             GeospatialExtents left(extents.xMin(),extents.yMin(),xCenter,extents.yMax(), extents._isGeographic);
             GeospatialExtents right(xCenter,extents.yMin(),extents.xMax(),extents.yMax(), extents._isGeographic);
 
-            destinationGraph->_children.push_back(createDestinationGraph(destinationGraph,
+            destinationGraph->addChild(createDestinationGraph(destinationGraph,
                                                                          cs,
                                                                          left,
                                                                          maxImageSize,
@@ -290,7 +296,7 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
                                                                          newY,
                                                                          maxNumLevels));
 
-            destinationGraph->_children.push_back(createDestinationGraph(destinationGraph,
+            destinationGraph->addChild(createDestinationGraph(destinationGraph,
                                                                          cs,
                                                                          right,
                                                                          maxImageSize,
@@ -320,7 +326,7 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
             GeospatialExtents top(extents.xMin(),yCenter,extents.xMax(),extents.yMax(), extents._isGeographic);
             GeospatialExtents bottom(extents.xMin(),extents.yMin(),extents.xMax(),yCenter, extents._isGeographic);
 
-            destinationGraph->_children.push_back(createDestinationGraph(destinationGraph,
+            destinationGraph->addChild(createDestinationGraph(destinationGraph,
                                                                          cs,
                                                                          bottom,
                                                                          maxImageSize,
@@ -330,7 +336,7 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
                                                                          newY,
                                                                          maxNumLevels));
 
-            destinationGraph->_children.push_back(createDestinationGraph(destinationGraph,
+            destinationGraph->addChild(createDestinationGraph(destinationGraph,
                                                                          cs,
                                                                          top,
                                                                          maxImageSize,
@@ -790,19 +796,22 @@ void DataSet::_writeRow(Row& row)
         {
             osg::ref_ptr<osg::Node> node = cd->createPagedLODScene();
             
-            if (_decorateWithCoordinateSystemNode)
+            if (cd->_level==0)
             {
-                node = decorateWithCoordinateSystemNode(node.get());
-            }
-            
-            if (_decorateWithMultiTextureControl)
-            {
-                node = decorateWithMultiTextureControl(node.get());
-            }
+                if (_decorateWithCoordinateSystemNode)
+                {
+                    node = decorateWithCoordinateSystemNode(node.get());
+                }
 
-            if (!_comment.empty())
-            {
-                node->addDescription(_comment);
+                if (_decorateWithMultiTextureControl)
+                {
+                    node = decorateWithMultiTextureControl(node.get());
+                }
+
+                if (!_comment.empty())
+                {
+                    node->addDescription(_comment);
+                }
             }
 
             std::string filename = _directory+_tileBasename+_tileExtension;
@@ -950,6 +959,7 @@ void DataSet::_buildDestination(bool writeToDisk)
         }
         else  // _databaseType==PagedLOD_DATABASE
         {
+
             // for each level build read and write the rows.
             for(QuadMap::iterator qitr=_quadMap.begin();
                 qitr!=_quadMap.end();
@@ -959,6 +969,9 @@ void DataSet::_buildDestination(bool writeToDisk)
                 
                 // skip is level is empty.
                 if (level.empty()) continue;
+                
+                // skip lower levels if we are generating subtiles
+                if (getGenerateSubtile() && qitr->first<getSubtileLevel()) continue;
                 
                 log(osg::INFO, "New level");
 

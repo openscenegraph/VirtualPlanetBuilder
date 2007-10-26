@@ -213,6 +213,8 @@ public:
 
     void accept(DestinationVisitor& visitor) { visitor.apply(*this); }
 
+    void addChild(CompositeDestination* cd) { if (cd) _children.push_back(cd); }
+
     void computeNeighboursFromQuadMap();
 
     void addRequiredResolutions(CompositeSource* sourceGraph);
