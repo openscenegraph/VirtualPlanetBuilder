@@ -88,6 +88,8 @@ PropertyFile::PropertyFile(const std::string& filename, Type type):
         fclose(file);
 
         _fileID = open (filename.c_str(), O_RDWR);
+        
+        fchmod(_fileID, S_IREAD | S_IWRITE | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     }
 }
 
