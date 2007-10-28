@@ -45,6 +45,12 @@ int main(int argc, char** argv)
         return 0;
     }
 
+    std::string runPath;
+    if (arguments.read("--run-path",runPath))
+    {
+        chdir(runPath.c_str());
+    }
+
     // if user request help write it out to cout.
     if (arguments.read("-h") || arguments.read("--help"))
     {

@@ -212,6 +212,7 @@ void vpb::getSourceUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--subtile <LOD> <X> <Y>","Set the subtile to begin the build from.");
     usage.addCommandLineOption("--record-subtile-on-leaf-tiles","Enable the setting of the subtile file name of the leaf tiles.");
     usage.addCommandLineOption("--split","Set the distributed build split level.");
+    usage.addCommandLineOption("--run-path","Set the path that the build should be run from.");
 }
 
 int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrain)

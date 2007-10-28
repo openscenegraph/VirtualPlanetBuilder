@@ -28,6 +28,12 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->setCommandLineUsage(arguments.getApplicationName()+" [options] filename ...");
     arguments.getApplicationUsage()->addCommandLineOption("-h or --help","Display this information");
 
+    std::string runPath;
+    if (arguments.read("--run-path",runPath))
+    {
+        chdir(runPath.c_str());
+    }
+
     osg::ref_ptr<vpb::TaskManager> taskManager = new vpb::TaskManager;
     
     taskManager->read(arguments);

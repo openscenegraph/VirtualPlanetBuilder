@@ -25,6 +25,7 @@
 #include <osgDB/FileUtils>
 
 #include <iostream>
+#include <unistd.h>
 
 using namespace vpb;
 
@@ -32,10 +33,23 @@ TaskManager::TaskManager()
 {
     _machinePool = new MachinePool;
     _buildName = "build";
+    
+    char str[2048]; 
+    _runPath = getcwd ( str, sizeof(str));
+    
+    std::cout<<"RunPath = "<<_runPath<<std::endl;
 }
 
 TaskManager::~TaskManager()
 {
+}
+
+void TaskManager::setRunPath(const std::string& runPath)
+{
+    _runPath = runPath;
+    chdir(_runPath.c_str());
+    
+    std::cout<<"setRunPath = "<<_runPath<<std::endl;
 }
 
 int TaskManager::read(osg::ArgumentParser& arguments)

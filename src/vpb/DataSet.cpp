@@ -1335,7 +1335,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
             logfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.log";
 
             std::ostringstream app;
-            app<<"osgdem -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSplitLevel()<<" --task "<<taskfile.str()<<" --log "<<logfile.str();
+            app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSplitLevel()<<" --task "<<taskfile.str()<<" --log "<<logfile.str();
 
             taskManager->addTask(taskfile.str(), app.str());
         }
@@ -1355,7 +1355,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
             logfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
 
             std::ostringstream app;
-            app<<"osgdem -s "<<sourceFile<<" --subtile "<<cd->_level<<" "<<cd->_tileX<<" "<<cd->_tileY<<" --task "<<taskfile.str()<<" --log "<<logfile.str();
+            app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --subtile "<<cd->_level<<" "<<cd->_tileX<<" "<<cd->_tileY<<" --task "<<taskfile.str()<<" --log "<<logfile.str();
 
             taskManager->addTask(taskfile.str(), app.str());
         }
