@@ -973,6 +973,8 @@ void DataSet::_buildDestination(bool writeToDisk)
                 // skip lower levels if we are generating subtiles
                 if (getGenerateSubtile() && qitr->first<getSubtileLevel()) continue;
                 
+                if (getRecordSubtileFileNamesOnLeafTile() && qitr->first>=getMaximumNumOfLevels()) continue;
+
                 log(osg::INFO, "New level");
 
                 Level::iterator prev_itr = level.begin();
@@ -1383,7 +1385,10 @@ int DataSet::run()
 
     loadSources();
 
-    createDestination(getMaximumNumOfLevels());
+    int numLevels = getMaximumNumOfLevels();
+    if (getRecordSubtileFileNamesOnLeafTile()) ++numLevels;
+
+    createDestination(numLevels);
     
     if (!getIntermediateBuildName().empty())
     {

@@ -86,6 +86,8 @@ int TaskManager::read(osg::ArgumentParser& arguments)
             }
         }
     }
+    
+    std::cout<<"setDistributedBuildSplitLevel="<<bo->getDistributedBuildSplitLevel()<<std::endl;
 
     if (!terrainOutputName.empty())
     {

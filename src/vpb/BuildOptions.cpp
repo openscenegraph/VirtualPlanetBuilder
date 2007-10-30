@@ -157,7 +157,8 @@ void BuildOptions::setDirectory(const std::string& directory)
     // if no trailing forward slash exists add one.
     if (_directory[_directory.size()-1]!='/') _directory.push_back('/');
 #endif    
-    osg::notify(osg::NOTICE)<<"directory name set "<<_directory<<std::endl;
+
+    osg::notify(osg::INFO)<<"directory name set "<<_directory<<std::endl;
 }
  
 void BuildOptions::setDestinationCoordinateSystem(const std::string& wellKnownText)
