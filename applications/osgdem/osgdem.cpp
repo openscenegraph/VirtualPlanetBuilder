@@ -64,10 +64,10 @@ int main(int argc, char** argv)
     {
         if (!taskFileName.empty())
         {
-            taskFile = new vpb::Task(taskFileName,vpb::Task::WRITE);
+            taskFile = new vpb::Task(taskFileName);
             taskFile->init(arguments);
             taskFile->setStatus(vpb::Task::RUNNING);
-            taskFile->sync();
+            taskFile->write();
         }
     }
 
@@ -176,7 +176,7 @@ int main(int argc, char** argv)
     if (taskFile.valid())
     {
         taskFile->setStatus(vpb::Task::COMPLETED);
-        taskFile->sync();
+        taskFile->write();
     }
     
     return 0;

@@ -59,22 +59,22 @@ int main( int argc, char **argv )
     std::string filename;
     if (arguments.read("-k",filename, signal) || arguments.read("-k",filename))
     {
-        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename,vpb::Task::READ);
-        taskFile->sync();
+        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename);
+        taskFile->read();
         taskFile->signal(signal);
     }
 
     bool background = false;
     if (arguments.read("-i",filename, background) || arguments.read("-i",filename))
     {
-        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename,vpb::Task::READ);
-        taskFile->sync();
+        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename);
+        taskFile->read();
         taskFile->invoke(background);
     }
 
     if (arguments.read("-r",filename))
     {
-        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename,vpb::Task::READ);
+        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename);
 
         osg::ref_ptr<osg::OperationThread> thread = new osg::OperationThread;
         thread->add(new vpb::TaskOperation(taskFile.get()));
@@ -87,7 +87,7 @@ int main( int argc, char **argv )
     if (arguments.read("-w",filename))
     {
 
-        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename,vpb::Task::WRITE);
+        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename);
 
         taskFile->init(arguments);
 
