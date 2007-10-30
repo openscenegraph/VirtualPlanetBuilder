@@ -1318,7 +1318,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
 
     if (_destinationGraph.valid())
     {
-        CollectSubtiles cs(getDistributedBuildSplitLevel());
+        CollectSubtiles cs(getDistributedBuildSplitLevel()-1);
         
         _destinationGraph->accept(cs);
         
