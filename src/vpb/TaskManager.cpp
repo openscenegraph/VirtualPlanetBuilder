@@ -171,13 +171,13 @@ void TaskManager::addTask(Task* task)
 
 void TaskManager::addTask(const std::string& taskFileName)
 {
-    osg::ref_ptr<Task> taskFile = new Task(taskFileName,Task::READ);
+    osg::ref_ptr<Task> taskFile = new Task(taskFileName);
     if (taskFile->valid()) addTask(taskFile.get());
 }
 
 void TaskManager::addTask(const std::string& taskFileName, const std::string& application)
 {
-    osg::ref_ptr<Task> taskFile = new Task(taskFileName,Task::READ);
+    osg::ref_ptr<Task> taskFile = new Task(taskFileName);
 
     if (taskFile->valid())
     {
@@ -493,7 +493,7 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
 
         if (!application.empty())
         {
-            osg::ref_ptr<Task> task = new Task(createUniqueTaskFileName(application),Task::READ);
+            osg::ref_ptr<Task> task = new Task(createUniqueTaskFileName(application));
 
             if (task->valid())
             {

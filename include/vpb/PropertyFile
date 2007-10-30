@@ -82,7 +82,7 @@ class VPB_EXPORT PropertyFile : public osg::Referenced
             WRITE
         };
 
-        PropertyFile(const std::string& filename, Type type);
+        PropertyFile(const std::string& filename);
         
         const std::string& getFileName() const { return _fileName; }
         
@@ -94,10 +94,6 @@ class VPB_EXPORT PropertyFile : public osg::Referenced
 
         /** Get a property from the TaskFile object.*/
         bool getProperty(const std::string& property, Parameter value) const;
-
-        /** sync the task file, - reading from disk when a read TaskFile, and write when a writeTask file.
-          * return true if the settings changed since the last call to sync. */
-        bool sync();
         
         /** Read the TaskFile properties from disk.*/
         bool read();
@@ -115,7 +111,6 @@ class VPB_EXPORT PropertyFile : public osg::Referenced
         PropertyMap _propertyMap;
         
         std::string     _fileName;
-        Type            _type;
         int             _fileID;
         int             _syncCount;
         bool            _propertiesModified;

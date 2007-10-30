@@ -21,8 +21,8 @@
 
 using namespace vpb;
 
-Task::Task(const std::string& filename, Type type):
-    PropertyFile(filename,type),
+Task::Task(const std::string& filename):
+    PropertyFile(filename),
     _argc(0),
     _argv(0)
 {
@@ -143,7 +143,7 @@ Task::Status Task::getStatus() const
 
 void TaskOperation::operator () (osg::Object*)
 {
-    _task->sync();
+    _task->read();
     _task->report(std::cout);
 }
 

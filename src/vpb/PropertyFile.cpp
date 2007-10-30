@@ -67,9 +67,8 @@ bool vpb::Parameter::getString(std::string& str)
 }
 
 
-PropertyFile::PropertyFile(const std::string& filename, Type type):
+PropertyFile::PropertyFile(const std::string& filename):
     _fileName(filename),
-    _type(type),
     _fileID(0),
     _syncCount(0),
     _propertiesModified(false),
@@ -122,12 +121,6 @@ bool PropertyFile::getProperty(const std::string& property, Parameter value) con
         }
     }
     return false;
-}
-
-bool PropertyFile::sync()
-{
-    if (_type==READ) return read();
-    else return write();
 }
 
 bool PropertyFile::read()

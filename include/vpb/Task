@@ -33,7 +33,7 @@ class VPB_EXPORT Task : public PropertyFile
     public:
     
         
-        Task(const std::string& filename, Type type);
+        Task(const std::string& filename);
         
         void init(osg::ArgumentParser& arguments);
 
