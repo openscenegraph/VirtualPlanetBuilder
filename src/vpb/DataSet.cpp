@@ -971,7 +971,7 @@ void DataSet::_buildDestination(bool writeToDisk)
                 if (level.empty()) continue;
                 
                 // skip lower levels if we are generating subtiles
-                if (getGenerateSubtile() && qitr->first<getSubtileLevel()) continue;
+                if (getGenerateSubtile() && qitr->first<=getSubtileLevel()) continue;
                 
                 if (getRecordSubtileFileNamesOnLeafTile() && qitr->first>=getMaximumNumOfLevels()) continue;
 
@@ -1342,7 +1342,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
             taskManager->addTask(taskfile.str(), app.str());
         }
         
-        taskManager->nextTaskSet();
+        // taskManager->nextTaskSet();
         
         for(CollectSubtiles::SubtileList::iterator itr = cs._subtileList.begin();
             itr != cs._subtileList.end();

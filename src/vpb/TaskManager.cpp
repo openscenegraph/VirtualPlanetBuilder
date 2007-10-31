@@ -79,10 +79,10 @@ int TaskManager::read(osg::ArgumentParser& arguments)
         if (bo->getDistributedBuildSplitLevel()==0)
         {
             unsigned int maxLevel = bo->getMaximumNumOfLevels();
-            unsigned int halfLevel = maxLevel / 2;
+            unsigned int halfLevel = (maxLevel / 2) + 1;
             if (halfLevel>=2)
             {
-                bo->setDistributedBuildSplitLevel(osg::minimum(halfLevel,4u));
+                bo->setDistributedBuildSplitLevel(osg::minimum(halfLevel,5u));
             }
         }
     }
