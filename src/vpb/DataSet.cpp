@@ -1390,6 +1390,8 @@ int DataSet::run()
 
     createDestination(numLevels);
     
+    bool requiresGenerationOfTiles = getGenerateTiles();
+    
     if (!getIntermediateBuildName().empty())
     {
         osg::ref_ptr<osgTerrain::Terrain> terrain = createTerrainRepresentation();
@@ -1401,10 +1403,11 @@ int DataSet::run()
                 db->getBuildOptions()->setIntermediateBuildName("");
             }
             osgDB::writeNodeFile(*terrain,getIntermediateBuildName());
+            requiresGenerationOfTiles = false;
         }
     }
 
-    if (getGenerateTiles())
+    if (requiresGenerationOfTiles)
     {
         if (getTextureType()==COMPRESSED_TEXTURE || getTextureType()==COMPRESSED_RGBA_TEXTURE)
         {
