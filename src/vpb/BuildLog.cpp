@@ -25,10 +25,10 @@ struct ThreadLog
     void push(OperationLog* log) { _logStack.push_back(log); }
     void pop() { if (!_logStack.empty()) _logStack.pop_back(); }
     
-    void log(osg::NotifySeverity level, const char* message, va_list args)
+    void log(osg::NotifySeverity level, const char* str)
     { 
-        if (!_logStack.empty()) _logStack.back()->log(level, message, args);
-        else if (level<=osg::getNotifyLevel()) { vprintf(message, args); printf("\n"); }
+        if (!_logStack.empty()) _logStack.back()->log(level, str);
+        else if (level<=osg::getNotifyLevel()) { printf("%s\n",str); }
     }
 
     OperationLogStack _logStack;
@@ -42,24 +42,15 @@ static OperationLogMap s_opertionLogMap;
 void vpb::log(osg::NotifySeverity level, const char* format, ...)
 {
     OpenThreads::Thread* thread = OpenThreads::Thread::CurrentThread();
-
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_opertionLogMapMutex);
     
     ThreadLog& tl = s_opertionLogMap[thread];
     
     va_list args; va_start(args, format);
-    tl.log(level, format, args);
+    char str[1024];
+    vsnprintf(str, sizeof(str), format, args);
+    tl.log(level, str);
     va_end(args);
-}
-
-void vpb::log(osg::NotifySeverity level, const char* message, va_list args)
-{
-    OpenThreads::Thread* thread = OpenThreads::Thread::CurrentThread();
-
-    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_opertionLogMapMutex);
-    
-    ThreadLog& tl = s_opertionLogMap[thread];
-    return tl.log(level, message, args);
 }
 
 void vpb::pushOperationLog(OperationLog* operationLog)
@@ -141,19 +132,9 @@ void OperationLog::log(osg::NotifySeverity level, const char* format, ...)
 {
     char str[1024];
     va_list args; va_start(args, format);
-    vsprintf(str, format, args);
+    vsnprintf(str, sizeof(str), format, args);
     va_end(args);
     
-    Message* message = new Message(osg::Timer::instance()->time_s(), level, str);
-    _messages.push_back(message);
-    if (_logFile.valid()) _logFile->write(message);
-}
-
-void OperationLog::log(osg::NotifySeverity level, const char* format, va_list args)
-{
-    char str[1024];
-    vsprintf(str, format, args);
-
     Message* message = new Message(osg::Timer::instance()->time_s(), level, str);
     _messages.push_back(message);
     if (_logFile.valid()) _logFile->write(message);

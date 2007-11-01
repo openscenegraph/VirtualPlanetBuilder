@@ -42,18 +42,6 @@ class VPB_EXPORT BuildOperation : public osg::Operation
         /** Get the const OperationLog used to store log messages.*/    
         const OperationLog* getOperationLog() const { return _log.get(); }
 
-        void log(const char* message, ...)
-        {
-            va_list args;
-            _log->log(osg::NOTICE, message, args);
-        }
-
-        void log(osg::NotifySeverity level, const char* message, ...)
-        {
-            va_list args;
-            _log->log(level, message, args);
-        }
-
         /** Use a TemplateMethod designed pattern - the OperationThread calls this method, and this provides progress info.*/ 
         virtual void operator () (osg::Object*);
 

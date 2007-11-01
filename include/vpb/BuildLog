@@ -37,8 +37,7 @@ class BuildOperation;
 class BuildLog;
 class OperationLog;
 
-extern void log(osg::NotifySeverity level, const char* message, ...);
-extern void log(osg::NotifySeverity level, const char* message, va_list args);
+extern void log(osg::NotifySeverity level, const char* format, ...);
 
 extern void pushOperationLog(OperationLog* operationLog);
 extern void popOperationLog();
@@ -90,8 +89,6 @@ class VPB_EXPORT OperationLog : public osg::Object
         LogFile* getLogFile() { return _logFile.get(); }
 
         void log(osg::NotifySeverity level, const char* message, ...);
-        
-        void log(osg::NotifySeverity level, const char* message, va_list args);
         
         void setStartPendingTime(double t) { _startPendingTime = t; }
         double getStartPendingTime() const { return _startPendingTime; }

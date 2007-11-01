@@ -164,7 +164,12 @@ class VPB_EXPORT DataSet : public BuildOptions
         void log(osg::NotifySeverity level, const char* format, ...)
         {
             va_list args; va_start(args, format);
-            if (_buildLog.valid()) _buildLog->log(level, format, args);
+            if (_buildLog.valid())
+            {
+                char str[1024];
+                vsnprintf(str, sizeof(str), format, args);
+                _buildLog->log(level, str);
+            }
             else if (level<=osg::getNotifyLevel()) { vprintf(format, args); printf("\n"); }
             va_end(args);
         }
