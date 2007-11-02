@@ -257,8 +257,8 @@ void MachinePool::waitForCompletion()
     // there can still be operations running though so need to double check.
     while(getNumThreadsActive()>0)
     {
-        // std::cout<<"MachinePool::waitForCompletion : Waiting for threads to complete"<<std::endl;
-        OpenThreads::Thread::YieldCurrentThread();
+//        std::cout<<"MachinePool::waitForCompletion : Waiting for threads to complete"<<std::endl;
+        OpenThreads::Thread::microSleep(1000000);
     }
 
     // std::cout<<"MachinePool::waitForCompletion : finished"<<std::endl;
