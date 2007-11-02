@@ -13,6 +13,7 @@
 #include <vpb/Commandline>
 #include <vpb/TaskManager>
 
+#include <osg/Timer>
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>
 
@@ -20,6 +21,8 @@
 
 int main(int argc, char** argv)
 {
+    osg::Timer_t startTick = osg::Timer::instance()->tick();
+
     osg::ArgumentParser arguments(&argc,argv);
 
     // set up the usage document, in case we need to print out how to use this program.
@@ -93,6 +96,10 @@ int main(int argc, char** argv)
         }
     }
     
+    double duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
+
+    std::cout<<"Total elapsed time = "<<duration<<std::endl;
+
     return 0;
 }
 

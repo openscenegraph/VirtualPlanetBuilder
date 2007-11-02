@@ -22,6 +22,8 @@
 
 int main(int argc, char** argv)
 {
+    osg::Timer_t startTick = osg::Timer::instance()->tick();
+
     osg::ArgumentParser arguments(&argc,argv);
 
     // set up the usage document, in case we need to print out how to use this program.
@@ -136,6 +138,8 @@ int main(int argc, char** argv)
     }
 
 
+    double duration = 0.0;
+
     // generate the database
     if (terrain.valid())
     {
@@ -165,6 +169,10 @@ int main(int argc, char** argv)
                 dataset->getBuildLog()->report(std::cout);
             }
             
+            duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
+            
+            dataset->log(osg::NOTICE,"Elapsed time = %f",duration);
+            
         }
         catch(...)
         {
@@ -173,9 +181,12 @@ int main(int argc, char** argv)
 
     }
 
+    if (duration==0) duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
+
     if (taskFile.valid())
     {
         taskFile->setStatus(vpb::Task::COMPLETED);
+        taskFile->setProperty("duration",duration);
         taskFile->write();
     }
     

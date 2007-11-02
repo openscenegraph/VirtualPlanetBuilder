@@ -15,6 +15,7 @@
 #include <vpb/Task>
 
 #include <osg/GraphicsThread>
+#include <osg/Timer>
 
 #include <osgDB/Input>
 #include <osgDB/Output>
@@ -44,8 +45,6 @@ void MachineOperation::operator () (osg::Object* object)
     if (machine)
     {
 
-        std::cout<<"MachineOperation::operator() hostname="<<machine->getHostName()<<std::endl;
-
         char hostname[1024];
         gethostname(hostname, sizeof(hostname));
 
@@ -54,6 +53,8 @@ void MachineOperation::operator () (osg::Object* object)
         std::string application;
         if (_task->getProperty("application",application))
         {
+            osg::Timer_t startTick = osg::Timer::instance()->tick();
+
             _task->setProperty("hostname",machine->getHostName());
             _task->setStatus(Task::RUNNING);
             _task->write();
@@ -83,13 +84,19 @@ void MachineOperation::operator () (osg::Object* object)
                 executionString += std::string(" ") + machine->getCommandPostfix();
             }
 
-            std::cout<<"running "<<executionString<<std::endl;
+            std::cout<<machine->getHostName()<<" : running "<<executionString<<std::endl;
 
             int result = system(executionString.c_str());
             
             // read any updates to the task written to file by the application.
             _task->read();
             
+            double duration;
+            if (!_task->getProperty("duration",duration))
+            {
+                duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
+            }
+
             if (result==0)
             {
                 // success
@@ -104,8 +111,7 @@ void MachineOperation::operator () (osg::Object* object)
                 _task->write();
             }
             
-
-            std::cout<<"completed "<<executionString<<" result="<<result<<std::endl;
+            std::cout<<machine->getHostName()<<" : completed in "<<duration<<" seconds : "<<executionString<<" result="<<result<<std::endl;
         }
     }
 }
@@ -258,7 +264,7 @@ void MachinePool::waitForCompletion()
     while(getNumThreadsActive()>0)
     {
 //        std::cout<<"MachinePool::waitForCompletion : Waiting for threads to complete"<<std::endl;
-        OpenThreads::Thread::microSleep(1000000);
+        OpenThreads::Thread::microSleep(100000);
     }
 
     // std::cout<<"MachinePool::waitForCompletion : finished"<<std::endl;
