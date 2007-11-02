@@ -106,10 +106,10 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
                                                       unsigned int maxNumLevels)
 {
 
-    if (getGenerateSubtile() &&
-        (currentLevel == getSubtileLevel()) &&
-        (currentX != getSubtileX()) &&
-        (currentX != getSubtileY())) return 0;
+    if (getGenerateSubtile() && (currentLevel == getSubtileLevel()))
+    {
+        if ((currentX != getSubtileX()) || (currentY != getSubtileY())) return 0;
+    }
     
 
     CompositeDestination* destinationGraph = new CompositeDestination(cs,extents);
