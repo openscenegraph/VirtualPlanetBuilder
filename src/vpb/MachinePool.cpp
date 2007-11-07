@@ -44,6 +44,50 @@ void MachineOperation::operator () (osg::Object* object)
     Machine* machine = dynamic_cast<Machine*>(object);
     if (machine)
     {
+#if 1
+
+        std::string application;
+        if (_task->getProperty("application",application))
+        {
+            osg::Timer_t startTick = osg::Timer::instance()->tick();
+
+            _task->setProperty("hostname",machine->getHostName());
+            _task->setStatus(Task::RUNNING);
+            _task->write();
+            
+            machine->startedTask(_task.get());
+
+            int result = machine->exec(application);
+            
+            machine->endedTask(_task.get());
+
+            // read any updates to the task written to file by the application.
+            _task->read();
+            
+            double duration;
+            if (!_task->getProperty("duration",duration))
+            {
+                duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
+            }
+
+            if (result==0)
+            {
+                // success
+                _task->setStatus(Task::COMPLETED);
+                _task->write();
+            }
+            else
+            {
+                // failure
+                _task->setStatus(Task::FAILED);
+                _task->setProperty("error code",result);
+                _task->write();
+            }
+            
+            std::cout<<machine->getHostName()<<" : completed in "<<duration<<" seconds : "<<application<<" result="<<result<<std::endl;
+        }
+
+#else
 
         char hostname[1024];
         gethostname(hostname, sizeof(hostname));
@@ -117,6 +161,7 @@ void MachineOperation::operator () (osg::Object* object)
             
             std::cout<<machine->getHostName()<<" : completed in "<<duration<<" seconds : "<<executionString<<" result="<<result<<std::endl;
         }
+#endif
     }
 }
 
@@ -179,6 +224,42 @@ Machine::~Machine()
     osg::notify(osg::NOTICE)<<"Machine::~Machine()"<<std::endl;
 }
 
+int Machine::exec(const std::string& application)
+{
+    char hostname[1024];
+    gethostname(hostname, sizeof(hostname));
+
+    bool runningRemotely = getHostName()!=hostname;
+
+    std::string executionString;
+
+    if (!getCommandPrefix().empty())
+    {
+        executionString = getCommandPrefix() + std::string(" ") + application;
+    }
+    else if (runningRemotely)
+    {
+        executionString = std::string("ssh ") +
+                          getHostName() +
+                          std::string(" \"") +
+                          application +
+                          std::string("\"");
+    }
+    else
+    {
+        executionString = application;
+    }
+
+    if (!getCommandPostfix().empty())
+    {
+        executionString += std::string(" ") + getCommandPostfix();
+    }
+
+    std::cout<<getHostName()<<" : running "<<executionString<<std::endl;
+
+    return system(executionString.c_str());
+}
+
 void Machine::startThreads()
 {
     std::cout<<"Machine::startThreads() hostname="<<_hostname<<std::endl;
@@ -235,8 +316,16 @@ void Machine::signal(int signal)
         itr != tasks.end();
         ++itr)
     {
-        (*itr)->read();
-        (*itr)->signal(signal);
+        Task* task = *itr;
+        task->read();
+        std::string pid;
+        if (task->getProperty("pid", pid))
+        {
+            std::stringstream signalcommand;
+            signalcommand << "kill -" << signal<<" "<<pid;
+
+            exec(signalcommand.str());
+        }
     }
 }
 

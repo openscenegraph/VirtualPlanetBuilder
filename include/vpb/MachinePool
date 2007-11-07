@@ -68,6 +68,8 @@ class VPB_EXPORT Machine : public osg::Object
         const std::string& getCommandPrefix() const { return _commandPrefix; }
         const std::string& getCommandPostfix() const { return _commandPostfix; }
 
+        int exec(const std::string& application);
+
         Threads& getThreads() { return _threads; }
         
         unsigned int getNumThreads() const { return _threads.size(); }
