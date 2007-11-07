@@ -221,7 +221,7 @@ Machine::Machine(const std::string& hostname,const std::string& commandPrefix, c
 
 Machine::~Machine()
 {
-    osg::notify(osg::NOTICE)<<"Machine::~Machine()"<<std::endl;
+    osg::notify(osg::INFO)<<"Machine::~Machine()"<<std::endl;
 }
 
 int Machine::exec(const std::string& application)
@@ -352,7 +352,7 @@ MachinePool::MachinePool()
 
 MachinePool::~MachinePool()
 {
-    osg::notify(osg::NOTICE)<<"MachinePool::~MachinePool()"<<std::endl;
+    osg::notify(osg::INFO)<<"MachinePool::~MachinePool()"<<std::endl;
 }
 
 void MachinePool::addMachine(const std::string& hostname,const std::string& commandPrefix, const std::string& commandPostfix, int numThreads)

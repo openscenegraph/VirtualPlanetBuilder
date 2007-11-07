@@ -44,7 +44,7 @@ TaskManager::TaskManager()
 
 TaskManager::~TaskManager()
 {
-    osg::notify(osg::NOTICE)<<"TaskManager::~TaskManager()"<<std::endl;
+    osg::notify(osg::INFO)<<"TaskManager::~TaskManager()"<<std::endl;
 }
 
 void TaskManager::setRunPath(const std::string& runPath)
