@@ -413,8 +413,12 @@ bool TaskManager::run()
     }
     std::cout<<"End of run: tasksPending="<<tasksPending<<" taskCompleted="<<tasksCompleted<<" taskRunning="<<tasksRunning<<" tasksFailed="<<tasksFailed<<std::endl;
 
-    if (tasksFailed==0) std::cout<<"Finished run successfully"<<std::endl;
-    else std::cout<<"Finished run, but failed on "<<tasksFailed<<" tasks"<<std::endl;
+    if (tasksFailed==0)
+    {
+        if (tasksPending==0) std::cout<<"Finished run successfully"<<std::endl;
+        else std::cout<<"Finished run, but did not complete "<<tasksPending<<" tasks."<<std::endl;
+    }
+    else std::cout<<"Finished run, but failed on "<<tasksFailed<<" tasks."<<std::endl;
 
     return tasksFailed != 0;
 }
@@ -659,6 +663,8 @@ void TaskManager::exit(int sig)
     //setDone(true);
     if (_machinePool.valid())
     {
+        _machinePool->setTaskFailureOperation(MachinePool::IGNORE);
+    
         if (sig==SIGHUP)
         {
             osg::notify(osg::NOTICE)<<"SIGHUP - exit on next frame"<<std::endl;

@@ -45,6 +45,9 @@ class VPB_EXPORT BlockOperation : public osg::Operation, public OpenThreads::Blo
         virtual void operator () (osg::Object* object);
 };
         
+// forward declare to allow Machine to befriend MachinePool
+class MachinePool;
+
 
 typedef std::list< osg::ref_ptr<osg::OperationsThread> > Threads;
 
@@ -79,7 +82,10 @@ class VPB_EXPORT Machine : public osg::Object
         typedef std::set<Task*> RunningTasks;
         
         void startedTask(Task* task);
+
         void endedTask(Task* task);
+        
+        void taskFailed(Task* task, int result);
         
         RunningTasks& getRunningTasks() { return _runningTasks; }
 
@@ -91,6 +97,10 @@ class VPB_EXPORT Machine : public osg::Object
    protected:
     
         virtual ~Machine();
+        
+        friend class MachinePool;
+
+        MachinePool*                        _machinePool;
 
         std::string                         _hostname;
         std::string                         _commandPrefix;
@@ -99,6 +109,7 @@ class VPB_EXPORT Machine : public osg::Object
         Threads                             _threads;
         
         RunningTasks                        _runningTasks;
+
 
 };
 
@@ -137,17 +148,32 @@ class VPB_EXPORT MachinePool : public osg::Referenced
         
         void release();
 
+        enum TaskFailureOperation
+        {
+            IGNORE,
+            BLACKLIST_MACHINE_AND_RESUBMIT_TASK,
+            COMPLETE_RUNNING_TASKS_THEN_EXIT,
+            TERMINATE_RUNNING_TASKS_THEN_EXIT            
+        };
+
+        void setTaskFailureOperation(TaskFailureOperation op) { _taskFailureOperation = op; }
+
+        TaskFailureOperation getTaskFailureOperation() const { return _taskFailureOperation; }
+
     protected:
 
         virtual ~MachinePool();
         
-        osg::ref_ptr<osg::OperationQueue> _operationQueue;
-        
         typedef std::list< osg::ref_ptr<Machine> > Machines;
-        Machines _machines;
+
+        osg::ref_ptr<osg::OperationQueue>   _operationQueue;
         
-        osg::ref_ptr<BlockOperation> _blockOp;
-        bool _done;
+        Machines                            _machines;
+        
+        osg::ref_ptr<BlockOperation>        _blockOp;
+        bool                                _done;
+
+        TaskFailureOperation                _taskFailureOperation;
 };
 
 }

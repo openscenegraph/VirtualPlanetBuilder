@@ -44,8 +44,6 @@ void MachineOperation::operator () (osg::Object* object)
     Machine* machine = dynamic_cast<Machine*>(object);
     if (machine)
     {
-#if 1
-
         std::string application;
         if (_task->getProperty("application",application))
         {
@@ -82,86 +80,14 @@ void MachineOperation::operator () (osg::Object* object)
                 _task->setStatus(Task::FAILED);
                 _task->setProperty("error code",result);
                 _task->write();
+                
+                // tell the machine about this task failure.
+                machine->taskFailed(_task.get(), result);
             }
             
             std::cout<<machine->getHostName()<<" : completed in "<<duration<<" seconds : "<<application<<" result="<<result<<std::endl;
         }
 
-#else
-
-        char hostname[1024];
-        gethostname(hostname, sizeof(hostname));
-
-        bool runningRemotely = machine->getHostName()!=hostname;
-
-        std::string application;
-        if (_task->getProperty("application",application))
-        {
-            osg::Timer_t startTick = osg::Timer::instance()->tick();
-
-            _task->setProperty("hostname",machine->getHostName());
-            _task->setStatus(Task::RUNNING);
-            _task->write();
-            
-            
-            std::string executionString;
-            
-            if (!machine->getCommandPrefix().empty())
-            {
-                executionString = machine->getCommandPrefix() + std::string(" ") + application;
-            }
-            else if (runningRemotely)
-            {
-                executionString = std::string("ssh ") +
-                                  machine->getHostName() +
-                                  std::string(" \"") +
-                                  application +
-                                  std::string("\"");
-            }
-            else
-            {
-                executionString = application;
-            }
-
-            if (!machine->getCommandPostfix().empty())
-            {
-                executionString += std::string(" ") + machine->getCommandPostfix();
-            }
-
-            std::cout<<machine->getHostName()<<" : running "<<executionString<<std::endl;
-
-            machine->startedTask(_task.get());
-
-            int result = system(executionString.c_str());
-            
-            machine->endedTask(_task.get());
-
-            // read any updates to the task written to file by the application.
-            _task->read();
-            
-            double duration;
-            if (!_task->getProperty("duration",duration))
-            {
-                duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
-            }
-
-            if (result==0)
-            {
-                // success
-                _task->setStatus(Task::COMPLETED);
-                _task->write();
-            }
-            else
-            {
-                // failure
-                _task->setStatus(Task::FAILED);
-                _task->setProperty("error code",result);
-                _task->write();
-            }
-            
-            std::cout<<machine->getHostName()<<" : completed in "<<duration<<" seconds : "<<executionString<<" result="<<result<<std::endl;
-        }
-#endif
     }
 }
 
@@ -188,12 +114,14 @@ void BlockOperation::operator () (osg::Object* object)
 //
 //  Machine
 //
-Machine::Machine()
+Machine::Machine():
+    _machinePool(0)
 {
 }
 
 Machine::Machine(const Machine& m, const osg::CopyOp& copyop):
     osg::Object(m, copyop),
+    _machinePool(m._machinePool),
     _hostname(m._hostname),
     _commandPrefix(m._commandPrefix),
     _commandPostfix(m._commandPostfix)
@@ -201,6 +129,7 @@ Machine::Machine(const Machine& m, const osg::CopyOp& copyop):
 }
 
 Machine::Machine(const std::string& hostname,const std::string& commandPrefix, const std::string& commandPostfix, int numThreads):
+    _machinePool(0),
     _hostname(hostname),
     _commandPrefix(commandPrefix),
     _commandPostfix(commandPostfix)
@@ -308,6 +237,41 @@ void Machine::endedTask(Task* task)
     _runningTasks.erase(task);
 }
 
+void Machine::taskFailed(Task* task, int result)
+{
+    osg::notify(osg::NOTICE)<<getHostName()<<"::taskFailed("<<result<<")"<<std::endl;
+    if (_machinePool)
+    {
+        switch(_machinePool->getTaskFailureOperation())
+        {
+            case(MachinePool::IGNORE):
+            {
+                osg::notify(osg::NOTICE)<<"   IGNORE"<<std::endl;
+                break;
+            }
+            case(MachinePool::BLACKLIST_MACHINE_AND_RESUBMIT_TASK):
+            {
+                osg::notify(osg::NOTICE)<<"Task "<<task->getFileName()<<" has failed, blacklisting machine "<<getHostName()<<" and resubmitting task"<<std::endl;
+                setDone(true);
+                setOperationQueue(0);
+                _machinePool->run(task);
+                break;
+            }
+            case(MachinePool::COMPLETE_RUNNING_TASKS_THEN_EXIT):
+            {
+                osg::notify(osg::NOTICE)<<"   COMPLETE_RUNNING_TASKS_THEN_EXIT"<<std::endl;
+                break;
+            }
+            case(MachinePool::TERMINATE_RUNNING_TASKS_THEN_EXIT):
+            {
+                osg::notify(osg::NOTICE)<<"   TERMINATE_RUNNING_TASKS_THEN_EXIT"<<std::endl;
+                break;
+            }
+        }
+    }
+}
+
+
 void Machine::signal(int signal)
 {
     osg::notify(osg::NOTICE)<<"Machine::signal("<<signal<<")"<<std::endl;
@@ -344,8 +308,14 @@ void Machine::setDone(bool done)
 //  MachinePool
 //
 
-MachinePool::MachinePool()
+MachinePool::MachinePool():
+    _taskFailureOperation(IGNORE)
 {
+    //_taskFailureOperation = IGNORE;
+    _taskFailureOperation = BLACKLIST_MACHINE_AND_RESUBMIT_TASK;
+    //_taskFailureOperation = COMPLETE_RUNNING_TASKS_THEN_EXIT;
+    //_taskFailureOperation = TERMINATE_RUNNING_TASKS_THEN_EXIT;
+            
     _operationQueue = new osg::OperationQueue;
     _blockOp = new BlockOperation;    
 }
@@ -362,8 +332,8 @@ void MachinePool::addMachine(const std::string& hostname,const std::string& comm
 
 void MachinePool::addMachine(Machine* machine)
 {
+    machine->_machinePool = this;
     machine->setOperationQueue(_operationQueue.get());
-    
     machine->startThreads();
     
     _machines.push_back(machine);
@@ -391,7 +361,7 @@ void MachinePool::waitForCompletion()
     // there can still be operations running though so need to double check.
     while(getNumThreadsActive()>0 && !done())
     {
-        // std::cout<<"MachinePool::waitForCompletion : Waiting for threads to complete"<<std::endl;
+        std::cout<<"MachinePool::waitForCompletion : Waiting for threads to complete = "<<getNumThreadsActive()<<std::endl;
         OpenThreads::Thread::microSleep(100000);
     }
 
