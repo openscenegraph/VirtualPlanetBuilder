@@ -97,13 +97,16 @@ void Task::invoke(bool runInBackground)
     }
 }
 
-void Task::signal(int signal)
+void Task::signal(int signal) const
 {
+    osg::notify(osg::NOTICE)<<"Task::signal("<<signal<<")"<<std::endl;
     std::string pid;
     if (getProperty("pid", pid))
     {
         std::stringstream signalcommand;
         signalcommand << "kill -" << signal<<" "<<pid;
+
+        osg::notify(osg::NOTICE)<<"   "<<signalcommand.str()<<std::endl;
 
         system(signalcommand.str().c_str());
     }

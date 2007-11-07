@@ -43,7 +43,7 @@ class VPB_EXPORT Task : public PropertyFile
         void invoke(bool runInBackground);
 
         /** Send a signal to the task. */
-        void signal(int signal);
+        void signal(int signal) const;
 
         enum Status
         {

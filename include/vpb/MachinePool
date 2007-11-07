@@ -74,7 +74,19 @@ class VPB_EXPORT Machine : public osg::Object
 
         unsigned int getNumThreadsActive() const;
 
-    protected:
+        typedef std::set<Task*> RunningTasks;
+        
+        void startedTask(Task* task);
+        void endedTask(Task* task);
+        
+        RunningTasks& getRunningTasks() { return _runningTasks; }
+
+        /** Send a signal to the all running tasks. */
+        void signal(int signal);
+        
+        void setDone(bool done);
+        
+   protected:
     
         virtual ~Machine();
 
@@ -83,6 +95,8 @@ class VPB_EXPORT Machine : public osg::Object
         std::string                         _commandPostfix;
         
         Threads                             _threads;
+        
+        RunningTasks                        _runningTasks;
 
 };
 
@@ -100,6 +114,8 @@ class VPB_EXPORT MachinePool : public osg::Referenced
         
         void waitForCompletion();
         
+        void removeAllOperations();
+        
         unsigned int getNumThreads() const;
 
         unsigned int getNumThreadsActive() const;
@@ -110,6 +126,15 @@ class VPB_EXPORT MachinePool : public osg::Referenced
 
         bool write(const std::string& filename) const;
 
+        /** Send a signal to the all running tasks. */
+        void signal(int signal);
+        
+        void setDone(bool done);
+        
+        bool done() const { return _done; }
+        
+        void release();
+
     protected:
 
         virtual ~MachinePool();
@@ -118,6 +143,9 @@ class VPB_EXPORT MachinePool : public osg::Referenced
         
         typedef std::list< osg::ref_ptr<Machine> > Machines;
         Machines _machines;
+        
+        osg::ref_ptr<BlockOperation> _blockOp;
+        bool _done;
 };
 
 }

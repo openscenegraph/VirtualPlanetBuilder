@@ -86,8 +86,12 @@ void MachineOperation::operator () (osg::Object* object)
 
             std::cout<<machine->getHostName()<<" : running "<<executionString<<std::endl;
 
+            machine->startedTask(_task.get());
+
             int result = system(executionString.c_str());
             
+            machine->endedTask(_task.get());
+
             // read any updates to the task written to file by the application.
             _task->read();
             
@@ -172,6 +176,7 @@ Machine::Machine(const std::string& hostname,const std::string& commandPrefix, c
 
 Machine::~Machine()
 {
+    osg::notify(osg::NOTICE)<<"Machine::~Machine()"<<std::endl;
 }
 
 void Machine::startThreads()
@@ -212,6 +217,39 @@ unsigned int Machine::getNumThreadsActive() const
     return numThreadsActive;
 }
 
+void Machine::startedTask(Task* task)
+{
+    _runningTasks.insert(task);
+}
+
+void Machine::endedTask(Task* task)
+{
+    _runningTasks.erase(task);
+}
+
+void Machine::signal(int signal)
+{
+    osg::notify(osg::NOTICE)<<"Machine::signal("<<signal<<")"<<std::endl;
+    RunningTasks tasks = _runningTasks;    
+    for(RunningTasks::iterator itr = tasks.begin();
+        itr != tasks.end();
+        ++itr)
+    {
+        (*itr)->read();
+        (*itr)->signal(signal);
+    }
+}
+
+void Machine::setDone(bool done)
+{
+    for(Threads::const_iterator itr = _threads.begin();
+        itr != _threads.end();
+        ++itr)
+    {
+        (*itr)->setDone(done);
+    }
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //  MachinePool
@@ -220,10 +258,12 @@ unsigned int Machine::getNumThreadsActive() const
 MachinePool::MachinePool()
 {
     _operationQueue = new osg::OperationQueue;
+    _blockOp = new BlockOperation;    
 }
 
 MachinePool::~MachinePool()
 {
+    osg::notify(osg::NOTICE)<<"MachinePool::~MachinePool()"<<std::endl;
 }
 
 void MachinePool::addMachine(const std::string& hostname,const std::string& commandPrefix, const std::string& commandPostfix, int numThreads)
@@ -248,26 +288,25 @@ void MachinePool::run(Task* task)
 
 void MachinePool::waitForCompletion()
 {
-    osg::ref_ptr<BlockOperation> blockOp = new BlockOperation;
-    
     // std::cout<<"MachinePool::waitForCompletion : Adding block to queue"<<std::endl;
+    _blockOp->reset();
     
     // wait till the operaion queu has been flushed.
-    _operationQueue->add(blockOp.get());
+    //_operationQueue->add(_blockOp.get());
     
     std::cout<<"MachinePool::waitForCompletion : Waiting for block to complete"<<std::endl;
-    blockOp->block();
+    //_blockOp->block();
     
-    // std::cout<<"MachinePool::waitForCompletion : Block completed"<<std::endl;
+    std::cout<<"MachinePool::waitForCompletion : Block completed"<<std::endl;
 
     // there can still be operations running though so need to double check.
-    while(getNumThreadsActive()>0)
+    while(getNumThreadsActive()>0 && !done())
     {
-//        std::cout<<"MachinePool::waitForCompletion : Waiting for threads to complete"<<std::endl;
+        // std::cout<<"MachinePool::waitForCompletion : Waiting for threads to complete"<<std::endl;
         OpenThreads::Thread::microSleep(100000);
     }
 
-    // std::cout<<"MachinePool::waitForCompletion : finished"<<std::endl;
+    std::cout<<"MachinePool::waitForCompletion : finished"<<std::endl;
 }
 
 unsigned int MachinePool::getNumThreads() const
@@ -389,4 +428,39 @@ bool MachinePool::write(const std::string& filename) const
     }
     
     return true;
+}
+
+void MachinePool::removeAllOperations()
+{
+    _operationQueue->removeAllOperations();
+}
+
+void MachinePool::signal(int signal)
+{
+    osg::notify(osg::NOTICE)<<"MachinePool::signal("<<signal<<")"<<std::endl;
+    for(Machines::iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        (*itr)->signal(signal);
+    }
+}
+
+void MachinePool::setDone(bool done)
+{
+    _done = done;
+
+    if (_done) removeAllOperations();
+
+    for(Machines::iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        (*itr)->setDone(done);
+    }
+}
+
+void MachinePool::release()
+{
+    if (_blockOp.valid()) _blockOp->release();
 }

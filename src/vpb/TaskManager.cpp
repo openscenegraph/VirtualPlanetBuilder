@@ -26,11 +26,13 @@
 
 #include <iostream>
 #include <unistd.h>
+#include <signal.h>
 
 using namespace vpb;
 
 TaskManager::TaskManager()
 {
+    _done = false;
     _machinePool = new MachinePool;
     _buildName = "build";
     
@@ -42,6 +44,7 @@ TaskManager::TaskManager()
 
 TaskManager::~TaskManager()
 {
+    osg::notify(osg::NOTICE)<<"TaskManager::~TaskManager()"<<std::endl;
 }
 
 void TaskManager::setRunPath(const std::string& runPath)
@@ -79,10 +82,10 @@ int TaskManager::read(osg::ArgumentParser& arguments)
         if (bo->getDistributedBuildSplitLevel()==0)
         {
             unsigned int maxLevel = bo->getMaximumNumOfLevels();
-            unsigned int halfLevel = (maxLevel / 2) + 1;
-            if (halfLevel>=2)
+            unsigned int halfLevel = (maxLevel / 2);
+            if (halfLevel>=1)
             {
-                bo->setDistributedBuildSplitLevel(osg::minimum(halfLevel,5u));
+                bo->setDistributedBuildSplitLevel(osg::minimum(halfLevel,4u));
             }
         }
     }
@@ -282,11 +285,11 @@ bool TaskManager::run()
     std::cout<<"Begining run"<<std::endl;
     
     for(TaskSetList::iterator tsItr = _taskSetList.begin();
-        tsItr != _taskSetList.end();
+        tsItr != _taskSetList.end() && !done();
         ++tsItr)
     {
         for(TaskSet::iterator itr = tsItr->begin();
-            itr != tsItr->end();
+            itr != tsItr->end() && !done();
             ++itr)
         {
             Task* task = itr->get();
@@ -638,3 +641,37 @@ BuildOptions* TaskManager::getBuildOptions()
     vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrain->getTerrainTechnique());
     return db ? db->getBuildOptions() : 0;
 }
+
+void TaskManager::setDone(bool done)
+{
+    _done = done;
+    if (_machinePool.valid()) _machinePool->setDone(done);
+}
+
+void TaskManager::signal(int signal)
+{
+    osg::notify(osg::NOTICE)<<"TaskManager::signal("<<signal<<")"<<std::endl;
+    if (_machinePool.valid()) _machinePool->signal(signal);
+}
+
+void TaskManager::exit(int sig)
+{
+    //setDone(true);
+    if (_machinePool.valid())
+    {
+        if (sig==SIGHUP)
+        {
+            osg::notify(osg::NOTICE)<<"SIGHUP - exit on next frame"<<std::endl;
+            _done = true;
+            _machinePool->removeAllOperations();
+        }
+        else
+        {
+            osg::notify(osg::NOTICE)<<"Hard exit signal="<<sig<<std::endl;
+            _done = true;
+            _machinePool->removeAllOperations();
+            _machinePool->signal(sig);
+        }
+    }
+}
+

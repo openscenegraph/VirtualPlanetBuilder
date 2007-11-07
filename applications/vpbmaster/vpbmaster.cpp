@@ -19,8 +19,39 @@
 
 #include <iostream>
 
+#include <signal.h>
+
+osg::ref_ptr<vpb::TaskManager> taskManager;
+
+void catchSignal(int signal)
+{
+    printf("\n\nCatching and passing on signal %d\n",signal);
+    if (taskManager.valid()) 
+    {
+        taskManager->exit(signal);
+    }
+    printf("Exit dispatched %d\n\n",signal);
+}
+
+
 int main(int argc, char** argv)
 {
+    // register the signal handlers
+    signal(SIGHUP, catchSignal);
+    signal(SIGINT, catchSignal);
+    signal(SIGQUIT, catchSignal);
+    //signal(SIGILL, catchSignal);
+    signal(SIGTRAP, catchSignal);
+    signal(SIGABRT, catchSignal);
+    //signal(SIGIOT, catchSignal);
+    //signal(SIGBUS, catchSignal);
+    //signal(SIGFPE, catchSignal);
+    signal(SIGKILL, catchSignal);
+    signal(SIGUSR1, catchSignal);
+    //signal(SIGSEGV, catchSignal);
+    signal(SIGUSR2, catchSignal);
+    signal(SIGTERM, catchSignal);
+
     osg::Timer_t startTick = osg::Timer::instance()->tick();
 
     osg::ArgumentParser arguments(&argc,argv);
@@ -37,7 +68,7 @@ int main(int argc, char** argv)
         chdir(runPath.c_str());
     }
 
-    osg::ref_ptr<vpb::TaskManager> taskManager = new vpb::TaskManager;
+    taskManager = new vpb::TaskManager;
     
     taskManager->read(arguments);
 
@@ -46,6 +77,13 @@ int main(int argc, char** argv)
     
     std::string tasksOutputFileName;
     while (arguments.read("--to",tasksOutputFileName));
+
+    int signal;
+    while (arguments.read("--signal",signal))
+    {
+        taskManager->signal(signal);
+        return 0;
+    }
 
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();

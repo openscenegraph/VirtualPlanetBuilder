@@ -96,7 +96,17 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         bool hasTasks() const { return !(_taskSetList.empty() || _taskSetList.front().empty()); }
         
         TaskSetList& getTaskSetList() { return _taskSetList; }
+
+        /** Send a signal to the all running tasks. */
+        void signal(int signal);
         
+        void setDone(bool done);
+        
+        bool done() const { return _done; }
+
+        /** Send terminate single to all running tasks and set done flag to true to exit from run loop.*/
+        void exit(int sig);
+
     protected:
 
         virtual ~TaskManager();
@@ -115,7 +125,8 @@ class VPB_EXPORT TaskManager : public osg::Referenced
         
         std::string                         _tasksFileName;
         TaskSetList                         _taskSetList;
-        
+
+        bool                                _done;        
 };
 
 }
