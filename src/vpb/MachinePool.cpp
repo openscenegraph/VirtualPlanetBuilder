@@ -78,6 +78,8 @@ void MachineOperation::operator () (osg::Object* object)
             {
                 // failure
                 _task->setStatus(Task::FAILED);
+                std::string test("this is a test");
+                _task->setProperty("test",test);
                 _task->setProperty("error code",result);
                 _task->write();
                 
@@ -229,11 +231,13 @@ unsigned int Machine::getNumThreadsActive() const
 
 void Machine::startedTask(Task* task)
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_runningTasksMutex);
     _runningTasks.insert(task);
 }
 
 void Machine::endedTask(Task* task)
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_runningTasksMutex);
     _runningTasks.erase(task);
 }
 
@@ -252,6 +256,11 @@ void Machine::taskFailed(Task* task, int result)
             case(MachinePool::BLACKLIST_MACHINE_AND_RESUBMIT_TASK):
             {
                 osg::notify(osg::NOTICE)<<"Task "<<task->getFileName()<<" has failed, blacklisting machine "<<getHostName()<<" and resubmitting task"<<std::endl;
+                std::string application;
+                if (task->getProperty("application",application))
+                {
+                    osg::notify(osg::NOTICE)<<"    application : "<<application<<std::endl;
+                }
                 setDone(true);
                 setOperationQueue(0);
                 _machinePool->run(task);
@@ -275,7 +284,12 @@ void Machine::taskFailed(Task* task, int result)
 void Machine::signal(int signal)
 {
     osg::notify(osg::NOTICE)<<"Machine::signal("<<signal<<")"<<std::endl;
-    RunningTasks tasks = _runningTasks;    
+    RunningTasks tasks;
+    {    
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_runningTasksMutex);
+        tasks = _runningTasks;
+    }
+
     for(RunningTasks::iterator itr = tasks.begin();
         itr != tasks.end();
         ++itr)
@@ -348,7 +362,7 @@ void MachinePool::run(Task* task)
 void MachinePool::waitForCompletion()
 {
     // std::cout<<"MachinePool::waitForCompletion : Adding block to queue"<<std::endl;
-    _blockOp->reset();
+    // _blockOp->reset();
     
     // wait till the operaion queu has been flushed.
     //_operationQueue->add(_blockOp.get());
@@ -359,13 +373,13 @@ void MachinePool::waitForCompletion()
     std::cout<<"MachinePool::waitForCompletion : Block completed"<<std::endl;
 
     // there can still be operations running though so need to double check.
-    while(getNumThreadsActive()>0 && !done())
+    while((getNumThreadsActive()>0 /*|| !_operationQueue->empty()*/) && !done())
     {
         std::cout<<"MachinePool::waitForCompletion : Waiting for threads to complete = "<<getNumThreadsActive()<<std::endl;
-        OpenThreads::Thread::microSleep(100000);
+        OpenThreads::Thread::microSleep(1000000);
     }
 
-    std::cout<<"MachinePool::waitForCompletion : finished"<<std::endl;
+    std::cout<<"MachinePool::waitForCompletion : finished "<<_operationQueue->empty()<<std::endl;
 }
 
 unsigned int MachinePool::getNumThreads() const

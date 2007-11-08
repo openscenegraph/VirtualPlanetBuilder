@@ -67,9 +67,26 @@ int main(int argc, char** argv)
         if (!taskFileName.empty())
         {
             taskFile = new vpb::Task(taskFileName);
+            taskFile->read();
+#if 0            
             taskFile->init(arguments);
             taskFile->setStatus(vpb::Task::RUNNING);
             taskFile->write();
+#endif
+
+            std::string application;
+            if (taskFile->getProperty("application",application))
+            {
+                osg::notify(osg::NOTICE)<<"**** osgdem : application : "<<application<<std::endl;
+            }
+
+            taskFile->write();
+            taskFile->read();
+
+            if (taskFile->getProperty("application",application))
+            {
+                osg::notify(osg::NOTICE)<<"++++ osgdem : application : "<<application<<std::endl;
+            }
         }
     }
 

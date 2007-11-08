@@ -107,7 +107,8 @@ class VPB_EXPORT Machine : public osg::Object
         std::string                         _commandPostfix;
         
         Threads                             _threads;
-        
+
+        OpenThreads::Mutex                  _runningTasksMutex;        
         RunningTasks                        _runningTasks;
 
 

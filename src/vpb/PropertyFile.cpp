@@ -243,8 +243,11 @@ bool PropertyFile::write()
 
     lseek(_fileID, 0, SEEK_SET);
 
+    fsync(_fileID);
+
     status = lockf(_fileID, F_ULOCK, 0);
     if (status!=0) perror("file unlock error");
+
     
     _propertiesModified = false;
 }
