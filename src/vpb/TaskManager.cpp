@@ -47,6 +47,14 @@ TaskManager::~TaskManager()
     osg::notify(osg::INFO)<<"TaskManager::~TaskManager()"<<std::endl;
 }
 
+void TaskManager::setBuildLog(BuildLog* bl)
+{
+    Logger::setBuildLog(bl);
+    
+    if (_machinePool.valid())  _machinePool->setBuildLog(bl);
+}
+
+
 void TaskManager::setRunPath(const std::string& runPath)
 {
     _runPath = runPath;

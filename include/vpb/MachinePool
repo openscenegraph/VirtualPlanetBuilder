@@ -18,6 +18,7 @@
 #include <osg/OperationThread>
 
 #include <vpb/Task>
+#include <vpb/BuildLog>
 
 namespace vpb
 {
@@ -51,7 +52,7 @@ class MachinePool;
 
 typedef std::list< osg::ref_ptr<osg::OperationsThread> > Threads;
 
-class VPB_EXPORT Machine : public osg::Object
+class VPB_EXPORT Machine : public osg::Object, public Logger
 {
     public:
     
@@ -114,11 +115,14 @@ class VPB_EXPORT Machine : public osg::Object
 
 };
 
-class VPB_EXPORT MachinePool : public osg::Referenced
+class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
 {
     public:
     
         MachinePool();
+
+        /// override from Logger to be able to pass on to all associated Machine objects        
+        void setBuildLog(BuildLog* bl);
         
         void addMachine(const std::string& hostname,const std::string& commandPrefix, const std::string& commandPostfix, int numThreads=-1);
 

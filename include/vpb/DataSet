@@ -48,7 +48,7 @@ namespace vpb
 
 class TaskManager;
 
-class VPB_EXPORT DataSet : public BuildOptions
+class VPB_EXPORT DataSet : public BuildOptions, public Logger
 {
     public:
 
@@ -92,10 +92,6 @@ class VPB_EXPORT DataSet : public BuildOptions
 
 
         DataSet();
-        
-        void setBuildLog(BuildLog* bl) { _buildLog = bl; }
-        BuildLog* getBuildLog() { return _buildLog.get(); }
-        const BuildLog* getBuildLog() const { return _buildLog.get(); }
         
         void setTask(Task* taskFile) { _taskFile = taskFile; }
         Task* getTask() { return _taskFile.get(); }
@@ -161,19 +157,6 @@ class VPB_EXPORT DataSet : public BuildOptions
 
         unsigned int getNumOfTextureLevels() const { return _numTextureLevels; }
 
-        void log(osg::NotifySeverity level, const char* format, ...)
-        {
-            va_list args; va_start(args, format);
-            if (_buildLog.valid())
-            {
-                char str[1024];
-                vsnprintf(str, sizeof(str), format, args);
-                _buildLog->log(level, str);
-            }
-            else if (level<=osg::getNotifyLevel()) { vprintf(format, args); printf("\n"); }
-            va_end(args);
-        }
-
 
     protected:
 
@@ -211,7 +194,6 @@ class VPB_EXPORT DataSet : public BuildOptions
         unsigned int                                _numTextureLevels;
         osg::ref_ptr<osg::CoordinateSystemNode>     _intermediateCoordinateSystem;
 
-        osg::ref_ptr<BuildLog>                      _buildLog;
         osg::ref_ptr<Task>                          _taskFile;
         
 };

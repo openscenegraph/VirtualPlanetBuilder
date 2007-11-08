@@ -339,6 +339,19 @@ MachinePool::~MachinePool()
     osg::notify(osg::INFO)<<"MachinePool::~MachinePool()"<<std::endl;
 }
 
+void MachinePool::setBuildLog(BuildLog* bl)
+{
+    Logger::setBuildLog(bl);
+
+    for(Machines::const_iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        (*itr)->setBuildLog(bl);
+    }
+}
+
+
 void MachinePool::addMachine(const std::string& hostname,const std::string& commandPrefix, const std::string& commandPostfix, int numThreads)
 {
     addMachine(new Machine(hostname, commandPrefix, commandPostfix, numThreads));
@@ -349,33 +362,34 @@ void MachinePool::addMachine(Machine* machine)
     machine->_machinePool = this;
     machine->setOperationQueue(_operationQueue.get());
     machine->startThreads();
-    
+    machine->setBuildLog(getBuildLog());
+        
     _machines.push_back(machine);
 }
 
 void MachinePool::run(Task* task)
 {
-    std::cout<<"Adding Task to MachinePool::OperationQueue "<<task->getFileName()<<std::endl;
+    //std::cout<<"Adding Task to MachinePool::OperationQueue "<<task->getFileName()<<std::endl;
     _operationQueue->add(new MachineOperation(task));
 }
 
 void MachinePool::waitForCompletion()
 {
     // std::cout<<"MachinePool::waitForCompletion : Adding block to queue"<<std::endl;
-    // _blockOp->reset();
+    _blockOp->reset();
     
     // wait till the operaion queu has been flushed.
-    //_operationQueue->add(_blockOp.get());
+    _operationQueue->add(_blockOp.get());
     
-    std::cout<<"MachinePool::waitForCompletion : Waiting for block to complete"<<std::endl;
-    //_blockOp->block();
+    //std::cout<<"MachinePool::waitForCompletion : Waiting for block to complete"<<std::endl;
+    _blockOp->block();
     
-    std::cout<<"MachinePool::waitForCompletion : Block completed"<<std::endl;
+    //std::cout<<"MachinePool::waitForCompletion : Block completed"<<std::endl;
 
     // there can still be operations running though so need to double check.
     while((getNumThreadsActive()>0 /*|| !_operationQueue->empty()*/) && !done())
     {
-        std::cout<<"MachinePool::waitForCompletion : Waiting for threads to complete = "<<getNumThreadsActive()<<std::endl;
+        //std::cout<<"MachinePool::waitForCompletion : Waiting for threads to complete = "<<getNumThreadsActive()<<std::endl;
         OpenThreads::Thread::microSleep(1000000);
     }
 

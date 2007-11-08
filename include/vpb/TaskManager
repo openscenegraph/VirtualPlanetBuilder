@@ -22,12 +22,15 @@
 namespace vpb
 {
 
-class VPB_EXPORT TaskManager : public osg::Referenced
+class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
 {
     public:
     
         TaskManager();
         
+        /// override from Logger to be able to pass on to all associated Machine objects        
+        void setBuildLog(BuildLog* bl);
+
         /** initialize the TaskManager from application arguments and get process, host details.*/
         int read(osg::ArgumentParser& arguments);
 

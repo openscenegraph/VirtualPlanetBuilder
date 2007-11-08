@@ -80,7 +80,7 @@ int main(int argc, char** argv)
     osg::ref_ptr<osgTerrain::Terrain> terrain = 0;
 
 
-    std::cout<<"PID="<<getpid()<<std::endl;
+    //std::cout<<"PID="<<getpid()<<std::endl;
 
     std::string sourceName;
     while (arguments.read("-s",sourceName))
