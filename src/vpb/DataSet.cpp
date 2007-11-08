@@ -1396,7 +1396,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
 
             taskManager->addTask(taskfile.str(), app.str());
         }
-        std::cout<<std::endl;
+
     }
 
     if (getBuildLog())
