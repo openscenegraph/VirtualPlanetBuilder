@@ -78,16 +78,13 @@ void MachineOperation::operator () (osg::Object* object)
             {
                 // failure
                 _task->setStatus(Task::FAILED);
-                std::string test("this is a test");
-                _task->setProperty("test",test);
-                _task->setProperty("error code",result);
                 _task->write();
                 
                 // tell the machine about this task failure.
                 machine->taskFailed(_task.get(), result);
             }
             
-            std::cout<<machine->getHostName()<<" : completed in "<<duration<<" seconds : "<<application<<" result="<<result<<std::endl;
+            machine->log(osg::NOTICE,"%s  : completed in %f  seconds : %s result=%f",machine->getHostName().c_str(),duration,application.c_str(),result);
         }
 
     }
@@ -152,7 +149,7 @@ Machine::Machine(const std::string& hostname,const std::string& commandPrefix, c
 
 Machine::~Machine()
 {
-    osg::notify(osg::INFO)<<"Machine::~Machine()"<<std::endl;
+    log(osg::INFO,"Machine::~Machine()");
 }
 
 int Machine::exec(const std::string& application)
@@ -186,19 +183,19 @@ int Machine::exec(const std::string& application)
         executionString += std::string(" ") + getCommandPostfix();
     }
 
-    std::cout<<getHostName()<<" : running "<<executionString<<std::endl;
+    log(osg::NOTICE,"%s : running %s",getHostName().c_str(),executionString.c_str());
 
     return system(executionString.c_str());
 }
 
 void Machine::startThreads()
 {
-    std::cout<<"Machine::startThreads() hostname="<<_hostname<<std::endl;
+    log(osg::NOTICE,"Machine::startThreads() hostname=%s, threads=%d",_hostname.c_str(),_threads.size());
     for(Threads::iterator itr = _threads.begin();
         itr != _threads.end();
         ++itr)
     {
-        std::cout<<"  Started thread"<<std::endl;
+        log(osg::INFO,"  Started thread");
     
         (*itr)->startThread();
     }
@@ -369,31 +366,31 @@ void MachinePool::addMachine(Machine* machine)
 
 void MachinePool::run(Task* task)
 {
-    //std::cout<<"Adding Task to MachinePool::OperationQueue "<<task->getFileName()<<std::endl;
+    log(osg::INFO, "Adding Task to MachinePool::OperationQueue %s",task->getFileName().c_str());
     _operationQueue->add(new MachineOperation(task));
 }
 
 void MachinePool::waitForCompletion()
 {
-    // std::cout<<"MachinePool::waitForCompletion : Adding block to queue"<<std::endl;
+    log(osg::INFO, "MachinePool::waitForCompletion : Adding block to queue");
     _blockOp->reset();
     
     // wait till the operaion queu has been flushed.
     _operationQueue->add(_blockOp.get());
     
-    //std::cout<<"MachinePool::waitForCompletion : Waiting for block to complete"<<std::endl;
+    log(osg::INFO, "MachinePool::waitForCompletion : Waiting for block to complete");
     _blockOp->block();
     
-    //std::cout<<"MachinePool::waitForCompletion : Block completed"<<std::endl;
+    log(osg::INFO, "MachinePool::waitForCompletion : Block completed");
 
     // there can still be operations running though so need to double check.
     while((getNumThreadsActive()>0 /*|| !_operationQueue->empty()*/) && !done())
     {
-        //std::cout<<"MachinePool::waitForCompletion : Waiting for threads to complete = "<<getNumThreadsActive()<<std::endl;
+        log(osg::INFO, "MachinePool::waitForCompletion : Waiting for threads to complete = %d",getNumThreadsActive());
         OpenThreads::Thread::microSleep(1000000);
     }
 
-    std::cout<<"MachinePool::waitForCompletion : finished "<<_operationQueue->empty()<<std::endl;
+    log(osg::NOTICE, "MachinePool::waitForCompletion : finished %d",_operationQueue->empty());
 }
 
 unsigned int MachinePool::getNumThreads() const
@@ -430,7 +427,7 @@ bool MachinePool::read(const std::string& filename)
     std::string foundFile = osgDB::findDataFile(filename);
     if (foundFile.empty())
     {
-        std::cout<<"Error: could not find machine specification file '"<<filename<<"'"<<std::endl;
+        log(osg::WARN, "Error: could not find machine specification file '%s'",filename.c_str());
         return false;
     }
 
