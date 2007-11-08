@@ -84,7 +84,7 @@ void MachineOperation::operator () (osg::Object* object)
                 machine->taskFailed(_task.get(), result);
             }
             
-            machine->log(osg::NOTICE,"%s  : completed in %f  seconds : %s result=%f",machine->getHostName().c_str(),duration,application.c_str(),result);
+            machine->log(osg::NOTICE,"%s  : completed in %f  seconds : %s result=%d",machine->getHostName().c_str(),duration,application.c_str(),result);
         }
 
     }
@@ -240,24 +240,19 @@ void Machine::endedTask(Task* task)
 
 void Machine::taskFailed(Task* task, int result)
 {
-    osg::notify(osg::NOTICE)<<getHostName()<<"::taskFailed("<<result<<")"<<std::endl;
+    log(osg::INFO,"%s : taskFailed(%d)", getHostName().c_str(), result);
     if (_machinePool)
     {
         switch(_machinePool->getTaskFailureOperation())
         {
             case(MachinePool::IGNORE):
             {
-                osg::notify(osg::NOTICE)<<"   IGNORE"<<std::endl;
+                log(osg::NOTICE,"   IGNORE");
                 break;
             }
             case(MachinePool::BLACKLIST_MACHINE_AND_RESUBMIT_TASK):
             {
-                osg::notify(osg::NOTICE)<<"Task "<<task->getFileName()<<" has failed, blacklisting machine "<<getHostName()<<" and resubmitting task"<<std::endl;
-                std::string application;
-                if (task->getProperty("application",application))
-                {
-                    osg::notify(osg::NOTICE)<<"    application : "<<application<<std::endl;
-                }
+                log(osg::NOTICE,"Task %s has failed, blacklisting machine %s and resubmitting task",task->getFileName().c_str(),getHostName().c_str());
                 setDone(true);
                 setOperationQueue(0);
                 _machinePool->run(task);
@@ -265,12 +260,12 @@ void Machine::taskFailed(Task* task, int result)
             }
             case(MachinePool::COMPLETE_RUNNING_TASKS_THEN_EXIT):
             {
-                osg::notify(osg::NOTICE)<<"   COMPLETE_RUNNING_TASKS_THEN_EXIT"<<std::endl;
+                log(osg::NOTICE,"   COMPLETE_RUNNING_TASKS_THEN_EXIT");
                 break;
             }
             case(MachinePool::TERMINATE_RUNNING_TASKS_THEN_EXIT):
             {
-                osg::notify(osg::NOTICE)<<"   TERMINATE_RUNNING_TASKS_THEN_EXIT"<<std::endl;
+                log(osg::NOTICE,"   TERMINATE_RUNNING_TASKS_THEN_EXIT");
                 break;
             }
         }
@@ -280,7 +275,7 @@ void Machine::taskFailed(Task* task, int result)
 
 void Machine::signal(int signal)
 {
-    osg::notify(osg::NOTICE)<<"Machine::signal("<<signal<<")"<<std::endl;
+    log(osg::NOTICE,"Machine::signal(%d)",signal);
     RunningTasks tasks;
     {    
         OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_runningTasksMutex);
@@ -333,7 +328,7 @@ MachinePool::MachinePool():
 
 MachinePool::~MachinePool()
 {
-    osg::notify(osg::INFO)<<"MachinePool::~MachinePool()"<<std::endl;
+    log(osg::INFO,"MachinePool::~MachinePool()");
 }
 
 void MachinePool::setBuildLog(BuildLog* bl)
@@ -357,9 +352,9 @@ void MachinePool::addMachine(const std::string& hostname,const std::string& comm
 void MachinePool::addMachine(Machine* machine)
 {
     machine->_machinePool = this;
+    machine->setBuildLog(getBuildLog());
     machine->setOperationQueue(_operationQueue.get());
     machine->startThreads();
-    machine->setBuildLog(getBuildLog());
         
     _machines.push_back(machine);
 }
@@ -521,7 +516,7 @@ void MachinePool::removeAllOperations()
 
 void MachinePool::signal(int signal)
 {
-    osg::notify(osg::NOTICE)<<"MachinePool::signal("<<signal<<")"<<std::endl;
+    log(osg::NOTICE,"MachinePool::signal(%d)",signal);
     for(Machines::iterator itr = _machines.begin();
         itr != _machines.end();
         ++itr)

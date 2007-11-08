@@ -121,7 +121,7 @@ int main(int argc, char** argv)
             taskManager->generateTasksFromSource();
             taskManager->writeTasks(tasksOutputFileName);
             
-            std::cout<<"Generated tasks file = "<<tasksOutputFileName<<std::endl;
+            taskManager->log(osg::NOTICE,"Generated tasks file = %s",tasksOutputFileName.c_str());
         }
     
         if (taskManager->hasMachines())
@@ -130,13 +130,13 @@ int main(int argc, char** argv)
         }
         else
         {
-            std::cout<<"Cannot run build without machines assigned, please pass in a machines definiation file via --machines <file>."<<std::endl;
+            taskManager->log(osg::NOTICE,"Cannot run build without machines assigned, please pass in a machines definiation file via --machines <file>.");
         }
     }
     
     double duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
 
-    std::cout<<"Total elapsed time = "<<duration<<std::endl;
+    taskManager->log(osg::NOTICE,"Total elapsed time = %f",duration);
 
     return 0;
 }

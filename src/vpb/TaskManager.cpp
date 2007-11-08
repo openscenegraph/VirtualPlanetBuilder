@@ -38,13 +38,11 @@ TaskManager::TaskManager()
     
     char str[2048]; 
     _runPath = getcwd ( str, sizeof(str));
-    
-    std::cout<<"RunPath = "<<_runPath<<std::endl;
 }
 
 TaskManager::~TaskManager()
 {
-    osg::notify(osg::INFO)<<"TaskManager::~TaskManager()"<<std::endl;
+    log(osg::INFO,"TaskManager::~TaskManager()");
 }
 
 void TaskManager::setBuildLog(BuildLog* bl)
@@ -60,11 +58,18 @@ void TaskManager::setRunPath(const std::string& runPath)
     _runPath = runPath;
     chdir(_runPath.c_str());
     
-    std::cout<<"setRunPath = "<<_runPath<<std::endl;
+    log(osg::NOTICE,"setRunPath = %s",_runPath.c_str());
 }
 
 int TaskManager::read(osg::ArgumentParser& arguments)
 {
+    std::string logFileName;
+    while (arguments.read("--master-log",logFileName))
+    {
+        setBuildLog(new BuildLog(logFileName));
+    }
+
+
     std::string sourceName;
     while (arguments.read("-s",sourceName))
     {
@@ -98,7 +103,7 @@ int TaskManager::read(osg::ArgumentParser& arguments)
         }
     }
     
-    std::cout<<"setDistributedBuildSplitLevel="<<bo->getDistributedBuildSplitLevel()<<std::endl;
+    log(osg::NOTICE,"setDistributedBuildSplitLevel=%d",bo->getDistributedBuildSplitLevel());
 
     if (!terrainOutputName.empty())
     {
@@ -108,7 +113,7 @@ int TaskManager::read(osg::ArgumentParser& arguments)
         }
         else
         {
-            osg::notify(osg::NOTICE)<<"Error: unable to create terrain output \""<<terrainOutputName<<"\""<<std::endl;
+            log(osg::NOTICE,"Error: unable to create terrain output \"%s\"",terrainOutputName.c_str());
         }
     }
 
@@ -138,6 +143,8 @@ int TaskManager::read(osg::ArgumentParser& arguments)
         writeTasks("test.tasks");
 #endif
     }
+    
+    
     
 
     return 0;
@@ -290,7 +297,7 @@ bool TaskManager::generateTasksFromSource()
 
 bool TaskManager::run()
 {
-    std::cout<<"Begining run"<<std::endl;
+    log(osg::NOTICE,"Begining run");
     
     for(TaskSetList::iterator tsItr = _taskSetList.begin();
         tsItr != _taskSetList.end() && !done();
@@ -308,19 +315,19 @@ bool TaskManager::run()
                 {
                     // do we check to see if this process is still running?
                     // do we kill this process?
-                    std::cout<<"Task claims still to be running: "<<task->getFileName()<<std::endl;
+                    log(osg::NOTICE,"Task claims still to be running: %s",task->getFileName().c_str());
                     break;
                 }
                 case(Task::COMPLETED):
                 {
                     // task already completed so we can ignore it.
-                    std::cout<<"Task claims to have been completed: "<<task->getFileName()<<std::endl;
+                    log(osg::NOTICE,"Task claims to have been completed: %s",task->getFileName().c_str());
                     break;
                 }
                 case(Task::FAILED):
                 {
                     // run the task
-                    std::cout<<"Task previously failed attempting re-run: "<<task->getFileName()<<std::endl;
+                    log(osg::NOTICE,"Task previously failed attempting re-run: %s",task->getFileName().c_str());
                     getMachinePool()->run(task);
                     break;
                 }
@@ -372,7 +379,7 @@ bool TaskManager::run()
                 }
             }
         }
-        std::cout<<"End of TaskSet: tasksPending="<<tasksPending<<" taskCompleted="<<tasksCompleted<<" taskRunning="<<tasksRunning<<" tasksFailed="<<tasksFailed<<std::endl;
+        log(osg::NOTICE,"End of TaskSet: tasksPending=%d taskCompleted=%d taskRunning=%d tasksFailed=%d",tasksPending,tasksCompleted,tasksRunning,tasksFailed);
         
     
         if (tasksFailed != 0) break;
@@ -419,16 +426,16 @@ bool TaskManager::run()
             }
         }
     }
-    std::cout<<"End of run: tasksPending="<<tasksPending<<" taskCompleted="<<tasksCompleted<<" taskRunning="<<tasksRunning<<" tasksFailed="<<tasksFailed<<std::endl;
+    log(osg::NOTICE,"End of run: tasksPending=%d taskCompleted=%d taskRunning=%d tasksFailed=%d",tasksPending,tasksCompleted,tasksRunning,tasksFailed);
 
     if (tasksFailed==0)
     {
-        if (tasksPending==0) std::cout<<"Finished run successfully"<<std::endl;
-        else std::cout<<"Finished run, but did not complete "<<tasksPending<<" tasks."<<std::endl;
+        if (tasksPending==0) log(osg::NOTICE,"Finished run successfully.");
+        else log(osg::NOTICE,"Finished run, but did not complete %d tasks.",tasksPending);
     }
-    else std::cout<<"Finished run, but failed on "<<tasksFailed<<" tasks."<<std::endl;
+    else log(osg::NOTICE,"Finished run, but failed on %d  tasks.",tasksFailed);
 
-    return tasksFailed != 0;
+    return tasksFailed==0 && tasksPending==0;
 }
 
 
@@ -461,13 +468,13 @@ bool TaskManager::readSource(const std::string& filename)
         }
         else
         {
-            osg::notify(osg::NOTICE)<<"Error: source file \""<<filename<<"\" not suitable terrain data."<<std::endl;
+            log(osg::WARN,"Error: source file \"%s\" not suitable terrain data.",filename.c_str());
             return false;
         }
     }
     else
     {
-        osg::notify(osg::NOTICE)<<"Error: unable to load source file \""<<filename<<"\""<<std::endl;
+        log(osg::WARN,"Error: unable to load source file \"%s\" not suitable terrain data.",filename.c_str());
         return false;
     }
     
@@ -534,7 +541,7 @@ bool TaskManager::readTasks(const std::string& filename)
     std::string foundFile = osgDB::findDataFile(filename);
     if (foundFile.empty())
     {
-        std::cout<<"Error: could not find task file '"<<filename<<"'"<<std::endl;
+        log(osg::WARN,"Error: could not find task file '%s'",filename.c_str());
         return false;
     }
 
@@ -662,7 +669,7 @@ void TaskManager::setDone(bool done)
 
 void TaskManager::signal(int signal)
 {
-    osg::notify(osg::NOTICE)<<"TaskManager::signal("<<signal<<")"<<std::endl;
+    log(osg::NOTICE,"TaskManager::signal(%d)",signal);
     if (_machinePool.valid()) _machinePool->signal(signal);
 }
 
@@ -675,13 +682,13 @@ void TaskManager::exit(int sig)
     
         if (sig==SIGHUP)
         {
-            osg::notify(osg::NOTICE)<<"SIGHUP - exit on next frame"<<std::endl;
+            log(osg::NOTICE,"SIGHUP - exit on next frame");
             _done = true;
             _machinePool->removeAllOperations();
         }
         else
         {
-            osg::notify(osg::NOTICE)<<"Hard exit signal="<<sig<<std::endl;
+            log(osg::NOTICE,"Hard exit signal=%s",sig);
             _done = true;
             _machinePool->removeAllOperations();
             _machinePool->signal(sig);

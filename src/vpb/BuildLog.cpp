@@ -113,6 +113,7 @@ OperationLog::OperationLog(const std::string& name):
     _endRunningTime(-1.0)
 {
     setName(name);
+    openLogFile(name);
 }
 
 
