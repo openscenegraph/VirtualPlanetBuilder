@@ -253,7 +253,7 @@ void Machine::taskFailed(Task* task, int result)
         {
             case(MachinePool::IGNORE):
             {
-                log(osg::NOTICE,"   IGNORE");
+                log(osg::INFO,"   IGNORE");
                 break;
             }
             case(MachinePool::BLACKLIST_MACHINE_AND_RESUBMIT_TASK):
@@ -282,7 +282,6 @@ void Machine::taskFailed(Task* task, int result)
 void Machine::signal(int signal)
 {
     log(osg::NOTICE,"Machine::signal(%d)",signal);
-    fflush(stdout);
 
     RunningTasks tasks;
     {    
@@ -301,16 +300,7 @@ void Machine::signal(int signal)
         {
             std::stringstream signalcommand;
             signalcommand << "kill -" << signal<<" "<<pid;
-
-            log(osg::NOTICE,"   kill command: %s",signalcommand.str().c_str());
-            fflush(stdout);
-
             exec(signalcommand.str());
-        }
-        else
-        {
-            log(osg::NOTICE,"   no pid for task");
-            fflush(stdout);
         }
     }
 }
@@ -534,7 +524,6 @@ void MachinePool::removeAllOperations()
 void MachinePool::signal(int signal)
 {
     log(osg::NOTICE,"MachinePool::signal(%d)",signal);
-    fflush(stdout);
     
     for(Machines::iterator itr = _machines.begin();
         itr != _machines.end();

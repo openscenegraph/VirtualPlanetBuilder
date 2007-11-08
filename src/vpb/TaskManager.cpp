@@ -682,29 +682,17 @@ void TaskManager::exit(int sig)
     
         if (sig==SIGHUP)
         {
-            log(osg::NOTICE,"SIGHUP - exit on next frame");
+            log(osg::NOTICE,"SIGHUP - soft exit.");
             _done = true;
             _machinePool->removeAllOperations();
         }
         else
         {
-            printf("  A: signal %d\n",sig);
-            fflush(stdout);
-
-            //log(osg::NOTICE,"Hard exit signal=%s",sig);
+            log(osg::NOTICE,"Hard exit signal=%d",sig);
             _done = true;
-            printf("  B: signal %d\n",sig);
-            fflush(stdout);
 
             _machinePool->removeAllOperations();
-
-            printf("  C: signal %d\n",sig);
-            fflush(stdout);
-
             _machinePool->signal(sig);
-
-            printf("  D: signal %d\n",sig);
-            fflush(stdout);
         }
     }
 }
