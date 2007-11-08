@@ -107,9 +107,10 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
         std::string                         _commandPrefix;
         std::string                         _commandPostfix;
         
+        mutable OpenThreads::Mutex          _threadsMutex;
         Threads                             _threads;
 
-        OpenThreads::Mutex                  _runningTasksMutex;        
+        mutable OpenThreads::Mutex          _runningTasksMutex;
         RunningTasks                        _runningTasks;
 
 

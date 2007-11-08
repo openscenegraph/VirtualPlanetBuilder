@@ -190,6 +190,8 @@ int Machine::exec(const std::string& application)
 
 void Machine::startThreads()
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_threadsMutex);
+
     log(osg::NOTICE,"Machine::startThreads() hostname=%s, threads=%d",_hostname.c_str(),_threads.size());
     for(Threads::iterator itr = _threads.begin();
         itr != _threads.end();
@@ -203,6 +205,8 @@ void Machine::startThreads()
 
 void Machine::setOperationQueue(osg::OperationQueue* queue)
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_threadsMutex);
+
     for(Threads::iterator itr = _threads.begin();
         itr != _threads.end();
         ++itr)
@@ -213,6 +217,8 @@ void Machine::setOperationQueue(osg::OperationQueue* queue)
 
 unsigned int Machine::getNumThreadsActive() const
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_threadsMutex);
+    
     unsigned int numThreadsActive = 0;
     for(Threads::const_iterator itr = _threads.begin();
         itr != _threads.end();
@@ -276,6 +282,8 @@ void Machine::taskFailed(Task* task, int result)
 void Machine::signal(int signal)
 {
     log(osg::NOTICE,"Machine::signal(%d)",signal);
+    fflush(stdout);
+
     RunningTasks tasks;
     {    
         OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_runningTasksMutex);
@@ -294,7 +302,15 @@ void Machine::signal(int signal)
             std::stringstream signalcommand;
             signalcommand << "kill -" << signal<<" "<<pid;
 
+            log(osg::NOTICE,"   kill command: %s",signalcommand.str().c_str());
+            fflush(stdout);
+
             exec(signalcommand.str());
+        }
+        else
+        {
+            log(osg::NOTICE,"   no pid for task");
+            fflush(stdout);
         }
     }
 }
@@ -367,6 +383,7 @@ void MachinePool::run(Task* task)
 
 void MachinePool::waitForCompletion()
 {
+#if 0
     log(osg::INFO, "MachinePool::waitForCompletion : Adding block to queue");
     _blockOp->reset();
     
@@ -377,7 +394,7 @@ void MachinePool::waitForCompletion()
     _blockOp->block();
     
     log(osg::INFO, "MachinePool::waitForCompletion : Block completed");
-
+#endif
     // there can still be operations running though so need to double check.
     while((getNumThreadsActive()>0 /*|| !_operationQueue->empty()*/) && !done())
     {
@@ -517,6 +534,8 @@ void MachinePool::removeAllOperations()
 void MachinePool::signal(int signal)
 {
     log(osg::NOTICE,"MachinePool::signal(%d)",signal);
+    fflush(stdout);
+    
     for(Machines::iterator itr = _machines.begin();
         itr != _machines.end();
         ++itr)

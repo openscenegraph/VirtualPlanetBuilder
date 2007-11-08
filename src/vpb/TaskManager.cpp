@@ -688,10 +688,23 @@ void TaskManager::exit(int sig)
         }
         else
         {
-            log(osg::NOTICE,"Hard exit signal=%s",sig);
+            printf("  A: signal %d\n",sig);
+            fflush(stdout);
+
+            //log(osg::NOTICE,"Hard exit signal=%s",sig);
             _done = true;
+            printf("  B: signal %d\n",sig);
+            fflush(stdout);
+
             _machinePool->removeAllOperations();
+
+            printf("  C: signal %d\n",sig);
+            fflush(stdout);
+
             _machinePool->signal(sig);
+
+            printf("  D: signal %d\n",sig);
+            fflush(stdout);
         }
     }
 }

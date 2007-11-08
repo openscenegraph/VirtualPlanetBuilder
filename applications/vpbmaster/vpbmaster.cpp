@@ -25,7 +25,8 @@ osg::ref_ptr<vpb::TaskManager> taskManager;
 
 void catchSignal(int signal)
 {
-    printf("\n\nCatching and passing on signal %d\n",signal);
+    printf("\n\nCaught and passing on signal %d\n",signal);
+    fflush(stdout);
     if (taskManager.valid()) 
     {
         taskManager->exit(signal);
