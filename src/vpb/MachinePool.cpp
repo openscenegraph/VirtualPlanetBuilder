@@ -373,6 +373,8 @@ MachinePool::~MachinePool()
 
 void MachinePool::setBuildLog(BuildLog* bl)
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_machinesMutex);
+
     Logger::setBuildLog(bl);
 
     for(Machines::const_iterator itr = _machines.begin();
@@ -391,6 +393,8 @@ void MachinePool::addMachine(const std::string& hostname,const std::string& comm
 
 void MachinePool::addMachine(Machine* machine)
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_machinesMutex);
+
     machine->_machinePool = this;
     machine->setBuildLog(getBuildLog());
     machine->setOperationQueue(_operationQueue.get());
@@ -431,6 +435,8 @@ void MachinePool::waitForCompletion()
 
 unsigned int MachinePool::getNumThreads() const
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_machinesMutex);
+
     unsigned int numThreads = 0;
     for(Machines::const_iterator itr = _machines.begin();
         itr != _machines.end();
@@ -443,6 +449,8 @@ unsigned int MachinePool::getNumThreads() const
 
 unsigned int MachinePool::getNumThreadsActive() const
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_machinesMutex);
+
     unsigned int numThreadsActive = 0;
     for(Machines::const_iterator itr = _machines.begin();
         itr != _machines.end();
@@ -455,6 +463,8 @@ unsigned int MachinePool::getNumThreadsActive() const
 
 void MachinePool::clear()
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_machinesMutex);
+
     _machines.clear();
 }
 
@@ -472,10 +482,14 @@ bool MachinePool::read(const std::string& filename)
     
     if (fin)
     {
+    
         _machinePoolFileName = foundFile;
-        
-        _machines.clear();
 
+        {        
+            OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_machinesMutex);
+            _machines.clear();
+        }
+        
         osgDB::Input fr;
         fr.attach(&fin);
         
@@ -530,6 +544,8 @@ bool MachinePool::read(const std::string& filename)
 
 bool MachinePool::write(const std::string& filename) const
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_machinesMutex);
+
     osgDB::Output fout(filename.c_str());
 
     for(Machines::const_iterator itr = _machines.begin();
@@ -593,6 +609,8 @@ void MachinePool::release()
 
 void MachinePool::startThreads()
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_machinesMutex);
+
     for(Machines::iterator itr = _machines.begin();
         itr != _machines.end();
         ++itr)
@@ -603,6 +621,8 @@ void MachinePool::startThreads()
 
 void MachinePool::cancelThreads()
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_machinesMutex);
+
     for(Machines::iterator itr = _machines.begin();
         itr != _machines.end();
         ++itr)

@@ -196,6 +196,7 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
 
         osg::ref_ptr<osg::OperationQueue>   _operationQueue;
         
+        mutable OpenThreads::Mutex          _machinesMutex;
         Machines                            _machines;
         
         osg::ref_ptr<BlockOperation>        _blockOp;
