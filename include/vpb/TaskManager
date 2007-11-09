@@ -159,6 +159,8 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
 
         SignalAction                        _defaultSignalAction;
         SignalActionMap                     _signalActionMap;
+        
+        mutable OpenThreads::Mutex          _signalHandleMutex;
 };
 
 }

@@ -424,7 +424,7 @@ void MachinePool::waitForCompletion()
     log(osg::INFO, "MachinePool::waitForCompletion : Block completed");
 #endif
     // there can still be operations running though so need to double check.
-    while((getNumThreadsActive()>0 || !_operationQueue->empty()) && !done())
+    while((getNumThreadsActive()>0 /*|| !_operationQueue->empty()*/) && !done())
     {
         log(osg::NOTICE, "MachinePool::waitForCompletion : Waiting for threads to complete = %d",getNumThreadsActive());
         OpenThreads::Thread::microSleep(1000000);

@@ -689,6 +689,8 @@ void TaskManager::setDone(bool done)
 
 void TaskManager::handleSignal(int sig)
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_signalHandleMutex);
+
     switch(getSignalAction(sig))
     {
         case(IGNORE):
@@ -719,6 +721,8 @@ void TaskManager::handleSignal(int sig)
             _machinePool->removeAllOperations();
             _machinePool->signal(sig);
 
+            _machinePool->cancelThreads();
+
             break;
         }
         case(RESET_MACHINE_POOL):
@@ -738,6 +742,8 @@ void TaskManager::handleSignal(int sig)
 
 void TaskManager::setSignalAction(int sig, SignalAction action)
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex>  lock(_signalHandleMutex);
+
     if (action==DO_NOT_HANDLE) 
     {
         if (_signalActionMap.count(sig)!=0)
