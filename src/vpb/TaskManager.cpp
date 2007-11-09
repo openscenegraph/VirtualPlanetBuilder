@@ -715,11 +715,13 @@ void TaskManager::handleSignal(int sig)
         case(RESET_MACHINE_POOL):
         {
             log(osg::NOTICE,"Recieved signal %d, doing RESET_MACHINE_POOL.",sig);
+            _machinePool->resetMachinePool();
             break;
         }
         case(UPDATE_MACHINE_POOL):
         {
             log(osg::NOTICE,"Recieved signal %d, doing UPDATE_MACHINE_POOL.",sig);
+            _machinePool->updateMachinePool();
             break;
         }
     }

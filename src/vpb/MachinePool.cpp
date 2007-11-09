@@ -334,9 +334,9 @@ MachinePool::MachinePool():
     _taskFailureOperation(IGNORE)
 {
     //_taskFailureOperation = IGNORE;
-    //_taskFailureOperation = BLACKLIST_MACHINE_AND_RESUBMIT_TASK;
+    _taskFailureOperation = BLACKLIST_MACHINE_AND_RESUBMIT_TASK;
     //_taskFailureOperation = COMPLETE_RUNNING_TASKS_THEN_EXIT;
-    _taskFailureOperation = TERMINATE_RUNNING_TASKS_THEN_EXIT;
+    //_taskFailureOperation = TERMINATE_RUNNING_TASKS_THEN_EXIT;
             
     _operationQueue = new osg::OperationQueue;
     _blockOp = new BlockOperation;    
@@ -442,6 +442,8 @@ bool MachinePool::read(const std::string& filename)
         log(osg::WARN, "Error: could not find machine specification file '%s'",filename.c_str());
         return false;
     }
+    
+    _machinePoolFileName = foundFile;
 
     std::ifstream fin(foundFile.c_str());
     
@@ -502,7 +504,7 @@ bool MachinePool::read(const std::string& filename)
 bool MachinePool::write(const std::string& filename) const
 {
     osgDB::Output fout(filename.c_str());
-    
+
     for(Machines::const_iterator itr = _machines.begin();
         itr != _machines.end();
         ++itr)
@@ -560,4 +562,14 @@ void MachinePool::setDone(bool done)
 void MachinePool::release()
 {
     if (_blockOp.valid()) _blockOp->release();
+}
+
+void MachinePool::resetMachinePool()
+{
+    log(osg::NOTICE,"MachinePool::resetMachinePool()");
+}
+
+void MachinePool::updateMachinePool()
+{
+    log(osg::NOTICE,"MachinePool::updateMachinePool()");
 }

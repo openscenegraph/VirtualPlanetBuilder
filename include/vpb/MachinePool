@@ -169,6 +169,12 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
 
         TaskFailureOperation getTaskFailureOperation() const { return _taskFailureOperation; }
 
+        /** Reset up threading and sharing of operation queue.*/
+        void resetMachinePool();
+        
+        /** Let current tasks complete then re-read the machine pool file.*/
+        void updateMachinePool();
+
     protected:
 
         virtual ~MachinePool();
@@ -178,6 +184,8 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
         typedef std::list< osg::ref_ptr<Machine> > Machines;
 
         TaskManager*                        _taskManager;
+        
+        std::string                         _machinePoolFileName;
 
         osg::ref_ptr<osg::OperationQueue>   _operationQueue;
         
