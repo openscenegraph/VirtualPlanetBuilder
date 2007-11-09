@@ -312,7 +312,7 @@ bool TaskManager::run()
     
     for(TaskSetList::iterator tsItr = _taskSetList.begin();
         tsItr != _taskSetList.end() && !done();
-        ++tsItr)
+        )
     {
         for(TaskSet::iterator itr = tsItr->begin();
             itr != tsItr->end() && !done();
@@ -345,6 +345,7 @@ bool TaskManager::run()
                 case(Task::PENDING):
                 {
                     // run the task
+                    log(osg::INFO,"Running task : %s",task->getFileName().c_str());
                     getMachinePool()->run(task);
                     break;
                 }
@@ -370,7 +371,7 @@ bool TaskManager::run()
             {
                 case(Task::RUNNING):
                 {
-                    ++tasksPending;
+                    ++tasksRunning;
                     break;
                 }
                 case(Task::COMPLETED):
@@ -391,9 +392,17 @@ bool TaskManager::run()
             }
         }
         log(osg::NOTICE,"End of TaskSet: tasksPending=%d taskCompleted=%d taskRunning=%d tasksFailed=%d",tasksPending,tasksCompleted,tasksRunning,tasksFailed);
-        
     
-        if (tasksFailed != 0) break;
+        // if (tasksFailed != 0) break;
+        
+        if (tasksPending!=0 || tasksFailed!=0 || tasksRunning!=0)
+        {
+            log(osg::NOTICE,"Continuing with existing TaskSet.");
+        }
+        else
+        {
+            ++tsItr;
+        }
         
     }
     

@@ -199,10 +199,34 @@ void Machine::startThreads()
         itr != _threads.end();
         ++itr)
     {
-        log(osg::INFO,"  Started thread");
+        log(osg::NOTICE,"  Started thread");
     
+        (*itr)->setDone(false);
         (*itr)->startThread();
     }
+}
+
+void Machine::cancelThreads()
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_threadsMutex);
+
+    log(osg::NOTICE,"Machine::cancelThreads() hostname=%s, threads=%d",_hostname.c_str(),_threads.size());
+    for(Threads::iterator itr = _threads.begin();
+        itr != _threads.end();
+        ++itr)
+    {
+        log(osg::NOTICE,"  Cancel thread");
+        (*itr)->cancel();
+
+        // assign a new thread as OpenThreads doesn't currently allow cancelled threads to be restarted.
+        osg::OperationThread* thread = new osg::OperationThread;
+        thread->setParent(this);
+        thread->setOperationQueue(_machinePool->getOperationQueue());
+
+        (*itr) = thread; 
+    }
+    log(osg::NOTICE,"Completed Machine::cancelThreads() hostname=%s, threads=%d",_hostname.c_str(),_threads.size());
+
 }
 
 void Machine::setOperationQueue(osg::OperationQueue* queue)
@@ -262,7 +286,7 @@ void Machine::taskFailed(Task* task, int result)
             {
                 log(osg::NOTICE,"Task %s has failed, blacklisting machine %s and resubmitting task",task->getFileName().c_str(),getHostName().c_str());
                 setDone(true);
-                setOperationQueue(0);
+                //setOperationQueue(0);
                 _machinePool->run(task);
                 break;
             }
@@ -396,9 +420,9 @@ void MachinePool::waitForCompletion()
     log(osg::INFO, "MachinePool::waitForCompletion : Block completed");
 #endif
     // there can still be operations running though so need to double check.
-    while((getNumThreadsActive()>0 /*|| !_operationQueue->empty()*/) && !done())
+    while((getNumThreadsActive()>0 || !_operationQueue->empty()) && !done())
     {
-        log(osg::INFO, "MachinePool::waitForCompletion : Waiting for threads to complete = %d",getNumThreadsActive());
+        log(osg::NOTICE, "MachinePool::waitForCompletion : Waiting for threads to complete = %d",getNumThreadsActive());
         OpenThreads::Thread::microSleep(1000000);
     }
 
@@ -564,9 +588,56 @@ void MachinePool::release()
     if (_blockOp.valid()) _blockOp->release();
 }
 
+void MachinePool::startThreads()
+{
+    for(Machines::iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        (*itr)->startThreads();
+    }
+}
+
+void MachinePool::cancelThreads()
+{
+    for(Machines::iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        (*itr)->cancelThreads();
+    }
+}
+
+
 void MachinePool::resetMachinePool()
 {
     log(osg::NOTICE,"MachinePool::resetMachinePool()");
+    
+    // remove all pending tasks
+    removeAllOperations();
+    
+    // stopped threads.
+    
+    setDone(true);
+    
+    cancelThreads();
+
+#if 0
+    _operationQueue = new osg::OperationQueue;
+
+    // pass main operation queue to machines
+    for(Machines::iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        (*itr)->setOperationQueue(_operationQueue.get());
+    }
+#endif    
+    
+    setDone(false);
+
+    // restart any stopped threads.
+    startThreads();
 }
 
 void MachinePool::updateMachinePool()

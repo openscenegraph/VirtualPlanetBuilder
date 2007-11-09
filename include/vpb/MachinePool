@@ -66,6 +66,7 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
         META_Object(vpb, Machine)
         
         void startThreads();
+        void cancelThreads();
         
         void setOperationQueue(osg::OperationQueue* queue);
         
@@ -124,6 +125,8 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
         MachinePool();
 
         TaskManager* getTaskManager() { return _taskManager; }
+        
+        osg::OperationQueue* getOperationQueue() { return _operationQueue.get(); }
 
         /// override from Logger to be able to pass on to all associated Machine objects        
         void setBuildLog(BuildLog* bl);
@@ -132,6 +135,10 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
 
         void addMachine(Machine* machine);
         
+        void startThreads();
+
+        void cancelThreads();
+
         void run(Task* Task);
         
         void waitForCompletion();
