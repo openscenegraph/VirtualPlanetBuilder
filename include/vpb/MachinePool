@@ -46,8 +46,9 @@ class VPB_EXPORT BlockOperation : public osg::Operation, public OpenThreads::Blo
         virtual void operator () (osg::Object* object);
 };
         
-// forward declare to allow Machine to befriend MachinePool
+// forward declare to allow MachinePool and TaskManager to allow them to be declared as friends
 class MachinePool;
+class TaskManager;
 
 
 typedef std::list< osg::ref_ptr<osg::OperationsThread> > Threads;
@@ -122,6 +123,8 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
     
         MachinePool();
 
+        TaskManager* getTaskManager() { return _taskManager; }
+
         /// override from Logger to be able to pass on to all associated Machine objects        
         void setBuildLog(BuildLog* bl);
         
@@ -170,7 +173,11 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
 
         virtual ~MachinePool();
         
+        friend class TaskManager;
+
         typedef std::list< osg::ref_ptr<Machine> > Machines;
+
+        TaskManager*                        _taskManager;
 
         osg::ref_ptr<osg::OperationQueue>   _operationQueue;
         

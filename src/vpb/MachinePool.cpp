@@ -13,6 +13,7 @@
 
 #include <vpb/MachinePool>
 #include <vpb/Task>
+#include <vpb/TaskManager>
 
 #include <osg/GraphicsThread>
 #include <osg/Timer>
@@ -22,6 +23,7 @@
 #include <osgDB/FileUtils>
 
 #include <unistd.h>
+#include <signal.h>
 
 #include <iostream>
 
@@ -267,11 +269,18 @@ void Machine::taskFailed(Task* task, int result)
             case(MachinePool::COMPLETE_RUNNING_TASKS_THEN_EXIT):
             {
                 log(osg::NOTICE,"   COMPLETE_RUNNING_TASKS_THEN_EXIT");
+                _machinePool->setTaskFailureOperation(MachinePool::IGNORE);
+                _machinePool->getTaskManager()->setDone(true);
+                _machinePool->removeAllOperations();
                 break;
             }
             case(MachinePool::TERMINATE_RUNNING_TASKS_THEN_EXIT):
             {
                 log(osg::NOTICE,"   TERMINATE_RUNNING_TASKS_THEN_EXIT");
+                _machinePool->setTaskFailureOperation(MachinePool::IGNORE);
+                _machinePool->getTaskManager()->setDone(true);
+                _machinePool->removeAllOperations();
+                _machinePool->signal(SIGTERM);
                 break;
             }
         }
@@ -321,12 +330,13 @@ void Machine::setDone(bool done)
 //
 
 MachinePool::MachinePool():
+    _taskManager(0),
     _taskFailureOperation(IGNORE)
 {
     //_taskFailureOperation = IGNORE;
-    _taskFailureOperation = BLACKLIST_MACHINE_AND_RESUBMIT_TASK;
+    //_taskFailureOperation = BLACKLIST_MACHINE_AND_RESUBMIT_TASK;
     //_taskFailureOperation = COMPLETE_RUNNING_TASKS_THEN_EXIT;
-    //_taskFailureOperation = TERMINATE_RUNNING_TASKS_THEN_EXIT;
+    _taskFailureOperation = TERMINATE_RUNNING_TASKS_THEN_EXIT;
             
     _operationQueue = new osg::OperationQueue;
     _blockOp = new BlockOperation;    

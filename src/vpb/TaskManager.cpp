@@ -30,14 +30,24 @@
 
 using namespace vpb;
 
+osg::ref_ptr<TaskManager>& TaskManager::instance()
+{
+    static osg::ref_ptr<TaskManager> s_taskManager = new TaskManager;
+    return s_taskManager;
+}
+
+
 TaskManager::TaskManager()
 {
     _done = false;
-    _machinePool = new MachinePool;
     _buildName = "build";
+
+    setMachinePool(new MachinePool);
     
     char str[2048]; 
     _runPath = getcwd ( str, sizeof(str));
+    
+    _defaultSignalAction = COMPLETE_RUNNING_TASKS_THEN_EXIT;
 }
 
 TaskManager::~TaskManager()
@@ -163,6 +173,7 @@ osgTerrain::Terrain* TaskManager::getSource()
 void TaskManager::setMachinePool(MachinePool* machinePool)
 {
     _machinePool = machinePool;
+    if (_machinePool.valid()) _machinePool->_taskManager = this;
 }
 
 MachinePool* TaskManager::getMachinePool()
@@ -664,36 +675,88 @@ BuildOptions* TaskManager::getBuildOptions()
 void TaskManager::setDone(bool done)
 {
     _done = done;
-    if (_machinePool.valid()) _machinePool->setDone(done);
+    //if (_machinePool.valid()) _machinePool->setDone(done);
 }
 
-void TaskManager::signal(int signal)
+void TaskManager::handleSignal(int sig)
 {
-    log(osg::NOTICE,"TaskManager::signal(%d)",signal);
-    if (_machinePool.valid()) _machinePool->signal(signal);
-}
-
-void TaskManager::exit(int sig)
-{
-    //setDone(true);
-    if (_machinePool.valid())
+    switch(getSignalAction(sig))
     {
-        _machinePool->setTaskFailureOperation(MachinePool::IGNORE);
-    
-        if (sig==SIGHUP)
+        case(IGNORE):
         {
-            log(osg::NOTICE,"SIGHUP - soft exit.");
+            log(osg::NOTICE,"Ignoring signal %d.",sig);
+            break;
+        }
+        case(DO_NOT_HANDLE):
+        {
+            log(osg::NOTICE,"DO_NOT_HANDLE signal %d.",sig);
+            break;
+        }
+        case(COMPLETE_RUNNING_TASKS_THEN_EXIT):
+        {
+            log(osg::NOTICE,"Recieved signal %d, doing COMPLETE_RUNNING_TASKS_THEN_EXIT.",sig);
+
             _done = true;
             _machinePool->removeAllOperations();
+
+            break;
         }
-        else
+        case(TERMINATE_RUNNING_TASKS_THEN_EXIT):
         {
-            log(osg::NOTICE,"Hard exit signal=%d",sig);
+            log(osg::NOTICE,"Recieved signal %d, doing TERMINATE_RUNNING_TASKS_THEN_EXIT.",sig);
+
             _done = true;
 
             _machinePool->removeAllOperations();
             _machinePool->signal(sig);
+
+            break;
+        }
+        case(RESET_MACHINE_POOL):
+        {
+            log(osg::NOTICE,"Recieved signal %d, doing RESET_MACHINE_POOL.",sig);
+            break;
+        }
+        case(UPDATE_MACHINE_POOL):
+        {
+            log(osg::NOTICE,"Recieved signal %d, doing UPDATE_MACHINE_POOL.",sig);
+            break;
         }
     }
 }
 
+void TaskManager::setSignalAction(int sig, SignalAction action)
+{
+    if (action==DO_NOT_HANDLE) 
+    {
+        if (_signalActionMap.count(sig)!=0)
+        {
+            // remove signal handler for signal.
+            signal(sig, 0);
+        }
+
+        _signalActionMap.erase(sig);
+    }
+    else
+    {
+        if (_signalActionMap.count(sig)==0)
+        {
+            // need to register signal handler for signal
+            signal(sig, TaskManager::signalHandler);
+        }
+        
+        _signalActionMap[sig] = action;
+    }
+}
+
+TaskManager::SignalAction TaskManager::getSignalAction(int sig) const
+{ 
+    SignalActionMap::const_iterator itr = _signalActionMap.find(sig);
+    if (itr==_signalActionMap.end()) return _defaultSignalAction;
+    return itr->second;
+}
+
+void TaskManager::signalHandler(int sig)
+{
+    TaskManager::instance()->handleSignal(sig);
+}

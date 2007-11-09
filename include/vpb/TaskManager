@@ -19,15 +19,18 @@
 #include <vpb/MachinePool>
 #include <vpb/Task>
 
+#include <map>
+
 namespace vpb
 {
 
 class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
 {
     public:
+
+        /** Singleton method used to insure that only one TaskManager ever exists.*/    
+        static osg::ref_ptr<TaskManager>& instance();
     
-        TaskManager();
-        
         /// override from Logger to be able to pass on to all associated Machine objects        
         void setBuildLog(BuildLog* bl);
 
@@ -100,22 +103,43 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         
         TaskSetList& getTaskSetList() { return _taskSetList; }
 
-        /** Send a signal to the all running tasks. */
-        void signal(int signal);
         
         void setDone(bool done);
         
         bool done() const { return _done; }
+        
+
+        enum SignalAction
+        {
+            IGNORE,
+            DO_NOT_HANDLE,
+            COMPLETE_RUNNING_TASKS_THEN_EXIT,
+            TERMINATE_RUNNING_TASKS_THEN_EXIT,
+            RESET_MACHINE_POOL,
+            UPDATE_MACHINE_POOL
+        };
+        
+        void setDefaultSignalAction(SignalAction action) { _defaultSignalAction = action; }
+        SignalAction getDefaultSignalAction() const { return _defaultSignalAction; }
+        
+        void setSignalAction(int sig, SignalAction action);
+        SignalAction getSignalAction(int sig) const;
+        
+        /** Send a signal to the all running tasks. */
+        void handleSignal(int sig);
 
         /** Send terminate single to all running tasks and set done flag to true to exit from run loop.*/
         void exit(int sig);
 
     protected:
 
+        TaskManager();
         virtual ~TaskManager();
         
         Task* readTask(osgDB::Input& fr, bool& itrAdvanced);
         bool writeTask(osgDB::Output& fout, const Task* task) const;
+        
+        static void signalHandler(int sig);
         
         std::string                         _runPath;
         std::string                         _buildName;
@@ -129,7 +153,12 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         std::string                         _tasksFileName;
         TaskSetList                         _taskSetList;
 
-        bool                                _done;        
+        bool                                _done;
+        
+        typedef std::map<int, SignalAction> SignalActionMap;
+
+        SignalAction                        _defaultSignalAction;
+        SignalActionMap                     _signalActionMap;
 };
 
 }

@@ -21,37 +21,18 @@
 
 #include <signal.h>
 
-osg::ref_ptr<vpb::TaskManager> taskManager;
-
-void catchSignal(int signal)
-{
-    printf("\n\nCaught and passing on signal %d\n",signal);
-    fflush(stdout);
-    if (taskManager.valid()) 
-    {
-        taskManager->exit(signal);
-    }
-    printf("Exit dispatched %d\n\n",signal);
-}
-
-
 int main(int argc, char** argv)
 {
-    // register the signal handlers
-    signal(SIGHUP, catchSignal);
-    signal(SIGINT, catchSignal);
-    signal(SIGQUIT, catchSignal);
-    //signal(SIGILL, catchSignal);
-    signal(SIGTRAP, catchSignal);
-    signal(SIGABRT, catchSignal);
-    //signal(SIGIOT, catchSignal);
-    //signal(SIGBUS, catchSignal);
-    //signal(SIGFPE, catchSignal);
-    signal(SIGKILL, catchSignal);
-    signal(SIGUSR1, catchSignal);
-    //signal(SIGSEGV, catchSignal);
-    signal(SIGUSR2, catchSignal);
-    signal(SIGTERM, catchSignal);
+    osg::ref_ptr<vpb::TaskManager> taskManager = vpb::TaskManager::instance();
+
+    taskManager->setSignalAction(SIGHUP, vpb::TaskManager::COMPLETE_RUNNING_TASKS_THEN_EXIT);
+    taskManager->setSignalAction(SIGINT, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
+    taskManager->setSignalAction(SIGQUIT, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
+    taskManager->setSignalAction(SIGABRT, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
+    taskManager->setSignalAction(SIGKILL, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
+    taskManager->setSignalAction(SIGTERM, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
+    taskManager->setSignalAction(SIGUSR1, vpb::TaskManager::RESET_MACHINE_POOL);
+    taskManager->setSignalAction(SIGUSR2, vpb::TaskManager::UPDATE_MACHINE_POOL);
 
     osg::Timer_t startTick = osg::Timer::instance()->tick();
 
@@ -69,7 +50,6 @@ int main(int argc, char** argv)
         chdir(runPath.c_str());
     }
 
-    taskManager = new vpb::TaskManager;
     
     taskManager->read(arguments);
 
@@ -78,13 +58,6 @@ int main(int argc, char** argv)
     
     std::string tasksOutputFileName;
     while (arguments.read("--to",tasksOutputFileName));
-
-    int signal;
-    while (arguments.read("--signal",signal))
-    {
-        taskManager->signal(signal);
-        return 0;
-    }
 
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();
