@@ -467,12 +467,15 @@ bool MachinePool::read(const std::string& filename)
         return false;
     }
     
-    _machinePoolFileName = foundFile;
 
     std::ifstream fin(foundFile.c_str());
     
     if (fin)
     {
+        _machinePoolFileName = foundFile;
+        
+        _machines.clear();
+
         osgDB::Input fr;
         fr.attach(&fin);
         
@@ -621,18 +624,6 @@ void MachinePool::resetMachinePool()
     setDone(true);
     
     cancelThreads();
-
-#if 0
-    _operationQueue = new osg::OperationQueue;
-
-    // pass main operation queue to machines
-    for(Machines::iterator itr = _machines.begin();
-        itr != _machines.end();
-        ++itr)
-    {
-        (*itr)->setOperationQueue(_operationQueue.get());
-    }
-#endif    
     
     setDone(false);
 
@@ -643,4 +634,22 @@ void MachinePool::resetMachinePool()
 void MachinePool::updateMachinePool()
 {
     log(osg::NOTICE,"MachinePool::updateMachinePool()");
+
+    log(osg::NOTICE,"MachinePool::resetMachinePool()");
+    
+    // remove all pending tasks
+    removeAllOperations();
+    
+    // stopped threads.
+    
+    setDone(true);
+    
+    cancelThreads();
+    
+    read(_machinePoolFileName);
+    
+    setDone(false);
+
+    // restart any stopped threads.
+    startThreads();
 }
