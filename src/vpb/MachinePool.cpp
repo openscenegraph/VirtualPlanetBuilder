@@ -258,6 +258,23 @@ unsigned int Machine::getNumThreadsActive() const
     return numThreadsActive;
 }
 
+unsigned int Machine::getNumThreadsRunning() const
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_threadsMutex);
+    
+    unsigned int numThreadsRunning = 0;
+    for(Threads::const_iterator itr = _threads.begin();
+        itr != _threads.end();
+        ++itr)
+    {
+        if ((*itr)->isRunning())
+        {        
+            ++numThreadsRunning;
+        }
+    }
+    return numThreadsRunning;
+}
+
 void Machine::startedTask(Task* task)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_runningTasksMutex);
@@ -459,6 +476,20 @@ unsigned int MachinePool::getNumThreadsActive() const
         numThreadsActive += (*itr)->getNumThreadsActive();
     }
     return numThreadsActive;
+}
+
+unsigned int MachinePool::getNumThreadsRunning() const
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_machinesMutex);
+
+    unsigned int numThreadsRunning = 0;
+    for(Machines::const_iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        numThreadsRunning += (*itr)->getNumThreadsRunning();
+    }
+    return numThreadsRunning;
 }
 
 void MachinePool::clear()

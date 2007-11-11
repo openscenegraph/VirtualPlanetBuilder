@@ -82,6 +82,8 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
 
         unsigned int getNumThreadsActive() const;
 
+        unsigned int getNumThreadsRunning() const;
+
         typedef std::set<Task*> RunningTasks;
         
         void startedTask(Task* task);
@@ -148,6 +150,8 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
         unsigned int getNumThreads() const;
 
         unsigned int getNumThreadsActive() const;
+
+        unsigned int getNumThreadsRunning() const;
 
         void clear();
         

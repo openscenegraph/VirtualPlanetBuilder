@@ -395,6 +395,9 @@ bool TaskManager::run()
     
         // if (tasksFailed != 0) break;
         
+        if (getMachinePool()->getNumThreadsRunning()==0) break;
+        
+        
         if (tasksPending!=0 || tasksFailed!=0 || tasksRunning!=0)
         {
             log(osg::NOTICE,"Continuing with existing TaskSet.");
