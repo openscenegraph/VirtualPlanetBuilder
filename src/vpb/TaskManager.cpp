@@ -451,6 +451,8 @@ bool TaskManager::run()
     }
     log(osg::NOTICE,"End of run: tasksPending=%d taskCompleted=%d taskRunning=%d tasksFailed=%d",tasksPending,tasksCompleted,tasksRunning,tasksFailed);
 
+    _machinePool->reportTimingStats();
+
     if (tasksFailed==0)
     {
         if (tasksPending==0) log(osg::NOTICE,"Finished run successfully.");

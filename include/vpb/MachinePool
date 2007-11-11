@@ -11,11 +11,12 @@
  * OpenSceneGraph Public License for more details.
 */
 
-#ifndef HOSTS_H
-#define HOSTS_H 1
+#ifndef MACHINEPOOL_H
+#define MACHINEPOOL_H 1
 
 #include <osg/Referenced>
 #include <osg/OperationThread>
+#include <float.h>
 
 #include <vpb/Task>
 #include <vpb/BuildLog>
@@ -53,6 +54,42 @@ class TaskManager;
 
 typedef std::list< osg::ref_ptr<osg::OperationsThread> > Threads;
 
+class TaskStats
+{
+    public:
+    
+        TaskStats():
+            _defaultAverageTime(0.0),
+            _minTime(DBL_MAX),
+            _maxTime(-DBL_MAX),
+            _totalTime(0.0),
+            _numTasks(0) {}
+
+        void logTime(double runningTime)
+        {
+            if (runningTime<_minTime) _minTime = runningTime;
+            if (runningTime>_maxTime) _maxTime = runningTime;
+            _totalTime += runningTime;
+            ++_numTasks;
+        }
+        
+        double averageTime() const { return _numTasks!=0 ? (_totalTime/double(_numTasks)) : _defaultAverageTime; }
+        double minTime() const { return _minTime; }
+        double maxTime() const { return _maxTime; }
+        double totalTime() const { return _totalTime; }
+        double numTasks() const { return _numTasks; }
+
+    protected:
+    
+        double _defaultAverageTime;
+        double _minTime;
+        double _maxTime;
+        double _totalTime;
+        unsigned int _numTasks;
+};
+
+typedef std::map<std::string, TaskStats> TaskStatsMap;
+
 class VPB_EXPORT Machine : public osg::Object, public Logger
 {
     public:
@@ -84,7 +121,7 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
 
         unsigned int getNumThreadsRunning() const;
 
-        typedef std::set<Task*> RunningTasks;
+        typedef std::map<Task*, double> RunningTasks;
         
         void startedTask(Task* task);
 
@@ -93,6 +130,9 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
         void taskFailed(Task* task, int result);
         
         RunningTasks& getRunningTasks() { return _runningTasks; }
+        
+        TaskStatsMap& getTaskStatsMap() { return _taskStatsMap; }
+        const TaskStatsMap& getTaskStatsMap() const { return _taskStatsMap; }
 
         /** Send a signal to the all running tasks. */
         void signal(int signal);
@@ -116,7 +156,10 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
 
         mutable OpenThreads::Mutex          _runningTasksMutex;
         RunningTasks                        _runningTasks;
+        
+        TaskStatsMap                        _taskStatsMap;
 
+        
 
 };
 
@@ -185,6 +228,9 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
         
         /** Let current tasks complete then re-read the machine pool file.*/
         void updateMachinePool();
+
+        /** Generate a report of the task timing stats.*/
+        void reportTimingStats();
 
     protected:
 

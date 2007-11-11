@@ -278,13 +278,25 @@ unsigned int Machine::getNumThreadsRunning() const
 void Machine::startedTask(Task* task)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_runningTasksMutex);
-    _runningTasks.insert(task);
+    _runningTasks[task] = osg::Timer::instance()->time_s();
 }
 
 void Machine::endedTask(Task* task)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_runningTasksMutex);
-    _runningTasks.erase(task);
+    
+    RunningTasks::iterator itr = _runningTasks.find(task);
+    if (itr != _runningTasks.end())
+    {
+        double runningTime = osg::Timer::instance()->time_s() - itr->second;
+
+        _runningTasks.erase(itr);
+
+        std::string taskType;
+        task->getProperty("type",taskType);
+
+        _taskStatsMap[taskType].logTime(runningTime);
+    }
 }
 
 void Machine::taskFailed(Task* task, int result)
@@ -343,7 +355,7 @@ void Machine::signal(int signal)
         itr != tasks.end();
         ++itr)
     {
-        Task* task = *itr;
+        Task* task = itr->first;
         task->read();
         std::string pid;
         if (task->getProperty("pid", pid))
@@ -444,6 +456,7 @@ void MachinePool::waitForCompletion()
     while((getNumThreadsActive()>0 /*|| !_operationQueue->empty()*/) && !done())
     {
         log(osg::NOTICE, "MachinePool::waitForCompletion : Waiting for threads to complete = %d",getNumThreadsActive());
+        
         OpenThreads::Thread::microSleep(1000000);
     }
 
@@ -703,4 +716,29 @@ void MachinePool::updateMachinePool()
 
     // restart any stopped threads.
     startThreads();
+}
+
+void MachinePool::reportTimingStats()
+{
+    log(osg::NOTICE,"MachinePool::reportTimingStats()");
+    for(Machines::iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        Machine* machine = itr->get();
+        TaskStatsMap& taskStatsMap = machine->getTaskStatsMap();
+        log(osg::NOTICE,"    Machine : %s",machine->getHostName().c_str());
+        for(TaskStatsMap::iterator titr = taskStatsMap.begin();
+            titr != taskStatsMap.end();
+            ++titr)
+        {
+            TaskStats& stats = titr->second;
+            log(osg::NOTICE,"        Task::type='%s'\tminTime=%f\tmaxTime=%f\taverageTime=%f\ttotalComputeTime=%f",
+                titr->first.c_str(), 
+                stats.minTime(),
+                stats.maxTime(),
+                stats.averageTime(),
+                stats.totalTime());
+        }
+    }
 }
