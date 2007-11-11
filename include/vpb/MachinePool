@@ -77,7 +77,7 @@ class TaskStats
         double minTime() const { return _minTime; }
         double maxTime() const { return _maxTime; }
         double totalTime() const { return _totalTime; }
-        double numTasks() const { return _numTasks; }
+        unsigned int numTasks() const { return _numTasks; }
 
     protected:
     

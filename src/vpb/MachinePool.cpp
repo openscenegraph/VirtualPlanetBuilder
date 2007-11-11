@@ -733,12 +733,13 @@ void MachinePool::reportTimingStats()
             ++titr)
         {
             TaskStats& stats = titr->second;
-            log(osg::NOTICE,"        Task::type='%s'\tminTime=%f\tmaxTime=%f\taverageTime=%f\ttotalComputeTime=%f",
+            log(osg::NOTICE,"        Task::type='%s'\tminTime=%f\tmaxTime=%f\taverageTime=%f\ttotalComputeTime=%f\tnumTasks=%d",
                 titr->first.c_str(), 
                 stats.minTime(),
                 stats.maxTime(),
                 stats.averageTime(),
-                stats.totalTime());
+                stats.totalTime(),
+                stats.numTasks());
         }
     }
 }
