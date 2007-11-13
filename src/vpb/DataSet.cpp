@@ -1070,6 +1070,9 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
     osgTerrain::ProxyLayer* pl = dynamic_cast<osgTerrain::ProxyLayer*>(layer);
     if (pl)
     {
+        // close the ProxyLayer so that it nolonger retains a GDAL file handle.
+        pl->close();
+    
         vpb::Source* source = new vpb::Source(type, pl->getFileName());
         source->setLayer(layerNum);
 

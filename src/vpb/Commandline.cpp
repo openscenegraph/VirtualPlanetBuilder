@@ -57,80 +57,163 @@ static void processFile(const std::string& filename,
     if (osgDB::fileType(filename) == osgDB::REGULAR_FILE)
     {
 
-        osg::ref_ptr<osg::Object> loadedObject = osgDB::readObjectFile(filename+".gdal");
-        osgTerrain::Layer* loadedLayer = dynamic_cast<osgTerrain::Layer*>(loadedObject.get());
-
-        if (loadedLayer)
+        bool loadLayer = false;
+        
+        if (loadLayer)
         {
-            osgTerrain::Locator* locator = loadedLayer->getLocator();
+            osg::ref_ptr<osg::Object> loadedObject = osgDB::readObjectFile(filename+".gdal");
+            osgTerrain::Layer* loadedLayer = dynamic_cast<osgTerrain::Layer*>(loadedObject.get());
 
-            if (!loadedLayer->getLocator())
+            if (loadedLayer)
             {
-                locator = new osgTerrain::Locator;
-                loadedLayer->setLocator(locator);
-            }
+                osgTerrain::Locator* locator = loadedLayer->getLocator();
 
-            if (!currentCS.empty())
-            {
-                osg::notify(osg::INFO)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
-                locator->setFormat("WKT");
-                locator->setCoordinateSystem(currentCS);
-                locator->setDefinedInFile(false);
-            } 
-
-            if (geoTransformSet)
-            {
-                osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
-                locator->setTransform(geoTransform);
-                locator->setDefinedInFile(false);
-            }
-
-            if (type==vpb::Source::IMAGE)
-            {
-                osgTerrain::Layer* existingLayer = (layerNum < terrain->getNumColorLayers()) ? terrain->getColorLayer(layerNum) : 0;
-                osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
-
-                if (compositeLayer)
+                if (!loadedLayer->getLocator())
                 {
-                    compositeLayer->addLayer( loadedLayer );
+                    locator = new osgTerrain::Locator;
+                    loadedLayer->setLocator(locator);
                 }
-                else if (existingLayer)
-                {
-                    compositeLayer = new osgTerrain::CompositeLayer;
-                    compositeLayer->addLayer( existingLayer );
-                    compositeLayer->addLayer( loadedLayer );
 
-                    terrain->setColorLayer(layerNum, compositeLayer);
-                }
-                else
+                if (!currentCS.empty())
                 {
-                    terrain->setColorLayer(layerNum, loadedLayer);
-                }
-            }
-            else if (type==vpb::Source::HEIGHT_FIELD)
-            {
-                osgTerrain::Layer* existingLayer = terrain->getElevationLayer();
-                osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+                    osg::notify(osg::INFO)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
+                    locator->setFormat("WKT");
+                    locator->setCoordinateSystem(currentCS);
+                    locator->setDefinedInFile(false);
+                } 
 
-                if (compositeLayer)
+                if (geoTransformSet)
                 {
-                    compositeLayer->addLayer( loadedLayer );
+                    osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
+                    locator->setTransform(geoTransform);
+                    locator->setDefinedInFile(false);
                 }
-                else if (existingLayer)
-                {
-                    compositeLayer = new osgTerrain::CompositeLayer;
-                    compositeLayer->addLayer( existingLayer );
-                    compositeLayer->addLayer( loadedLayer );
 
-                    terrain->setElevationLayer(compositeLayer);
-                }
-                else
+                if (type==vpb::Source::IMAGE)
                 {
-                    terrain->setElevationLayer(loadedLayer);
+                    osgTerrain::Layer* existingLayer = (layerNum < terrain->getNumColorLayers()) ? terrain->getColorLayer(layerNum) : 0;
+                    osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+
+                    if (compositeLayer)
+                    {
+                        compositeLayer->addLayer( loadedLayer );
+                    }
+                    else if (existingLayer)
+                    {
+                        compositeLayer = new osgTerrain::CompositeLayer;
+                        compositeLayer->addLayer( existingLayer );
+                        compositeLayer->addLayer( loadedLayer );
+
+                        terrain->setColorLayer(layerNum, compositeLayer);
+                    }
+                    else
+                    {
+                        terrain->setColorLayer(layerNum, loadedLayer);
+                    }
+                }
+                else if (type==vpb::Source::HEIGHT_FIELD)
+                {
+                    osgTerrain::Layer* existingLayer = terrain->getElevationLayer();
+                    osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+
+                    if (compositeLayer)
+                    {
+                        compositeLayer->addLayer( loadedLayer );
+                    }
+                    else if (existingLayer)
+                    {
+                        compositeLayer = new osgTerrain::CompositeLayer;
+                        compositeLayer->addLayer( existingLayer );
+                        compositeLayer->addLayer( loadedLayer );
+
+                        terrain->setElevationLayer(compositeLayer);
+                    }
+                    else
+                    {
+                        terrain->setElevationLayer(loadedLayer);
+                    }
                 }
             }
         }
+        else
+        {
+            osgTerrain::Layer* existingLayer = 0;
+            osgTerrain::CompositeLayer* compositeLayer = 0;
 
+            if (type==vpb::Source::IMAGE)
+            {
+                existingLayer = (layerNum < terrain->getNumColorLayers()) ? terrain->getColorLayer(layerNum) : 0;
+                compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+            
+                if (!compositeLayer)
+                {
+                    compositeLayer = new osgTerrain::CompositeLayer;
+                    if (existingLayer) compositeLayer->addLayer(existingLayer);
+                    
+                    terrain->setColorLayer(layerNum, compositeLayer);
+                }
+            }
+            else
+            {
+                existingLayer = terrain->getElevationLayer();
+                compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+
+                if (!compositeLayer)
+                {
+                    compositeLayer = new osgTerrain::CompositeLayer;
+                    if (existingLayer) compositeLayer->addLayer(existingLayer);
+                    
+                    terrain->setElevationLayer(compositeLayer);
+                }
+            }
+            
+            if (!compositeLayer)
+            {
+                compositeLayer = new osgTerrain::CompositeLayer;
+                if (existingLayer) compositeLayer->addLayer(existingLayer);
+                
+                
+            }
+
+            if (!currentCS.empty() || geoTransformSet)
+            {
+                osg::ref_ptr<osg::Object> loadedObject = osgDB::readObjectFile(filename+".gdal");
+                osgTerrain::Layer* loadedLayer = dynamic_cast<osgTerrain::Layer*>(loadedObject.get());
+
+                if (loadedLayer)
+                {
+                    osgTerrain::Locator* locator = loadedLayer->getLocator();
+
+                    if (!loadedLayer->getLocator())
+                    {
+                        locator = new osgTerrain::Locator;
+                        loadedLayer->setLocator(locator);
+                    }
+
+                    if (!currentCS.empty())
+                    {
+                        osg::notify(osg::INFO)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
+                        locator->setFormat("WKT");
+                        locator->setCoordinateSystem(currentCS);
+                        locator->setDefinedInFile(false);
+                    } 
+
+                    if (geoTransformSet)
+                    {
+                        osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
+                        locator->setTransform(geoTransform);
+                        locator->setDefinedInFile(false);
+                    }
+
+                    compositeLayer->addLayer(loadedLayer);
+                }                    
+            }
+            else
+            {
+                compositeLayer->addLayer(filename);
+            }
+
+        }
 
     } else if (osgDB::fileType(filename) == osgDB::DIRECTORY) {
 
