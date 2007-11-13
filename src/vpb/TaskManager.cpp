@@ -704,6 +704,9 @@ BuildOptions* TaskManager::getBuildOptions()
 void TaskManager::setDone(bool done)
 {
     _done = done;
+
+    if (_done) _machinePool->release();
+    
     //if (_machinePool.valid()) _machinePool->setDone(done);
 }
 
@@ -729,6 +732,7 @@ void TaskManager::handleSignal(int sig)
 
             _done = true;
             _machinePool->removeAllOperations();
+            _machinePool->release();
 
             break;
         }
@@ -742,18 +746,21 @@ void TaskManager::handleSignal(int sig)
             _machinePool->signal(sig);
 
             _machinePool->cancelThreads();
+            _machinePool->release();
 
             break;
         }
         case(RESET_MACHINE_POOL):
         {
             log(osg::NOTICE,"Recieved signal %d, doing RESET_MACHINE_POOL.",sig);
+            _machinePool->release();
             _machinePool->resetMachinePool();
             break;
         }
         case(UPDATE_MACHINE_POOL):
         {
             log(osg::NOTICE,"Recieved signal %d, doing UPDATE_MACHINE_POOL.",sig);
+            _machinePool->release();
             _machinePool->updateMachinePool();
             break;
         }

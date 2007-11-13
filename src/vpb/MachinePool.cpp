@@ -317,6 +317,7 @@ void Machine::taskFailed(Task* task, int result)
                 setDone(true);
                 //setOperationQueue(0);
                 _machinePool->run(task);
+                _machinePool->release();
                 break;
             }
             case(MachinePool::COMPLETE_RUNNING_TASKS_THEN_EXIT):
@@ -325,6 +326,7 @@ void Machine::taskFailed(Task* task, int result)
                 _machinePool->setTaskFailureOperation(MachinePool::IGNORE);
                 _machinePool->getTaskManager()->setDone(true);
                 _machinePool->removeAllOperations();
+                _machinePool->release();
                 break;
             }
             case(MachinePool::TERMINATE_RUNNING_TASKS_THEN_EXIT):
@@ -334,6 +336,7 @@ void Machine::taskFailed(Task* task, int result)
                 _machinePool->getTaskManager()->setDone(true);
                 _machinePool->removeAllOperations();
                 _machinePool->signal(SIGTERM);
+                _machinePool->release();
                 break;
             }
         }
@@ -440,9 +443,9 @@ void MachinePool::run(Task* task)
 
 void MachinePool::waitForCompletion()
 {
-    OpenThreads::Thread::microSleep(100000);
+//    OpenThreads::Thread::microSleep(100000);
 
-#if 0
+#if 1
     log(osg::INFO, "MachinePool::waitForCompletion : Adding block to queue");
     _blockOp->reset();
     
