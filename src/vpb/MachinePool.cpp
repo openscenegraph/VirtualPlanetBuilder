@@ -440,6 +440,8 @@ void MachinePool::run(Task* task)
 
 void MachinePool::waitForCompletion()
 {
+    OpenThreads::Thread::microSleep(100000);
+
 #if 0
     log(osg::INFO, "MachinePool::waitForCompletion : Adding block to queue");
     _blockOp->reset();

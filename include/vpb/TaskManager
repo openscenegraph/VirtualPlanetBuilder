@@ -84,7 +84,7 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         bool readTasks(const std::string& filename);
 
         /** read the task list from file.*/
-        bool writeTasks(const std::string& filename);
+        bool writeTasks(const std::string& filename, bool asFileNames);
         
         const std::string& getTasksFileName() { return _tasksFileName; }
         
@@ -137,7 +137,7 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         virtual ~TaskManager();
         
         Task* readTask(osgDB::Input& fr, bool& itrAdvanced);
-        bool writeTask(osgDB::Output& fout, const Task* task) const;
+        bool writeTask(osgDB::Output& fout, const Task* task, bool asFileNames) const;
         
         static void signalHandler(int sig);
         

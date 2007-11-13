@@ -149,9 +149,6 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     if (!taskSetFileName.empty())
     {
         readTasks(taskSetFileName);
-#if 1        
-        writeTasks("test.tasks");
-#endif
     }
     
     
@@ -345,7 +342,7 @@ bool TaskManager::run()
                 case(Task::PENDING):
                 {
                     // run the task
-                    log(osg::INFO,"Running task : %s",task->getFileName().c_str());
+                    log(osg::NOTICE,"Running task : %s",task->getFileName().c_str());
                     getMachinePool()->run(task);
                     break;
                 }
@@ -538,6 +535,10 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
             ++fr;
         }
 
+        ++fr;
+        
+        itrAdvanced = true;
+
         if (!application.empty())
         {
             osg::ref_ptr<Task> task = new Task(createUniqueTaskFileName(application));
@@ -552,12 +553,19 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
             }
         }
 
-        ++fr;
-        
-        itrAdvanced = true;
-
     }
     
+    std::string filename;
+    if (fr.read("taskfile",filename))
+    {
+        itrAdvanced = true;
+
+        osg::ref_ptr<Task> task = new Task(filename);
+        task->read();
+        
+        return task.release();
+    }
+
     return 0;
 }
 
@@ -632,18 +640,25 @@ bool TaskManager::readTasks(const std::string& filename)
     return false;
 }
 
-bool TaskManager::writeTask(osgDB::Output& fout, const Task* task) const
+bool TaskManager::writeTask(osgDB::Output& fout, const Task* task, bool asFileNames) const
 {
-    std::string application;
-    std::string arguments;
-    if (task->getProperty("application",application))
+    if (asFileNames)
     {
-        fout.indent()<<"exec { "<<application<<" }"<<std::endl;
+        fout.indent()<<"taskfile "<<task->getFileName()<<std::endl;
+    }
+    else
+    {
+        std::string application;
+        std::string arguments;
+        if (task->getProperty("application",application))
+        {
+            fout.indent()<<"exec { "<<application<<" }"<<std::endl;
+        }
     }
     return true;
 }
 
-bool TaskManager::writeTasks(const std::string& filename)
+bool TaskManager::writeTasks(const std::string& filename, bool asFileNames)
 {
     _tasksFileName = filename;
     
@@ -657,7 +672,7 @@ bool TaskManager::writeTasks(const std::string& filename)
 
         if (taskSet.size()==1)
         {
-            writeTask(fout,taskSet.front().get());
+            writeTask(fout,taskSet.front().get(), asFileNames);
         }
         else if (taskSet.size()>1)
         {        
@@ -668,7 +683,7 @@ bool TaskManager::writeTasks(const std::string& filename)
                 itr != taskSet.end();
                 ++itr)
             {
-                writeTask(fout,itr->get());
+                writeTask(fout,itr->get(), asFileNames);
             }
 
             fout.moveOut();

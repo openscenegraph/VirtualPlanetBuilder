@@ -75,7 +75,7 @@ int main(int argc, char** argv)
         taskManager->writeSource(tasksOutputFileName);
 
         taskManager->generateTasksFromSource();
-        taskManager->writeTasks(tasksOutputFileName);
+        taskManager->writeTasks(tasksOutputFileName, true);
         return 1;
     }
 
@@ -93,7 +93,7 @@ int main(int argc, char** argv)
             taskManager->writeSource(sourceFileName);
 
             taskManager->generateTasksFromSource();
-            taskManager->writeTasks(tasksOutputFileName);
+            taskManager->writeTasks(tasksOutputFileName, true);
             
             taskManager->log(osg::NOTICE,"Generated tasks file = %s",tasksOutputFileName.c_str());
         }
