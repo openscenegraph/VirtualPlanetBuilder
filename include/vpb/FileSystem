@@ -16,10 +16,11 @@
 
 #include <osgDB/FileUtils>
 
-#include <vpb/Export>
+#include <vpb/GeospatialDataset>
 
 namespace vpb
 {
+
 
 class VPB_EXPORT FileSystem : public osg::Referenced
 {
@@ -35,6 +36,16 @@ class VPB_EXPORT FileSystem : public osg::Referenced
         std::string& getMachineFileName() { return _machineFileName; }
     
         void readEnvironmentVariables();
+        
+        
+        void setMaximumNumDatasets(unsigned int maxNumDatasets);
+        unsigned int getMaximumNumDatasets() const { return _maxNumDatasets; }
+        
+        void clearDatasetCache();
+
+        void clearUnusedDatasets(unsigned int numToClear=1);
+        
+        GeospatialDataset* openGeospatialDataset(const std::string& filename);
 
     protected:
     
@@ -47,6 +58,13 @@ class VPB_EXPORT FileSystem : public osg::Referenced
         std::string         _logDirectory;
         std::string         _taskDirectory;
         std::string         _machineFileName;
+        
+        typedef std::map<std::string, osg::ref_ptr<GeospatialDataset> >  DatasetMap;
+        
+        unsigned int        _maxNumDatasets;
+        DatasetMap          _datasetMap;
+        
+        
 };
 
 extern VPB_EXPORT osgDB::FilePathList& getSourcePaths();

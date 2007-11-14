@@ -12,17 +12,27 @@
 */
 
 #include <vpb/FileSystem>
+#include <vpb/BuildLog>
 
 using namespace vpb;
-
+ 
 osg::ref_ptr<FileSystem>& FileSystem::instance()
 {
     static osg::ref_ptr<FileSystem> s_FileSystem = new FileSystem;
     return s_FileSystem;
 }
 
+osgDB::FilePathList& vpb::getSourcePaths() { return FileSystem::instance()->getSourcePaths(); }
+std::string& vpb::getDestinationDirectory() { return FileSystem::instance()->getDestinationDirectory(); }
+std::string& vpb::getIntermediateDirectory() { return FileSystem::instance()->getIntermediateDirectory(); }
+std::string& vpb::getLogDirectory() { return FileSystem::instance()->getLogDirectory(); }
+std::string& vpb::getTaskDirectory() { return FileSystem::instance()->getTaskDirectory(); }
+std::string& vpb::getMachineFileName() { return FileSystem::instance()->getMachineFileName(); }
+
 FileSystem::FileSystem()
 {
+    _maxNumDatasets = getdtablesize();
+    
     readEnvironmentVariables();
 }
 
@@ -69,9 +79,39 @@ void FileSystem::readEnvironmentVariables()
     }
 }
 
-osgDB::FilePathList& vpb::getSourcePaths() { return FileSystem::instance()->getSourcePaths(); }
-std::string& vpb::getDestinationDirectory() { return FileSystem::instance()->getDestinationDirectory(); }
-std::string& vpb::getIntermediateDirectory() { return FileSystem::instance()->getIntermediateDirectory(); }
-std::string& vpb::getLogDirectory() { return FileSystem::instance()->getLogDirectory(); }
-std::string& vpb::getTaskDirectory() { return FileSystem::instance()->getTaskDirectory(); }
-std::string& vpb::getMachineFileName() { return FileSystem::instance()->getMachineFileName(); }
+void FileSystem::clearDatasetCache()
+{
+    _datasetMap.clear();
+}
+
+void FileSystem::clearUnusedDatasets(unsigned int numToClear)
+{
+    _datasetMap.clear();
+}
+
+GeospatialDataset* FileSystem::openGeospatialDataset(const std::string& filename)
+{
+    // first check to see if dataset already exists in cache, if so return it.
+    DatasetMap::iterator itr = _datasetMap.find(filename);
+    if (itr != _datasetMap.end()) return itr->second.get();
+
+    // make sure there is room available for this new Dataset
+    unsigned int numToClear = 10;
+    if (_datasetMap.size()>=_maxNumDatasets) clearUnusedDatasets(numToClear);
+    
+    // double check to make sure there is room to open a new dataset
+    if (_datasetMap.size()>=_maxNumDatasets)
+    {
+        log(osg::NOTICE,"Error: FileSystem::GDALOpen(%s) unable to open file as unsufficient file handles available.",filename.c_str());
+        return 0;
+    }
+    
+    // open the new dataset.
+    GeospatialDataset* dataset = new GeospatialDataset(filename);
+
+    // insert it into the cache
+    _datasetMap[filename] = dataset;
+    
+    // return it.
+    return dataset;
+}

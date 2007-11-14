@@ -13,6 +13,7 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/Commandline
 	${HEADER_PATH}/DatabaseBuilder
 	${HEADER_PATH}/DataSet
+	${HEADER_PATH}/GeospatialDataset
 	${HEADER_PATH}/Destination
 	${HEADER_PATH}/Export
 	${HEADER_PATH}/MachinePool
@@ -37,6 +38,7 @@ ADD_LIBRARY(${LIB_NAME}
 	DatabaseBuilder.cpp
 	DatabaseBuilderIO.cpp
 	DataSet.cpp
+	GeospatialDataset.cpp
 	Destination.cpp
 	FileSystem.cpp
         MachinePool.cpp
