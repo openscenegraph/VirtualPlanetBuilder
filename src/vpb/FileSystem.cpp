@@ -101,7 +101,7 @@ void FileSystem::readEnvironmentVariables()
         _numUnusedDatasetsToTrimFromCache = atoi(str);
     }
 
-    str = getenv("VPB_MAXINUM_NUM_OPEN_DATASETS");
+    str = getenv("VPB_MAXIMUM_NUM_OPEN_DATASETS");
     if (str) 
     {
         _maxNumDatasets = atoi(str);
