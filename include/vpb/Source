@@ -16,6 +16,8 @@
 
 #include <vpb/SpatialProperties>
 #include <vpb/BuildLog>
+#include <vpb/FileSystem>
+
 #include <osg/Shape>
 
 // forward declare so we can avoid tieing vpb to GDAL.
@@ -36,7 +38,6 @@ struct VPB_EXPORT SourceData : public osg::Referenced, public SpatialProperties
     SourceData(Source* source=0):
         _source(source),
         _hasGCPs(false),
-        _gdalDataset(0),
         _hfDataset(0) {}
 
     virtual ~SourceData();
@@ -63,7 +64,6 @@ struct VPB_EXPORT SourceData : public osg::Referenced, public SpatialProperties
     bool                                        _hasGCPs;
 
     osg::ref_ptr<osg::Node>                     _model;
-    GDALDataset*                                _gdalDataset;
     osg::ref_ptr<osg::HeightField>              _hfDataset;
 
     typedef std::map<const osg::CoordinateSystemNode*,SpatialProperties> SpatialPropertiesMap;
@@ -131,6 +131,12 @@ public:
 
     void setTemporaryFile(bool temporaryFile) { _temporaryFile = temporaryFile; }
     bool getTemporaryFile() const { return _temporaryFile; }
+
+    GeospatialDataset* getGeospatialDataset() const
+    {
+        if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
+        else return FileSystem::instance()->openGeospatialDataset(_filename);
+    }
 
     void setGdalDataset(GDALDataset* gdalDataset);
     GDALDataset* getGdalDataset();

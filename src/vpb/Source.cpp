@@ -28,7 +28,6 @@ using namespace vpb;
 
 SourceData::~SourceData()
 {
-    if (_gdalDataset) GDALClose(_gdalDataset);
 }
 
 float SourceData::getInterpolatedValue(osg::HeightField* hf, double x, double y)
@@ -176,19 +175,16 @@ SourceData* SourceData::readData(Source* source)
                     return data;
                 }
             }
+    
+            osg::ref_ptr<GeospatialDataset> gdalDataSet = source->getGeospatialDataset();
 
-            GDALDataset* gdalDataSet = source->getGdalDataset();
-            if(!gdalDataSet)
-                gdalDataSet = (GDALDataset*)GDALOpen(source->getFileName().c_str(),GA_ReadOnly);
-            if (gdalDataSet)
+            if (gdalDataSet.valid())
             {
                 SourceData* data = new SourceData(source);
 
                 // need to set vector or raster
                 data->_dataType = source->_dataType;
 
-                data->_gdalDataset = gdalDataSet;
-                
                 data->_numValuesX = gdalDataSet->GetRasterXSize();
                 data->_numValuesY = gdalDataSet->GetRasterYSize();
                 data->_numValuesZ = gdalDataSet->GetRasterCount();
@@ -228,7 +224,7 @@ SourceData* SourceData::readData(Source* source)
                     /*      destination coordinate system.                                  */
                     /* -------------------------------------------------------------------- */
                     void *hTransformArg = 
-                        GDALCreateGenImgProjTransformer( gdalDataSet, pszSourceSRS, 
+                        GDALCreateGenImgProjTransformer( gdalDataSet->getGDALDataset(), pszSourceSRS, 
                                                          NULL, pszSourceSRS, 
                                                          TRUE, 0.0, 1 );
 
@@ -243,7 +239,7 @@ SourceData* SourceData::readData(Source* source)
                     /* -------------------------------------------------------------------- */
                     double adfDstGeoTransform[6];
                     int nPixels=0, nLines=0;
-                    if( GDALSuggestedWarpOutput( gdalDataSet, 
+                    if( GDALSuggestedWarpOutput( gdalDataSet->getGDALDataset(), 
                                                  GDALGenImgProjTransform, hTransformArg, 
                                                  adfDstGeoTransform, &nPixels, &nLines )
                         != CE_None )
@@ -317,7 +313,8 @@ const SpatialProperties& SourceData::computeSpatialProperties(const osg::Coordin
     if (_cs.valid() && cs)
     {
         
-        if (_gdalDataset)
+        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getGeospatialDataset();
+        if (_gdalDataset.valid())
         {
 
             //log(osg::INFO,"Projecting bounding volume for "<<_source->getFileName());
@@ -332,7 +329,7 @@ const SpatialProperties& SourceData::computeSpatialProperties(const osg::Coordin
             /*      destination coordinate system.                                  */
             /* -------------------------------------------------------------------- */
             void *hTransformArg = 
-                GDALCreateGenImgProjTransformer( _gdalDataset,_cs->getCoordinateSystem().c_str(),
+                GDALCreateGenImgProjTransformer( _gdalDataset->getGDALDataset(),_cs->getCoordinateSystem().c_str(),
                                                  NULL, cs->getCoordinateSystem().c_str(),
                                                  TRUE, 0.0, 1 );
 
@@ -344,7 +341,7 @@ const SpatialProperties& SourceData::computeSpatialProperties(const osg::Coordin
         
             double adfDstGeoTransform[6];
             int nPixels=0, nLines=0;
-            if( GDALSuggestedWarpOutput( _gdalDataset, 
+            if( GDALSuggestedWarpOutput( _gdalDataset->getGDALDataset(), 
                                          GDALGenImgProjTransform, hTransformArg, 
                                          adfDstGeoTransform, &nPixels, &nLines )
                 != CE_None )
@@ -410,6 +407,8 @@ void SourceData::readImage(DestinationData& destination)
 
     if (destination._image.valid())
     {
+        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getGeospatialDataset();
+        if (!_gdalDataset) return;
         
         GeospatialExtents s_bb = getExtents(destination._cs.get());
         GeospatialExtents d_bb = destination._extents;
@@ -768,6 +767,9 @@ void SourceData::readHeightField(DestinationData& destination)
     if (destination._heightField.valid())
     {
         log(osg::INFO,"Reading height field");
+
+        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getGeospatialDataset();
+        if (_gdalDataset.valid()) return;
 
         GeospatialExtents s_bb = getExtents(destination._cs.get());
         GeospatialExtents d_bb = destination._extents;
@@ -1180,8 +1182,11 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
 /*      Create a transformation object from the source to               */
 /*      destination coordinate system.                                  */
 /* -------------------------------------------------------------------- */
+    
+    osg::ref_ptr<GeospatialDataset> dataset = getGeospatialDataset();
+
     void *hTransformArg = 
-         GDALCreateGenImgProjTransformer( _sourceData->_gdalDataset,_sourceData->_cs->getCoordinateSystem().c_str(),
+         GDALCreateGenImgProjTransformer( dataset->getGDALDataset(),_sourceData->_cs->getCoordinateSystem().c_str(),
                                           NULL, cs->getCoordinateSystem().c_str(),
                                           TRUE, 0.0, 1 );
 
@@ -1193,7 +1198,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
 
     double adfDstGeoTransform[6];
     int nPixels=0, nLines=0;
-    if( GDALSuggestedWarpOutput( _sourceData->_gdalDataset, 
+    if( GDALSuggestedWarpOutput( dataset->getGDALDataset(), 
                                  GDALGenImgProjTransform, hTransformArg, 
                                  adfDstGeoTransform, &nPixels, &nLines )
         != CE_None )
@@ -1234,14 +1239,14 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
     
     GDALDestroyGenImgProjTransformer( hTransformArg );
 
-    GDALDataType eDT = GDALGetRasterDataType(GDALGetRasterBand(_sourceData->_gdalDataset,1));
+    GDALDataType eDT = GDALGetRasterDataType(dataset->GetRasterBand(1));
     
 
 /* --------------------------------------------------------------------- */
 /*    Create the file                                                    */
 /* --------------------------------------------------------------------- */
 
-    int numSourceBands = GDALGetRasterCount(_sourceData->_gdalDataset);
+    int numSourceBands = dataset->GetRasterCount();
     int numDestinationBands = (numSourceBands >= 3) ? 4 : numSourceBands; // expand RGB to RGBA, but leave other formats unchanged
 
     GDALDatasetH hDstDS = GDALCreate( hDriver, filename.c_str(), nPixels, nLines, 
@@ -1263,7 +1268,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
 // Set up the transformer along with the new datasets.
 
     hTransformArg = 
-         GDALCreateGenImgProjTransformer( _sourceData->_gdalDataset,_sourceData->_cs->getCoordinateSystem().c_str(),
+         GDALCreateGenImgProjTransformer( dataset->getGDALDataset(),_sourceData->_cs->getCoordinateSystem().c_str(),
                                           hDstDS, cs->getCoordinateSystem().c_str(),
                                           TRUE, 0.0, 1 );
 
@@ -1277,7 +1282,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
 /* -------------------------------------------------------------------- */
     GDALColorTableH hCT;
 
-    hCT = GDALGetRasterColorTable( GDALGetRasterBand(_sourceData->_gdalDataset,1) );
+    hCT = GDALGetRasterColorTable( dataset->GetRasterBand(1) );
     if( hCT != NULL )
         GDALSetRasterColorTable( GDALGetRasterBand(hDstDS,1), hCT );
 
@@ -1286,7 +1291,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
 /* -------------------------------------------------------------------- */
     GDALWarpOptions *psWO = GDALCreateWarpOptions();
 
-    psWO->hSrcDS = _sourceData->_gdalDataset;
+    psWO->hSrcDS = dataset->getGDALDataset();
     psWO->hDstDS = hDstDS;
 
     psWO->pfnTransformer = pfnTransformer;
@@ -1322,7 +1327,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
     for(i = 0; i < psWO->nBandCount; i++ )
     {
         int success = 0;
-        GDALRasterBand* band = (i<numSourceBands) ? _sourceData->_gdalDataset->GetRasterBand(i+1) : 0;
+        GDALRasterBand* band = (i<numSourceBands) ? dataset->GetRasterBand(i+1) : 0;
         double noDataValue = band ? band->GetNoDataValue(&success) : 0.0;
         double new_noDataValue = 0;
         if (success)
@@ -1456,11 +1461,12 @@ void Source::consolodateRequiredResolutions()
 
 void Source::buildOverviews()
 {
-    if (_sourceData.valid() && _sourceData->_gdalDataset )
+    osg::ref_ptr<GeospatialDataset> dataset = getGeospatialDataset();
+    if (dataset.valid() )
     {
         int anOverviewList[5] = { 2, 4, 8, 16, 32 };
-        GDALBuildOverviews( _sourceData->_gdalDataset, "AVERAGE", 4, anOverviewList, 0, NULL, 
-                                GDALTermProgress/*GDALDummyProgress*/, NULL );
+        dataset->BuildOverviews( "AVERAGE", 4, anOverviewList, 0, NULL, 
+                                 GDALTermProgress/*GDALDummyProgress*/, NULL );
 
     }
 }

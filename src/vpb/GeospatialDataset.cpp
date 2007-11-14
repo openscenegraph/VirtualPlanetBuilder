@@ -12,6 +12,7 @@
 */
 
 #include <vpb/FileSystem>
+#include <osg/Notify>
 
 using namespace vpb;
 
@@ -19,16 +20,21 @@ GeospatialDataset::GeospatialDataset(const std::string& filename)
 {
     updateTimeStamp();
     _dataset = (GDALDataset*)GDALOpen(filename.c_str(), GA_ReadOnly);
+    
+    //osg::notify(osg::NOTICE)<<"GDALOpen("<<filename<<") = "<<_dataset<<std::endl;
 }
 
 GeospatialDataset::GeospatialDataset(GDALDataset* dataset)
 {
+    //osg::notify(osg::NOTICE)<<"GDALOpen(dataset)="<<_dataset<<std::endl;
+
     updateTimeStamp();
     _dataset = dataset;
 }
 
 GeospatialDataset::~GeospatialDataset()
 {
+    //osg::notify(osg::NOTICE)<<"GDALClose("<<_dataset<<")"<<std::endl;
     if (_dataset) GDALClose(_dataset);
 }
 
@@ -93,4 +99,10 @@ CPLErr GeospatialDataset::BuildOverviews( const char * a, int b, int * c,
 {
     updateTimeStamp();
     return _dataset->BuildOverviews(a,b,c,d,e,f,g);
+}
+
+const char *GeospatialDataset::GetProjectionRef(void)
+{
+    updateTimeStamp();
+    return _dataset->GetProjectionRef();
 }

@@ -24,12 +24,13 @@
 namespace vpb
 {
 
-class FileSystem;
-
 class VPB_EXPORT GeospatialDataset : public osg::Referenced
 {
     public:
     
+        GeospatialDataset(const std::string& filename);
+        GeospatialDataset(GDALDataset* dataset);
+
         CPLErr GetGeoTransform( double * ptr);
         
         int         GetRasterXSize( void );
@@ -40,6 +41,8 @@ class VPB_EXPORT GeospatialDataset : public osg::Referenced
         int    GetGCPCount();
         const char *GetGCPProjection();
         const GDAL_GCP *GetGCPs();
+        
+        const char *GetProjectionRef(void);
 
         CPLErr      RasterIO( GDALRWFlag a, int b, int c, int d, int e,
                               void * f, int g, int h, GDALDataType i,
@@ -55,19 +58,11 @@ class VPB_EXPORT GeospatialDataset : public osg::Referenced
         double getTimeStamp() const { return _timeStamp; }
         
     protected:
-    
-        GeospatialDataset(const std::string& filename);
-        
-        GeospatialDataset(GDALDataset* dataset);
 
         virtual ~GeospatialDataset();
         
         GDALDataset*    _dataset;
         double          _timeStamp;
-        
-        // only allow FileSystem to call constructors.
-        friend class FileSystem;
-        
 };
 
 }

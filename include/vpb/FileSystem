@@ -37,6 +37,12 @@ class VPB_EXPORT FileSystem : public osg::Referenced
     
         void readEnvironmentVariables();
         
+
+        void setTrimOldestTiles(bool trimOldest) { _trimOldestTiles = trimOldest; }
+        bool getTrimOldestTiles() const { return _trimOldestTiles; }
+        
+        void setNumUnusedDatasetsToTrimFromCache(unsigned int num) { _numUnusedDatasetsToTrimFromCache = num; }
+        unsigned int getNumUnusedDatasetsToTrimFromCache() const { return _numUnusedDatasetsToTrimFromCache; }
         
         void setMaximumNumDatasets(unsigned int maxNumDatasets);
         unsigned int getMaximumNumDatasets() const { return _maxNumDatasets; }
@@ -46,6 +52,8 @@ class VPB_EXPORT FileSystem : public osg::Referenced
         void clearUnusedDatasets(unsigned int numToClear=1);
         
         GeospatialDataset* openGeospatialDataset(const std::string& filename);
+
+        typedef std::map<std::string, osg::ref_ptr<GeospatialDataset> >  DatasetMap;
 
     protected:
     
@@ -59,8 +67,9 @@ class VPB_EXPORT FileSystem : public osg::Referenced
         std::string         _taskDirectory;
         std::string         _machineFileName;
         
-        typedef std::map<std::string, osg::ref_ptr<GeospatialDataset> >  DatasetMap;
         
+        bool                _trimOldestTiles;
+        unsigned int        _numUnusedDatasetsToTrimFromCache;
         unsigned int        _maxNumDatasets;
         DatasetMap          _datasetMap;
         

@@ -14,6 +14,8 @@
 #include <vpb/FileSystem>
 #include <vpb/BuildLog>
 
+#include <map>
+
 using namespace vpb;
  
 osg::ref_ptr<FileSystem>& FileSystem::instance()
@@ -31,7 +33,9 @@ std::string& vpb::getMachineFileName() { return FileSystem::instance()->getMachi
 
 FileSystem::FileSystem()
 {
-    _maxNumDatasets = getdtablesize();
+    _trimOldestTiles = true;
+    _numUnusedDatasetsToTrimFromCache = 10;
+    _maxNumDatasets = (unsigned int)(double(getdtablesize()) * 0.8);
     
     readEnvironmentVariables();
 }
@@ -77,6 +81,33 @@ void FileSystem::readEnvironmentVariables()
     {
         _machineFileName = str;
     }
+    
+    str = getenv("VPB_TRIM_TILES_SCHEME");
+    if (str) 
+    {
+        if (strcmp(str,"OLDEST")==0 || strcmp(str,"oldest")==0 ||  strcmp(str,"Oldest")==0)
+        {
+            _trimOldestTiles = true;
+        }
+        else
+        {
+            _trimOldestTiles = false;
+        }
+    }
+
+    str = getenv("VPB_NUM_UNUSED_DATASETS_TO_TRIM_FROM_CACHE");
+    if (str) 
+    {
+        _numUnusedDatasetsToTrimFromCache = atoi(str);
+    }
+
+    str = getenv("VPB_MAXINUM_NUM_OPEN_DATASETS");
+    if (str) 
+    {
+        _maxNumDatasets = atoi(str);
+    }
+
+    
 }
 
 void FileSystem::clearDatasetCache()
@@ -84,8 +115,79 @@ void FileSystem::clearDatasetCache()
     _datasetMap.clear();
 }
 
+
+class TrimN
+{
+public:
+
+    TrimN(unsigned int n, bool oldest):
+        _oldest(oldest),
+        _num(n) {}
+    
+    
+    inline void add(FileSystem::DatasetMap::iterator itr)
+    {
+        if (itr->second->referenceCount()!=1) return;
+    
+        double t = itr->second->getTimeStamp();
+        if (_timeIteratorMap.size() < _num) 
+        {
+            _timeIteratorMap.insert(TimeIteratorMap::value_type(t,itr));
+        }
+        else if (_oldest)
+        {
+            if (t < _timeIteratorMap.rbegin()->first)
+            {
+                // erase the end entry
+                _timeIteratorMap.erase(_timeIteratorMap.rbegin()->first);
+                _timeIteratorMap.insert(TimeIteratorMap::value_type(t,itr));
+            }            
+        }
+        else
+        {
+            if (t > _timeIteratorMap.begin()->first)
+            {
+                // erase the first entry
+                _timeIteratorMap.erase(_timeIteratorMap.begin()->first);
+                _timeIteratorMap.insert(TimeIteratorMap::value_type(t,itr));
+            }
+        }
+    }
+    
+    void add(FileSystem::DatasetMap& datasetMap)
+    {
+        for(FileSystem::DatasetMap::iterator itr = datasetMap.begin();
+            itr != datasetMap.end();
+            ++itr)
+        {
+            add(itr);
+        }
+    }
+    
+    void eraseFrom(FileSystem::DatasetMap& datasetMap)
+    {
+        for(TimeIteratorMap::iterator itr = _timeIteratorMap.begin();
+            itr != _timeIteratorMap.end();
+            ++itr)
+        {
+            datasetMap.erase(itr->second);
+        }
+    }
+    
+    typedef std::multimap<double, FileSystem::DatasetMap::iterator> TimeIteratorMap;
+    
+    bool            _oldest;
+    unsigned int    _num;
+    TimeIteratorMap _timeIteratorMap;    
+};
+
 void FileSystem::clearUnusedDatasets(unsigned int numToClear)
 {
+    TrimN lowerN(numToClear, _trimOldestTiles);
+
+    lowerN.add(_datasetMap);    
+    lowerN.eraseFrom(_datasetMap);
+    
     _datasetMap.clear();
 }
 
@@ -93,11 +195,14 @@ GeospatialDataset* FileSystem::openGeospatialDataset(const std::string& filename
 {
     // first check to see if dataset already exists in cache, if so return it.
     DatasetMap::iterator itr = _datasetMap.find(filename);
-    if (itr != _datasetMap.end()) return itr->second.get();
+    if (itr != _datasetMap.end()) 
+    {
+        //osg::notify(osg::NOTICE)<<"FileSystem::openGeospatialDataset("<<filename<<") returning existing entry, ref count "<<itr->second->referenceCount()<<std::endl;
+        return itr->second.get();
+    }
 
     // make sure there is room available for this new Dataset
-    unsigned int numToClear = 10;
-    if (_datasetMap.size()>=_maxNumDatasets) clearUnusedDatasets(numToClear);
+    if (_datasetMap.size()>=_maxNumDatasets) clearUnusedDatasets(_numUnusedDatasetsToTrimFromCache);
     
     // double check to make sure there is room to open a new dataset
     if (_datasetMap.size()>=_maxNumDatasets)
@@ -106,6 +211,8 @@ GeospatialDataset* FileSystem::openGeospatialDataset(const std::string& filename
         return 0;
     }
     
+    //osg::notify(osg::NOTICE)<<"FileSystem::openGeospatialDataset("<<filename<<") requires new entry "<<std::endl;
+
     // open the new dataset.
     GeospatialDataset* dataset = new GeospatialDataset(filename);
 
