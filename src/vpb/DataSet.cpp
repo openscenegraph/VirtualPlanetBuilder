@@ -371,7 +371,7 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     if (!_sourceGraph) return;
 
     // ensure we have a valid coordinate system
-    if (!_destinationCoordinateSystem)
+    if (_destinationCoordinateSystemString.empty())
     {
         for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
         {

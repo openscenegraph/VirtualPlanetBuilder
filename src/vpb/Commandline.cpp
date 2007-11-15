@@ -166,14 +166,6 @@ static void processFile(const std::string& filename,
                     terrain->setElevationLayer(compositeLayer);
                 }
             }
-            
-            if (!compositeLayer)
-            {
-                compositeLayer = new osgTerrain::CompositeLayer;
-                if (existingLayer) compositeLayer->addLayer(existingLayer);
-                
-                
-            }
 
             if (!currentCS.empty() || geoTransformSet)
             {
