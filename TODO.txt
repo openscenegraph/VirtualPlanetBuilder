@@ -3,10 +3,10 @@ Proivisional priority list for items to write in October 2007.
 Already completed:
  1) Added vpbmaster better cancellation.
  4) Incremental build - i.e. ability to rerun from an existing tasks file.
+ 6) Handling of ten of thousands of input files (i.e. will currently break the number of permissable open file handles.)
 
 Items left to do:
  2) Progress reporting with estimated time to completion.
  3) Better split level estimation
  5) Automatic set up of reprojection task if required.
- 6) Handling of ten of thousands of input files (i.e. will currently break the number of permissable open file handles.)
  7) Write up on the VPB wiki website about use of distributed/incremental build.
