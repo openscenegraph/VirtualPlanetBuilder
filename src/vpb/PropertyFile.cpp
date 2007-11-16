@@ -54,7 +54,6 @@ struct FileProxy
     
     ~FileProxy()
     {
-    
         // osg::notify(osg::NOTICE)<<"Closing _fileID = "<<_fileID<<std::endl;
         if (_fileID)
         {
@@ -73,31 +72,33 @@ struct FileProxy
     int lockf (int __cmd, offset_t __len)
     {
         // osg::notify(osg::NOTICE)<<"lockf("<<_fileID<<", "<<__cmd<<", "<<__len<<")"<<std::endl;
-        ::lockf(_fileID, __cmd, __len);
+        return ::lockf(_fileID, __cmd, __len);
     }
     
     ssize_t read (void *__buf, size_t __nbytes)
     {
         // osg::notify(osg::NOTICE)<<"read("<<_fileID<<", "<<__buf<<", "<<__nbytes<<")"<<std::endl;
-        ::read(_fileID, __buf, __nbytes);
+        return ::read(_fileID, __buf, __nbytes);
     }
     
     ssize_t write (__const void *__buf, size_t __n)
     {
         // osg::notify(osg::NOTICE)<<"write("<<_fileID<<", "<<__buf<<", "<<__n<<")"<<std::endl;
-        ::write(_fileID, __buf, __n);
+        _requiresSync = true;
+        return ::write(_fileID, __buf, __n);
     }
     
     int ftruncate (__off_t __length)
     {
         // osg::notify(osg::NOTICE)<<"ftruncate("<<_fileID<<", "<<__length<<")"<<std::endl;
-        ::ftruncate(_fileID, __length);
+        _requiresSync = true;
+        return ::ftruncate(_fileID, __length);
     }
     
     int fsync ()
     {
         _requiresSync = false;
-        ::fsync(_fileID);
+        return ::fsync(_fileID);
     }
 
     int _fileID;
@@ -162,7 +163,7 @@ PropertyFile::PropertyFile(const std::string& filename):
     _currentData(0)
 {
     // make sure the file exists.
-    FileProxy file(filename);
+    // FileProxy file(filename);
 }
 
 PropertyFile::~PropertyFile()
@@ -212,6 +213,7 @@ bool PropertyFile::read()
         std::swap(_currentSize, _previousSize);
         std::swap(_currentData, _previousData);
 
+        file.lseek(0, SEEK_SET);
         int size = file.lseek(0, SEEK_END);
 
         if (_currentSize!=size) 
@@ -222,11 +224,13 @@ bool PropertyFile::read()
 
         data = _currentData;
 
-#if 0
+#if 1
         file.lseek(0, SEEK_SET);
 #endif
 
         _currentSize = file.read(data, size);
+
+        // osg::notify(osg::NOTICE)<<"ProperyFile::read() filename= "<<_fileName<<" size= "<<size<<" _currentSize = "<<_currentSize<<std::endl;
 
 #if 0
         file.lseek(0, SEEK_SET);
@@ -240,8 +244,11 @@ bool PropertyFile::read()
     bool dataChanged = (_currentSize != _previousSize) ||
                        memcmp(_currentData, _previousData, _currentSize)!=0;
 
+    //osg::notify(osg::NOTICE)<<"ProperyFile::read() filename= "<<_fileName<<" : dataChanged "<<dataChanged<<std::endl;
+
     if (dataChanged)
     {
+    
         _propertyMap.clear();
     
         char* end = data + _currentSize;
@@ -317,6 +324,8 @@ bool PropertyFile::write()
         osg::notify(osg::NOTICE)<<"  filename: "<<_fileName<<std::endl;
     }
 #endif
+
+    file.lseek(0, SEEK_SET);
 
     for(PropertyMap::iterator itr = _propertyMap.begin();
         itr != _propertyMap.end();
