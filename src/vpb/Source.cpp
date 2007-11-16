@@ -769,7 +769,7 @@ void SourceData::readHeightField(DestinationData& destination)
         log(osg::INFO,"Reading height field");
 
         osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getGeospatialDataset();
-        if (_gdalDataset.valid()) return;
+        if (!_gdalDataset.valid()) return;
 
         GeospatialExtents s_bb = getExtents(destination._cs.get());
         GeospatialExtents d_bb = destination._extents;
