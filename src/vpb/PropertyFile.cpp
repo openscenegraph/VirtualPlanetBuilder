@@ -21,6 +21,91 @@
 
 using namespace vpb;
 
+namespace vpb
+{        
+
+struct FileProxy
+{
+    typedef unsigned int offset_t;
+
+    FileProxy(const std::string& filename):
+        _fileID(0)
+    {
+        if (access(filename.c_str(), F_OK)==0)
+        {
+            _fileID = open (filename.c_str(), O_RDWR);
+
+            // osg::notify(osg::NOTICE)<<"Opened existing file "<<filename<<" _fileID = "<<_fileID<<std::endl;
+        }
+        else
+        {
+            _requiresSync = true;
+
+            FILE* file = fopen(filename.c_str(), "wr");
+            fclose(file);
+
+            _fileID = open (filename.c_str(), O_RDWR);
+
+            fchmod(_fileID, S_IREAD | S_IWRITE | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+
+            // osg::notify(osg::NOTICE)<<"Opened new file "<<filename<<" _fileID = "<<_fileID<<std::endl;
+        }
+    }
+    
+    ~FileProxy()
+    {
+    
+        // osg::notify(osg::NOTICE)<<"Closing _fileID = "<<_fileID<<std::endl;
+        if (_fileID)
+        {
+            if (_requiresSync) fsync();
+            
+            close(_fileID);
+        }
+    }
+
+    offset_t lseek (offset_t __offset, int __whence)
+    {
+        // osg::notify(osg::NOTICE)<<"lseek("<<_fileID<<", "<<__offset<<", "<<__whence<<")"<<std::endl;
+        return ::lseek(_fileID, __offset, __whence);
+    }
+    
+    int lockf (int __cmd, offset_t __len)
+    {
+        // osg::notify(osg::NOTICE)<<"lockf("<<_fileID<<", "<<__cmd<<", "<<__len<<")"<<std::endl;
+        ::lockf(_fileID, __cmd, __len);
+    }
+    
+    ssize_t read (void *__buf, size_t __nbytes)
+    {
+        // osg::notify(osg::NOTICE)<<"read("<<_fileID<<", "<<__buf<<", "<<__nbytes<<")"<<std::endl;
+        ::read(_fileID, __buf, __nbytes);
+    }
+    
+    ssize_t write (__const void *__buf, size_t __n)
+    {
+        // osg::notify(osg::NOTICE)<<"write("<<_fileID<<", "<<__buf<<", "<<__n<<")"<<std::endl;
+        ::write(_fileID, __buf, __n);
+    }
+    
+    int ftruncate (__off_t __length)
+    {
+        // osg::notify(osg::NOTICE)<<"ftruncate("<<_fileID<<", "<<__length<<")"<<std::endl;
+        ::ftruncate(_fileID, __length);
+    }
+    
+    int fsync ()
+    {
+        _requiresSync = false;
+        ::fsync(_fileID);
+    }
+
+    int _fileID;
+    bool _requiresSync;
+};
+
+}
+
 bool vpb::Parameter::getString(std::string& str)
 {
     switch(_type)
@@ -69,7 +154,6 @@ bool vpb::Parameter::getString(std::string& str)
 
 PropertyFile::PropertyFile(const std::string& filename):
     _fileName(filename),
-    _fileID(0),
     _syncCount(0),
     _propertiesModified(false),
     _previousSize(0),
@@ -77,29 +161,17 @@ PropertyFile::PropertyFile(const std::string& filename):
     _currentSize(0),
     _currentData(0)
 {
-    if (access(filename.c_str(), F_OK)==0)
-    {
-        _fileID = open (filename.c_str(), O_RDWR);
-    }
-    else
-    {
-        FILE* file = fopen(filename.c_str(), "wr");
-        fclose(file);
-
-        _fileID = open (filename.c_str(), O_RDWR);
-        
-        fchmod(_fileID, S_IREAD | S_IWRITE | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-    }
+    // make sure the file exists.
+    FileProxy file(filename);
 }
 
 PropertyFile::~PropertyFile()
 {
-    if (_fileID) close(_fileID);
-
     if (_previousData) delete [] _previousData;
     if (_currentData) delete [] _currentData;
 }
 
+    
 void PropertyFile::setProperty(const std::string& property, Parameter value)
 {
     std::string originalValue = _propertyMap[property];
@@ -125,35 +197,45 @@ bool PropertyFile::getProperty(const std::string& property, Parameter value) con
 
 bool PropertyFile::read()
 {
-    int status = 0;
-
-    lseek(_fileID, 0, SEEK_SET);
-
-    status = lockf(_fileID, F_LOCK, 0);
-    if (status!=0) perror("lock error");
-    
-    std::swap(_currentSize, _previousSize);
-    std::swap(_currentData, _previousData);
-    
-    int size = lseek(_fileID, 0, SEEK_END);
-
-    if (_currentSize!=size) 
+    char* data = 0;
     {
-        if (_currentData) delete [] _currentData;
-        _currentData = new char[size];
-    }
-    
-    char* data = _currentData;
-    
-    status = lseek(_fileID, 0, SEEK_SET);
+        FileProxy file(_fileName);
 
-    _currentSize = ::read(_fileID, data, size);
+#if 0
+        int status = 0;
+        file.lseek(0, SEEK_SET);
 
-    lseek(_fileID, 0, SEEK_SET);
+        status = file.lockf(F_LOCK, 0);
+        if (status!=0) perror("read: lock error");
+#endif
 
-    status = lockf(_fileID, F_ULOCK, 0);
-    if (status!=0) perror("file unlock error");
-    
+        std::swap(_currentSize, _previousSize);
+        std::swap(_currentData, _previousData);
+
+        int size = file.lseek(0, SEEK_END);
+
+        if (_currentSize!=size) 
+        {
+            if (_currentData) delete [] _currentData;
+            _currentData = new char[size];
+        }
+
+        data = _currentData;
+
+#if 0
+        file.lseek(0, SEEK_SET);
+#endif
+
+        _currentSize = file.read(data, size);
+
+#if 0
+        file.lseek(0, SEEK_SET);
+
+        status = file.lockf(F_ULOCK, 0);
+        if (status!=0) perror("read: file unlock error");
+#endif
+
+    }    
 
     bool dataChanged = (_currentSize != _previousSize) ||
                        memcmp(_currentData, _previousData, _currentSize)!=0;
@@ -223,31 +305,44 @@ bool PropertyFile::write()
 
     int status = 0;
     
-    lseek(_fileID, 0, SEEK_SET);
+    FileProxy file(_fileName);
+    
+#if 0
+    file.lseek(0, SEEK_SET);
 
-    status = lockf(_fileID, F_LOCK, 0);
-    if (status!=0) perror("file lock error");
+    status = file.lockf(F_LOCK, 0);
+    if (status!=0)
+    {
+        perror("write: file lock error");
+        osg::notify(osg::NOTICE)<<"  filename: "<<_fileName<<std::endl;
+    }
+#endif
 
     for(PropertyMap::iterator itr = _propertyMap.begin();
         itr != _propertyMap.end();
         ++itr)
     {
-        ::write(_fileID, itr->first.c_str(), itr->first.length());
-        ::write(_fileID, " : ", 3);
-        ::write(_fileID, itr->second.c_str(), itr->second.length());
-        ::write(_fileID, "\n", 1);
+        file.write(itr->first.c_str(), itr->first.length());
+        file.write(" : ", 3);
+        file.write(itr->second.c_str(), itr->second.length());
+        file.write("\n", 1);
     }
     
     
-    ftruncate(_fileID, lseek(_fileID, 0, SEEK_CUR) );
+    file.ftruncate(file.lseek(0, SEEK_CUR) );
 
-    lseek(_fileID, 0, SEEK_SET);
+#if 0
+    file.lseek(0, SEEK_SET);
 
-    fsync(_fileID);
+    file.fsync();
 
-    status = lockf(_fileID, F_ULOCK, 0);
-    if (status!=0) perror("file unlock error");
-
+    status = file.lockf(F_ULOCK, 0);
+    if (status!=0)
+    {
+        perror("write: file unlock error");
+        osg::notify(osg::NOTICE)<<"  filename: "<<_fileName<<std::endl;
+    }
+#endif
     
     _propertiesModified = false;
 }

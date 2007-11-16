@@ -87,7 +87,7 @@ class VPB_EXPORT PropertyFile : public osg::Referenced
         const std::string& getFileName() const { return _fileName; }
         
         /** return true if this TaskFile object is attached to a valid file.*/
-        bool valid() const { return _fileID!=0; }
+        bool valid() const { return true; }
 
         /** Set a property on the TaskFile object.*/
         void setProperty(const std::string& property, Parameter value);
@@ -111,7 +111,6 @@ class VPB_EXPORT PropertyFile : public osg::Referenced
         PropertyMap _propertyMap;
         
         std::string     _fileName;
-        int             _fileID;
         int             _syncCount;
         bool            _propertiesModified;
         
