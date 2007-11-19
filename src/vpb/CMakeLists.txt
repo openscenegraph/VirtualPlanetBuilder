@@ -17,6 +17,8 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/Destination
 	${HEADER_PATH}/Export
 	${HEADER_PATH}/MachinePool
+	${HEADER_PATH}/FileCache
+	${HEADER_PATH}/FileDetails
 	${HEADER_PATH}/FileSystem
 	${HEADER_PATH}/PropertyFile
 	${HEADER_PATH}/Serializer
@@ -40,6 +42,8 @@ ADD_LIBRARY(${LIB_NAME}
 	DataSet.cpp
 	GeospatialDataset.cpp
 	Destination.cpp
+	FileCache.cpp
+	FileDetails.cpp
 	FileSystem.cpp
         MachinePool.cpp
         PropertyFile.cpp

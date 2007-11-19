@@ -107,6 +107,14 @@ void FileSystem::readEnvironmentVariables()
         _maxNumDatasets = atoi(str);
     }
 
+
+    str = getenv("VPB_CACHE_FILE");
+    if (str) 
+    {
+        osg::notify(osg::NOTICE)<<"VPB_CACHE_FILE = "<<str<<std::endl;
+        _fileCache = new FileCache;
+        _fileCache->read(str);
+    }
     
 }
 
@@ -221,4 +229,16 @@ GeospatialDataset* FileSystem::openGeospatialDataset(const std::string& filename
     
     // return it.
     return dataset;
+}
+
+GeospatialDataset* FileSystem::openOptimumGeospatialDataset(const std::string& filename, const SpatialProperties& sp)
+{
+    if (_fileCache.valid())
+    {
+        return openGeospatialDataset(_fileCache->getOptimimumFile(filename, sp));
+    }
+    else
+    {
+        return openGeospatialDataset(filename);
+    }
 }

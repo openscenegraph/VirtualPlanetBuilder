@@ -17,6 +17,7 @@
 #include <osgDB/FileUtils>
 
 #include <vpb/GeospatialDataset>
+#include <vpb/FileCache>
 
 namespace vpb
 {
@@ -53,6 +54,13 @@ class VPB_EXPORT FileSystem : public osg::Referenced
         
         GeospatialDataset* openGeospatialDataset(const std::string& filename);
 
+        GeospatialDataset* openOptimumGeospatialDataset(const std::string& filename, const SpatialProperties& sp);
+
+        void setFileCache(FileCache* fileCache) { _fileCache = fileCache; }
+        FileCache* getFileCache() { return _fileCache.get(); }
+        const FileCache* getFileCache() const { return _fileCache.get(); }
+
+
         typedef std::map<std::string, osg::ref_ptr<GeospatialDataset> >  DatasetMap;
 
     protected:
@@ -60,18 +68,20 @@ class VPB_EXPORT FileSystem : public osg::Referenced
         FileSystem();
         virtual ~FileSystem();
         
-        osgDB::FilePathList _sourcePaths;
-        std::string         _destinationDirectory;
-        std::string         _intermediateDirectory;
-        std::string         _logDirectory;
-        std::string         _taskDirectory;
-        std::string         _machineFileName;
+        osgDB::FilePathList         _sourcePaths;
+        std::string                 _destinationDirectory;
+        std::string                 _intermediateDirectory;
+        std::string                 _logDirectory;
+        std::string                 _taskDirectory;
+        std::string                 _machineFileName;
         
         
-        bool                _trimOldestTiles;
-        unsigned int        _numUnusedDatasetsToTrimFromCache;
-        unsigned int        _maxNumDatasets;
-        DatasetMap          _datasetMap;
+        bool                        _trimOldestTiles;
+        unsigned int                _numUnusedDatasetsToTrimFromCache;
+        unsigned int                _maxNumDatasets;
+        DatasetMap                  _datasetMap;
+        
+        osg::ref_ptr<FileCache>     _fileCache;
         
         
 };
