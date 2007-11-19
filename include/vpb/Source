@@ -132,11 +132,19 @@ public:
     void setTemporaryFile(bool temporaryFile) { _temporaryFile = temporaryFile; }
     bool getTemporaryFile() const { return _temporaryFile; }
 
+    GeospatialDataset* getOptimumGeospatialDataset(const SpatialProperties& sp) const
+    {
+        if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
+        else return FileSystem::instance()->openOptimumGeospatialDataset(_filename,sp);
+    }
+
+
     GeospatialDataset* getGeospatialDataset() const
     {
         if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
         else return FileSystem::instance()->openGeospatialDataset(_filename);
     }
+
 
     void setGdalDataset(GDALDataset* gdalDataset);
     GDALDataset* getGdalDataset();

@@ -407,7 +407,7 @@ void SourceData::readImage(DestinationData& destination)
 
     if (destination._image.valid())
     {
-        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getGeospatialDataset();
+        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getOptimumGeospatialDataset(destination);
         if (!_gdalDataset) return;
         
         GeospatialExtents s_bb = getExtents(destination._cs.get());
@@ -768,7 +768,7 @@ void SourceData::readHeightField(DestinationData& destination)
     {
         log(osg::INFO,"Reading height field");
 
-        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getGeospatialDataset();
+        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getOptimumGeospatialDataset(destination);
         if (!_gdalDataset.valid()) return;
 
         GeospatialExtents s_bb = getExtents(destination._cs.get());

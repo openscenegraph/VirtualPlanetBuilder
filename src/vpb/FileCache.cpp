@@ -46,6 +46,18 @@ bool FileCache::write(const std::string& filename)
 std::string FileCache::getOptimimumFile(const std::string& filename, const SpatialProperties& sp)
 {
     osg::notify(osg::NOTICE)<<"FileCache::getOptimimumFile("<<filename<<")"<<std::endl;
+    VariantMap::iterator itr = _variantMap.find(filename);
+    if (itr==_variantMap.end())
+    {
+        return filename;
+    }
+    
+    Variants& variants = itr->second;
+
+    // first check cached files on 
+
+    // second check for files that fit the required spatial properties    
+    
     return filename;
 }
 
