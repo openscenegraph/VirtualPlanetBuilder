@@ -41,6 +41,8 @@ static OperationLogMap s_opertionLogMap;
 
 void vpb::log(osg::NotifySeverity level, const char* format, ...)
 {
+    if (level>osg::getNotifyLevel()) return;
+
     OpenThreads::Thread* thread = OpenThreads::Thread::CurrentThread();
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_opertionLogMapMutex);
     

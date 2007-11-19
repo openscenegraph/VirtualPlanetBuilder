@@ -186,6 +186,8 @@ class Logger
 
         void log(osg::NotifySeverity level, const char* format, ...)
         {
+            if (level>osg::getNotifyLevel()) return;
+        
             va_list args; va_start(args, format);
             if (_buildLog.valid())
             {
@@ -193,7 +195,10 @@ class Logger
                 vsnprintf(str, sizeof(str), format, args);
                 _buildLog->log(level, str);
             }
-            else if (level<=osg::getNotifyLevel()) { vprintf(format, args); printf("\n"); }
+            else 
+            {
+                vprintf(format, args); printf("\n");
+            }
             va_end(args);
         }
 
