@@ -12,9 +12,8 @@
 */
 
 #include <vpb/Task>
+#include <vpb/FileSystem>
 
-#include <fcntl.h>
-#include <unistd.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -45,73 +44,9 @@ void Task::init(osg::ArgumentParser& arguments)
     
     osg::notify(osg::NOTICE)<<"Task::init() Application "<<application<<std::endl;
     
-    int pid = getpid();
-    setProperty("pid",pid);
+    setProperty("pid",getProcessID());
     
-    char hostname[1024];
-    if (gethostname(hostname, sizeof(hostname))==0)
-    {
-        std::string str(hostname);
-        setProperty("hostname",str);
-    }
-    
-    char domainname[1024];
-    if (getdomainname(domainname, sizeof(domainname))==0)
-    {
-        std::string str(domainname);
-        setProperty("domainname",str);
-    }
-    
-    char* loginname = getlogin();
-    if (loginname)
-    {
-        std::string str(loginname);
-        setProperty("loginname",str);
-    }
-    
-    char* usershell = getusershell();
-    if (usershell)
-    {
-        std::string str(usershell);
-        setProperty("usershell",str);
-    }
-
-    int tabelsize = getdtablesize();
-    setProperty("tablesize",tabelsize);
-}
-
-void Task::get(osg::ArgumentParser& arguments)
-{
-    std::cout<<"Task::get(osg::ArgumentParser&) not implemented yet"<<std::endl;
-}
-
-void Task::invoke(bool runInBackground)
-{
-    std::string application;
-    if (getProperty("application",application))
-    {
-        if (runInBackground)
-        {
-            application += std::string(" &");
-        }
-
-        system(application.c_str());
-    }
-}
-
-void Task::signal(int signal) const
-{
-    osg::notify(osg::NOTICE)<<"Task::signal("<<signal<<")"<<std::endl;
-    std::string pid;
-    if (getProperty("pid", pid))
-    {
-        std::stringstream signalcommand;
-        signalcommand << "kill -" << signal<<" "<<pid;
-
-        osg::notify(osg::NOTICE)<<"   "<<signalcommand.str()<<std::endl;
-
-        system(signalcommand.str().c_str());
-    }
+    setProperty("hostname",getLocalHostName());
 }
 
 void Task::setStatus(Status status)

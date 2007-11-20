@@ -18,18 +18,43 @@
 
 using namespace vpb;
  
-osg::ref_ptr<FileSystem>& FileSystem::instance()
+
+std::string vpb::getLocalHostName()
 {
-    static osg::ref_ptr<FileSystem> s_FileSystem = new FileSystem;
-    return s_FileSystem;
+    char hostname[1024];
+    if (gethostname(hostname, sizeof(hostname))==0)
+    {
+        return std::string(hostname);
+    }
+    else
+    {
+        return std::string();
+    }
 }
 
+int vpb::getProcessID()
+{
+    return getpid();
+}
+
+
+// convience methods for accessing FileSystem singletons variables.
 osgDB::FilePathList& vpb::getSourcePaths() { return FileSystem::instance()->getSourcePaths(); }
 std::string& vpb::getDestinationDirectory() { return FileSystem::instance()->getDestinationDirectory(); }
 std::string& vpb::getIntermediateDirectory() { return FileSystem::instance()->getIntermediateDirectory(); }
 std::string& vpb::getLogDirectory() { return FileSystem::instance()->getLogDirectory(); }
 std::string& vpb::getTaskDirectory() { return FileSystem::instance()->getTaskDirectory(); }
 std::string& vpb::getMachineFileName() { return FileSystem::instance()->getMachineFileName(); }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//  FileSytem singleton
+
+osg::ref_ptr<FileSystem>& FileSystem::instance()
+{
+    static osg::ref_ptr<FileSystem> s_FileSystem = new FileSystem;
+    return s_FileSystem;
+}
 
 FileSystem::FileSystem()
 {

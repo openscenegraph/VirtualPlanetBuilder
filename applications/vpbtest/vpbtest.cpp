@@ -10,6 +10,7 @@
 */
 
 #include <vpb/BuildOperation>
+#include <vpb/FileSystem>
 #include <vpb/Task>
 
 #include <osgDB/ReadFile>
@@ -18,8 +19,6 @@
 
 #include <iostream>
 
-#include <netdb.h>
-#include <unistd.h>
 #include <stdio.h>
 
 #include <ext/stdio_filebuf.h>
@@ -32,7 +31,7 @@ struct LoadOperation : public vpb::BuildOperation
     
     virtual void build()
     {
-        std::cout<<"PID="<<getpid()<<std::endl;
+        std::cout<<"PID="<<vpb::getProcessID()<<std::endl;
         // log("loading %s",_filename.c_str());
         osg::ref_ptr<osg::Object> object = osgDB::readObjectFile(_filename+".gdal");
         if (object.valid())
@@ -55,23 +54,7 @@ int main( int argc, char **argv )
 
     osg::ArgumentParser arguments(&argc,argv);
     
-    int signal=9;
     std::string filename;
-    if (arguments.read("-k",filename, signal) || arguments.read("-k",filename))
-    {
-        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename);
-        taskFile->read();
-        taskFile->signal(signal);
-    }
-
-    bool background = false;
-    if (arguments.read("-i",filename, background) || arguments.read("-i",filename))
-    {
-        osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename);
-        taskFile->read();
-        taskFile->invoke(background);
-    }
-
     if (arguments.read("-r",filename))
     {
         osg::ref_ptr<vpb::Task> taskFile = new vpb::Task(filename);

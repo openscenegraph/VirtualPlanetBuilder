@@ -12,6 +12,7 @@
 */
 
 #include <vpb/FileCache>
+#include <vpb/FileSystem>
 
 using namespace vpb;
 
@@ -55,6 +56,14 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const Spati
     Variants& variants = itr->second;
 
     // first check cached files on 
+    std::string hostname = getLocalHostName();
+    for(Variants::iterator vitr = variants.begin();
+        vitr != variants.end();
+        ++vitr)
+    {
+        FileDetails* fd = vitr->get();
+    }
+    
 
     // second check for files that fit the required spatial properties    
     

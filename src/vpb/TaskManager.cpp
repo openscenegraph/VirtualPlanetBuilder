@@ -25,7 +25,7 @@
 #include <osgDB/FileUtils>
 
 #include <iostream>
-#include <unistd.h>
+
 #include <signal.h>
 
 using namespace vpb;

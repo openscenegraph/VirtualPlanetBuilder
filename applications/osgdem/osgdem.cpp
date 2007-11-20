@@ -71,7 +71,7 @@ int main(int argc, char** argv)
             taskFile->read();
 
             taskFile->setStatus(vpb::Task::RUNNING);
-            taskFile->setProperty("pid",getpid());
+            taskFile->setProperty("pid",vpb::getProcessID());
             taskFile->write();
 
         }

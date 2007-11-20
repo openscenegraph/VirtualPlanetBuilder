@@ -22,6 +22,15 @@
 namespace vpb
 {
 
+extern VPB_EXPORT std::string getLocalHostName();
+extern VPB_EXPORT int getProcessID(); 
+
+extern VPB_EXPORT osgDB::FilePathList& getSourcePaths();
+extern VPB_EXPORT std::string& getDestinationDirectory();
+extern VPB_EXPORT std::string& getIntermediateDirectory();
+extern VPB_EXPORT std::string& getLogDirectory();
+extern VPB_EXPORT std::string& getTaskDirectory();
+extern VPB_EXPORT std::string& getMachineFileName();
 
 class VPB_EXPORT FileSystem : public osg::Referenced
 {
@@ -85,13 +94,6 @@ class VPB_EXPORT FileSystem : public osg::Referenced
         
         
 };
-
-extern VPB_EXPORT osgDB::FilePathList& getSourcePaths();
-extern VPB_EXPORT std::string& getDestinationDirectory();
-extern VPB_EXPORT std::string& getIntermediateDirectory();
-extern VPB_EXPORT std::string& getLogDirectory();
-extern VPB_EXPORT std::string& getTaskDirectory();
-extern VPB_EXPORT std::string& getMachineFileName();
 
 }
 

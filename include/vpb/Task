@@ -37,14 +37,6 @@ class VPB_EXPORT Task : public PropertyFile
         
         void init(osg::ArgumentParser& arguments);
 
-        void get(osg::ArgumentParser& arguments);
-
-        /** run the task specified in the task file. */
-        void invoke(bool runInBackground);
-
-        /** Send a signal to the task. */
-        void signal(int signal) const;
-
         enum Status
         {
             PENDING,

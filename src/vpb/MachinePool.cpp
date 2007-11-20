@@ -22,7 +22,6 @@
 #include <osgDB/Output>
 #include <osgDB/FileUtils>
 
-#include <unistd.h>
 #include <signal.h>
 
 #include <iostream>
@@ -156,10 +155,7 @@ Machine::~Machine()
 
 int Machine::exec(const std::string& application)
 {
-    char hostname[1024];
-    gethostname(hostname, sizeof(hostname));
-
-    bool runningRemotely = getHostName()!=hostname;
+    bool runningRemotely = getHostName()!=getLocalHostName();
 
     std::string executionString;
 
