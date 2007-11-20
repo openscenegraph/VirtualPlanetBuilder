@@ -36,6 +36,10 @@ class VPB_EXPORT FileDetails : public osg::Object
         void setHostName(const std::string& hostname) { _hostname = hostname; }
         std::string& getHostName() { return _hostname; }
         const std::string& getHostName() const { return _hostname; }
+        
+        void setOriginalSourceFileName(const std::string& filename) { _originalSourceFile = filename; }
+        std::string& getOriginalSourceFileName() { return _originalSourceFile; }
+        const std::string& getOriginalSourceFileName() const { return _originalSourceFile; }
 
         void setFileName(const std::string& filename) { _filename = filename; }
         std::string& getFileName() { return _filename; }
@@ -48,6 +52,8 @@ class VPB_EXPORT FileDetails : public osg::Object
     protected:
     
         virtual ~FileDetails();
+        
+        std::string         _originalSourceFile;
         
         std::string         _hostname;
         std::string         _filename;

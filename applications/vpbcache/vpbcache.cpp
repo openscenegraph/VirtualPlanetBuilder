@@ -19,8 +19,6 @@
 
 #include <iostream>
 
-#include <signal.h>
-
 int main(int argc, char** argv)
 {
     osg::ArgumentParser arguments(&argc,argv);
@@ -30,6 +28,35 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->setDescription(arguments.getApplicationName()+" application is utility tools which can be used to generate paged geospatial terrain databases.");
     arguments.getApplicationUsage()->setCommandLineUsage(arguments.getApplicationName()+" [options] filename ...");
     arguments.getApplicationUsage()->addCommandLineOption("-h or --help","Display this information");
+
+
+    // if user request help write it out to cout.
+    if (arguments.read("-h") || arguments.read("--help"))
+    {
+        arguments.getApplicationUsage()->write(std::cout,osg::ApplicationUsage::COMMAND_LINE_OPTION);
+        return 1;
+    }
+
+    // read any source input definitions
+    osg::ref_ptr<osgTerrain::Terrain> terrain = new osgTerrain::Terrain;
+    int result = vpb::readSourceArguments(std::cout, arguments, terrain.get());
+    if (result) return result;
+    
+
+    std::string cachefile;
+    if (arguments.read("-c",cachefile) || arguments.read("--cache-file"))
+    {
+        osg::ref_ptr<vpb::FileCache> fileCache = new vpb::FileCache;
+        vpb::FileSystem::instance()->setFileCache(fileCache.get());
+    }
+
+    if (!vpb::FileSystem::instance()->getFileCache())
+    {
+        osg::notify(osg::NOTICE)<<"No cache file specified via VPB_CACHE_FILE, or via -c or --cache-file command line parameters."<<std::endl;
+    }
+    
+    vpb::FileSystem::instance()->getFileCache()->write("test.cache");
+
 
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();

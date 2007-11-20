@@ -20,11 +20,14 @@ FileDetails::FileDetails()
 }
 
 FileDetails::FileDetails(const FileDetails& fd,const osg::CopyOp& copyop):
-    osg::Object(fd,copyop)
+    osg::Object(fd,copyop),
+    _originalSourceFile(fd._originalSourceFile),
+    _hostname(fd._hostname),
+    _filename(fd._filename),
+    _spatialProperties(fd._spatialProperties)
 {
 }
 
 FileDetails::~FileDetails()
 {
 }
-

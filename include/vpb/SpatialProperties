@@ -212,6 +212,23 @@ struct VPB_EXPORT SpatialProperties
     }
 
     void computeExtents();
+    
+    
+    /** return true if the two SpatialProperties objects have equvilant coordinate systems.*/
+    bool equvilantCoordinateSystem(const SpatialProperties& sp) const;
+    
+    /** return true if the two SpatialProperties objects intersect one another.*/
+    bool intersects(const SpatialProperties& sp) const;
+    
+    /** return true if the two SpatialProperties objects intersect one another.*/
+    bool compatible(const SpatialProperties& sp) const;
+    
+    /** compute the resolution ratio between two SpatialProperties.  
+        return a ratio > 1.0 If the this SpatialProporty is of higher resolution than passed in one. */
+    double computeResolutionRatio(const SpatialProperties& sp) const;
+    
+    /** compute the effective resolution.*/
+    double computeResolution() const; 
 
     osg::ref_ptr<osg::CoordinateSystemNode>     _cs;
     osg::Matrixd                                _geoTransform;

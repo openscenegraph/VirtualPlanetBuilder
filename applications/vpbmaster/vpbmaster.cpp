@@ -50,6 +50,12 @@ int main(int argc, char** argv)
         chdir(runPath.c_str());
     }
 
+    // if user request help write it out to cout.
+    if (arguments.read("-h") || arguments.read("--help"))
+    {
+        arguments.getApplicationUsage()->write(std::cout,osg::ApplicationUsage::COMMAND_LINE_OPTION);
+        return 1;
+    }
     
     taskManager->read(arguments);
 

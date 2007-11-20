@@ -40,8 +40,11 @@ class VPB_EXPORT FileCache : public osg::Object
         bool read(const std::string& filename);
         bool write(const std::string& filename);
 
-        typedef std::vector< osg::ref_ptr<FileDetails> > Variants;
+        typedef std::list< osg::ref_ptr<FileDetails> > Variants;
         typedef std::map<std::string, Variants> VariantMap;
+        
+        void addFileDetails(FileDetails* fd);
+        void removeFileDetails(FileDetails* fd);
 
         std::string getOptimimumFile(const std::string& filename, const SpatialProperties& sp);
 
@@ -50,6 +53,9 @@ class VPB_EXPORT FileCache : public osg::Object
     
         virtual ~FileCache();
         
+        bool readFileDetails(osgDB::Input& fr, bool& itrAdvanced);
+        bool writeFileDetails(osgDB::Output& fw, const FileDetails& fd);
+
 
         std::string         _filename;
         VariantMap          _variantMap;

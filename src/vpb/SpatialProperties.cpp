@@ -166,4 +166,30 @@ void SpatialProperties::computeExtents()
     log(osg::INFO,"DataSet::SpatialProperties::computeExtents() is geographic %d",_extents._isGeographic);
 }
 
+bool SpatialProperties::equvilantCoordinateSystem(const SpatialProperties& sp) const
+{
+    return areCoordinateSystemEquivalent(_cs.get(), sp._cs.get());
+}
+
+bool SpatialProperties::intersects(const SpatialProperties& sp) const
+{
+    return _extents.intersects(sp._extents);
+}
+
+bool SpatialProperties::compatible(const SpatialProperties& sp) const
+{
+    return equvilantCoordinateSystem(sp) && intersects(sp);
+}
+
+double SpatialProperties::computeResolutionRatio(const SpatialProperties& sp) const
+{
+    return sp.computeResolution() / computeResolution();
+}
+
+double SpatialProperties::computeResolution() const
+{
+    double resolutionX = (_extents.xMax()-_extents.xMin()) / double(_numValuesX-1);
+    double resolutionY = (_extents.yMax()-_extents.yMin()) / double(_numValuesY-1);
+    return sqrt(resolutionX*resolutionX + resolutionY*resolutionY);
+}
 
