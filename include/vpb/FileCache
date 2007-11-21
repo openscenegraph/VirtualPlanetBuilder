@@ -15,8 +15,10 @@
 #define FILECACHE_H 1
 
 #include <osgDB/FileUtils>
+#include <osgTerrain/Terrain>
 
 #include <vpb/FileDetails>
+#include <vpb/MachinePool>
 
 namespace vpb
 {
@@ -32,13 +34,21 @@ class VPB_EXPORT FileCache : public osg::Object
         
         META_Object(vpb, FileCache);
 
+        void setRequiresWrites(bool flag) { _requiresWrite = flag; }
+        bool getRequiresWrites() const { return _requiresWrite; }
 
         void setFileName(const std::string& filename) { _filename = filename; }
         std::string& getFileName() { return _filename; }
         const std::string& getFileName() const { return _filename; }
 
+        /** Read file cache from file.*/
         bool read(const std::string& filename);
+        
+        /** Write file cache to file.*/
         bool write(const std::string& filename);
+        
+        /** if the FileCache in memory has been modified since last read/writer then call write.*/
+        bool sync() { if (_requiresWrite) write(_filename); }
 
         typedef std::list< osg::ref_ptr<FileDetails> > Variants;
         typedef std::map<std::string, Variants> VariantMap;
@@ -47,6 +57,18 @@ class VPB_EXPORT FileCache : public osg::Object
         void removeFileDetails(FileDetails* fd);
 
         std::string getOptimimumFile(const std::string& filename, const SpatialProperties& sp);
+        
+        /** clear the cache.*/
+        void clear();
+        
+        /** add FileDetails for each source file in specified source description.*/
+        void addSource(osgTerrain::Terrain* source);
+
+        /** build mipmap levels for each source file.*/
+        void buildMipmaps();
+        
+        /** copy files from the master to the specified machine in the specified directory.*/
+        void mirror(Machine* machine, const std::string& directory);
 
 
     protected:
@@ -56,7 +78,7 @@ class VPB_EXPORT FileCache : public osg::Object
         bool readFileDetails(osgDB::Input& fr, bool& itrAdvanced);
         bool writeFileDetails(osgDB::Output& fw, const FileDetails& fd);
 
-
+        bool                _requiresWrite;
         std::string         _filename;
         VariantMap          _variantMap;
         

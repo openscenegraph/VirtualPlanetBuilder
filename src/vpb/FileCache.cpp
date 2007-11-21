@@ -14,17 +14,20 @@
 #include <vpb/FileCache>
 #include <vpb/FileSystem>
 #include <vpb/BuildLog>
+#include <vpb/DataSet>
 
 using namespace vpb;
 
 FileCache::FileCache()
 {
+    _requiresWrite = false;
 }
 
 
 FileCache::FileCache(const FileCache& fc,const osg::CopyOp& copyop):
     osg::Object(fc, copyop)
 {
+    _requiresWrite = false;
 }
 
 FileCache::~FileCache()
@@ -43,6 +46,7 @@ bool FileCache::read(const std::string& filename)
     }
 
     _filename = filename;
+    _requiresWrite = false;
 
     std::ifstream fin(foundFile.c_str());
     
@@ -130,7 +134,9 @@ bool FileCache::read(const std::string& filename)
 bool FileCache::write(const std::string& filename)
 {
     osg::notify(osg::NOTICE)<<"FileCache::write("<<filename<<")"<<std::endl;
+
     _filename = filename;
+    _requiresWrite = false;
 
     osgDB::Output fout(filename.c_str());
 
@@ -191,11 +197,13 @@ bool FileCache::write(const std::string& filename)
 
 void FileCache::addFileDetails(FileDetails* fd)
 {
+    _requiresWrite = true;
     _variantMap[fd->getOriginalSourceFileName()].push_back(fd);
 }
 
 void FileCache::removeFileDetails(FileDetails* fd)
 {
+    _requiresWrite = true;
     VariantMap::iterator itr = _variantMap.find(fd->getOriginalSourceFileName());
     if (itr==_variantMap.end()) return;
 
@@ -276,4 +284,55 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const Spati
     osg::notify(osg::NOTICE)<<"FileCache::getOptimimumFile("<<filename<<") no suitable variants found returning '"<<filename<<"'"<<std::endl;
     return filename;
 }
+
+void FileCache::clear()
+{
+    _requiresWrite = true;
+    
+    _variantMap.clear();
+    
+    osg::notify(osg::NOTICE)<<"FileCache::clear()"<<std::endl;
+}
+
+void FileCache::addSource(osgTerrain::Terrain* source)
+{
+    if (!source) return;
+
+    _requiresWrite = true;
+    
+    osg::ref_ptr<DataSet> dataset = new DataSet;
+    dataset->addTerrain(source);
+
+    for(CompositeSource::source_iterator itr(dataset->getSourceGraph());itr.valid();++itr)
+    {
+        (*itr)->loadSourceData();
+        Source* source = itr->get();
+        SourceData* sd = (*itr)->getSourceData();
+        
+        
+        FileDetails* fd = new FileDetails;
+        fd->setOriginalSourceFileName(source->getFileName());
+        fd->setFileName(source->getFileName());
+        fd->setSpatialProperties(*sd);
+        
+        addFileDetails(fd);        
+    }
+    
+    osg::notify(osg::NOTICE)<<"FileCache::addSource()"<<std::endl;
+}
+
+void FileCache::buildMipmaps()
+{
+    _requiresWrite = true;
+
+    osg::notify(osg::NOTICE)<<"FileCache::buildMipmaps()"<<std::endl;
+}
+
+void FileCache::mirror(Machine* machine, const std::string& directory)
+{
+    _requiresWrite = true;
+
+    osg::notify(osg::NOTICE)<<"FileCache::mirror("<<machine->getHostName()<<", "<<directory<<")"<<std::endl;
+}
+
 

@@ -42,19 +42,69 @@ int main(int argc, char** argv)
     int result = vpb::readSourceArguments(std::cout, arguments, terrain.get());
     if (result) return result;
     
+    
+    osg::ref_ptr<vpb::FileCache> fileCache = vpb::FileSystem::instance()->getFileCache();
 
     std::string cachefile;
     if (arguments.read("-c",cachefile) || arguments.read("--cache-file"))
     {
-        osg::ref_ptr<vpb::FileCache> fileCache = new vpb::FileCache;
+        fileCache = new vpb::FileCache;
+        fileCache->setFileName(cachefile);
+        fileCache->read(cachefile);
+        
         vpb::FileSystem::instance()->setFileCache(fileCache.get());
     }
 
-    if (!vpb::FileSystem::instance()->getFileCache())
+    if (!fileCache)
     {
         osg::notify(osg::NOTICE)<<"No cache file specified via VPB_CACHE_FILE, or via -c or --cache-file command line parameters."<<std::endl;
+        return 1;
     }
-    
+
+    // read any machines specification    
+    osg::ref_ptr<vpb::MachinePool> machinePool;
+    std::string machinePoolFileName;
+    while (arguments.read("--machines",machinePoolFileName)) {}
+
+    if (machinePoolFileName.empty()) machinePoolFileName = vpb::getMachineFileName();
+
+    if (!machinePoolFileName.empty())
+    {
+        machinePool->read(machinePoolFileName);
+    }
+
+
+    if (arguments.read("--clear"))
+    {
+        fileCache->clear();
+    }
+
+    if (arguments.read("--add-source"))
+    {
+        fileCache->addSource(terrain.get());
+    }
+
+    if (arguments.read("--build-mipmaps"))
+    {
+        fileCache->buildMipmaps();
+    }
+
+    std::string machineName, directory;
+    while(arguments.read("--mirror", machineName, directory))
+    {
+        vpb::Machine* machine = machinePool.valid() ? machinePool->getMachine(machineName) : 0;
+        if (machine)
+        {
+            fileCache->mirror(machine, directory);
+        }
+        else
+        {
+            osg::notify(osg::NOTICE)<<"No suitable machine found"<<std::endl;
+        }
+    }
+
+    fileCache->sync();
+
     vpb::FileSystem::instance()->getFileCache()->write("test.cache");
 
 

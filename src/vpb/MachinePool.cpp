@@ -431,6 +431,18 @@ void MachinePool::addMachine(Machine* machine)
     _machines.push_back(machine);
 }
 
+Machine* MachinePool::getMachine(const std::string& hostname)
+{
+    for(Machines::iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        if ((*itr)->getHostName()==hostname) return itr->get();
+    }
+    return 0;
+}
+
+
 void MachinePool::run(Task* task)
 {
     log(osg::INFO, "Adding Task to MachinePool::OperationQueue %s",task->getFileName().c_str());

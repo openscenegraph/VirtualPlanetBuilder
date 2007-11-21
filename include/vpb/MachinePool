@@ -179,6 +179,8 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
         void addMachine(const std::string& hostname,const std::string& commandPrefix, const std::string& commandPostfix, int numThreads=-1);
 
         void addMachine(Machine* machine);
+
+        Machine* getMachine(const std::string& hostname);
         
         void startThreads();
 

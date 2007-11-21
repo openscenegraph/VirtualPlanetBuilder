@@ -97,6 +97,8 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         Task* getTask() { return _taskFile.get(); }
         const Task* getTask() const { return _taskFile.get(); }
 
+        CompositeSource* getSourceGraph() { return _sourceGraph.get(); }
+
 
         void addSource(Source* source);
         void addSource(CompositeSource* composite);
