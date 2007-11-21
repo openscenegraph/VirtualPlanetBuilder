@@ -12,6 +12,7 @@
 
 #include <vpb/Commandline>
 #include <vpb/TaskManager>
+#include <vpb/BuildLog>
 
 #include <osg/Timer>
 #include <osgDB/ReadFile>
@@ -39,9 +40,34 @@ int main(int argc, char** argv)
 
     // read any source input definitions
     osg::ref_ptr<osgTerrain::Terrain> terrain = new osgTerrain::Terrain;
+
+    std::string filename;
+    if (arguments.read("-s",filename))
+    {
+        osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(filename);
+        if (node.valid())
+        {
+            osgTerrain::Terrain* loaded_terrain = dynamic_cast<osgTerrain::Terrain*>(node.get());
+            if (loaded_terrain) 
+            {
+                terrain = loaded_terrain;
+            }
+            else
+            {
+                vpb::log(osg::WARN,"Error: source file \"%s\" not suitable terrain data.",filename.c_str());
+                return 1;
+            }
+        }
+        else
+        {
+            vpb::log(osg::WARN,"Error: unable to load source file \"%s\" not suitable terrain data.",filename.c_str());
+            return 1;
+        }
+        
+    }
+    
     int result = vpb::readSourceArguments(std::cout, arguments, terrain.get());
     if (result) return result;
-    
     
     osg::ref_ptr<vpb::FileCache> fileCache = vpb::FileSystem::instance()->getFileCache();
 
@@ -104,9 +130,6 @@ int main(int argc, char** argv)
     }
 
     fileCache->sync();
-
-    vpb::FileSystem::instance()->getFileCache()->write("test.cache");
-
 
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();

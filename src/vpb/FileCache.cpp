@@ -41,7 +41,7 @@ bool FileCache::read(const std::string& filename)
     std::string foundFile = osgDB::findDataFile(filename);
     if (foundFile.empty())
     {
-        log(osg::WARN,"Error: could not find task file '%s'",filename.c_str());
+        log(osg::WARN,"Error: could not find cache file '%s'",filename.c_str());
         return false;
     }
 
@@ -93,6 +93,8 @@ bool FileCache::read(const std::string& filename)
 
                     if (fr.read("cs",str))
                     {
+                        if (!fd->getSpatialProperties()._cs) fd->getSpatialProperties()._cs = new osg::CoordinateSystemNode;
+                        
                         fd->getSpatialProperties()._cs->setCoordinateSystem(str); 
                         localAdvanced = true;
                     }
