@@ -44,6 +44,9 @@ class VPB_EXPORT FileCache : public osg::Object
         /** Read file cache from file.*/
         bool read(const std::string& filename);
         
+        /** Read file cache from file if it exists, otherwsie just set the filename for future use.*/
+        bool open(const std::string& filename);
+        
         /** Write file cache to file.*/
         bool write(const std::string& filename);
         

@@ -132,6 +132,19 @@ bool FileCache::read(const std::string& filename)
     
     return false;
 }
+ 
+bool FileCache::open(const std::string& filename)
+{
+    std::string foundFile = osgDB::findDataFile(filename);
+    if (foundFile.empty())
+    {
+        setFileName(filename);
+        _requiresWrite = true;
+        return false;
+    }
+    
+    return read(foundFile);
+}
 
 bool FileCache::write(const std::string& filename)
 {
@@ -141,6 +154,8 @@ bool FileCache::write(const std::string& filename)
     _requiresWrite = false;
 
     osgDB::Output fout(filename.c_str());
+
+    fout.precision(15);
 
     for(VariantMap::iterator itr = _variantMap.begin();
         itr != _variantMap.end();

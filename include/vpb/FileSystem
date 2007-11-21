@@ -65,6 +65,10 @@ class VPB_EXPORT FileSystem : public osg::Referenced
 
         GeospatialDataset* openOptimumGeospatialDataset(const std::string& filename, const SpatialProperties& sp);
 
+        bool readFileCache(const std::string& filename);
+        
+        bool openFileCache(const std::string& filename);
+
         void setFileCache(FileCache* fileCache) { _fileCache = fileCache; }
         FileCache* getFileCache() { return _fileCache.get(); }
         const FileCache* getFileCache() const { return _fileCache.get(); }

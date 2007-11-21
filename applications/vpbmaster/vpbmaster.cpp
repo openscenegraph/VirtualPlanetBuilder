@@ -42,6 +42,7 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->setApplicationName(arguments.getApplicationName());
     arguments.getApplicationUsage()->setDescription(arguments.getApplicationName()+" application is utility tools which can be used to generate paged geospatial terrain databases.");
     arguments.getApplicationUsage()->setCommandLineUsage(arguments.getApplicationName()+" [options] filename ...");
+    arguments.getApplicationUsage()->addCommandLineOption("--cache <filename>","Read the cache file to use a look up for locally cached files.");
     arguments.getApplicationUsage()->addCommandLineOption("-h or --help","Display this information");
 
     std::string runPath;
@@ -57,6 +58,12 @@ int main(int argc, char** argv)
         return 1;
     }
     
+    std::string cacheFile;
+    while (arguments.read("--cache",cacheFile))
+    {
+        vpb::FileSystem::instance()->readFileCache(cacheFile);
+    }
+
     taskManager->read(arguments);
 
     bool buildWithoutSlaves = false;

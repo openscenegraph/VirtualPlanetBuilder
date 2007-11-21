@@ -137,8 +137,7 @@ void FileSystem::readEnvironmentVariables()
     if (str) 
     {
         osg::notify(osg::NOTICE)<<"VPB_CACHE_FILE = "<<str<<std::endl;
-        _fileCache = new FileCache;
-        _fileCache->read(str);
+        openFileCache(str);
     }
     
 }
@@ -266,4 +265,23 @@ GeospatialDataset* FileSystem::openOptimumGeospatialDataset(const std::string& f
     {
         return openGeospatialDataset(filename);
     }
+}
+
+bool FileSystem::readFileCache(const std::string& filename)
+{
+    std::string foundFile = osgDB::findDataFile(filename);
+    if (foundFile.empty())
+    {
+        log(osg::WARN,"Error: could not find cache file '%s'",filename.c_str());
+        return false;
+    }
+    
+    _fileCache = new FileCache;
+    return _fileCache->read(foundFile);
+}
+
+bool FileSystem::openFileCache(const std::string& filename)
+{
+    _fileCache = new FileCache;
+    return _fileCache->open(filename);
 }

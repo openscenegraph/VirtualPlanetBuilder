@@ -13,6 +13,7 @@
 #include <vpb/Commandline>
 #include <vpb/DataSet>
 #include <vpb/DatabaseBuilder>
+#include <vpb/FileSystem>
 #include <vpb/Version>
 
 #include <osgDB/ReadFile>
@@ -31,6 +32,7 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->setDescription(arguments.getApplicationName()+" application is utility tools which can be used to generate paged geospatial terrain databases.");
     arguments.getApplicationUsage()->setCommandLineUsage(arguments.getApplicationName()+" [options] filename ...");
     arguments.getApplicationUsage()->addCommandLineOption("-h or --help","Display this information");
+    arguments.getApplicationUsage()->addCommandLineOption("--cache <filename>","Read the cache file to use a look up for locally cached files.");
 
     vpb::getSourceUsage(*arguments.getApplicationUsage());
 
@@ -58,6 +60,12 @@ int main(int argc, char** argv)
     {
         arguments.getApplicationUsage()->write(std::cout,osg::ApplicationUsage::COMMAND_LINE_OPTION);
         return 1;
+    }
+
+    std::string cacheFile;
+    while (arguments.read("--cache",cacheFile))
+    {
+        vpb::FileSystem::instance()->readFileCache(cacheFile);
     }
 
     std::string taskFileName;

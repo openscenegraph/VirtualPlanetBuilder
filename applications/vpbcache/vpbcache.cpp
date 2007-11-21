@@ -69,18 +69,14 @@ int main(int argc, char** argv)
     int result = vpb::readSourceArguments(std::cout, arguments, terrain.get());
     if (result) return result;
     
-    osg::ref_ptr<vpb::FileCache> fileCache = vpb::FileSystem::instance()->getFileCache();
 
     std::string cachefile;
-    if (arguments.read("-c",cachefile) || arguments.read("--cache-file"))
+    if (arguments.read("--cache",cachefile))
     {
-        fileCache = new vpb::FileCache;
-        fileCache->setFileName(cachefile);
-        fileCache->read(cachefile);
-        
-        vpb::FileSystem::instance()->setFileCache(fileCache.get());
+        vpb::FileSystem::instance()->openFileCache(cachefile);
     }
 
+    osg::ref_ptr<vpb::FileCache> fileCache = vpb::FileSystem::instance()->getFileCache();
     if (!fileCache)
     {
         osg::notify(osg::NOTICE)<<"No cache file specified via VPB_CACHE_FILE, or via -c or --cache-file command line parameters."<<std::endl;
