@@ -29,6 +29,8 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->setDescription(arguments.getApplicationName()+" application is utility tools which can be used to generate paged geospatial terrain databases.");
     arguments.getApplicationUsage()->setCommandLineUsage(arguments.getApplicationName()+" [options] filename ...");
     arguments.getApplicationUsage()->addCommandLineOption("-h or --help","Display this information");
+    arguments.getApplicationUsage()->addCommandLineOption("--clean","Clear the contents of the file cache");
+    arguments.getApplicationUsage()->addCommandLineOption("--report","Report the contents of the file cache");
 
 
     // if user request help write it out to cout.
@@ -126,6 +128,12 @@ int main(int argc, char** argv)
     }
 
     fileCache->sync();
+
+    if (arguments.read("--report"))
+    {
+        fileCache->report(std::cout);
+    }
+
 
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();

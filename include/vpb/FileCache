@@ -73,6 +73,9 @@ class VPB_EXPORT FileCache : public osg::Object
         /** copy files from the master to the specified machine in the specified directory.*/
         void mirror(Machine* machine, const std::string& directory);
 
+        /** List the contents of the FileCache.*/
+        void report(std::ostream& out);
+
 
     protected:
     

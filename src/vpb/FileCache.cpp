@@ -46,9 +46,10 @@ bool FileCache::read(const std::string& filename)
     }
 
     _filename = filename;
-    _requiresWrite = false;
 
     std::ifstream fin(foundFile.c_str());
+    
+    bool emptyBefore = _variantMap.empty();
     
     if (fin)
     {
@@ -130,6 +131,8 @@ bool FileCache::read(const std::string& filename)
         }        
     }
     
+    _requiresWrite = !emptyBefore;
+
     return false;
 }
  
@@ -173,22 +176,22 @@ bool FileCache::write(const std::string& filename)
             
             if (!fd->getHostName().empty())
             {
-                fout.indent()<<"hostname "<<fd->getHostName()<<std::endl;
+                fout.indent()<<"hostname "<<fout.wrapString(fd->getHostName())<<std::endl;
             }
 
             if (!fd->getOriginalSourceFileName().empty())
             {
-                fout.indent()<<"original "<<fd->getOriginalSourceFileName()<<std::endl;
+                fout.indent()<<"original "<<fout.wrapString(fd->getOriginalSourceFileName())<<std::endl;
             }
             
             if (!fd->getFileName().empty())
             {
-                fout.indent()<<"file "<<fd->getFileName()<<std::endl;
+                fout.indent()<<"file "<<fout.wrapString(fd->getFileName())<<std::endl;
             }
             
             if (fd->getSpatialProperties()._cs.valid() && !fd->getSpatialProperties()._cs->getCoordinateSystem().empty())
             {
-                fout.indent()<<"cs "<<fd->getSpatialProperties()._cs->getCoordinateSystem()<<std::endl;
+                fout.indent()<<"cs "<<fout.wrapString(fd->getSpatialProperties()._cs->getCoordinateSystem())<<std::endl;
             }
 
             if (fd->getSpatialProperties()._extents.valid())
@@ -352,4 +355,57 @@ void FileCache::mirror(Machine* machine, const std::string& directory)
     osg::notify(osg::NOTICE)<<"FileCache::mirror("<<machine->getHostName()<<", "<<directory<<")"<<std::endl;
 }
 
+void FileCache::report(std::ostream& out)
+{
+    for(VariantMap::iterator itr = _variantMap.begin();
+        itr != _variantMap.end();
+        ++itr)
+    {
+        out<<"Variants of "<<itr->first<<" {"<<std::endl;
+        Variants& variants = itr->second;
+        for(Variants::iterator vitr = variants.begin();
+            vitr != variants.end();
+            ++vitr)
+        {
+            FileDetails* fd = vitr->get();
+            
+            out<<"  FileDetails {"<<std::endl;
+            
+            if (!fd->getHostName().empty())
+            {
+                out<<"    hostname "<<fd->getHostName()<<std::endl;
+            }
+
+            if (!fd->getOriginalSourceFileName().empty())
+            {
+                out<<"    original "<<fd->getOriginalSourceFileName()<<std::endl;
+            }
+            
+            if (!fd->getFileName().empty())
+            {
+                out<<"    file "<<fd->getFileName()<<std::endl;
+            }
+            
+            if (fd->getSpatialProperties()._cs.valid() && !fd->getSpatialProperties()._cs->getCoordinateSystem().empty())
+            {
+                out<<"    cs "<<fd->getSpatialProperties()._cs->getCoordinateSystem()<<std::endl;
+            }
+
+            if (fd->getSpatialProperties()._extents.valid())
+            {
+                const GeospatialExtents& extents = fd->getSpatialProperties()._extents;
+                out<<"    extents "<<extents.xMin()<<" "<<extents.yMin()<<" "<<extents.xMax()<<" "<<extents.yMax()<<std::endl;
+            }
+            
+            if (fd->getSpatialProperties()._numValuesX>0 || fd->getSpatialProperties()._numValuesY>0)
+            {
+                out<<"    size "<<fd->getSpatialProperties()._numValuesX<<" "<<fd->getSpatialProperties()._numValuesY<<std::endl;
+            }
+            
+            out<<"  }"<<std::endl;
+                        
+        }
+        out<<"}"<<std::endl;
+    }
+}
 
