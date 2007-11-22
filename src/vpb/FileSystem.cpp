@@ -259,7 +259,8 @@ GeospatialDataset* FileSystem::openOptimumGeospatialDataset(const std::string& f
 {
     if (_fileCache.valid())
     {
-        return openGeospatialDataset(_fileCache->getOptimimumFile(filename, sp));
+        std::string optimumFile = _fileCache->getOptimimumFile(filename, sp);
+        return (optimumFile.empty()) ? 0 : openGeospatialDataset(optimumFile);
     }
     else
     {

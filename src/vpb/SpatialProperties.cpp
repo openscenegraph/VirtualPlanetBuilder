@@ -15,6 +15,7 @@
 #include <vpb/BuildLog>
 
 #include <osg/Notify>
+#include <osg/io_utils>
 
 #include <cpl_string.h>
 #include <ogr_spatialref.h>
@@ -173,11 +174,21 @@ bool SpatialProperties::equvilantCoordinateSystem(const SpatialProperties& sp) c
 
 bool SpatialProperties::intersects(const SpatialProperties& sp) const
 {
+#if 0
+    osg::notify(osg::NOTICE)<<"    SpatialProperties::intersects(sp) : _extents.intersects(sp._extents)="<<_extents.intersects(sp._extents)<<std::endl;
+    osg::notify(osg::NOTICE)<<"                                        _extents.valid()="<<_extents.valid()<<std::endl;
+    osg::notify(osg::NOTICE)<<"                                        sp._extents.valid()="<<sp._extents.valid()<<std::endl;
+    osg::notify(osg::NOTICE)<<"                                        _extents.min()="<<_extents._min<<" max()"<<_extents._max<<std::endl;
+    osg::notify(osg::NOTICE)<<"                                        sp._extents.min()="<<sp._extents._min<<" max()"<<sp._extents._max<<std::endl;
+#endif
     return _extents.intersects(sp._extents);
 }
 
 bool SpatialProperties::compatible(const SpatialProperties& sp) const
 {
+//    osg::notify(osg::NOTICE)<<"  SpatialProperties::compatible(sp) : equvilantCoordinateSystem(sp)="<<equvilantCoordinateSystem(sp)<<std::endl;
+//    osg::notify(osg::NOTICE)<<"                                    : intersects(sp)="<<intersects(sp)<<std::endl;
+//    osg::notify(osg::NOTICE)<<"                                    : valid()="<<intersects(sp)<<std::endl;
     return equvilantCoordinateSystem(sp) && intersects(sp);
 }
 
