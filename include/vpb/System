@@ -33,57 +33,6 @@ extern VPB_EXPORT std::string& getTaskDirectory();
 extern VPB_EXPORT std::string& getMachineFileName();
 
 
-struct Date
-{
-    Date():
-        year(0),
-        month(0),
-        day(0),
-        hour(0),
-        minute(0),
-        second(0) {}
-        
-    unsigned int year;
-    unsigned int month;
-    unsigned int day;
-    unsigned int hour;
-    unsigned int minute;
-    unsigned int second;
-    
-    bool operator < (const Date& rhs) const
-    {
-        if (year < rhs.year) return true;
-        if (year > rhs.year) return false;
-        if (month < rhs.month) return true;
-        if (month > rhs.month) return false;
-        if (day < rhs.day) return true;
-        if (day > rhs.day) return false;
-        if (minute < rhs.minute) return true;
-        if (minute > rhs.minute) return false;
-        return (second < rhs.second);
-    }  
-
-    bool operator > (const Date& rhs) const
-    {
-        return rhs < *this;
-    }
-    
-    bool operator == (const Date& rhs) const
-    {
-        return year == rhs.year &&
-               month == rhs.month &&
-               day == rhs.day &&
-               minute == rhs.minute &&
-               second == rhs.second;
-    }
-
-    bool operator != (const Date& rhs) const
-    {
-        return !(*this==rhs);
-    }
-
-};
-
 class VPB_EXPORT System : public osg::Referenced
 {
     public:
@@ -124,12 +73,6 @@ class VPB_EXPORT System : public osg::Referenced
         void setFileCache(FileCache* fileCache) { _fileCache = fileCache; }
         FileCache* getFileCache() { return _fileCache.get(); }
         const FileCache* getFileCache() const { return _fileCache.get(); }
-
-
-        bool getDateOfLastModification(const std::string& filename, Date& date);
-
-        bool getCurrentDate(Date& date);
-
 
         typedef std::map<std::string, osg::ref_ptr<GeospatialDataset> >  DatasetMap;
 

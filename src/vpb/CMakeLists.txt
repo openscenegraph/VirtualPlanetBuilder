@@ -13,6 +13,7 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/Commandline
 	${HEADER_PATH}/DatabaseBuilder
 	${HEADER_PATH}/DataSet
+	${HEADER_PATH}/Date
 	${HEADER_PATH}/GeospatialDataset
 	${HEADER_PATH}/Destination
 	${HEADER_PATH}/Export
@@ -40,6 +41,7 @@ ADD_LIBRARY(${LIB_NAME}
 	DatabaseBuilder.cpp
 	DatabaseBuilderIO.cpp
 	DataSet.cpp
+	Date.cpp
 	GeospatialDataset.cpp
 	Destination.cpp
 	FileCache.cpp
