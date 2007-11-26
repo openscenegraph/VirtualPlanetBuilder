@@ -67,9 +67,9 @@ class VPB_EXPORT Date
 
         bool setWithDateOfLastModification(const std::string& filename);
 
-        void setWithCurrentDate();
+        bool setWithCurrentDate();
 
-        void setWithDateString(const std::string& dateString);
+        bool setWithDateString(const std::string& dateString);
 
         std::string getDateString() const;
         

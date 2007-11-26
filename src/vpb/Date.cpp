@@ -33,11 +33,17 @@ bool Date::setWithDateOfLastModification(const std::string& filename)
         hour = tm_date->tm_hour;
         minute = tm_date->tm_min;
         second = tm_date->tm_sec;
+        
+        return true;
+    }
+    else
+    {
+        return false;
     }
 
 }
 
-void Date::setWithCurrentDate()
+bool Date::setWithCurrentDate()
 {
     time_t t = time(NULL);
     struct tm* tm_date = localtime(&t);
@@ -49,18 +55,24 @@ void Date::setWithCurrentDate()
         hour = tm_date->tm_hour;
         minute = tm_date->tm_min;
         second = tm_date->tm_sec;
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }
 
-void Date::setWithDateString(const std::string& dateString)
+bool Date::setWithDateString(const std::string& dateString)
 {
-    sscanf(dateString.c_str(), "%d %d %d %d:%d:%d", &year, &month, &day, &hour, &minute, &second);
+    int result = sscanf(dateString.c_str(), "%d/%d/%d %d:%d:%d", &year, &month, &day, &hour, &minute, &second);
+    return result == 6;
 }
 
 
 std::string Date::getDateString() const
 {
     char datestring[256];
-    sprintf(datestring, "%d %d %d %d:%d:%d", year, month, day, hour, minute, second);
+    sprintf(datestring, "%d/%d/%d %d:%d:%d", year, month, day, hour, minute, second);
     return std::string(datestring);
 }

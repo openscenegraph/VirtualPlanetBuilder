@@ -73,12 +73,14 @@ void MachineOperation::operator () (osg::Object* object)
             {
                 // success
                 _task->setStatus(Task::COMPLETED);
+                _task->setWithCurrentDate("date");
                 _task->write();
             }
             else
             {
                 // failure
                 _task->setStatus(Task::FAILED);
+                _task->setWithCurrentDate("date");
                 _task->write();
                 
                 // tell the machine about this task failure.

@@ -81,6 +81,35 @@ Task::Status Task::getStatus() const
 }
 
 
+void Task::setDate(const std::string& property, const Date& date)
+{
+    std::string dateString = date.getDateString();
+    setProperty(property, dateString);
+}
+
+void Task::setWithCurrentDate(const std::string& property)
+{
+    Date date;
+    date.setWithCurrentDate();
+    std::string dateString = date.getDateString();
+    setProperty(property, dateString);
+}
+
+
+bool Task::getDate(const std::string& property, Date& date) const
+{
+    std::string value;
+    if (getProperty(property, value))
+    {
+        return date.setWithDateString(value);
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
 void TaskOperation::operator () (osg::Object*)
 {
     _task->read();

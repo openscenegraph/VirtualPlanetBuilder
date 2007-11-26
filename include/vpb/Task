@@ -24,6 +24,7 @@
 #include <OpenThreads/Thread>
 
 #include <vpb/PropertyFile>
+#include <vpb/Date>
 
 namespace vpb
 {
@@ -47,6 +48,11 @@ class VPB_EXPORT Task : public PropertyFile
         
         void setStatus(Status status);
         Status getStatus() const;
+                
+        void setDate(const std::string& property, const Date& date);
+        void setWithCurrentDate(const std::string& property);
+
+        bool getDate(const std::string& property, Date& date) const;
 
     protected:
 
