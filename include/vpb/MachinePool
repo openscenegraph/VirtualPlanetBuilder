@@ -108,6 +108,9 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
         void setOperationQueue(osg::OperationQueue* queue);
         
         const std::string& getHostName() const { return _hostname; }
+
+        const std::string& getCacheDirectory() const { return _hostname; }
+
         const std::string& getCommandPrefix() const { return _commandPrefix; }
         const std::string& getCommandPostfix() const { return _commandPostfix; }
 
@@ -148,6 +151,9 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
         MachinePool*                        _machinePool;
 
         std::string                         _hostname;
+
+        std::string                         _cacheDirectory;
+
         std::string                         _commandPrefix;
         std::string                         _commandPostfix;
         

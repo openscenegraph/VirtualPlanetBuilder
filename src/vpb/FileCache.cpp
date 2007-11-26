@@ -16,6 +16,8 @@
 #include <vpb/BuildLog>
 #include <vpb/DataSet>
 
+#include <osg/io_utils>
+
 using namespace vpb;
 
 FileCache::FileCache()
@@ -97,14 +99,8 @@ bool FileCache::read(const std::string& filename)
                         if (!fd->getSpatialProperties()._cs) fd->getSpatialProperties()._cs = new osg::CoordinateSystemNode;
                         
                         fd->getSpatialProperties()._cs->setCoordinateSystem(str); 
-                        localAdvanced = true;
-                    }
+                         fd->getSpatialProperties()._extents._isGeographic = getCoordinateSystemType(fd->getSpatialProperties()._cs.get())==GEOGRAPHIC;
 
-                    int sizeX, sizeY;
-                    if (fr.read("size",sizeX, sizeY))
-                    {
-                        fd->getSpatialProperties()._numValuesX = sizeX;
-                        fd->getSpatialProperties()._numValuesY = sizeY;
                         localAdvanced = true;
                     }
 
@@ -113,6 +109,22 @@ bool FileCache::read(const std::string& filename)
                     {
                         fd->getSpatialProperties()._extents._min.set(minX,minY);
                         fd->getSpatialProperties()._extents._max.set(maxX,maxY);
+                        localAdvanced = true;
+                    }
+
+                    osg::Matrixd m;
+                    if (fr.read("geoTransform",m(0,0),m(0,1),m(1,0),m(1,1),m(3,0),m(3,1)))
+                    {
+                        fd->getSpatialProperties()._geoTransform = m;
+                    }                    
+
+
+                    int sizeX, sizeY, sizeZ;
+                    if (fr.read("size",sizeX, sizeY, sizeZ))
+                    {
+                        fd->getSpatialProperties()._numValuesX = sizeX;
+                        fd->getSpatialProperties()._numValuesY = sizeY;
+                        fd->getSpatialProperties()._numValuesZ = sizeZ;
                         localAdvanced = true;
                     }
 
@@ -151,7 +163,7 @@ bool FileCache::open(const std::string& filename)
 
 bool FileCache::write(const std::string& filename)
 {
-    osg::notify(osg::NOTICE)<<"FileCache::write("<<filename<<")"<<std::endl;
+    log(osg::NOTICE,"FileCache::write(%s)",filename.c_str());
 
     _filename = filename;
     _requiresWrite = false;
@@ -199,10 +211,16 @@ bool FileCache::write(const std::string& filename)
                 const GeospatialExtents& extents = fd->getSpatialProperties()._extents;
                 fout.indent()<<"extents "<<extents.xMin()<<" "<<extents.yMin()<<" "<<extents.xMax()<<" "<<extents.yMax()<<std::endl;
             }
-            
-            if (fd->getSpatialProperties()._numValuesX>0 || fd->getSpatialProperties()._numValuesY>0)
+                        
+            if (!fd->getSpatialProperties()._geoTransform.isIdentity())
             {
-                fout.indent()<<"size "<<fd->getSpatialProperties()._numValuesX<<" "<<fd->getSpatialProperties()._numValuesY<<std::endl;
+                const osg::Matrixd& m = fd->getSpatialProperties()._geoTransform;
+                fout.indent()<<"geoTransform "<<m(0,0)<<" "<<m(0,1)<<" "<<m(1,0)<<" "<<m(1,1)<<" "<<m(3,0)<<" "<<m(3,1)<<std::endl;
+            }
+            
+            if (fd->getSpatialProperties()._numValuesX>0 || fd->getSpatialProperties()._numValuesY>0 || fd->getSpatialProperties()._numValuesZ>0)
+            {
+                fout.indent()<<"size "<<fd->getSpatialProperties()._numValuesX<<" "<<fd->getSpatialProperties()._numValuesY<<" "<<fd->getSpatialProperties()._numValuesZ<<std::endl;
             }
             
             fout.moveOut();
@@ -218,7 +236,22 @@ bool FileCache::write(const std::string& filename)
 void FileCache::addFileDetails(FileDetails* fd)
 {
     _requiresWrite = true;
-    _variantMap[fd->getOriginalSourceFileName()].push_back(fd);
+    
+    Variants& variants = _variantMap[fd->getOriginalSourceFileName()];
+    for(Variants::iterator vitr = variants.begin();
+        vitr != variants.end();
+        ++vitr)
+    {
+        if (*(*vitr) == *fd)
+        {
+            log(osg::NOTICE,"FileCache::addFileDetails(%s) FileDetails already in cache",fd->getFileName().c_str());
+            return;
+        }
+    }
+    
+    log(osg::NOTICE,"FileCache::addFileDetails(%s) added",fd->getFileName().c_str());
+
+    variants.push_back(fd);
 }
 
 void FileCache::removeFileDetails(FileDetails* fd)
@@ -240,12 +273,52 @@ void FileCache::removeFileDetails(FileDetails* fd)
     }
 }
 
+std::string FileCache::getOptimimumFile(const std::string& filename, const osg::CoordinateSystemNode* csn)
+{
+    VariantMap::iterator itr = _variantMap.find(filename);
+    if (itr==_variantMap.end())
+    {
+        //osg::notify(osg::NOTICE)<<"FileCache::getOptimimumFile("<<filename<<") no variants found returning '"<<filename<<"'"<<std::endl;
+        return filename;
+    }
+    
+    Variants& variants = itr->second;
+
+    FileDetails* fd_closest = 0;
+    double res_closest = DBL_MAX;
+    
+
+    // first check cached files on 
+    std::string hostname = getLocalHostName();
+    for(Variants::iterator vitr = variants.begin();
+        vitr != variants.end();
+        ++vitr)
+    {
+        FileDetails* fd = vitr->get();
+        const SpatialProperties& fd_sp = fd->getSpatialProperties();
+        if (vpb::areCoordinateSystemEquivalent(fd_sp._cs.get(), csn))
+        {
+            double res = fd_sp.computeResolution();
+            if (res<res_closest || (res==res_closest && fd->getHostName()==hostname))
+            {
+                fd_closest = fd;
+                res_closest = res;
+            }
+        }
+    }
+    
+    if (fd_closest) return fd_closest->getFileName();
+
+    // osg::notify(osg::NOTICE)<<"FileCache::getOptimimumFile("<<filename<<") no suitable variants found returning ''"<<std::endl;
+    return std::string();
+}
+
 std::string FileCache::getOptimimumFile(const std::string& filename, const SpatialProperties& sp)
 {
     VariantMap::iterator itr = _variantMap.find(filename);
     if (itr==_variantMap.end())
     {
-        // osg::notify(osg::NOTICE)<<"FileCache::getOptimimumFile("<<filename<<") no variants found returning '"<<filename<<"'"<<std::endl;
+        //osg::notify(osg::NOTICE)<<"FileCache::getOptimimumFile("<<filename<<") no variants found returning '"<<filename<<"'"<<std::endl;
         return filename;
     }
     
@@ -257,8 +330,6 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const Spati
     FileDetails* fd_closest_above = 0;
     double res_closest_above = DBL_MAX;
     
-    // osg::notify(osg::NOTICE)<<"FileCache::getOptimimumFile("<<filename<<") checking variats "<<itr->first<<std::endl;
-
     // first check cached files on 
     std::string hostname = getLocalHostName();
     for(Variants::iterator vitr = variants.begin();
@@ -269,8 +340,6 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const Spati
         const SpatialProperties& fd_sp = fd->getSpatialProperties();
         if (fd_sp.compatible(sp))
         {
-            // osg::notify(osg::NOTICE)<<"  FileDetails("<<fd->getFileName()<<") is compatible "<<std::endl;
-
             double resolutionRatio = fd_sp.computeResolutionRatio(sp);
             if (resolutionRatio < 1.0)
             {
@@ -319,7 +388,7 @@ void FileCache::clear()
     
     _variantMap.clear();
     
-    osg::notify(osg::NOTICE)<<"FileCache::clear()"<<std::endl;
+    log(osg::NOTICE,"FileCache::clear()");
 }
 
 void FileCache::addSource(osgTerrain::Terrain* source)
@@ -346,21 +415,21 @@ void FileCache::addSource(osgTerrain::Terrain* source)
         addFileDetails(fd);        
     }
     
-    osg::notify(osg::NOTICE)<<"FileCache::addSource()"<<std::endl;
+    log(osg::NOTICE,"FileCache::addSource()");
 }
 
 void FileCache::buildMipmaps()
 {
     _requiresWrite = true;
 
-    osg::notify(osg::NOTICE)<<"FileCache::buildMipmaps()"<<std::endl;
+    log(osg::NOTICE,"FileCache::buildMipmaps()");
 }
 
 void FileCache::mirror(Machine* machine, const std::string& directory)
 {
     _requiresWrite = true;
 
-    osg::notify(osg::NOTICE)<<"FileCache::mirror("<<machine->getHostName()<<", "<<directory<<")"<<std::endl;
+    log(osg::NOTICE,"FileCache::mirror(%s, %s)",machine->getHostName().c_str(),directory.c_str());
 }
 
 void FileCache::report(std::ostream& out)
@@ -405,9 +474,15 @@ void FileCache::report(std::ostream& out)
                 out<<"    extents "<<extents.xMin()<<" "<<extents.yMin()<<" "<<extents.xMax()<<" "<<extents.yMax()<<std::endl;
             }
             
-            if (fd->getSpatialProperties()._numValuesX>0 || fd->getSpatialProperties()._numValuesY>0)
+            if (!fd->getSpatialProperties()._geoTransform.isIdentity())
             {
-                out<<"    size "<<fd->getSpatialProperties()._numValuesX<<" "<<fd->getSpatialProperties()._numValuesY<<std::endl;
+                const osg::Matrixd& m = fd->getSpatialProperties()._geoTransform;
+                out<<"    geoTransform "<<m(0,0)<<" "<<m(0,1)<<" "<<m(1,0)<<" "<<m(1,1)<<" "<<m(3,0)<<" "<<m(3,1)<<std::endl;
+            }
+            
+            if (fd->getSpatialProperties()._numValuesX>0 || fd->getSpatialProperties()._numValuesY>0 || fd->getSpatialProperties()._numValuesZ>0 )
+            {
+                out<<"    size "<<fd->getSpatialProperties()._numValuesX<<" "<<fd->getSpatialProperties()._numValuesY<<" "<<fd->getSpatialProperties()._numValuesZ<<std::endl;
             }
             
             out<<"  }"<<std::endl;

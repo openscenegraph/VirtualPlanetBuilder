@@ -32,6 +32,14 @@ class VPB_EXPORT FileDetails : public osg::Object
         FileDetails(const FileDetails&,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
         
         META_Object(vpb, FileDetails);
+        
+        bool operator == (const FileDetails& rhs) const
+        {
+            return _hostname == rhs._hostname &&
+                   _originalSourceFile == rhs._originalSourceFile &&
+                   _filename == rhs._filename &&
+                   _spatialProperties == rhs._spatialProperties;
+        }
 
         void setHostName(const std::string& hostname) { _hostname = hostname; }
         std::string& getHostName() { return _hostname; }

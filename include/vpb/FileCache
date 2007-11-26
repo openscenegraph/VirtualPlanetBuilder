@@ -61,6 +61,8 @@ class VPB_EXPORT FileCache : public osg::Object
 
         std::string getOptimimumFile(const std::string& filename, const SpatialProperties& sp);
         
+        std::string getOptimimumFile(const std::string& filename, const osg::CoordinateSystemNode* csn);
+
         /** clear the cache.*/
         void clear();
         

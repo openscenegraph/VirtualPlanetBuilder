@@ -284,6 +284,12 @@ bool TaskManager::generateTasksFromSource()
             }
 
             dataset->addTerrain(_terrain.get());
+            
+            if (dataset->requiresReprojection())
+            {
+                dataset->log(osg::NOTICE,"Error: vpbmaster can not run without all source data being in the correct destination coordinates system, please reproject them.");
+                return 1;
+            }
 
             result = dataset->generateTasks(this);
 

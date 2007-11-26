@@ -162,6 +162,7 @@ void SpatialProperties::computeExtents()
         _extents.expandBy( osg::Vec3(_numValuesX-1,_numValuesY-1,0.0)*_geoTransform);
     else
         _extents.expandBy( osg::Vec3(_numValuesX,_numValuesY,0.0)*_geoTransform);
+     
     _extents._isGeographic = getCoordinateSystemType(_cs.get())==GEOGRAPHIC;
 
     log(osg::INFO,"DataSet::SpatialProperties::computeExtents() is geographic %d",_extents._isGeographic);

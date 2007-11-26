@@ -568,6 +568,7 @@ bool MachinePool::read(const std::string& filename)
                 fr += 2;
 
                 std::string hostname;
+                std::string cacheDirectory;
                 std::string prefix;
                 std::string postfix;
                 int numThreads=-1;
@@ -577,6 +578,7 @@ bool MachinePool::read(const std::string& filename)
                     bool localAdvanced = false;
 
                     if (fr.read("hostname",hostname)) localAdvanced = true;
+                    if (fr.read("cache",cacheDirectory)) localAdvanced = true;
                     if (fr.read("prefix",prefix)) localAdvanced = true;
                     if (fr.read("postfix",postfix)) localAdvanced = true;
                     if (fr.read("threads",numThreads)) localAdvanced = true;
@@ -617,6 +619,7 @@ bool MachinePool::write(const std::string& filename) const
         fout.moveIn();
         
         if (!machine->getHostName().empty()) fout.indent()<<"hostname "<<machine->getHostName()<<std::endl;
+        if (!machine->getCacheDirectory().empty()) fout.indent()<<"cache "<<machine->getCacheDirectory()<<std::endl;
         if (!machine->getCommandPrefix().empty()) fout.indent()<<"prefix "<<machine->getCommandPrefix()<<std::endl;
         if (!machine->getCommandPostfix().empty()) fout.indent()<<"postfix "<<machine->getCommandPostfix()<<std::endl;
         if (machine->getNumThreads()>0) fout.indent()<<"processes "<<machine->getNumThreads()<<std::endl;

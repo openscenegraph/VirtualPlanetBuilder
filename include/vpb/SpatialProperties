@@ -16,6 +16,7 @@
 
 #include <osg/Vec2d>
 #include <osg/CoordinateSystemNode>
+#include <osg/Notify>
 
 #include <float.h>
 
@@ -62,12 +63,21 @@ public:
         
     bool operator != (const GeospatialExtents& rhs) const
     {
-        return (_min != rhs._min) || (_min != rhs._min) || (_isGeographic != rhs._isGeographic);
+        return (_min != rhs._min) || (_max != rhs._max) || (_isGeographic != rhs._isGeographic);
     }
 
     bool operator == (const GeospatialExtents& rhs) const
     {
-        return (_min == rhs._min) && (_min == rhs._min) && (_isGeographic == rhs._isGeographic);
+        return (_min == rhs._min) && (_max == rhs._max) && (_isGeographic == rhs._isGeographic);
+    }
+
+    bool equivalent(const GeospatialExtents& rhs, double epsilon=1e-6) const
+    {
+        return osg::equivalent(_min.x(),rhs._min.x(),epsilon) &&
+               osg::equivalent(_min.y(),rhs._min.y(),epsilon) && 
+               osg::equivalent(_max.x(),rhs._max.x(),epsilon) && 
+               osg::equivalent(_max.y(),rhs._max.y(),epsilon) && 
+               _isGeographic == rhs._isGeographic;
     }
 
     inline double& xMin() { return _min.x(); }
@@ -211,6 +221,39 @@ struct VPB_EXPORT SpatialProperties
         return *this;
     }
 
+
+    bool operator == (const SpatialProperties& rhs) const
+    {
+        if (_cs.valid() != rhs._cs.valid()) return false;
+        
+        if (_cs.valid() && (_cs->getCoordinateSystem() != rhs._cs->getCoordinateSystem())) return false;
+
+#if 0
+        osg::notify(osg::NOTICE)<<"  SpatialProperties::operator == () : _geoTransform == rhs._geoTransform"<<(_geoTransform == rhs._geoTransform)<<std::endl;
+        osg::notify(osg::NOTICE)<<"                                    _extents == rhs._extents  "<<(_extents == rhs._extents)<<std::endl;
+        osg::notify(osg::NOTICE)<<"                                    _extents.equivalent(rhs._extents)  "<<_extents.equivalent(rhs._extents)<<std::endl;
+        osg::notify(osg::NOTICE)<<"                                    _dataType == rhs._dataType  "<<(_dataType == rhs._dataType)<<std::endl;
+        osg::notify(osg::NOTICE)<<"                                    _numValuesX == rhs._numValuesX  "<<(_numValuesX == rhs._numValuesX)<<std::endl;
+        osg::notify(osg::NOTICE)<<"                                    _numValuesY == rhs._numValuesY  "<<(_numValuesY == rhs._numValuesY)<<std::endl;
+        osg::notify(osg::NOTICE)<<"                                    _numValuesZ == rhs._numValuesZ  "<<(_numValuesZ == rhs._numValuesZ)<<std::endl;
+#endif
+
+        double epsilon = 1e-6;
+        if (!osg::equivalent(_geoTransform(0,0),rhs._geoTransform(0,0),epsilon) ||
+            !osg::equivalent(_geoTransform(0,1),rhs._geoTransform(0,1),epsilon) ||
+            !osg::equivalent(_geoTransform(1,0),rhs._geoTransform(1,0),epsilon) ||
+            !osg::equivalent(_geoTransform(1,1),rhs._geoTransform(1,1),epsilon) ||
+            !osg::equivalent(_geoTransform(3,0),rhs._geoTransform(3,0),epsilon) ||
+            !osg::equivalent(_geoTransform(3,1),rhs._geoTransform(3,1),epsilon)) return false;
+
+        
+        return _extents.equivalent(rhs._extents) &&
+               _dataType == rhs._dataType &&
+               _numValuesX == rhs._numValuesX &&
+               _numValuesY == rhs._numValuesY &&
+               _numValuesZ == rhs._numValuesZ;
+    }
+    
     void computeExtents();
     
     

@@ -81,7 +81,7 @@ int main(int argc, char** argv)
     osg::ref_ptr<vpb::FileCache> fileCache = vpb::FileSystem::instance()->getFileCache();
     if (!fileCache)
     {
-        osg::notify(osg::NOTICE)<<"No cache file specified via VPB_CACHE_FILE, or via -c or --cache-file command line parameters."<<std::endl;
+        osg::notify(osg::NOTICE)<<"No cache file specified via VPB_CACHE_FILE, or via --cache <filename> command line parameters."<<std::endl;
         return 1;
     }
 

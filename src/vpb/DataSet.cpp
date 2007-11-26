@@ -388,29 +388,8 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
         }
     }
     
-    if (!_intermediateCoordinateSystem)
-    {
-        CoordinateSystemType cst = getCoordinateSystemType(_destinationCoordinateSystem.get());
-
-        log(osg::INFO, "new DataSet::createDestination()");
-        if (cst!=GEOGRAPHIC && getConvertFromGeographicToGeocentric())
-        {
-            // need to use the geocentric coordinate system as a base for creating an geographic intermediate
-            // coordinate system.
-            OGRSpatialReference oSRS;
-            
-            char    *pszWKT = NULL;
-            oSRS.SetWellKnownGeogCS( "WGS84" );
-            oSRS.exportToWkt( &pszWKT );
-            
-            setIntermediateCoordinateSystem(pszWKT);
-        }
-        else
-        {
-            _intermediateCoordinateSystem = _destinationCoordinateSystem;
-        }
-    }
-
+    
+    assignIntermediateCoordinateSystem();
 
     CoordinateSystemType destinateCoordSytemType = getCoordinateSystemType(_destinationCoordinateSystem.get());
     if (destinateCoordSytemType==GEOGRAPHIC && !getConvertFromGeographicToGeocentric())
@@ -500,6 +479,51 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     _destinationGraph->computeNeighboursFromQuadMap();
 
 }
+
+void DataSet::assignIntermediateCoordinateSystem()
+{   
+    if (!_intermediateCoordinateSystem)
+    {
+        CoordinateSystemType cst = getCoordinateSystemType(_destinationCoordinateSystem.get());
+
+        log(osg::INFO, "new DataSet::createDestination()");
+        if (cst!=GEOGRAPHIC && getConvertFromGeographicToGeocentric())
+        {
+            // need to use the geocentric coordinate system as a base for creating an geographic intermediate
+            // coordinate system.
+            OGRSpatialReference oSRS;
+            
+            char    *pszWKT = NULL;
+            oSRS.SetWellKnownGeogCS( "WGS84" );
+            oSRS.exportToWkt( &pszWKT );
+            
+            setIntermediateCoordinateSystem(pszWKT);
+        }
+        else
+        {
+            _intermediateCoordinateSystem = _destinationCoordinateSystem;
+        }
+    }
+}
+
+bool DataSet::requiresReprojection()
+{
+    assignIntermediateCoordinateSystem();
+
+    loadSources();
+
+    for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
+    {
+        Source* source = itr->get();
+        
+        if (source && source->needReproject(_intermediateCoordinateSystem.get()))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void DataSet::updateSourcesForDestinationGraphNeeds()
 {
     if (!_destinationGraph || !_sourceGraph) return;

@@ -110,7 +110,11 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         
 
         void loadSources();
-        
+
+        void assignIntermediateCoordinateSystem();
+
+        bool requiresReprojection();
+
         bool mapLatLongsToXYZ() const;
 
         static void setNotifyOffset(int level);
