@@ -11,7 +11,7 @@
  * OpenSceneGraph Public License for more details.
 */
 
-#include <vpb/FileSystem>
+#include <vpb/System>
 #include <osg/Notify>
 
 using namespace vpb;

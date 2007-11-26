@@ -13,7 +13,7 @@
 #include <vpb/Commandline>
 #include <vpb/DataSet>
 #include <vpb/DatabaseBuilder>
-#include <vpb/FileSystem>
+#include <vpb/System>
 #include <vpb/Version>
 
 #include <osgDB/ReadFile>
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
     std::string cacheFile;
     while (arguments.read("--cache",cacheFile))
     {
-        vpb::FileSystem::instance()->readFileCache(cacheFile);
+        vpb::System::instance()->readFileCache(cacheFile);
     }
 
     std::string taskFileName;

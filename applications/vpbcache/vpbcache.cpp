@@ -75,10 +75,10 @@ int main(int argc, char** argv)
     std::string cachefile;
     if (arguments.read("--cache",cachefile))
     {
-        vpb::FileSystem::instance()->openFileCache(cachefile);
+        vpb::System::instance()->openFileCache(cachefile);
     }
 
-    osg::ref_ptr<vpb::FileCache> fileCache = vpb::FileSystem::instance()->getFileCache();
+    osg::ref_ptr<vpb::FileCache> fileCache = vpb::System::instance()->getFileCache();
     if (!fileCache)
     {
         osg::notify(osg::NOTICE)<<"No cache file specified via VPB_CACHE_FILE, or via --cache <filename> command line parameters."<<std::endl;

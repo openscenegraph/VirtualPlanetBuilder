@@ -11,8 +11,8 @@
  * OpenSceneGraph Public License for more details.
 */
 
-#ifndef FILESYSTEM_H
-#define FILESYSTEM_H 1
+#ifndef System_H
+#define System_H 1
 
 #include <osgDB/FileUtils>
 
@@ -84,11 +84,11 @@ struct Date
 
 };
 
-class VPB_EXPORT FileSystem : public osg::Referenced
+class VPB_EXPORT System : public osg::Referenced
 {
     public:
     
-        static osg::ref_ptr<FileSystem>& instance();
+        static osg::ref_ptr<System>& instance();
     
         osgDB::FilePathList& getSourcePaths() { return _sourcePaths; }
         std::string& getDestinationDirectory() { return _destinationDirectory; }
@@ -135,8 +135,8 @@ class VPB_EXPORT FileSystem : public osg::Referenced
 
     protected:
     
-        FileSystem();
-        virtual ~FileSystem();
+        System();
+        virtual ~System();
         
         osgDB::FilePathList         _sourcePaths;
         std::string                 _destinationDirectory;

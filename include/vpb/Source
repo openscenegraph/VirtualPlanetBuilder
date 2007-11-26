@@ -16,7 +16,7 @@
 
 #include <vpb/SpatialProperties>
 #include <vpb/BuildLog>
-#include <vpb/FileSystem>
+#include <vpb/System>
 
 #include <osg/Shape>
 
@@ -135,14 +135,14 @@ public:
     GeospatialDataset* getOptimumGeospatialDataset(const SpatialProperties& sp) const
     {
         if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
-        else return FileSystem::instance()->openOptimumGeospatialDataset(_filename,sp);
+        else return System::instance()->openOptimumGeospatialDataset(_filename,sp);
     }
 
 
     GeospatialDataset* getGeospatialDataset() const
     {
         if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
-        else return FileSystem::instance()->openGeospatialDataset(_filename);
+        else return System::instance()->openGeospatialDataset(_filename);
     }
 
 

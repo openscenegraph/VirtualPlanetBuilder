@@ -14,7 +14,7 @@
 #include <vpb/TaskManager>
 #include <vpb/Commandline>
 #include <vpb/DatabaseBuilder>
-#include <vpb/FileSystem>
+#include <vpb/System>
 
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>

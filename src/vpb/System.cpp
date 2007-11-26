@@ -11,7 +11,7 @@
  * OpenSceneGraph Public License for more details.
 */
 
-#include <vpb/FileSystem>
+#include <vpb/System>
 #include <vpb/BuildLog>
 
 #include <time.h>
@@ -40,25 +40,25 @@ int vpb::getProcessID()
 }
 
 
-// convience methods for accessing FileSystem singletons variables.
-osgDB::FilePathList& vpb::getSourcePaths() { return FileSystem::instance()->getSourcePaths(); }
-std::string& vpb::getDestinationDirectory() { return FileSystem::instance()->getDestinationDirectory(); }
-std::string& vpb::getIntermediateDirectory() { return FileSystem::instance()->getIntermediateDirectory(); }
-std::string& vpb::getLogDirectory() { return FileSystem::instance()->getLogDirectory(); }
-std::string& vpb::getTaskDirectory() { return FileSystem::instance()->getTaskDirectory(); }
-std::string& vpb::getMachineFileName() { return FileSystem::instance()->getMachineFileName(); }
+// convience methods for accessing System singletons variables.
+osgDB::FilePathList& vpb::getSourcePaths() { return System::instance()->getSourcePaths(); }
+std::string& vpb::getDestinationDirectory() { return System::instance()->getDestinationDirectory(); }
+std::string& vpb::getIntermediateDirectory() { return System::instance()->getIntermediateDirectory(); }
+std::string& vpb::getLogDirectory() { return System::instance()->getLogDirectory(); }
+std::string& vpb::getTaskDirectory() { return System::instance()->getTaskDirectory(); }
+std::string& vpb::getMachineFileName() { return System::instance()->getMachineFileName(); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //  FileSytem singleton
 
-osg::ref_ptr<FileSystem>& FileSystem::instance()
+osg::ref_ptr<System>& System::instance()
 {
-    static osg::ref_ptr<FileSystem> s_FileSystem = new FileSystem;
-    return s_FileSystem;
+    static osg::ref_ptr<System> s_System = new System;
+    return s_System;
 }
 
-FileSystem::FileSystem()
+System::System()
 {
     _trimOldestTiles = true;
     _numUnusedDatasetsToTrimFromCache = 10;
@@ -67,11 +67,11 @@ FileSystem::FileSystem()
     readEnvironmentVariables();
 }
 
-FileSystem::~FileSystem()
+System::~System()
 {
 }
 
-void FileSystem::readEnvironmentVariables()
+void System::readEnvironmentVariables()
 {
     const char* str = getenv("VPB_SOURCE_PATHS");
     if (str) 
@@ -144,7 +144,7 @@ void FileSystem::readEnvironmentVariables()
     
 }
 
-void FileSystem::clearDatasetCache()
+void System::clearDatasetCache()
 {
     _datasetMap.clear();
 }
@@ -159,7 +159,7 @@ public:
         _num(n) {}
     
     
-    inline void add(FileSystem::DatasetMap::iterator itr)
+    inline void add(System::DatasetMap::iterator itr)
     {
         if (itr->second->referenceCount()!=1) return;
     
@@ -188,9 +188,9 @@ public:
         }
     }
     
-    void add(FileSystem::DatasetMap& datasetMap)
+    void add(System::DatasetMap& datasetMap)
     {
-        for(FileSystem::DatasetMap::iterator itr = datasetMap.begin();
+        for(System::DatasetMap::iterator itr = datasetMap.begin();
             itr != datasetMap.end();
             ++itr)
         {
@@ -198,7 +198,7 @@ public:
         }
     }
     
-    void eraseFrom(FileSystem::DatasetMap& datasetMap)
+    void eraseFrom(System::DatasetMap& datasetMap)
     {
         for(TimeIteratorMap::iterator itr = _timeIteratorMap.begin();
             itr != _timeIteratorMap.end();
@@ -208,14 +208,14 @@ public:
         }
     }
     
-    typedef std::multimap<double, FileSystem::DatasetMap::iterator> TimeIteratorMap;
+    typedef std::multimap<double, System::DatasetMap::iterator> TimeIteratorMap;
     
     bool            _oldest;
     unsigned int    _num;
     TimeIteratorMap _timeIteratorMap;    
 };
 
-void FileSystem::clearUnusedDatasets(unsigned int numToClear)
+void System::clearUnusedDatasets(unsigned int numToClear)
 {
     TrimN lowerN(numToClear, _trimOldestTiles);
 
@@ -225,13 +225,13 @@ void FileSystem::clearUnusedDatasets(unsigned int numToClear)
     _datasetMap.clear();
 }
 
-GeospatialDataset* FileSystem::openGeospatialDataset(const std::string& filename)
+GeospatialDataset* System::openGeospatialDataset(const std::string& filename)
 {
     // first check to see if dataset already exists in cache, if so return it.
     DatasetMap::iterator itr = _datasetMap.find(filename);
     if (itr != _datasetMap.end()) 
     {
-        //osg::notify(osg::NOTICE)<<"FileSystem::openGeospatialDataset("<<filename<<") returning existing entry, ref count "<<itr->second->referenceCount()<<std::endl;
+        //osg::notify(osg::NOTICE)<<"System::openGeospatialDataset("<<filename<<") returning existing entry, ref count "<<itr->second->referenceCount()<<std::endl;
         return itr->second.get();
     }
 
@@ -241,11 +241,11 @@ GeospatialDataset* FileSystem::openGeospatialDataset(const std::string& filename
     // double check to make sure there is room to open a new dataset
     if (_datasetMap.size()>=_maxNumDatasets)
     {
-        log(osg::NOTICE,"Error: FileSystem::GDALOpen(%s) unable to open file as unsufficient file handles available.",filename.c_str());
+        log(osg::NOTICE,"Error: System::GDALOpen(%s) unable to open file as unsufficient file handles available.",filename.c_str());
         return 0;
     }
     
-    //osg::notify(osg::NOTICE)<<"FileSystem::openGeospatialDataset("<<filename<<") requires new entry "<<std::endl;
+    //osg::notify(osg::NOTICE)<<"System::openGeospatialDataset("<<filename<<") requires new entry "<<std::endl;
 
     // open the new dataset.
     GeospatialDataset* dataset = new GeospatialDataset(filename);
@@ -257,7 +257,7 @@ GeospatialDataset* FileSystem::openGeospatialDataset(const std::string& filename
     return dataset;
 }
 
-GeospatialDataset* FileSystem::openOptimumGeospatialDataset(const std::string& filename, const SpatialProperties& sp)
+GeospatialDataset* System::openOptimumGeospatialDataset(const std::string& filename, const SpatialProperties& sp)
 {
     if (_fileCache.valid())
     {
@@ -270,7 +270,7 @@ GeospatialDataset* FileSystem::openOptimumGeospatialDataset(const std::string& f
     }
 }
 
-bool FileSystem::readFileCache(const std::string& filename)
+bool System::readFileCache(const std::string& filename)
 {
     std::string foundFile = osgDB::findDataFile(filename);
     if (foundFile.empty())
@@ -283,17 +283,17 @@ bool FileSystem::readFileCache(const std::string& filename)
     return _fileCache->read(foundFile);
 }
 
-bool FileSystem::openFileCache(const std::string& filename)
+bool System::openFileCache(const std::string& filename)
 {
     _fileCache = new FileCache;
     return _fileCache->open(filename);
 }
 
-bool FileSystem::getDateOfLastModification(const std::string& filename, Date& date)
+bool System::getDateOfLastModification(const std::string& filename, Date& date)
 {
 }
 
-bool FileSystem::getCurrentDate(Date& date)
+bool System::getCurrentDate(Date& date)
 {
     time_t t = time(NULL);
     tm* tm_date = localtime(&t);

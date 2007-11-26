@@ -12,7 +12,7 @@
 */
 
 #include <vpb/FileCache>
-#include <vpb/FileSystem>
+#include <vpb/System>
 #include <vpb/BuildLog>
 #include <vpb/DataSet>
 

@@ -31,7 +31,7 @@
 #include <vpb/DataSet>
 #include <vpb/DatabaseBuilder>
 #include <vpb/TaskManager>
-#include <vpb/FileSystem>
+#include <vpb/System>
 
 // GDAL includes
 #include <gdal_priv.h>

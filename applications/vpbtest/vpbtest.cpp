@@ -10,7 +10,7 @@
 */
 
 #include <vpb/BuildOperation>
-#include <vpb/FileSystem>
+#include <vpb/System>
 #include <vpb/Task>
 
 #include <osgDB/ReadFile>

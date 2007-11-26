@@ -19,11 +19,11 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/MachinePool
 	${HEADER_PATH}/FileCache
 	${HEADER_PATH}/FileDetails
-	${HEADER_PATH}/FileSystem
 	${HEADER_PATH}/PropertyFile
 	${HEADER_PATH}/Serializer
 	${HEADER_PATH}/Source
 	${HEADER_PATH}/SpatialProperties
+	${HEADER_PATH}/System
 	${HEADER_PATH}/Task
 	${HEADER_PATH}/TaskManager
 	${HEADER_PATH}/Version
@@ -44,11 +44,11 @@ ADD_LIBRARY(${LIB_NAME}
 	Destination.cpp
 	FileCache.cpp
 	FileDetails.cpp
-	FileSystem.cpp
         MachinePool.cpp
         PropertyFile.cpp
 	Source.cpp
 	SpatialProperties.cpp
+	System.cpp
 	Task.cpp
 	TaskManager.cpp
 	Version.cpp

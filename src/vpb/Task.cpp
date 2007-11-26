@@ -12,7 +12,7 @@
 */
 
 #include <vpb/Task>
-#include <vpb/FileSystem>
+#include <vpb/System>
 
 #include <iostream>
 #include <sstream>

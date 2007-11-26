@@ -61,7 +61,7 @@ int main(int argc, char** argv)
     std::string cacheFile;
     while (arguments.read("--cache",cacheFile))
     {
-        vpb::FileSystem::instance()->readFileCache(cacheFile);
+        vpb::System::instance()->readFileCache(cacheFile);
     }
 
     taskManager->read(arguments);
