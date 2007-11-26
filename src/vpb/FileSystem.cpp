@@ -14,6 +14,8 @@
 #include <vpb/FileSystem>
 #include <vpb/BuildLog>
 
+#include <time.h>
+
 #include <map>
 
 using namespace vpb;
@@ -285,4 +287,23 @@ bool FileSystem::openFileCache(const std::string& filename)
 {
     _fileCache = new FileCache;
     return _fileCache->open(filename);
+}
+
+bool FileSystem::getDateOfLastModification(const std::string& filename, Date& date)
+{
+}
+
+bool FileSystem::getCurrentDate(Date& date)
+{
+    time_t t = time(NULL);
+    tm* tm_date = localtime(&t);
+    
+    date.year = tm_date->tm_year;
+    date.month = tm_date->tm_mon;
+    date.day = tm_date->tm_mday;
+    date.hour = tm_date->tm_hour;
+    date.minute = tm_date->tm_min;
+    date.second = tm_date->tm_sec;
+    
+    return true;
 }
