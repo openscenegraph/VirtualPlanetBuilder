@@ -52,6 +52,7 @@ void MachineOperation::operator () (osg::Object* object)
 
             _task->setProperty("hostname",machine->getHostName());
             _task->setStatus(Task::RUNNING);
+            _task->setWithCurrentDate("date");
             _task->write();
             
             machine->startedTask(_task.get());
@@ -73,14 +74,12 @@ void MachineOperation::operator () (osg::Object* object)
             {
                 // success
                 _task->setStatus(Task::COMPLETED);
-                _task->setWithCurrentDate("date");
                 _task->write();
             }
             else
             {
                 // failure
                 _task->setStatus(Task::FAILED);
-                _task->setWithCurrentDate("date");
                 _task->write();
                 
                 // tell the machine about this task failure.

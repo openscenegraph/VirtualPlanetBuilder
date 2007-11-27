@@ -108,7 +108,6 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         
         osgTerrain::Terrain* createTerrainRepresentation();
         
-
         void loadSources();
 
         void assignIntermediateCoordinateSystem();

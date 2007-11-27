@@ -287,3 +287,64 @@ bool System::openFileCache(const std::string& filename)
     _fileCache = new FileCache;
     return _fileCache->open(filename);
 }
+
+bool System::getDateOfLastModification(osgTerrain::Terrain* source, Date& date)
+{
+    typedef std::list<osgTerrain::Layer*> Layers;
+    Layers layers;
+
+    if (source->getElevationLayer())
+    {
+        layers.push_back(source->getElevationLayer());
+    }
+
+    for(unsigned int i=0; i<source->getNumColorLayers();++i)
+    {
+        osgTerrain::Layer* layer = source->getColorLayer(i);
+        if (layer) 
+        {
+            layers.push_back(layer);
+        }
+    }
+
+    typedef std::list<std::string> Filenames;
+    Filenames filenames;
+
+    for(Layers::iterator itr = layers.begin();
+        itr != layers.end();
+        ++itr)
+    {
+        osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(*itr);
+        if (compositeLayer)
+        {
+            for(unsigned int i=0; i<compositeLayer->getNumLayers();++i)
+            {
+                filenames.push_back(compositeLayer->getFileName(i));
+            }
+        }
+        else
+        {
+            filenames.push_back((*itr)->getFileName());
+        }
+    }
+    
+    bool modified = false;
+    for(Filenames::iterator itr = filenames.begin();
+        itr != filenames.end();
+        ++itr)
+    {
+        Date lastModification;
+        if (lastModification.setWithDateOfLastModification(*itr))
+        {
+            if (lastModification > date)
+            {
+                date = lastModification;
+                modified = true;
+            }
+        }
+    }
+    
+    return modified;
+
+
+}

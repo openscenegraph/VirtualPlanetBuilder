@@ -151,8 +151,11 @@ int TaskManager::read(osg::ArgumentParser& arguments)
         readTasks(taskSetFileName);
     }
     
-    
-    
+
+    while (arguments.read("--modified"))
+    {
+        setOutOfDateTasksToPending();
+    }
 
     return 0;
 }
@@ -195,19 +198,14 @@ void TaskManager::addTask(Task* task)
         
 }
 
-void TaskManager::addTask(const std::string& taskFileName)
-{
-    osg::ref_ptr<Task> taskFile = new Task(taskFileName);
-    if (taskFile->valid()) addTask(taskFile.get());
-}
-
-void TaskManager::addTask(const std::string& taskFileName, const std::string& application)
+void TaskManager::addTask(const std::string& taskFileName, const std::string& application, const std::string& sourceFile)
 {
     osg::ref_ptr<Task> taskFile = new Task(taskFileName);
 
     if (taskFile->valid())
     {
         taskFile->setProperty("application",application);
+        taskFile->setProperty("source",sourceFile);
 
         taskFile->write();    
 
@@ -707,6 +705,66 @@ BuildOptions* TaskManager::getBuildOptions()
     return db ? db->getBuildOptions() : 0;
 }
 
+void TaskManager::setOutOfDateTasksToPending()
+{
+    typedef std::map<std::string, Date> FileNameDateMap;
+    FileNameDateMap filenameDateMap;
+
+    for(TaskSetList::iterator tsItr = _taskSetList.begin();
+        tsItr != _taskSetList.end();
+        ++tsItr)
+    {
+        TaskSet& taskSet = *tsItr;
+        for(TaskSet::iterator itr = taskSet.begin();
+            itr != taskSet.end();
+            ++itr)
+        {
+            Task* task = itr->get();
+            task->read();
+
+            if (task->getStatus()==Task::COMPLETED)
+            {
+                std::string sourceFile;
+                Date buildDate;
+                if (task->getProperty("source", sourceFile) &&
+                    task->getDate("date",buildDate))
+                {
+                    Date sourceFileLastModified;
+
+                    FileNameDateMap::iterator fndItr = filenameDateMap.find(sourceFile);
+                    if (fndItr != filenameDateMap.end())
+                    {
+                        sourceFileLastModified = fndItr->second;
+                    }
+                    else
+                    {
+                        if (sourceFileLastModified.setWithDateOfLastModification(sourceFile))
+                        {                        
+                            if (sourceFileLastModified < buildDate)
+                            {
+                                osg::ref_ptr<osg::Node> loadedModel = osgDB::readNodeFile(sourceFile);
+                                osgTerrain::Terrain* terrain = dynamic_cast<osgTerrain::Terrain*>(loadedModel.get());
+                                if (terrain)
+                                {
+                                    System::instance()->getDateOfLastModification(terrain, sourceFileLastModified);
+                                }
+                            }
+                        
+                            filenameDateMap[sourceFile] = sourceFileLastModified;
+                        }                            
+                    }
+                    
+                    if (sourceFileLastModified > buildDate)
+                    {
+                        task->setStatus(Task::PENDING);
+                    }
+                }
+            }
+        }
+    }    
+}
+
+
 void TaskManager::setDone(bool done)
 {
     _done = done;
@@ -810,3 +868,4 @@ void TaskManager::signalHandler(int sig)
 {
     TaskManager::instance()->handleSignal(sig);
 }
+

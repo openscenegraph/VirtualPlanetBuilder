@@ -1385,7 +1385,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
             }
             
 
-            taskManager->addTask(taskfile.str(), app.str());
+            taskManager->addTask(taskfile.str(), app.str(), sourceFile);
         }
         
         // taskManager->nextTaskSet();
@@ -1421,7 +1421,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
                 app<<" > /dev/null";
             }
 
-            taskManager->addTask(taskfile.str(), app.str());
+            taskManager->addTask(taskfile.str(), app.str(), sourceFile);
         }
 
     }

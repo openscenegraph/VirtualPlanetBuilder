@@ -75,6 +75,9 @@ class VPB_EXPORT System : public osg::Referenced
         const FileCache* getFileCache() const { return _fileCache.get(); }
 
         typedef std::map<std::string, osg::ref_ptr<GeospatialDataset> >  DatasetMap;
+        
+        /** Return the date of last modification from the list of source specified on the terrain source.*/
+        bool getDateOfLastModification(osgTerrain::Terrain* source, Date& date);
 
     protected:
     

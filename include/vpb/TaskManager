@@ -51,8 +51,7 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         
         /** add a task to the current task set.*/
         void addTask(Task* task);
-        void addTask(const std::string& taskFileName);
-        void addTask(const std::string& taskFileName, const std::string& application);
+        void addTask(const std::string& taskFileName, const std::string& application, const std::string& sourceFile);
         
         /** build the database directly without using slaves.*/
         void buildWithoutSlaves();
@@ -130,6 +129,10 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
 
         /** Send terminate single to all running tasks and set done flag to true to exit from run loop.*/
         void exit(int sig);
+        
+        /** Run though all attacked tasks and check the completed tasks to see their sources are more up to
+          * date than the build data of that task, if so change its status from completed to pending.*/
+        void setOutOfDateTasksToPending();
 
     protected:
 
