@@ -348,3 +348,18 @@ bool System::getDateOfLastModification(osgTerrain::Terrain* source, Date& date)
 
 
 }
+
+
+unsigned long System::getFileSize(const std::string& filename)
+{
+    struct stat s;
+    int status = stat(filename.c_str(), &s);
+    if (status==0)
+    {
+        return static_cast<unsigned long>(s.st_size);
+    }
+    else
+    {
+        return 0;
+    }
+}
