@@ -109,7 +109,7 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
         
         const std::string& getHostName() const { return _hostname; }
 
-        const std::string& getCacheDirectory() const { return _hostname; }
+        const std::string& getCacheDirectory() const { return _cacheDirectory; }
 
         const std::string& getCommandPrefix() const { return _commandPrefix; }
         const std::string& getCommandPostfix() const { return _commandPostfix; }

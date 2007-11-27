@@ -76,6 +76,12 @@ bool FileCache::read(const std::string& filename)
                 {
                     bool localAdvanced = false;
 
+                    if (fr.read("build",str))
+                    {
+                        fd->setBuildApplication(str);
+                        localAdvanced = true;
+                    }
+
                     if (fr.read("hostname",str))
                     {
                         fd->setHostName(str);
@@ -186,6 +192,11 @@ bool FileCache::write(const std::string& filename)
             fout.indent()<<"FileDetails {"<<std::endl;
             fout.moveIn();
             
+            if (!fd->getBuildApplication().empty())
+            {
+                fout.indent()<<"build "<<fout.wrapString(fd->getBuildApplication())<<std::endl;
+            }
+
             if (!fd->getHostName().empty())
             {
                 fout.indent()<<"hostname "<<fout.wrapString(fd->getHostName())<<std::endl;
@@ -395,8 +406,6 @@ void FileCache::addSource(osgTerrain::Terrain* source)
 {
     if (!source) return;
 
-    _requiresWrite = true;
-    
     osg::ref_ptr<DataSet> dataset = new DataSet;
     dataset->addTerrain(source);
 
@@ -417,6 +426,34 @@ void FileCache::addSource(osgTerrain::Terrain* source)
     
     log(osg::NOTICE,"FileCache::addSource()");
 }
+
+void FileCache::buildRequiredReprojections(osgTerrain::Terrain* source)
+{
+    if (!source) return;
+
+    log(osg::NOTICE,"FileCache::buildRequiredReprojections()");
+
+    osg::ref_ptr<DataSet> dataset = new DataSet;
+    dataset->addTerrain(source);
+
+    dataset->assignIntermediateCoordinateSystem();
+
+    if (dataset->requiresReprojection())
+    {
+        log(osg::NOTICE,"  Actuall does require reprojection!!");
+
+        for(CompositeSource::source_iterator itr(dataset->getSourceGraph());itr.valid();++itr)
+        {
+            Source* source = itr->get();
+            if (source->needReproject(dataset->getIntermediateCoordinateSystem()))
+            {
+                log(osg::NOTICE,"     Here's the culprit = %s",source->getFileName().c_str());
+            }
+        }
+    }
+
+}
+
 
 void FileCache::buildMipmaps()
 {
@@ -451,6 +488,11 @@ void FileCache::report(std::ostream& out)
             if (!fd->getHostName().empty())
             {
                 out<<"    hostname "<<fd->getHostName()<<std::endl;
+            }
+
+            if (!fd->getBuildApplication().empty())
+            {
+                out<<"    build "<<fd->getBuildApplication()<<std::endl;
             }
 
             if (!fd->getOriginalSourceFileName().empty())

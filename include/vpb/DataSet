@@ -111,6 +111,9 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         void loadSources();
 
         void assignIntermediateCoordinateSystem();
+        void setIntermediateCoordinateSystem(const std::string& wellKnownText) { setIntermediateCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText)); }
+        void setIntermediateCoordinateSystem(osg::CoordinateSystemNode* cs) { _intermediateCoordinateSystem = cs; }
+        osg::CoordinateSystemNode* getIntermediateCoordinateSystem() { return _intermediateCoordinateSystem.get(); }
 
         bool requiresReprojection();
 
@@ -170,9 +173,6 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         friend class DestinationTile;
 
 
-        void setIntermediateCoordinateSystem(const std::string& wellKnownText) { setIntermediateCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText)); }
-        void setIntermediateCoordinateSystem(osg::CoordinateSystemNode* cs) { _intermediateCoordinateSystem = cs; }
-        osg::CoordinateSystemNode* getIntermediateCoordinateSystem() { return _intermediateCoordinateSystem.get(); }
 
         void _readRow(Row& row);
         void _equalizeRow(Row& row);

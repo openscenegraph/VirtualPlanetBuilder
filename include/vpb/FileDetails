@@ -45,6 +45,10 @@ class VPB_EXPORT FileDetails : public osg::Object
         std::string& getHostName() { return _hostname; }
         const std::string& getHostName() const { return _hostname; }
         
+        void setBuildApplication(const std::string& app) { _buildApplication = app; }
+        std::string& getBuildApplication() { return _buildApplication; }
+        const std::string& getBuildApplication() const { return _buildApplication; }
+        
         void setOriginalSourceFileName(const std::string& filename) { _originalSourceFile = filename; }
         std::string& getOriginalSourceFileName() { return _originalSourceFile; }
         const std::string& getOriginalSourceFileName() const { return _originalSourceFile; }
@@ -62,7 +66,7 @@ class VPB_EXPORT FileDetails : public osg::Object
         virtual ~FileDetails();
         
         std::string         _originalSourceFile;
-        
+        std::string         _buildApplication;
         std::string         _hostname;
         std::string         _filename;
         SpatialProperties   _spatialProperties;

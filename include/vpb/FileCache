@@ -66,8 +66,11 @@ class VPB_EXPORT FileCache : public osg::Object
         /** clear the cache.*/
         void clear();
         
-        /** add FileDetails for each source file in specified source description.*/
+        /** add FileDetails for each source file in specified source.*/
         void addSource(osgTerrain::Terrain* source);
+        
+        /** reproject any source files to the coordinate system required to build the specified source.*/
+        void buildRequiredReprojections(osgTerrain::Terrain* source);
 
         /** build mipmap levels for each source file.*/
         void buildMipmaps();

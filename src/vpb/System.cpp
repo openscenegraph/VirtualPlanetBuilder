@@ -102,12 +102,6 @@ void System::readEnvironmentVariables()
         _taskDirectory = str;
     }
 
-    str = getenv("VPB_MACHINE_FILE");
-    if (str) 
-    {
-        _machineFileName = str;
-    }
-    
     str = getenv("VPB_TRIM_TILES_SCHEME");
     if (str) 
     {
@@ -134,9 +128,20 @@ void System::readEnvironmentVariables()
     }
 
 
+    str = getenv("VPB_MACHINE_FILE");
+    if (str) 
+    {
+        _machineFileName = str;
+        
+        _machinePool = new MachinePool;
+        _machinePool->read(_machineFileName);
+    }
+    
     str = getenv("VPB_CACHE_FILE");
     if (str) 
     {
+        _cacheFileName = str;
+        
         osg::notify(osg::NOTICE)<<"VPB_CACHE_FILE = "<<str<<std::endl;
         openFileCache(str);
     }

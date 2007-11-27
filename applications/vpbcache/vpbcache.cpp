@@ -30,6 +30,10 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->setCommandLineUsage(arguments.getApplicationName()+" [options] filename ...");
     arguments.getApplicationUsage()->addCommandLineOption("-h or --help","Display this information");
     arguments.getApplicationUsage()->addCommandLineOption("--clean","Clear the contents of the file cache");
+    arguments.getApplicationUsage()->addCommandLineOption("--cache","Specify cache file to use");
+    arguments.getApplicationUsage()->addCommandLineOption("--reproject","Carry out reprojections required for specified build sources.");
+    arguments.getApplicationUsage()->addCommandLineOption("--add-source","Add files from specified build sources to file cache.");
+    arguments.getApplicationUsage()->addCommandLineOption("--build-mipmaps","Build mipmaps for the source data.");
     arguments.getApplicationUsage()->addCommandLineOption("--report","Report the contents of the file cache");
 
 
@@ -101,6 +105,11 @@ int main(int argc, char** argv)
     if (arguments.read("--clear"))
     {
         fileCache->clear();
+    }
+
+    if (arguments.read("--reproject"))
+    {
+        fileCache->buildRequiredReprojections(terrain.get());
     }
 
     if (arguments.read("--add-source"))

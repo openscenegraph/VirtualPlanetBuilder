@@ -18,6 +18,7 @@
 
 #include <vpb/GeospatialDataset>
 #include <vpb/FileCache>
+#include <vpb/MachinePool>
 
 namespace vpb
 {
@@ -45,8 +46,10 @@ class VPB_EXPORT System : public osg::Referenced
         std::string& getLogDirectory() { return _logDirectory; }
         std::string& getTaskDirectory() { return _taskDirectory; }
         std::string& getMachineFileName() { return _machineFileName; }
+        std::string& getCacheFileName() { return _cacheFileName; }
     
         void readEnvironmentVariables();
+        void readArguments(osg::ArgumentParser& arguments);
         
 
         void setTrimOldestTiles(bool trimOldest) { _trimOldestTiles = trimOldest; }
@@ -74,6 +77,11 @@ class VPB_EXPORT System : public osg::Referenced
         FileCache* getFileCache() { return _fileCache.get(); }
         const FileCache* getFileCache() const { return _fileCache.get(); }
 
+        void setMachinePool(MachinePool* machinePool) { _machinePool = machinePool; }
+        MachinePool* getMachinePool() { return _machinePool.get(); }
+        const MachinePool* getMachinePool() const { return _machinePool.get(); }
+
+
         typedef std::map<std::string, osg::ref_ptr<GeospatialDataset> >  DatasetMap;
         
         /** Return the date of last modification from the list of source specified on the terrain source.*/
@@ -93,6 +101,7 @@ class VPB_EXPORT System : public osg::Referenced
         std::string                 _logDirectory;
         std::string                 _taskDirectory;
         std::string                 _machineFileName;
+        std::string                 _cacheFileName;
         
         
         bool                        _trimOldestTiles;
@@ -101,6 +110,7 @@ class VPB_EXPORT System : public osg::Referenced
         DatasetMap                  _datasetMap;
         
         osg::ref_ptr<FileCache>     _fileCache;
+        osg::ref_ptr<MachinePool>   _machinePool;
         
         
 };
