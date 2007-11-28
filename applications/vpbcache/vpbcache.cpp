@@ -13,6 +13,7 @@
 #include <vpb/Commandline>
 #include <vpb/TaskManager>
 #include <vpb/BuildLog>
+#include <vpb/System>
 
 #include <osg/Timer>
 #include <osgDB/ReadFile>
@@ -75,32 +76,14 @@ int main(int argc, char** argv)
     int result = vpb::readSourceArguments(std::cout, arguments, terrain.get());
     if (result) return result;
     
+    vpb::System::instance()->readArguments(arguments);
 
-    std::string cachefile;
-    if (arguments.read("--cache",cachefile))
-    {
-        vpb::System::instance()->openFileCache(cachefile);
-    }
-
-    osg::ref_ptr<vpb::FileCache> fileCache = vpb::System::instance()->getFileCache();
+    vpb::FileCache* fileCache = vpb::System::instance()->getFileCache();
     if (!fileCache)
     {
-        osg::notify(osg::NOTICE)<<"No cache file specified via VPB_CACHE_FILE, or via --cache <filename> command line parameters."<<std::endl;
+        vpb::log(osg::WARN,"Error: no valid cache file specificed, please set one using --cache <filename> on command line.");
         return 1;
     }
-
-    // read any machines specification    
-    osg::ref_ptr<vpb::MachinePool> machinePool;
-    std::string machinePoolFileName;
-    while (arguments.read("--machines",machinePoolFileName)) {}
-
-    if (machinePoolFileName.empty()) machinePoolFileName = vpb::getMachineFileName();
-
-    if (!machinePoolFileName.empty())
-    {
-        machinePool->read(machinePoolFileName);
-    }
-
 
     if (arguments.read("--clear"))
     {
@@ -125,7 +108,13 @@ int main(int argc, char** argv)
     std::string machineName, directory;
     while(arguments.read("--mirror", machineName, directory))
     {
-        vpb::Machine* machine = machinePool.valid() ? machinePool->getMachine(machineName) : 0;
+        if (!vpb::System::instance()->getMachinePool())
+        {
+            vpb::log(osg::WARN,"Error: no valid machines file specified, please set one using --machines <filename> on command line.");
+            return 1;
+        }
+    
+        vpb::Machine* machine = vpb::System::instance()->getMachinePool()->getMachine(machineName);
         if (machine)
         {
             fileCache->mirror(machine, directory);

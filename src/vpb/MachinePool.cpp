@@ -14,6 +14,7 @@
 #include <vpb/MachinePool>
 #include <vpb/Task>
 #include <vpb/TaskManager>
+#include <vpb/System>
 
 #include <osg/GraphicsThread>
 #include <osg/Timer>
@@ -240,6 +241,9 @@ void Machine::setOperationQueue(osg::OperationQueue* queue)
 
 unsigned int Machine::getNumThreadsActive() const
 {
+#if 1
+    return _runningTasks.size();
+#else
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_threadsMutex);
     
     unsigned int numThreadsActive = 0;
@@ -247,12 +251,14 @@ unsigned int Machine::getNumThreadsActive() const
         itr != _threads.end();
         ++itr)
     {
-        if ((*itr)->getCurrentOperation().valid())
+        if ((*itr)->getCurrentOperation().valid() || 
+           !(*itr)->getOperationQueue()->empty())
         {        
             ++numThreadsActive;
         }
     }
     return numThreadsActive;
+#endif
 }
 
 unsigned int Machine::getNumThreadsRunning() const
@@ -270,6 +276,23 @@ unsigned int Machine::getNumThreadsRunning() const
         }
     }
     return numThreadsRunning;
+}
+
+unsigned int Machine::getNumThreadsNotDone() const
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_threadsMutex);
+    
+    unsigned int numThreadsNotDone = 0;
+    for(Threads::const_iterator itr = _threads.begin();
+        itr != _threads.end();
+        ++itr)
+    {
+        if (!(*itr)->getDone())
+        {        
+            ++numThreadsNotDone;
+        }
+    }
+    return numThreadsNotDone;
 }
 
 void Machine::startedTask(Task* task)
@@ -321,7 +344,7 @@ void Machine::taskFailed(Task* task, int result)
             {
                 log(osg::NOTICE,"   COMPLETE_RUNNING_TASKS_THEN_EXIT");
                 _machinePool->setTaskFailureOperation(MachinePool::IGNORE);
-                _machinePool->getTaskManager()->setDone(true);
+                System::instance()->getTaskManager()->setDone(true);
                 _machinePool->removeAllOperations();
                 _machinePool->release();
                 break;
@@ -330,7 +353,7 @@ void Machine::taskFailed(Task* task, int result)
             {
                 log(osg::NOTICE,"   TERMINATE_RUNNING_TASKS_THEN_EXIT");
                 _machinePool->setTaskFailureOperation(MachinePool::IGNORE);
-                _machinePool->getTaskManager()->setDone(true);
+                System::instance()->getTaskManager()->setDone(true);
                 _machinePool->removeAllOperations();
                 _machinePool->signal(SIGTERM);
                 _machinePool->release();
@@ -383,8 +406,8 @@ void Machine::setDone(bool done)
 //
 
 MachinePool::MachinePool():
-    _taskManager(0),
-    _taskFailureOperation(IGNORE)
+    _taskFailureOperation(IGNORE),
+    _done(false)
 {
     //_taskFailureOperation = IGNORE;
     _taskFailureOperation = BLACKLIST_MACHINE_AND_RESUBMIT_TASK;
@@ -452,29 +475,24 @@ void MachinePool::run(Task* task)
 
 void MachinePool::waitForCompletion()
 {
-//    OpenThreads::Thread::microSleep(100000);
-
-#if 1
-    log(osg::INFO, "MachinePool::waitForCompletion : Adding block to queue");
     _blockOp->reset();
-    
-    // wait till the operaion queu has been flushed.
+
     _operationQueue->add(_blockOp.get());
-    
-    log(osg::INFO, "MachinePool::waitForCompletion : Waiting for block to complete");
+
+    // wait till block is complete i.e. the operation queue has been cleared up to the block    
     _blockOp->block();
-    
-    log(osg::INFO, "MachinePool::waitForCompletion : Block completed");
-#endif
+
     // there can still be operations running though so need to double check.
-    while((getNumThreadsActive()>0 /*|| !_operationQueue->empty()*/) && !done())
+    while(getNumThreadsActive()>0 && !done())
     {
-        log(osg::NOTICE, "MachinePool::waitForCompletion : Waiting for threads to complete = %d",getNumThreadsActive());
+        log(osg::INFO, "MachinePool::waitForCompletion : Waiting for threads to complete = %d",getNumThreadsActive());
         
         OpenThreads::Thread::microSleep(1000000);
     }
 
-    log(osg::NOTICE, "MachinePool::waitForCompletion : finished %d",_operationQueue->empty());
+    log(osg::INFO, "MachinePool::waitForCompletion : done %d",done());
+    log(osg::INFO, "                               : getNumThreadsActive() %d",int(getNumThreadsActive()));
+    log(osg::INFO, "                               : empty %d",int(_operationQueue->empty()));
 }
 
 unsigned int MachinePool::getNumThreads() const
@@ -517,6 +535,20 @@ unsigned int MachinePool::getNumThreadsRunning() const
         numThreadsRunning += (*itr)->getNumThreadsRunning();
     }
     return numThreadsRunning;
+}
+
+unsigned int MachinePool::getNumThreadsNotDone() const
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_machinesMutex);
+
+    unsigned int numThreadsNotDone = 0;
+    for(Machines::const_iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        numThreadsNotDone += (*itr)->getNumThreadsNotDone();
+    }
+    return numThreadsNotDone;
 }
 
 void MachinePool::clear()
@@ -651,6 +683,8 @@ void MachinePool::signal(int signal)
 
 void MachinePool::setDone(bool done)
 {
+    log(osg::NOTICE,"MachinePool::setDone(%d)",(int)done);
+
     _done = done;
 
     if (_done) removeAllOperations();

@@ -124,6 +124,8 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
 
         unsigned int getNumThreadsRunning() const;
 
+        unsigned int getNumThreadsNotDone() const;
+
         typedef std::map<Task*, double> RunningTasks;
         
         void startedTask(Task* task);
@@ -175,8 +177,6 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
     
         MachinePool();
 
-        TaskManager* getTaskManager() { return _taskManager; }
-        
         osg::OperationQueue* getOperationQueue() { return _operationQueue.get(); }
 
         /// override from Logger to be able to pass on to all associated Machine objects        
@@ -203,6 +203,8 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
         unsigned int getNumThreadsActive() const;
 
         unsigned int getNumThreadsRunning() const;
+
+        unsigned int getNumThreadsNotDone() const;
 
         void clear();
         
@@ -248,8 +250,6 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
 
         typedef std::list< osg::ref_ptr<Machine> > Machines;
 
-        TaskManager*                        _taskManager;
-        
         std::string                         _machinePoolFileName;
 
         osg::ref_ptr<osg::OperationQueue>   _operationQueue;

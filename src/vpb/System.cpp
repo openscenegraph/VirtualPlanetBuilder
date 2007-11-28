@@ -68,6 +68,9 @@ System::System()
 
 System::~System()
 {
+    _machinePool = 0;
+    _taskManager = 0;
+    _fileCache = 0;
 }
 
 void System::readEnvironmentVariables()
@@ -132,21 +135,56 @@ void System::readEnvironmentVariables()
     if (str) 
     {
         _machineFileName = str;
-        
-        _machinePool = new MachinePool;
-        _machinePool->read(_machineFileName);
     }
     
     str = getenv("VPB_CACHE_FILE");
     if (str) 
     {
         _cacheFileName = str;
-        
-        osg::notify(osg::NOTICE)<<"VPB_CACHE_FILE = "<<str<<std::endl;
-        openFileCache(str);
     }
     
 }
+
+void System::readArguments(osg::ArgumentParser& arguments)
+{
+    while (arguments.read("--machines",_machineFileName)) {}
+
+    while (arguments.read("--cache",_cacheFileName)) {}
+}
+
+FileCache* System::getFileCache()
+{
+    if (!_fileCache && !_cacheFileName.empty())
+    {
+        _fileCache = new FileCache;
+        _fileCache->open(_cacheFileName);
+    }
+    
+    return _fileCache.get();
+}
+
+MachinePool* System::getMachinePool()
+{
+    if (!_machinePool && !_machineFileName.empty())
+    {
+        _machinePool = new MachinePool;
+        _machinePool->read(_machineFileName);
+    }
+    
+    return _machinePool.get();
+}
+
+
+TaskManager* System::getTaskManager()
+{
+    if (!_taskManager)
+    {
+        _taskManager = new TaskManager;
+    }
+    
+    return _taskManager.get();
+}
+
 
 void System::clearDatasetCache()
 {
@@ -272,25 +310,6 @@ GeospatialDataset* System::openOptimumGeospatialDataset(const std::string& filen
     {
         return openGeospatialDataset(filename);
     }
-}
-
-bool System::readFileCache(const std::string& filename)
-{
-    std::string foundFile = osgDB::findDataFile(filename);
-    if (foundFile.empty())
-    {
-        log(osg::WARN,"Error: could not find cache file '%s'",filename.c_str());
-        return false;
-    }
-    
-    _fileCache = new FileCache;
-    return _fileCache->read(foundFile);
-}
-
-bool System::openFileCache(const std::string& filename)
-{
-    _fileCache = new FileCache;
-    return _fileCache->open(filename);
 }
 
 bool System::getDateOfLastModification(osgTerrain::Terrain* source, Date& date)

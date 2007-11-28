@@ -15,8 +15,8 @@
 #define SOURCE_H 1
 
 #include <vpb/SpatialProperties>
+#include <vpb/GeospatialDataset>
 #include <vpb/BuildLog>
-#include <vpb/System>
 
 #include <osg/Shape>
 
@@ -132,19 +132,9 @@ public:
     void setTemporaryFile(bool temporaryFile) { _temporaryFile = temporaryFile; }
     bool getTemporaryFile() const { return _temporaryFile; }
 
-    GeospatialDataset* getOptimumGeospatialDataset(const SpatialProperties& sp) const
-    {
-        if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
-        else return System::instance()->openOptimumGeospatialDataset(_filename,sp);
-    }
+    GeospatialDataset* getOptimumGeospatialDataset(const SpatialProperties& sp) const;
 
-
-    GeospatialDataset* getGeospatialDataset() const
-    {
-        if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
-        else return System::instance()->openGeospatialDataset(_filename);
-    }
-
+    GeospatialDataset* getGeospatialDataset() const;
 
     void setGdalDataset(GDALDataset* gdalDataset);
     GDALDataset* getGdalDataset();

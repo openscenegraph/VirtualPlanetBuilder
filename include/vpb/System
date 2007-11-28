@@ -19,6 +19,7 @@
 #include <vpb/GeospatialDataset>
 #include <vpb/FileCache>
 #include <vpb/MachinePool>
+#include <vpb/TaskManager>
 
 namespace vpb
 {
@@ -69,17 +70,14 @@ class VPB_EXPORT System : public osg::Referenced
 
         GeospatialDataset* openOptimumGeospatialDataset(const std::string& filename, const SpatialProperties& sp);
 
-        bool readFileCache(const std::string& filename);
-        
-        bool openFileCache(const std::string& filename);
-
         void setFileCache(FileCache* fileCache) { _fileCache = fileCache; }
-        FileCache* getFileCache() { return _fileCache.get(); }
-        const FileCache* getFileCache() const { return _fileCache.get(); }
+        FileCache* getFileCache();
 
         void setMachinePool(MachinePool* machinePool) { _machinePool = machinePool; }
-        MachinePool* getMachinePool() { return _machinePool.get(); }
-        const MachinePool* getMachinePool() const { return _machinePool.get(); }
+        MachinePool* getMachinePool();
+
+        void setMachinePool(TaskManager* taskManager) { _taskManager = taskManager; }
+        TaskManager* getTaskManager();
 
 
         typedef std::map<std::string, osg::ref_ptr<GeospatialDataset> >  DatasetMap;
@@ -111,6 +109,7 @@ class VPB_EXPORT System : public osg::Referenced
         
         osg::ref_ptr<FileCache>     _fileCache;
         osg::ref_ptr<MachinePool>   _machinePool;
+        osg::ref_ptr<TaskManager>   _taskManager;
         
         
 };

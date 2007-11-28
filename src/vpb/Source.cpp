@@ -15,6 +15,7 @@
 #include <vpb/Source>
 #include <vpb/Destination>
 #include <vpb/DataSet>
+#include <vpb/System>
 
 #include <osg/Notify>
 #include <osg/io_utils>
@@ -976,6 +977,19 @@ void SourceData::readModels(DestinationData& destination)
         log(osg::INFO,"Raading model");
         destination._models.push_back(_model);
     }
+}
+
+GeospatialDataset* Source::getOptimumGeospatialDataset(const SpatialProperties& sp) const
+{
+    if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
+    else return System::instance()->openOptimumGeospatialDataset(_filename,sp);
+}
+
+
+GeospatialDataset* Source::getGeospatialDataset() const
+{
+    if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
+    else return System::instance()->openGeospatialDataset(_filename);
 }
 
 void Source::setGdalDataset(GDALDataset* gdalDataSet)

@@ -61,12 +61,8 @@ int main(int argc, char** argv)
         arguments.getApplicationUsage()->write(std::cout,osg::ApplicationUsage::COMMAND_LINE_OPTION);
         return 1;
     }
-
-    std::string cacheFile;
-    while (arguments.read("--cache",cacheFile))
-    {
-        vpb::System::instance()->readFileCache(cacheFile);
-    }
+    
+    vpb::System::instance()->readArguments(arguments);
 
     std::string taskFileName;
     osg::ref_ptr<vpb::Task> taskFile;

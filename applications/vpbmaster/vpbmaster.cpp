@@ -12,6 +12,7 @@
 
 #include <vpb/Commandline>
 #include <vpb/TaskManager>
+#include <vpb/System>
 
 #include <osg/Timer>
 #include <osgDB/ReadFile>
@@ -23,7 +24,7 @@
 
 int main(int argc, char** argv)
 {
-    osg::ref_ptr<vpb::TaskManager> taskManager = vpb::TaskManager::instance();
+    osg::ref_ptr<vpb::TaskManager> taskManager = vpb::System::instance()->getTaskManager();
 
     taskManager->setSignalAction(SIGHUP, vpb::TaskManager::COMPLETE_RUNNING_TASKS_THEN_EXIT);
     taskManager->setSignalAction(SIGINT, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
@@ -58,11 +59,7 @@ int main(int argc, char** argv)
         return 1;
     }
     
-    std::string cacheFile;
-    while (arguments.read("--cache",cacheFile))
-    {
-        vpb::System::instance()->readFileCache(cacheFile);
-    }
+    vpb::System::instance()->readArguments(arguments);
 
     taskManager->read(arguments);
 

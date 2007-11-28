@@ -30,20 +30,11 @@
 
 using namespace vpb;
 
-osg::ref_ptr<TaskManager>& TaskManager::instance()
-{
-    static osg::ref_ptr<TaskManager> s_taskManager = new TaskManager;
-    return s_taskManager;
-}
-
-
 TaskManager::TaskManager()
 {
     _done = false;
     _buildName = "build";
 
-    setMachinePool(new MachinePool);
-    
     char str[2048]; 
     _runPath = getcwd ( str, sizeof(str));
     
@@ -59,7 +50,7 @@ void TaskManager::setBuildLog(BuildLog* bl)
 {
     Logger::setBuildLog(bl);
     
-    if (_machinePool.valid())  _machinePool->setBuildLog(bl);
+    if (getMachinePool()) getMachinePool()->setBuildLog(bl);
 }
 
 
@@ -69,6 +60,16 @@ void TaskManager::setRunPath(const std::string& runPath)
     chdir(_runPath.c_str());
     
     log(osg::NOTICE,"setRunPath = %s",_runPath.c_str());
+}
+
+MachinePool* TaskManager::getMachinePool()
+{
+    return System::instance()->getMachinePool();
+}
+
+const MachinePool* TaskManager::getMachinePool() const
+{
+    return System::instance()->getMachinePool();
 }
 
 int TaskManager::read(osg::ArgumentParser& arguments)
@@ -127,22 +128,6 @@ int TaskManager::read(osg::ArgumentParser& arguments)
         }
     }
 
-    std::string machinePoolFileName;
-    while (arguments.read("--machines",machinePoolFileName)) {}
-
-    if (machinePoolFileName.empty()) machinePoolFileName = vpb::getMachineFileName();
-
-    if (!machinePoolFileName.empty())
-    {
-        _machinePool->read(machinePoolFileName);
-        
-#if 0        
-        _machinePool->write("test.machines");
-#endif
-    }
-    
-    
-
     std::string taskSetFileName;
     while (arguments.read("--tasks",taskSetFileName)) {}
 
@@ -168,17 +153,6 @@ void TaskManager::setSource(osgTerrain::Terrain* terrain)
 osgTerrain::Terrain* TaskManager::getSource()
 {
     return _terrain.get();
-}
-
-void TaskManager::setMachinePool(MachinePool* machinePool)
-{
-    _machinePool = machinePool;
-    if (_machinePool.valid()) _machinePool->_taskManager = this;
-}
-
-MachinePool* TaskManager::getMachinePool()
-{
-    return _machinePool.get();
 }
 
 void TaskManager::nextTaskSet()
@@ -396,7 +370,16 @@ bool TaskManager::run()
     
         // if (tasksFailed != 0) break;
         
-        if (getMachinePool()->getNumThreadsRunning()==0) break;
+        if (getMachinePool()->getNumThreadsNotDone()==0)
+        {
+            while(getMachinePool()->getNumThreadsRunning()>0)
+            {
+                log(osg::INFO,"TaskManager::run() - Waiting for threads to exit.");
+                OpenThreads::Thread::YieldCurrentThread();
+            }
+            
+            break;
+        }
         
         
         if (tasksPending!=0 || tasksFailed!=0 || tasksRunning!=0)
@@ -452,7 +435,7 @@ bool TaskManager::run()
     }
     log(osg::NOTICE,"End of run: tasksPending=%d taskCompleted=%d taskRunning=%d tasksFailed=%d",tasksPending,tasksCompleted,tasksRunning,tasksFailed);
 
-    _machinePool->reportTimingStats();
+    getMachinePool()->reportTimingStats();
 
     if (tasksFailed==0)
     {
@@ -769,9 +752,7 @@ void TaskManager::setDone(bool done)
 {
     _done = done;
 
-    if (_done) _machinePool->release();
-    
-    //if (_machinePool.valid()) _machinePool->setDone(done);
+    if (_done) getMachinePool()->release();
 }
 
 void TaskManager::handleSignal(int sig)
@@ -795,8 +776,8 @@ void TaskManager::handleSignal(int sig)
             log(osg::NOTICE,"Recieved signal %d, doing COMPLETE_RUNNING_TASKS_THEN_EXIT.",sig);
 
             _done = true;
-            _machinePool->removeAllOperations();
-            _machinePool->release();
+            getMachinePool()->removeAllOperations();
+            getMachinePool()->release();
 
             break;
         }
@@ -806,26 +787,26 @@ void TaskManager::handleSignal(int sig)
 
             _done = true;
 
-            _machinePool->removeAllOperations();
-            _machinePool->signal(sig);
+            getMachinePool()->removeAllOperations();
+            getMachinePool()->signal(sig);
 
-            _machinePool->cancelThreads();
-            _machinePool->release();
+            getMachinePool()->cancelThreads();
+            getMachinePool()->release();
 
             break;
         }
         case(RESET_MACHINE_POOL):
         {
             log(osg::NOTICE,"Recieved signal %d, doing RESET_MACHINE_POOL.",sig);
-            _machinePool->release();
-            _machinePool->resetMachinePool();
+            getMachinePool()->release();
+            getMachinePool()->resetMachinePool();
             break;
         }
         case(UPDATE_MACHINE_POOL):
         {
             log(osg::NOTICE,"Recieved signal %d, doing UPDATE_MACHINE_POOL.",sig);
-            _machinePool->release();
-            _machinePool->updateMachinePool();
+            getMachinePool()->release();
+            getMachinePool()->updateMachinePool();
             break;
         }
     }
@@ -866,6 +847,6 @@ TaskManager::SignalAction TaskManager::getSignalAction(int sig) const
 
 void TaskManager::signalHandler(int sig)
 {
-    TaskManager::instance()->handleSignal(sig);
+    System::instance()->getTaskManager()->handleSignal(sig);
 }
 
