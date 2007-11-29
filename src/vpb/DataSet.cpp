@@ -1355,6 +1355,9 @@ bool DataSet::generateTasks(TaskManager* taskManager)
         std::string taskDirectory = getTaskDirectory();
         if (!taskDirectory.empty()) taskDirectory += "/";
         
+        std::string fileCacheName;
+        if (System::instance()->getFileCache()) fileCacheName = System::instance()->getFileCache()->getFileName(); 
+        
         bool logging = true;
         
         // create root task
@@ -1365,19 +1368,16 @@ bool DataSet::generateTasks(TaskManager* taskManager)
             std::ostringstream app;
             app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSplitLevel()<<" --task "<<taskfile.str();
 
-#if 0
-            app<<" -o ~/logs/earth.ive";
-#endif
+            if (!fileCacheName.empty())
+            {
+                app<<" --cache "<<fileCacheName;
+            }
+
             if (logging)
             {
                 std::ostringstream logfile;
-#if 1                
                 logfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.log";
-#else
-                logfile<<"~/logs/"<<basename<<"_root_L0_X0_Y0.log";
-#endif
                 app<<" --log "<<logfile.str();
-
             }
             else
             {
@@ -1403,17 +1403,16 @@ bool DataSet::generateTasks(TaskManager* taskManager)
             std::ostringstream app;
             app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --subtile "<<cd->_level<<" "<<cd->_tileX<<" "<<cd->_tileY<<" --task "<<taskfile.str();
 
-#if 0
-            app<<" -o ~/logs/earth.ive";
-#endif
+            if (!fileCacheName.empty())
+            {
+                app<<" --cache "<<fileCacheName;
+            }
+
             if (logging)
             {
                 std::ostringstream logfile;
-#if 1
+
                 logfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
-#else
-                logfile<<"~/logs/"<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
-#endif
                 app<<" --log "<<logfile.str();
             }
             else

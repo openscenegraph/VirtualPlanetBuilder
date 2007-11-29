@@ -57,7 +57,7 @@ class VPB_EXPORT FileDetails : public osg::Object
         std::string& getFileName() { return _filename; }
         const std::string& getFileName() const { return _filename; }
 
-        void setSpatialProperties(SpatialProperties& sd) { _spatialProperties = sd; }
+        void setSpatialProperties(const SpatialProperties& sd) { _spatialProperties = sd; }
         SpatialProperties& getSpatialProperties() { return _spatialProperties; }
         const SpatialProperties& getSpatialProperties() const { return _spatialProperties; }
 

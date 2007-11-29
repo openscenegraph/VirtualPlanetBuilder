@@ -17,6 +17,8 @@
 #include <osgDB/FileUtils>
 #include <osgTerrain/Terrain>
 
+#include <OpenThreads/Mutex>
+
 #include <vpb/FileDetails>
 #include <vpb/MachinePool>
 
@@ -56,8 +58,12 @@ class VPB_EXPORT FileCache : public osg::Object
         typedef std::list< osg::ref_ptr<FileDetails> > Variants;
         typedef std::map<std::string, Variants> VariantMap;
         
+        typedef std::map<std::string, osg::ref_ptr<FileDetails> > FileDetailsMap;
+        
         void addFileDetails(FileDetails* fd);
         void removeFileDetails(FileDetails* fd);
+
+        bool getSpatialProperties(const std::string& filename, SpatialProperties& sp);
 
         std::string getOptimimumFile(const std::string& filename, const SpatialProperties& sp);
         
@@ -91,7 +97,10 @@ class VPB_EXPORT FileCache : public osg::Object
 
         bool                _requiresWrite;
         std::string         _filename;
+
+        OpenThreads::Mutex  _variantMapMutex;
         VariantMap          _variantMap;
+        FileDetailsMap      _fileDetailsMap;
         
 };
 

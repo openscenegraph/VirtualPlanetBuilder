@@ -130,8 +130,9 @@ Machine::Machine(const Machine& m, const osg::CopyOp& copyop):
 {
 }
 
-Machine::Machine(const std::string& hostname,const std::string& commandPrefix, const std::string& commandPostfix, int numThreads):
+Machine::Machine(const std::string& hostname,const std::string& cacheDirectory, const std::string& commandPrefix, const std::string& commandPostfix, int numThreads):
     _machinePool(0),
+    _cacheDirectory(cacheDirectory),
     _hostname(hostname),
     _commandPrefix(commandPrefix),
     _commandPostfix(commandPostfix)
@@ -438,9 +439,16 @@ void MachinePool::setBuildLog(BuildLog* bl)
 }
 
 
-void MachinePool::addMachine(const std::string& hostname,const std::string& commandPrefix, const std::string& commandPostfix, int numThreads)
+void MachinePool::addMachine(const std::string& hostname, const std::string& cacheDirectory, const std::string& commandPrefix, const std::string& commandPostfix, int numThreads)
 {
-    addMachine(new Machine(hostname, commandPrefix, commandPostfix, numThreads));
+    log(osg::NOTICE,"addMachine(");
+    log(osg::NOTICE,"     hostname = %s",hostname.c_str());
+    log(osg::NOTICE,"     cacheDirectory = %s",cacheDirectory.c_str());
+    log(osg::NOTICE,"     commandPrefix = %s",commandPrefix.c_str());
+    log(osg::NOTICE,"     commandPostfix = %s",commandPostfix.c_str());
+    log(osg::NOTICE,"     numThreads = %d)",numThreads);
+
+    addMachine(new Machine(hostname, cacheDirectory, commandPrefix, commandPostfix, numThreads));
 }
 
 void MachinePool::addMachine(Machine* machine)
@@ -620,7 +628,7 @@ bool MachinePool::read(const std::string& filename)
                     if (!localAdvanced) ++fr;
                 }
 
-                addMachine(hostname,prefix,postfix,numThreads);
+                addMachine(hostname,cacheDirectory,prefix,postfix,numThreads);
 
                 ++fr;
 

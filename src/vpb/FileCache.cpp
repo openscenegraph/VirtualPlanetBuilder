@@ -17,6 +17,7 @@
 #include <vpb/DataSet>
 
 #include <osg/io_utils>
+#include <osgDB/FileNameUtils>
 
 using namespace vpb;
 
@@ -38,7 +39,7 @@ FileCache::~FileCache()
 
 bool FileCache::read(const std::string& filename)
 {
-    osg::notify(osg::NOTICE)<<"FileCache::read("<<filename<<")"<<std::endl;
+    log(osg::NOTICE,"FileCache::read(%s)",filename.c_str());
 
     std::string foundFile = osgDB::findDataFile(filename);
     if (foundFile.empty())
@@ -171,6 +172,8 @@ bool FileCache::write(const std::string& filename)
 {
     log(osg::NOTICE,"FileCache::write(%s)",filename.c_str());
 
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_variantMapMutex);
+
     _filename = filename;
     _requiresWrite = false;
 
@@ -246,7 +249,11 @@ bool FileCache::write(const std::string& filename)
 
 void FileCache::addFileDetails(FileDetails* fd)
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_variantMapMutex);
+
     _requiresWrite = true;
+    
+    _fileDetailsMap[fd->getFileName()] = fd;
     
     Variants& variants = _variantMap[fd->getOriginalSourceFileName()];
     for(Variants::iterator vitr = variants.begin();
@@ -267,7 +274,16 @@ void FileCache::addFileDetails(FileDetails* fd)
 
 void FileCache::removeFileDetails(FileDetails* fd)
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_variantMapMutex);
+
     _requiresWrite = true;
+
+    FileDetailsMap::iterator fdItr = _fileDetailsMap.find(fd->getFileName());
+    if (fdItr != _fileDetailsMap.end())
+    {
+        _fileDetailsMap.erase(fdItr);
+    }
+
     VariantMap::iterator itr = _variantMap.find(fd->getOriginalSourceFileName());
     if (itr==_variantMap.end()) return;
 
@@ -282,10 +298,29 @@ void FileCache::removeFileDetails(FileDetails* fd)
             return;
         }
     }
+    
+}
+
+bool FileCache::getSpatialProperties(const std::string& filename, SpatialProperties& sp)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_variantMapMutex);
+
+    FileDetailsMap::iterator itr = _fileDetailsMap.find(filename);
+    if (itr != _fileDetailsMap.end())
+    {
+        sp = itr->second->getSpatialProperties();
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 std::string FileCache::getOptimimumFile(const std::string& filename, const osg::CoordinateSystemNode* csn)
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_variantMapMutex);
+
     VariantMap::iterator itr = _variantMap.find(filename);
     if (itr==_variantMap.end())
     {
@@ -326,6 +361,8 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const osg::
 
 std::string FileCache::getOptimimumFile(const std::string& filename, const SpatialProperties& sp)
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_variantMapMutex);
+
     VariantMap::iterator itr = _variantMap.find(filename);
     if (itr==_variantMap.end())
     {
@@ -395,6 +432,8 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const Spati
 
 void FileCache::clear()
 {
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_variantMapMutex);
+
     _requiresWrite = true;
     
     _variantMap.clear();
@@ -437,17 +476,52 @@ void FileCache::buildRequiredReprojections(osgTerrain::Terrain* source)
     dataset->addTerrain(source);
 
     dataset->assignIntermediateCoordinateSystem();
+    
+    std::string filePrefix("temporaryfile_");
+    
+    if (System::instance()->getMachinePool())
+    {
+        Machine* machine = System::instance()->getMachinePool()->getMachine(getLocalHostName());
+        if (machine)
+        {
+            std::string cacheDirectory = machine->getCacheDirectory();
+            
+            if (!cacheDirectory.empty()) 
+            {
+                filePrefix = cacheDirectory + "/";
+            }
+        }
+    }
+
+    log(osg::NOTICE,"FileCache::buildRequiredReprojections() : filePrefix = %s",filePrefix.c_str());
 
     if (dataset->requiresReprojection())
     {
-        log(osg::NOTICE,"  Actuall does require reprojection!!");
-
         for(CompositeSource::source_iterator itr(dataset->getSourceGraph());itr.valid();++itr)
         {
             Source* source = itr->get();
             if (source->needReproject(dataset->getIntermediateCoordinateSystem()))
             {
-                log(osg::NOTICE,"     Here's the culprit = %s",source->getFileName().c_str());
+                std::string newFileName = filePrefix + osgDB::getStrippedName(source->getFileName()) + ".tif";
+
+                log(osg::NOTICE,"     Here's the culprit = %s, reprojected file will be = %s",source->getFileName().c_str(), newFileName.c_str());
+
+                osg::ref_ptr<Source> newSource = source->doReproject(newFileName,dataset->getIntermediateCoordinateSystem());
+
+                if (newSource.valid())
+                {
+                
+                    SourceData* sd = newSource->getSourceData();
+
+                    FileDetails* fd = new FileDetails;
+                    fd->setOriginalSourceFileName(source->getFileName());
+                    fd->setFileName(newSource->getFileName());
+                    fd->setSpatialProperties(*sd);
+
+                    addFileDetails(fd);
+                    
+                    *itr = newSource;       
+                }
             }
         }
     }

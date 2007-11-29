@@ -98,7 +98,7 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
     
         Machine(const Machine&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
 
-        Machine(const std::string& hostname, const std::string& commandPrefix, const std::string& commandPostfix, int numThreads=-1);
+        Machine(const std::string& hostname, const std::string& cacheDirectory, const std::string& commandPrefix, const std::string& commandPostfix, int numThreads=-1);
         
         META_Object(vpb, Machine)
         
@@ -107,11 +107,16 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
         
         void setOperationQueue(osg::OperationQueue* queue);
         
+        void setHostName(const std::string& hostname) { _hostname = hostname; }
         const std::string& getHostName() const { return _hostname; }
 
+        void setCacheDirectory(const std::string& directory) { _cacheDirectory = directory; }
         const std::string& getCacheDirectory() const { return _cacheDirectory; }
 
+        void setCommandPrefix(const std::string& prefix) { _commandPrefix = prefix; }
         const std::string& getCommandPrefix() const { return _commandPrefix; }
+        
+        void setCommandPostfix(const std::string& postfix) { _commandPostfix = postfix; }
         const std::string& getCommandPostfix() const { return _commandPostfix; }
 
         int exec(const std::string& application);
@@ -182,7 +187,7 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
         /// override from Logger to be able to pass on to all associated Machine objects        
         void setBuildLog(BuildLog* bl);
         
-        void addMachine(const std::string& hostname,const std::string& commandPrefix, const std::string& commandPostfix, int numThreads=-1);
+        void addMachine(const std::string& hostname, const std::string& cacheDirectory, const std::string& commandPrefix, const std::string& commandPostfix, int numThreads=-1);
 
         void addMachine(Machine* machine);
 
