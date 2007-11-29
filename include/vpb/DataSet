@@ -109,6 +109,8 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         osgTerrain::Terrain* createTerrainRepresentation();
         
         void loadSources();
+        
+        void mapReprojectedSourcesAvailableInFileCache();
 
         void assignIntermediateCoordinateSystem();
         void setIntermediateCoordinateSystem(const std::string& wellKnownText) { setIntermediateCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText)); }

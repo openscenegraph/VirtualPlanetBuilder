@@ -83,9 +83,28 @@ void DataSet::addSource(CompositeSource* composite)
 
 void DataSet::loadSources()
 {
+    assignIntermediateCoordinateSystem();
+
+    FileCache* fileCache = System::instance()->getFileCache();
+
     for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
     {
-        (*itr)->loadSourceData();
+        Source* source = itr->get();
+
+        if (source)
+        {
+            source->loadSourceData();
+        
+            if (fileCache && source->needReproject(_intermediateCoordinateSystem.get()))
+            {
+                Source* newSource = source->doReprojectUsingFileCache(_intermediateCoordinateSystem.get());
+                
+                if (newSource)
+                {
+                    *itr = newSource;
+                }
+            }
+        }
     }
 }
 

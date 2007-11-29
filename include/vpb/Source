@@ -199,6 +199,8 @@ public:
     bool needReproject(const osg::CoordinateSystemNode* cs, double minResolution, double maxResolution) const;
 
     Source* doReproject(const std::string& filename, osg::CoordinateSystemNode* cs, double targetResolution=0.0) const;
+    
+    Source* doReprojectUsingFileCache(osg::CoordinateSystemNode* cs);
 
     void buildOverviews();
 

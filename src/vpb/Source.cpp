@@ -1454,6 +1454,41 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
     return newSource;
 }
 
+Source* Source::doReprojectUsingFileCache(osg::CoordinateSystemNode* cs)
+{
+    FileCache* fileCache = System::instance()->getFileCache();
+    if (!fileCache) return 0;
+
+    // see if we can use the FileCache to remap the source file.            
+    std::string optimumFile = fileCache->getOptimimumFile(getFileName(), cs);
+    if (!optimumFile.empty())
+    {
+        Source* newSource = new Source;
+
+        newSource->_type = _type;
+        newSource->_filename = optimumFile;
+        newSource->_temporaryFile = false;
+        newSource->_cs = cs;
+
+        newSource->_coordinateSystemPolicy = _coordinateSystemPolicy;
+        newSource->_geoTransformPolicy = _geoTransformPolicy;
+
+        newSource->_minLevel = _minLevel;
+        newSource->_maxLevel = _maxLevel;
+        newSource->_layer = _layer;
+
+        newSource->_requiredResolutions = _requiredResolutions;
+
+        // reaload the new file
+        newSource->loadSourceData();
+
+        return newSource;
+
+    }
+    return 0;
+}
+
+
 void Source::consolodateRequiredResolutions()
 {
     if (_requiredResolutions.size()<=1) return;
