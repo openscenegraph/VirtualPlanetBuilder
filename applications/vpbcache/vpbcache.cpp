@@ -102,7 +102,7 @@ int main(int argc, char** argv)
 
     if (arguments.read("--build-mipmaps"))
     {
-        fileCache->buildMipmaps();
+        fileCache->buildMipmaps(terrain.get());
     }
 
     std::string machineName, directory;

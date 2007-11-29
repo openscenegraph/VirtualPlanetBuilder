@@ -79,7 +79,7 @@ class VPB_EXPORT FileCache : public osg::Object
         void buildRequiredReprojections(osgTerrain::Terrain* source);
 
         /** build mipmap levels for each source file.*/
-        void buildMipmaps();
+        void buildMipmaps(osgTerrain::Terrain* source);
         
         /** copy files from the master to the specified machine in the specified directory.*/
         void mirror(Machine* machine, const std::string& directory);

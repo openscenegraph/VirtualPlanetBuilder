@@ -477,7 +477,7 @@ void FileCache::buildRequiredReprojections(osgTerrain::Terrain* source)
 
     dataset->assignIntermediateCoordinateSystem();
     
-    std::string filePrefix("temporaryfile_");
+    std::string filePrefix("reprojected_file_");
     
     if (System::instance()->getMachinePool())
     {
@@ -529,11 +529,76 @@ void FileCache::buildRequiredReprojections(osgTerrain::Terrain* source)
 }
 
 
-void FileCache::buildMipmaps()
+void FileCache::buildMipmaps(osgTerrain::Terrain* source)
 {
-    _requiresWrite = true;
 
     log(osg::NOTICE,"FileCache::buildMipmaps()");
+
+    if (!source) return;
+
+    _requiresWrite = true;
+
+
+    osg::ref_ptr<DataSet> dataset = new DataSet;
+    dataset->addTerrain(source);
+
+    dataset->assignIntermediateCoordinateSystem();
+    
+    std::string filePrefix("multiresolution_file_");
+    
+    if (System::instance()->getMachinePool())
+    {
+        Machine* machine = System::instance()->getMachinePool()->getMachine(getLocalHostName());
+        if (machine)
+        {
+            std::string cacheDirectory = machine->getCacheDirectory();
+            
+            if (!cacheDirectory.empty()) 
+            {
+                filePrefix = cacheDirectory + "/";
+            }
+        }
+    }
+
+
+    log(osg::NOTICE,"FileCache::buildMipmaps() : filePrefix = %s",filePrefix.c_str());
+
+    osg::CoordinateSystemNode* csn = dataset->getIntermediateCoordinateSystem();
+
+    for(CompositeSource::source_iterator itr(dataset->getSourceGraph());itr.valid();++itr)
+    {
+        Source* source = itr->get();
+
+        VariantMap::iterator vmitr = _variantMap.find(source->getFileName());
+        if (vmitr != _variantMap.end())
+        {
+            Variants& variants = vmitr->second;
+
+            typedef std::list<FileDetails*> FileDetailsList;
+            FileDetailsList fileDetailsWithRequiredCoordinateSystem;
+
+            for(Variants::iterator vitr = variants.begin();
+                vitr != variants.end();
+                ++vitr)
+            {
+                FileDetails* fd = vitr->get();
+                const SpatialProperties& fd_sp = fd->getSpatialProperties();
+                if (vpb::areCoordinateSystemEquivalent(fd_sp._cs.get(), csn))
+                {
+                    fileDetailsWithRequiredCoordinateSystem.push_back(fd);
+                }
+            }
+            
+            if (fileDetailsWithRequiredCoordinateSystem.size()==1)
+            {
+                FileDetails* fd = fileDetailsWithRequiredCoordinateSystem.front();
+                log(osg::NOTICE, "     need to build mipmaps for %s",fd->getFileName().c_str());
+            }
+            
+        }
+
+    }
+
 }
 
 void FileCache::mirror(Machine* machine, const std::string& directory)
