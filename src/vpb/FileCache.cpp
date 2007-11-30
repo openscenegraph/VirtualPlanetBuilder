@@ -478,10 +478,11 @@ void FileCache::buildRequiredReprojections(osgTerrain::Terrain* source)
     dataset->assignIntermediateCoordinateSystem();
     
     std::string filePrefix("reprojected_file_");
+    std::string localHostName(getLocalHostName());
     
     if (System::instance()->getMachinePool())
     {
-        Machine* machine = System::instance()->getMachinePool()->getMachine(getLocalHostName());
+        Machine* machine = System::instance()->getMachinePool()->getMachine(localHostName);
         if (machine)
         {
             std::string cacheDirectory = machine->getCacheDirectory();
@@ -517,6 +518,8 @@ void FileCache::buildRequiredReprojections(osgTerrain::Terrain* source)
                     fd->setOriginalSourceFileName(source->getFileName());
                     fd->setFileName(newSource->getFileName());
                     fd->setSpatialProperties(*sd);
+
+                    fd->setHostName(localHostName);
 
                     addFileDetails(fd);
                     
@@ -561,7 +564,7 @@ void FileCache::buildOverviews(osgTerrain::Terrain* source)
     }
 
 
-    log(osg::NOTICE,"FileCache::buildMipmaps() : filePrefix = %s",filePrefix.c_str());
+    log(osg::NOTICE,"FileCache::buildOverviews() : filePrefix = %s",filePrefix.c_str());
 
     osg::CoordinateSystemNode* csn = dataset->getIntermediateCoordinateSystem();
 
@@ -616,11 +619,132 @@ void FileCache::buildOverviews(osgTerrain::Terrain* source)
 
 }
 
-void FileCache::mirror(Machine* machine, const std::string& directory)
+void FileCache::mirror(Machine* machine, osgTerrain::Terrain* source)
 {
+    log(osg::NOTICE,"FileCache::mirror(%s)",machine->getHostName().c_str());
+
+    if (!source)
+    {
+        log(osg::NOTICE,"Error: cannot mirror without specification of required sources.");
+        return;
+    }
+
     _requiresWrite = true;
 
-    log(osg::NOTICE,"FileCache::mirror(%s, %s)",machine->getHostName().c_str(),directory.c_str());
+    osg::ref_ptr<DataSet> dataset = new DataSet;
+    dataset->addTerrain(source);
+
+    dataset->assignIntermediateCoordinateSystem();
+
+    if (machine->getCacheDirectory().empty())
+    {
+        log(osg::NOTICE,"Error not cache directory on machine '%s' to mirror files on.",machine->getHostName().c_str());
+        return;
+    }
+
+    std::string localHostName = getLocalHostName();
+    osg::CoordinateSystemNode* csn = dataset->getIntermediateCoordinateSystem();
+
+    for(CompositeSource::source_iterator itr(dataset->getSourceGraph());itr.valid();++itr)
+    {
+        Source* source = itr->get();
+
+        VariantMap::iterator vmitr = _variantMap.find(source->getFileName());
+        if (vmitr != _variantMap.end())
+        {
+            Variants& variants = vmitr->second;
+
+            typedef std::list<FileDetails*> FileDetailsList;
+            FileDetailsList fileDetailsWithRequiredCoordinateSystem;
+
+            FileDetails* fileOnLocalMachine = 0;
+            FileDetails* fileOnTargetMachine = 0;
+            
+            for(Variants::iterator vitr = variants.begin();
+                vitr != variants.end() && !fileOnTargetMachine;
+                ++vitr)
+            {
+                FileDetails* fd = vitr->get();
+                const SpatialProperties& fd_sp = fd->getSpatialProperties();
+                if (vpb::areCoordinateSystemEquivalent(fd_sp._cs.get(), csn))
+                {
+                    if (fd->getHostName() == machine->getHostName()) 
+                    {
+                        fileOnTargetMachine = fd;
+                    }
+                    else if (fd->getHostName()==localHostName)
+                    {
+                        fileOnLocalMachine = fd;
+                    }
+                    else
+                    {
+                        fileDetailsWithRequiredCoordinateSystem.push_back(fd);
+                    }
+                }
+            }
+            
+            if (fileOnTargetMachine)
+            {
+                log(osg::NOTICE,"  File %s already on target machine, no need to copy.",fileOnTargetMachine->getFileName().c_str());
+            }
+            else if (fileOnLocalMachine)
+            {
+                copyFileToMachine(fileOnLocalMachine, machine);
+            }
+            else if (!fileDetailsWithRequiredCoordinateSystem.empty())
+            {
+                copyFileToMachine(fileDetailsWithRequiredCoordinateSystem.front(), machine);
+            }
+            else
+            {
+                log(osg::NOTICE,"  No version of source file '%s' with the required coordinate system found, unable to copy.",source->getFileName().c_str());
+            }
+            
+        }
+
+    }
+
+}
+
+bool FileCache::copyFileToMachine(FileDetails* fd, Machine* machine)
+{
+    log(osg::NOTICE,"Copying file '%s' to machine '%s'.",fd->getFileName().c_str(), machine->getHostName().c_str());
+    
+    std::string filePrefix( machine->getCacheDirectory() + std::string("/") );
+    
+    if (filePrefix.empty())
+    {
+        log(osg::NOTICE,"Error: cannot mirror without a valid cache directory on specified machine.");
+        return false;
+    }
+    
+    std::string newFileName = filePrefix + osgDB::getSimpleFileName(fd->getFileName());
+
+    std::ostringstream app;
+    app<<"cp "<<fd->getFileName()<<" "<<newFileName;
+    
+    std::string appstr( app.str() );
+    
+    int result = system( appstr.c_str() );
+    
+    if (result==0)
+    {
+
+        FileDetails* new_fd = new FileDetails;
+        new_fd->setOriginalSourceFileName(fd->getOriginalSourceFileName());
+        new_fd->setFileName(newFileName);
+        new_fd->setSpatialProperties(fd->getSpatialProperties());
+        new_fd->setHostName(machine->getHostName());
+        addFileDetails(new_fd);
+        
+        return true;
+    }
+    else
+    {
+        log(osg::NOTICE,"Error: cannot copy file '%s' to specified machine '%s'.", fd->getFileName().c_str(), machine->getHostName().c_str());
+        return false;
+    }
+
 }
 
 void FileCache::report(std::ostream& out)

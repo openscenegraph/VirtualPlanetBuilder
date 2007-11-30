@@ -105,8 +105,8 @@ int main(int argc, char** argv)
         fileCache->buildOverviews(terrain.get());
     }
 
-    std::string machineName, directory;
-    while(arguments.read("--mirror", machineName, directory))
+    std::string machineName;
+    while(arguments.read("--mirror", machineName))
     {
         if (!vpb::System::instance()->getMachinePool())
         {
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
         vpb::Machine* machine = vpb::System::instance()->getMachinePool()->getMachine(machineName);
         if (machine)
         {
-            fileCache->mirror(machine, directory);
+            fileCache->mirror(machine, terrain.get());
         }
         else
         {

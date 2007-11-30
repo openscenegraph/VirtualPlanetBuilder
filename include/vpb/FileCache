@@ -81,8 +81,11 @@ class VPB_EXPORT FileCache : public osg::Object
         /** build overview levels for each source file.*/
         void buildOverviews(osgTerrain::Terrain* source);
         
-        /** copy files from the master to the specified machine in the specified directory.*/
-        void mirror(Machine* machine, const std::string& directory);
+        /** copy files from the master to the specified machine's cache directory.*/
+        void mirror(Machine* machine, osgTerrain::Terrain* source);
+        
+        /** copy and individual file to specificed machines local cache.*/
+        bool copyFileToMachine(FileDetails* fd, Machine* machine);
 
         /** List the contents of the FileCache.*/
         void report(std::ostream& out);
