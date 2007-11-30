@@ -33,8 +33,8 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->addCommandLineOption("--clean","Clear the contents of the file cache");
     arguments.getApplicationUsage()->addCommandLineOption("--cache","Specify cache file to use");
     arguments.getApplicationUsage()->addCommandLineOption("--reproject","Carry out reprojections required for specified build sources.");
-    arguments.getApplicationUsage()->addCommandLineOption("--add-source","Add files from specified build sources to file cache.");
-    arguments.getApplicationUsage()->addCommandLineOption("--build-mipmaps","Build mipmaps for the source data.");
+    arguments.getApplicationUsage()->addCommandLineOption("--add","Add files from specified build sources to file cache.");
+    arguments.getApplicationUsage()->addCommandLineOption("--overviews","Build overviews for the source data.");
     arguments.getApplicationUsage()->addCommandLineOption("--report","Report the contents of the file cache");
 
 
@@ -90,19 +90,19 @@ int main(int argc, char** argv)
         fileCache->clear();
     }
 
+    if (arguments.read("--add"))
+    {
+        fileCache->addSource(terrain.get());
+    }
+
     if (arguments.read("--reproject"))
     {
         fileCache->buildRequiredReprojections(terrain.get());
     }
 
-    if (arguments.read("--add-source"))
+    if (arguments.read("--overviews"))
     {
-        fileCache->addSource(terrain.get());
-    }
-
-    if (arguments.read("--build-mipmaps"))
-    {
-        fileCache->buildMipmaps(terrain.get());
+        fileCache->buildOverviews(terrain.get());
     }
 
     std::string machineName, directory;

@@ -267,10 +267,10 @@ void System::clearUnusedDatasets(unsigned int numToClear)
     _datasetMap.clear();
 }
 
-GeospatialDataset* System::openGeospatialDataset(const std::string& filename)
+GeospatialDataset* System::openGeospatialDataset(const std::string& filename, AccessMode accessMode)
 {
     // first check to see if dataset already exists in cache, if so return it.
-    DatasetMap::iterator itr = _datasetMap.find(filename);
+    DatasetMap::iterator itr = _datasetMap.find(FileNameAccessModePair(filename,accessMode));
     if (itr != _datasetMap.end()) 
     {
         //osg::notify(osg::NOTICE)<<"System::openGeospatialDataset("<<filename<<") returning existing entry, ref count "<<itr->second->referenceCount()<<std::endl;
@@ -290,25 +290,25 @@ GeospatialDataset* System::openGeospatialDataset(const std::string& filename)
     //osg::notify(osg::NOTICE)<<"System::openGeospatialDataset("<<filename<<") requires new entry "<<std::endl;
 
     // open the new dataset.
-    GeospatialDataset* dataset = new GeospatialDataset(filename);
+    GeospatialDataset* dataset = new GeospatialDataset(filename, accessMode);
 
     // insert it into the cache
-    _datasetMap[filename] = dataset;
+    _datasetMap[FileNameAccessModePair(filename,accessMode)] = dataset;
     
     // return it.
     return dataset;
 }
 
-GeospatialDataset* System::openOptimumGeospatialDataset(const std::string& filename, const SpatialProperties& sp)
+GeospatialDataset* System::openOptimumGeospatialDataset(const std::string& filename, const SpatialProperties& sp, AccessMode accessMode)
 {
     if (_fileCache.valid())
     {
         std::string optimumFile = _fileCache->getOptimimumFile(filename, sp);
-        return (optimumFile.empty()) ? 0 : openGeospatialDataset(optimumFile);
+        return (optimumFile.empty()) ? 0 : openGeospatialDataset(optimumFile, accessMode);
     }
     else
     {
-        return openGeospatialDataset(filename);
+        return openGeospatialDataset(filename, accessMode);
     }
 }
 

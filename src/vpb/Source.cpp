@@ -177,7 +177,7 @@ SourceData* SourceData::readData(Source* source)
                 }
             }
     
-            osg::ref_ptr<GeospatialDataset> gdalDataSet = source->getGeospatialDataset();
+            osg::ref_ptr<GeospatialDataset> gdalDataSet = source->getGeospatialDataset(READ_ONLY);
 
             if (gdalDataSet.valid())
             {
@@ -314,7 +314,7 @@ const SpatialProperties& SourceData::computeSpatialProperties(const osg::Coordin
     if (_cs.valid() && cs)
     {
         
-        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getGeospatialDataset();
+        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getGeospatialDataset(READ_ONLY);
         if (_gdalDataset.valid())
         {
 
@@ -408,7 +408,7 @@ void SourceData::readImage(DestinationData& destination)
 
     if (destination._image.valid())
     {
-        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getOptimumGeospatialDataset(destination);
+        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getOptimumGeospatialDataset(destination, READ_ONLY);
         if (!_gdalDataset) return;
         
         GeospatialExtents s_bb = getExtents(destination._cs.get());
@@ -769,7 +769,7 @@ void SourceData::readHeightField(DestinationData& destination)
     {
         log(osg::INFO,"Reading height field");
 
-        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getOptimumGeospatialDataset(destination);
+        osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getOptimumGeospatialDataset(destination, READ_ONLY);
         if (!_gdalDataset.valid()) return;
 
         GeospatialExtents s_bb = getExtents(destination._cs.get());
@@ -978,18 +978,18 @@ void SourceData::readModels(DestinationData& destination)
         destination._models.push_back(_model);
     }
 }
-
-GeospatialDataset* Source::getOptimumGeospatialDataset(const SpatialProperties& sp) const
+;
+GeospatialDataset* Source::getOptimumGeospatialDataset(const SpatialProperties& sp, AccessMode accessMode) const
 {
     if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
-    else return System::instance()->openOptimumGeospatialDataset(_filename,sp);
+    else return System::instance()->openOptimumGeospatialDataset(_filename, sp, accessMode);
 }
 
 
-GeospatialDataset* Source::getGeospatialDataset() const
+GeospatialDataset* Source::getGeospatialDataset(AccessMode accessMode) const
 {
     if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
-    else return System::instance()->openGeospatialDataset(_filename);
+    else return System::instance()->openGeospatialDataset(_filename, accessMode);
 }
 
 void Source::setGdalDataset(GDALDataset* gdalDataSet)
@@ -1212,7 +1212,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
 /*      destination coordinate system.                                  */
 /* -------------------------------------------------------------------- */
     
-    osg::ref_ptr<GeospatialDataset> dataset = getGeospatialDataset();
+    osg::ref_ptr<GeospatialDataset> dataset = getGeospatialDataset(READ_ONLY);
 
     void *hTransformArg = 
          GDALCreateGenImgProjTransformer( dataset->getGDALDataset(),_sourceData->_cs->getCoordinateSystem().c_str(),
@@ -1278,9 +1278,14 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
     int numSourceBands = dataset->GetRasterCount();
     int numDestinationBands = (numSourceBands >= 3) ? 4 : numSourceBands; // expand RGB to RGBA, but leave other formats unchanged
 
+    char **papszOptions = NULL;
+
+    papszOptions = CSLSetNameValue( papszOptions, "TILED", "YES" );
+    papszOptions = CSLSetNameValue( papszOptions, "COMPRESS", "PACKBITS" );
+
     GDALDatasetH hDstDS = GDALCreate( hDriver, filename.c_str(), nPixels, nLines, 
                          numDestinationBands , eDT,
-                         0 );
+                         papszOptions );
     
     if( hDstDS == NULL )
         return NULL;
@@ -1536,7 +1541,7 @@ void Source::consolodateRequiredResolutions()
 
 void Source::buildOverviews()
 {
-    osg::ref_ptr<GeospatialDataset> dataset = getGeospatialDataset();
+    osg::ref_ptr<GeospatialDataset> dataset = getGeospatialDataset(READ_AND_WRITE);
     if (dataset.valid() )
     {
         int anOverviewList[5] = { 2, 4, 8, 16, 32 };

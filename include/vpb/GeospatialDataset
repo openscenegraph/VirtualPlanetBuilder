@@ -24,11 +24,17 @@
 namespace vpb
 {
 
+enum AccessMode
+{
+    READ_ONLY,
+    READ_AND_WRITE
+};
+
 class VPB_EXPORT GeospatialDataset : public osg::Referenced
 {
     public:
     
-        GeospatialDataset(const std::string& filename);
+        GeospatialDataset(const std::string& filename, AccessMode accessMode);
         GeospatialDataset(GDALDataset* dataset);
 
         CPLErr GetGeoTransform( double * ptr);
@@ -37,6 +43,10 @@ class VPB_EXPORT GeospatialDataset : public osg::Referenced
         int         GetRasterYSize( void );
         int         GetRasterCount( void );
         GDALRasterBand *GetRasterBand( int band );
+
+        int GetOverviewCount( int band );
+
+        bool containsOverviews();
 
         int    GetGCPCount();
         const char *GetGCPProjection();

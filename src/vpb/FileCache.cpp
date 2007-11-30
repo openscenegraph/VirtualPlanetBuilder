@@ -504,7 +504,7 @@ void FileCache::buildRequiredReprojections(osgTerrain::Terrain* source)
             {
                 std::string newFileName = filePrefix + osgDB::getStrippedName(source->getFileName()) + ".tif";
 
-                log(osg::NOTICE,"     Here's the culprit = %s, reprojected file will be = %s",source->getFileName().c_str(), newFileName.c_str());
+                log(osg::NOTICE,"     reprojecting file=%s, reprojected file will be = %s",source->getFileName().c_str(), newFileName.c_str());
 
                 osg::ref_ptr<Source> newSource = source->doReproject(newFileName,dataset->getIntermediateCoordinateSystem());
 
@@ -529,10 +529,10 @@ void FileCache::buildRequiredReprojections(osgTerrain::Terrain* source)
 }
 
 
-void FileCache::buildMipmaps(osgTerrain::Terrain* source)
+void FileCache::buildOverviews(osgTerrain::Terrain* source)
 {
 
-    log(osg::NOTICE,"FileCache::buildMipmaps()");
+    log(osg::NOTICE,"FileCache::buildOverviews()");
 
     if (!source) return;
 
@@ -592,7 +592,22 @@ void FileCache::buildMipmaps(osgTerrain::Terrain* source)
             if (fileDetailsWithRequiredCoordinateSystem.size()==1)
             {
                 FileDetails* fd = fileDetailsWithRequiredCoordinateSystem.front();
-                log(osg::NOTICE, "     need to build mipmaps for %s",fd->getFileName().c_str());
+
+                osg::ref_ptr<GeospatialDataset> dataset = System::instance()->openGeospatialDataset(fd->getFileName(), READ_AND_WRITE);
+                if (dataset.valid() )
+                {
+                    if (!dataset->containsOverviews())
+                    {
+                        log(osg::NOTICE, "     need to build mipmaps for %s",fd->getFileName().c_str());
+
+                        int anOverviewList[5] = { 2, 4, 8, 16, 32 };
+                        dataset->BuildOverviews( "AVERAGE", 5, anOverviewList, 0, NULL, 
+                                                 GDALTermProgress/*GDALDummyProgress*/, NULL );
+
+                    }
+
+                }
+                
             }
             
         }

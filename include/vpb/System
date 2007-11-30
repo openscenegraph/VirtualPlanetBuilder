@@ -66,9 +66,9 @@ class VPB_EXPORT System : public osg::Referenced
 
         void clearUnusedDatasets(unsigned int numToClear=1);
         
-        GeospatialDataset* openGeospatialDataset(const std::string& filename);
+        GeospatialDataset* openGeospatialDataset(const std::string& filename, AccessMode accessMode);
 
-        GeospatialDataset* openOptimumGeospatialDataset(const std::string& filename, const SpatialProperties& sp);
+        GeospatialDataset* openOptimumGeospatialDataset(const std::string& filename, const SpatialProperties& sp, AccessMode accessMode);
 
         void setFileCache(FileCache* fileCache) { _fileCache = fileCache; }
         FileCache* getFileCache();
@@ -79,8 +79,8 @@ class VPB_EXPORT System : public osg::Referenced
         void setMachinePool(TaskManager* taskManager) { _taskManager = taskManager; }
         TaskManager* getTaskManager();
 
-
-        typedef std::map<std::string, osg::ref_ptr<GeospatialDataset> >  DatasetMap;
+        typedef std::pair<std::string, AccessMode> FileNameAccessModePair;
+        typedef std::map<FileNameAccessModePair, osg::ref_ptr<GeospatialDataset> >  DatasetMap;
         
         /** Return the date of last modification from the list of source specified on the terrain source.*/
         bool getDateOfLastModification(osgTerrain::Terrain* source, Date& date);

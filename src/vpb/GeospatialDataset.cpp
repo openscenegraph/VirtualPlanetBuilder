@@ -16,10 +16,10 @@
 
 using namespace vpb;
 
-GeospatialDataset::GeospatialDataset(const std::string& filename)
+GeospatialDataset::GeospatialDataset(const std::string& filename, AccessMode accessMode)
 {
     updateTimeStamp();
-    _dataset = (GDALDataset*)GDALOpen(filename.c_str(), GA_ReadOnly);
+    _dataset = (GDALDataset*)GDALOpen(filename.c_str(), accessMode==READ_ONLY ? GA_ReadOnly : GA_Update);
     
     //osg::notify(osg::NOTICE)<<"GDALOpen("<<filename<<") = "<<_dataset<<std::endl;
 }
@@ -66,6 +66,23 @@ GDALRasterBand *GeospatialDataset::GetRasterBand( int band )
 {
     updateTimeStamp();
     return _dataset->GetRasterBand(band);
+}
+
+int GeospatialDataset::GetOverviewCount( int band )
+{
+    updateTimeStamp();
+    GDALRasterBand* raster = _dataset->GetRasterBand(band);
+    return band ? raster->GetOverviewCount() : 0;
+}
+
+bool GeospatialDataset::containsOverviews()
+{
+    int count = GetRasterCount();
+    for(int i = 1; i<=count; ++i)
+    {
+        if (GetOverviewCount(i)>0) return true;
+    }
+    false;
 }
 
 int GeospatialDataset::GetGCPCount()
