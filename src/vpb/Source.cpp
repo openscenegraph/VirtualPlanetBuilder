@@ -1404,9 +1404,20 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
 
     if( oWO.Initialize( psWO ) == CE_None )
     {
-        oWO.ChunkAndWarpImage( 0, 0, 
-                               GDALGetRasterXSize( hDstDS ),
-                               GDALGetRasterYSize( hDstDS ) );
+        bool multithreaded = true;
+        
+        if (multithreaded)
+        {
+            oWO.ChunkAndWarpMulti( 0, 0, 
+                                   GDALGetRasterXSize( hDstDS ),
+                                   GDALGetRasterYSize( hDstDS ) );
+        }
+        else
+        {
+            oWO.ChunkAndWarpImage( 0, 0, 
+                                   GDALGetRasterXSize( hDstDS ),
+                                   GDALGetRasterYSize( hDstDS ) );
+        }
     }
 
     log(osg::INFO,"new projection is %s",GDALGetProjectionRef(hDstDS));
