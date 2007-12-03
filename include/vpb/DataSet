@@ -112,6 +112,8 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         
         void mapReprojectedSourcesAvailableInFileCache();
 
+        void assignDestinationCoordinateSystem();
+
         void assignIntermediateCoordinateSystem();
         void setIntermediateCoordinateSystem(const std::string& wellKnownText) { setIntermediateCoordinateSystem(new osg::CoordinateSystemNode("WKT",wellKnownText)); }
         void setIntermediateCoordinateSystem(osg::CoordinateSystemNode* cs) { _intermediateCoordinateSystem = cs; }

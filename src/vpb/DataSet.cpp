@@ -499,8 +499,28 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
 
 }
 
+void DataSet::assignDestinationCoordinateSystem()
+{
+    if (getDestinationCoordinateSystem().empty())
+    {
+        for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
+        {
+            Source* source = itr->get();
+            source->loadSourceData();
+            _destinationCoordinateSystem = source->_cs;
+            _destinationCoordinateSystemString = source->_cs->getCoordinateSystem();
+
+            log(osg::NOTICE,"DataSet::assignDestinationCoordinateSystem() : assigning first source file as the destination coordinate system");
+            break;
+        }
+    }
+}
+
+
 void DataSet::assignIntermediateCoordinateSystem()
 {   
+    assignDestinationCoordinateSystem();
+
     if (!_intermediateCoordinateSystem)
     {
         CoordinateSystemType cst = getCoordinateSystemType(_destinationCoordinateSystem.get());
@@ -523,6 +543,7 @@ void DataSet::assignIntermediateCoordinateSystem()
             _intermediateCoordinateSystem = _destinationCoordinateSystem;
         }
     }
+    
 }
 
 bool DataSet::requiresReprojection()
