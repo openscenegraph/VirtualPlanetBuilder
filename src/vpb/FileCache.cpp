@@ -416,17 +416,17 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const Spati
     
     if (fd_closest_above)
     {
-        // osg::notify(osg::NOTICE)<<"FileCache::getOptimimumFile("<<filename<<") found closest_above variant '"<<fd_closest_above->getFileName()<<"'"<<std::endl;
+        log(osg::NOTICE,"FileCache::getOptimimumFile(%s) found closest_above variant '%s'",filename.c_str(),fd_closest_above->getFileName().c_str());
         return fd_closest_above->getFileName();
     }
     
     if (fd_closest_below)
     {
-        // osg::notify(osg::NOTICE)<<"FileCache::getOptimimumFile("<<filename<<") found closest_below variant '"<<fd_closest_below->getFileName()<<"'"<<std::endl;
+        log(osg::NOTICE,"FileCache::getOptimimumFile(%s) found closest_below variant '%s'",filename.c_str(),fd_closest_below->getFileName().c_str());
         return fd_closest_below->getFileName();
     }
 
-    // osg::notify(osg::NOTICE)<<"FileCache::getOptimimumFile("<<filename<<") no suitable variants found returning ''"<<std::endl;
+    log(osg::NOTICE,"FileCache::getOptimimumFile(%s) no suitable variants found returning ''",filename.c_str());
     return std::string();
 }
 
