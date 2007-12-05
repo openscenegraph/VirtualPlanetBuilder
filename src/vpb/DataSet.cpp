@@ -501,7 +501,7 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
 
 void DataSet::assignDestinationCoordinateSystem()
 {
-    if (getDestinationCoordinateSystem().empty())
+    if (getDestinationCoordinateSystem().empty() && !getConvertFromGeographicToGeocentric())
     {
         for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
         {

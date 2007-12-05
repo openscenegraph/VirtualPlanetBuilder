@@ -17,64 +17,12 @@
 #include <vpb/SpatialProperties>
 #include <vpb/GeospatialDataset>
 #include <vpb/BuildLog>
+#include <vpb/SourceData>
 
 #include <osg/Shape>
 
-// forward declare so we can avoid tieing vpb to GDAL.
-class GDALDataset;
-class GDALRasterBand;
-
-#define MAXIMUM_NUMBER_OF_LEVELS 30
-
 namespace vpb
 {
-
-class Source;
-class DestinationData;
-
-struct VPB_EXPORT SourceData : public osg::Referenced, public SpatialProperties
-{
-
-    SourceData(Source* source=0):
-        _source(source),
-        _hasGCPs(false),
-        _hfDataset(0) {}
-
-    virtual ~SourceData();
-
-    static SourceData* readData(Source* source);
-
-    GeospatialExtents getExtents(const osg::CoordinateSystemNode* cs) const;
-
-    const SpatialProperties& computeSpatialProperties(const osg::CoordinateSystemNode* cs) const;
-
-    bool intersects(const SpatialProperties& sp) const;
-
-    void read(DestinationData& destination);
-
-    virtual void readImage(DestinationData& destination);
-    virtual void readHeightField(DestinationData& destination);
-    virtual void readModels(DestinationData& destination);
-    virtual void readBuildingShapeFile(DestinationData& destination);
-    virtual void readForestShapeFile(DestinationData& destination);
-
-    float getInterpolatedValue(GDALRasterBand *band, double x, double y);
-    float getInterpolatedValue(osg::HeightField* hf, double x, double y);
-
-    Source*                                     _source;
-
-    bool                                        _hasGCPs;
-
-    osg::ref_ptr<osg::Node>                     _model;
-    osg::ref_ptr<osg::HeightField>              _hfDataset;
-
-    typedef std::map<const osg::CoordinateSystemNode*,SpatialProperties> SpatialPropertiesMap;
-    mutable SpatialPropertiesMap _spatialPropertiesMap;
-
-
-};
-
-
 class VPB_EXPORT Source : public osg::Referenced, public SpatialProperties
 {
 public:

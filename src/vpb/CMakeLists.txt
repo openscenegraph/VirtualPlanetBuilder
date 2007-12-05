@@ -23,6 +23,7 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/PropertyFile
 	${HEADER_PATH}/Serializer
 	${HEADER_PATH}/Source
+	${HEADER_PATH}/SourceData
 	${HEADER_PATH}/SpatialProperties
 	${HEADER_PATH}/System
 	${HEADER_PATH}/Task
@@ -49,6 +50,7 @@ ADD_LIBRARY(${LIB_NAME}
         MachinePool.cpp
         PropertyFile.cpp
 	Source.cpp
+	SourceData.cpp
 	SpatialProperties.cpp
 	System.cpp
 	Task.cpp
