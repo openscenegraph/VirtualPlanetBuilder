@@ -508,7 +508,7 @@ void DataSet::assignDestinationCoordinateSystem()
             Source* source = itr->get();
             source->loadSourceData();
             _destinationCoordinateSystem = source->_cs;
-            _destinationCoordinateSystemString = source->_cs->getCoordinateSystem();
+            _destinationCoordinateSystemString = source->_cs.valid() ? source->_cs->getCoordinateSystem() : std::string();
 
             log(osg::NOTICE,"DataSet::assignDestinationCoordinateSystem() : assigning first source file as the destination coordinate system");
             break;
@@ -918,7 +918,7 @@ void DataSet::createDestination(unsigned int numLevels)
 osg::Node* DataSet::decorateWithCoordinateSystemNode(osg::Node* subgraph)
 {
     // don't decorate if no coord system is set.
-    if (_destinationCoordinateSystem->getCoordinateSystem().empty()) 
+    if (!_destinationCoordinateSystem || _destinationCoordinateSystem->getCoordinateSystem().empty()) 
         return subgraph;
 
     osg::CoordinateSystemNode* csn = new osg::CoordinateSystemNode(

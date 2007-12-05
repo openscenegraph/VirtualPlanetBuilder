@@ -1080,24 +1080,30 @@ void Source::loadSourceData()
 {
     log(osg::INFO,"Source::loadSourceData() %s",_filename.c_str());
     
-    if (System::instance()->getFileCache())
+    if (!_sourceData)
     {
-        osg::ref_ptr<SourceData> sourceData = new SourceData;
-        if (System::instance()->getFileCache()->getSpatialProperties(getFileName(), *sourceData))
-        {
-            log(osg::INFO,"Source::loadSourceData() %s assigned from FileCache",_filename.c_str());
-        
-            sourceData->_source = this;
-            _sourceData = sourceData;
-            
-            assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy();
-            
-            return;
-        }
-    }
     
-    _sourceData = SourceData::readData(this);
-    assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy();
+        if (System::instance()->getFileCache())
+        {
+            osg::ref_ptr<SourceData> sourceData = new SourceData;
+            if (System::instance()->getFileCache()->getSpatialProperties(getFileName(), *sourceData))
+            {
+                log(osg::INFO,"Source::loadSourceData() %s assigned from FileCache",_filename.c_str());
+
+                sourceData->_source = this;
+                _sourceData = sourceData;
+
+                assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy();
+
+                return;
+            }
+        }
+
+        _sourceData = SourceData::readData(this);
+
+
+        assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy();
+    }
 }    
 
 void Source::assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy()
