@@ -122,6 +122,8 @@ public:
         _hfDataset(0)
         {}
 
+    Source(Type type, osg::Node* model);
+
     void setSortValue(double s) { _sortValue = s; }
     double getSortValue() const { return _sortValue; }
 

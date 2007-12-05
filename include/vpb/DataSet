@@ -103,6 +103,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         void addSource(Source* source);
         void addSource(CompositeSource* composite);
         
+        bool addModel(Source::Type type, osg::Node* node);
         bool addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum);
         bool addTerrain(osgTerrain::Terrain* terrain);
         

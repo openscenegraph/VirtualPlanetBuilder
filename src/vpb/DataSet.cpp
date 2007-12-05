@@ -1089,6 +1089,25 @@ void DataSet::_buildDestination(bool writeToDisk)
 }
 
 
+bool DataSet::addModel(Source::Type type, osg::Node* model)
+{
+    vpb::Source* source = new vpb::Source(type, model);
+    
+    osgTerrain::Locator* locator = dynamic_cast<osgTerrain::Locator*>(model->getUserData());
+    if (locator && !locator->getDefinedInFile())
+    {
+        source->setGeoTransformPolicy(vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION);
+        source->setGeoTransform(locator->getTransform());
+
+        source->setCoordinateSystemPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
+        source->setCoordinateSystem(locator->getCoordinateSystem());
+    }
+
+    osg::notify(osg::NOTICE)<<"addModel("<<type<<","<<model->getName()<<")"<<std::endl;
+    
+    addSource(source);    
+}
+
 bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum)
 {
     osgTerrain::HeightFieldLayer* hfl = dynamic_cast<osgTerrain::HeightFieldLayer*>(layer);
@@ -1197,6 +1216,21 @@ bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
         {
             addLayer(vpb::Source::IMAGE, layer, i);
         }
+    }
+    
+    for(unsigned int ci=0; ci<terrain->getNumChildren(); ++ci)
+    {
+        osg::Node* model = terrain->getChild(ci);
+    
+        Source::Type type = vpb::Source::MODEL;
+        for(unsigned di = 0; di< model->getNumDescriptions(); ++di)
+        {
+            const std::string& desc = model->getDescription(di);
+            if (desc=="BUILDING_SHAPEFILE") type = Source::BUILDING_SHAPEFILE;
+            else if (desc=="FOREST_SHAPEFILE") type = Source::FOREST_SHAPEFILE;
+        }
+        
+        addModel(type, model);
     }
 
     return true;

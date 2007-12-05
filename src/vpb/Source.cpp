@@ -1005,6 +1005,23 @@ void SourceData::readModels(DestinationData& destination)
     }
 }
 
+Source::Source(Type type, osg::Node* model):
+        _type(type),
+        _sortValue(0.0),
+        _filename(model->getName()),
+        _temporaryFile(false),
+        _coordinateSystemPolicy(PREFER_FILE_SETTINGS),
+        _geoTransformPolicy(PREFER_FILE_SETTINGS),
+        _minLevel(0),
+        _maxLevel(MAXIMUM_NUMBER_OF_LEVELS),
+        _layer(0),
+        _gdalDataset(0),
+        _hfDataset(0)
+{
+    _sourceData = new SourceData(this);
+    _sourceData->_model = model;
+}
+
 GeospatialDataset* Source::getOptimumGeospatialDataset(const SpatialProperties& sp, AccessMode accessMode) const
 {
     if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
