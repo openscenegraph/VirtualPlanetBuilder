@@ -57,10 +57,15 @@ static void processFile(const std::string& filename,
     if (osgDB::fileType(filename) == osgDB::REGULAR_FILE)
     {
 
+        bool modelType = (type==vpb::Source::MODEL) ||
+                         (type==vpb::Source::BUILDING_SHAPEFILE) || 
+                         (type==vpb::Source::FOREST_SHAPEFILE);
+                         
         bool loadLayer = false;
         
-        if (loadLayer)
+        if (loadLayer && !modelType)
         {
+
             osg::ref_ptr<osg::Object> loadedObject = osgDB::readObjectFile(filename+".gdal");
             osgTerrain::Layer* loadedLayer = dynamic_cast<osgTerrain::Layer*>(loadedObject.get());
 
@@ -133,9 +138,13 @@ static void processFile(const std::string& filename,
                         terrain->setElevationLayer(loadedLayer);
                     }
                 }
+                else
+                {
+                    log(osg::NOTICE,"Error source type %d not handled for file %s", type, filename.c_str());
+                }
             }
         }
-        else
+        else if (!modelType)
         {
             osgTerrain::Layer* existingLayer = 0;
             osgTerrain::CompositeLayer* compositeLayer = 0;
@@ -153,7 +162,7 @@ static void processFile(const std::string& filename,
                     terrain->setColorLayer(layerNum, compositeLayer);
                 }
             }
-            else
+            else if (type==vpb::Source::HEIGHT_FIELD)
             {
                 existingLayer = terrain->getElevationLayer();
                 compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
@@ -204,6 +213,57 @@ static void processFile(const std::string& filename,
             {
                 compositeLayer->addLayer(filename);
             }
+        }
+        else
+        {
+
+            osg::ref_ptr<osg::Node> model = osgDB::readNodeFile(filename);
+
+            if (model.valid())
+            {
+                if (!currentCS.empty() || geoTransformSet)
+                {
+                    osgTerrain::Locator* locator = new osgTerrain::Locator;
+                    model->setUserData(locator);
+
+                    if (!currentCS.empty())
+                    {
+                        osg::notify(osg::INFO)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
+                        locator->setFormat("WKT");
+                        locator->setCoordinateSystem(currentCS);
+                        locator->setDefinedInFile(false);
+                    } 
+
+                    if (geoTransformSet)
+                    {
+                        osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
+                        locator->setTransform(geoTransform);
+                        locator->setDefinedInFile(false);
+                    }
+                }
+                
+                switch(type)
+                {
+                    case(Source::BUILDING_SHAPEFILE):
+                        model->setName(filename);
+                        model->addDescription("BUILDING_SHAPEFILE");
+                        break;
+                    case(Source::FOREST_SHAPEFILE):
+                        model->setName(filename);
+                        model->addDescription("FOREST_SHAPEFILE");
+                        break;
+                    case(Source::MODEL):
+                        model->setName(filename);
+                        model->addDescription("MODEL");
+                        break;
+                }
+                
+                terrain->addChild(model.get());
+            }
+            else
+            {
+                log(osg::NOTICE,"Error: unable to load file %s", filename.c_str());
+            }
 
         }
 
@@ -231,6 +291,8 @@ void vpb::getSourceUsage(osg::ApplicationUsage& usage)
 {
     usage.addCommandLineOption("-d <filename>","Specify the digital elevation map input file to process");
     usage.addCommandLineOption("-t <filename>","Specify the texture map input file to process");
+    usage.addCommandLineOption("--building <filename>","Specify building outlines using shapefiles.");
+    usage.addCommandLineOption("--forest <filename>","Specify forest outlines using shapefiles");
     usage.addCommandLineOption("-a <archivename>","Specify the archive to place the generated database");
     usage.addCommandLineOption("--ibn <buildname>","Specify the intermediate build file name");
     usage.addCommandLineOption("-o <outputfile>","Specify the output master file to generate");
@@ -699,6 +761,46 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
             fout<<"-t "<<filename<<std::endl;
 
             processFile(filename, vpb::Source::IMAGE, dataType, currentCS, 
+                        geoTransform, geoTransformSet, geoTransformScale, 
+                        minmaxLevelSet, min_level, max_level, 
+                        currentLayerNum,
+                        terrain);
+
+            minmaxLevelSet = false;
+            min_level=0; max_level=maximumPossibleLevel;
+            currentLayerNum = 0;
+            
+            currentCS = "";
+            geoTransformSet = false;
+            geoTransformScale = false;
+            geoTransform.makeIdentity();            
+            dataType = vpb::SpatialProperties::RASTER;
+        }
+        else if (arguments.read(pos, "--building",filename) || arguments.read(pos, "-b",filename))
+        {
+            fout<<"--building "<<filename<<std::endl;
+
+            processFile(filename, vpb::Source::BUILDING_SHAPEFILE, dataType, currentCS, 
+                        geoTransform, geoTransformSet, geoTransformScale, 
+                        minmaxLevelSet, min_level, max_level, 
+                        currentLayerNum,
+                        terrain);
+
+            minmaxLevelSet = false;
+            min_level=0; max_level=maximumPossibleLevel;
+            currentLayerNum = 0;
+            
+            currentCS = "";
+            geoTransformSet = false;
+            geoTransformScale = false;
+            geoTransform.makeIdentity();            
+            dataType = vpb::SpatialProperties::RASTER;
+        }
+        else if (arguments.read(pos, "--forest",filename) || arguments.read(pos, "-f",filename))
+        {
+            fout<<"--forest "<<filename<<std::endl;
+
+            processFile(filename, vpb::Source::FOREST_SHAPEFILE, dataType, currentCS, 
                         geoTransform, geoTransformSet, geoTransformScale, 
                         minmaxLevelSet, min_level, max_level, 
                         currentLayerNum,

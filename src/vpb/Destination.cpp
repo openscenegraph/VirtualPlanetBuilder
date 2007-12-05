@@ -1836,33 +1836,58 @@ void DestinationTile::readFrom(CompositeSource* sourceGraph)
             log(osg::INFO,"    destination._level=%d\t%d\t%d",_level,source->getMinLevel(),source->getMaxLevel());
 
             SourceData* data = (*itr)->getSourceData();
-            if (source->getType()==Source::IMAGE)
+            switch((*itr)->getType())
             {
-                unsigned int layerNum = source->getLayer();
-                
-                if (layerNum==0)
+                case(Source::IMAGE):
                 {
-                    // copy the base layer 0 into layer 0 and all subsequent layers to provide a backdrop.
-                    for(unsigned int i=0;i<_imagery.size();++i)
+                    unsigned int layerNum = source->getLayer();
+
+                    if (layerNum==0)
                     {
-                        if (_imagery[i]._imagery.valid())
+                        // copy the base layer 0 into layer 0 and all subsequent layers to provide a backdrop.
+                        for(unsigned int i=0;i<_imagery.size();++i)
                         {
-                            data->read(*(_imagery[i]._imagery));
+                            if (_imagery[i]._imagery.valid())
+                            {
+                                data->read(*(_imagery[i]._imagery));
+                            }
                         }
                     }
-                }
-                else
-                {
-                    // copy specific layer.
-                    if (layerNum<_imagery.size() && _imagery[layerNum]._imagery.valid())
+                    else
                     {
-                        data->read(*(_imagery[layerNum]._imagery));
+                        // copy specific layer.
+                        if (layerNum<_imagery.size() && _imagery[layerNum]._imagery.valid())
+                        {
+                            data->read(*(_imagery[layerNum]._imagery));
+                        }
                     }
+                    break;
                 }
-            }
-            else
-            {
-                if (_terrain.valid()) data->read(*_terrain);
+                case(Source::HEIGHT_FIELD):
+                {
+                    if (_terrain.valid()) data->read(*_terrain);
+                    break;
+                }
+                case(Source::MODEL):
+                {
+                    log(osg::NOTICE,"DestinationTile::readFrom() model %s not handled.", source->getFileName().c_str());
+                    break;
+                }
+                case(Source::BUILDING_SHAPEFILE):
+                {
+                    log(osg::NOTICE,"DestinationTile::readFrom() building shapefile %s not handled", source->getFileName().c_str());
+                    break;
+                }
+                case(Source::FOREST_SHAPEFILE):
+                {
+                    log(osg::NOTICE,"DestinationTile::readFrom() forest shapefile %s not handled", source->getFileName().c_str());
+                    break;
+                }
+                default:
+                {
+                    log(osg::NOTICE,"DestinationTile::readFrom() source type of file %s not handled", source->getFileName().c_str());
+                    break;
+                }
             }
         }
     }

@@ -394,8 +394,16 @@ void SourceData::read(DestinationData& destination)
         log(osg::INFO,"B.2");
         readHeightField(destination);
         break;
-    case(Source::MODEL):
+    case(Source::BUILDING_SHAPEFILE):
         log(osg::INFO,"B.3");
+        readBuildingShapeFile(destination);
+        break;
+    case(Source::FOREST_SHAPEFILE):
+        log(osg::INFO,"B.4");
+        readForestShapeFile(destination);
+        break;
+    case(Source::MODEL):
+        log(osg::INFO,"B.5");
         readModels(destination);
         break;
     }
@@ -970,15 +978,33 @@ void SourceData::readHeightField(DestinationData& destination)
     }
 }
 
+void SourceData::readBuildingShapeFile(DestinationData& destination)
+{
+    if (_model.valid())
+    {
+        log(osg::INFO,"Reading building shapefile");
+        destination._models.push_back(_model);
+    }
+}
+
+void SourceData::readForestShapeFile(DestinationData& destination)
+{
+    if (_model.valid())
+    {
+        log(osg::INFO,"Reading forest shapefile");
+        destination._models.push_back(_model);
+    }
+}
+
 void SourceData::readModels(DestinationData& destination)
 {
     if (_model.valid())
     {
-        log(osg::INFO,"Raading model");
+        log(osg::INFO,"Reading model");
         destination._models.push_back(_model);
     }
 }
-;
+
 GeospatialDataset* Source::getOptimumGeospatialDataset(const SpatialProperties& sp, AccessMode accessMode) const
 {
     if (_gdalDataset) return new GeospatialDataset(_gdalDataset);
