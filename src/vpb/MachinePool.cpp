@@ -441,12 +441,12 @@ void MachinePool::setBuildLog(BuildLog* bl)
 
 void MachinePool::addMachine(const std::string& hostname, const std::string& cacheDirectory, const std::string& commandPrefix, const std::string& commandPostfix, int numThreads)
 {
-    log(osg::NOTICE,"addMachine(");
-    log(osg::NOTICE,"     hostname = %s",hostname.c_str());
-    log(osg::NOTICE,"     cacheDirectory = %s",cacheDirectory.c_str());
-    log(osg::NOTICE,"     commandPrefix = %s",commandPrefix.c_str());
-    log(osg::NOTICE,"     commandPostfix = %s",commandPostfix.c_str());
-    log(osg::NOTICE,"     numThreads = %d)",numThreads);
+    log(osg::INFO,"addMachine(");
+    log(osg::INFO,"     hostname = %s",hostname.c_str());
+    log(osg::INFO,"     cacheDirectory = %s",cacheDirectory.c_str());
+    log(osg::INFO,"     commandPrefix = %s",commandPrefix.c_str());
+    log(osg::INFO,"     commandPostfix = %s",commandPostfix.c_str());
+    log(osg::INFO,"     numThreads = %d)",numThreads);
 
     addMachine(new Machine(hostname, cacheDirectory, commandPrefix, commandPostfix, numThreads));
 }

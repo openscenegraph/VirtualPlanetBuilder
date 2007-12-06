@@ -324,7 +324,7 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const osg::
     VariantMap::iterator itr = _variantMap.find(filename);
     if (itr==_variantMap.end())
     {
-        //osg::notify(osg::NOTICE)<<"FileCache::getOptimimumFile("<<filename<<") no variants found returning '"<<filename<<"'"<<std::endl;
+        log(osg::NOTICE,"FileCache::getOptimimumFile(%s) no variants found returning '%s'",filename.c_str(),filename.c_str());
         return filename;
     }
     
@@ -362,11 +362,13 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const osg::
 std::string FileCache::getOptimimumFile(const std::string& filename, const SpatialProperties& sp)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_variantMapMutex);
+    
+    osg::NotifySeverity level = osg::INFO;
 
     VariantMap::iterator itr = _variantMap.find(filename);
     if (itr==_variantMap.end())
     {
-        //osg::notify(osg::NOTICE)<<"FileCache::getOptimimumFile("<<filename<<") no variants found returning '"<<filename<<"'"<<std::endl;
+        log(level,"FileCache::getOptimimumFile(%s) no variants found returning '%s'",filename.c_str(),filename.c_str());
         return filename;
     }
     
@@ -410,23 +412,27 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const Spati
         }
         else
         {
-            // osg::notify(osg::NOTICE)<<"  FileDetails("<<fd->getFileName()<<") not compatible "<<std::endl;
+#if 0
+            log(level,"  FileDetails(%s) not compatible ",fd->getFileName().c_str());
+            log(level,"  FileDetails fd(%f,\t%f,\t%f,\t%f)",fd_sp._extents.xMin(), fd_sp._extents.xMax(), fd_sp._extents.yMin(), fd_sp._extents.yMax());
+            log(level,"              sp(%f,\t%f,\t%f,\t%f)",sp._extents.xMin(), sp._extents.xMax(), sp._extents.yMin(), sp._extents.yMax());
+#endif
         }
     }
     
     if (fd_closest_above)
     {
-        log(osg::NOTICE,"FileCache::getOptimimumFile(%s) found closest_above variant '%s'",filename.c_str(),fd_closest_above->getFileName().c_str());
+        log(level,"FileCache::getOptimimumFile(%s) found closest_above variant '%s'",filename.c_str(),fd_closest_above->getFileName().c_str());
         return fd_closest_above->getFileName();
     }
     
     if (fd_closest_below)
     {
-        log(osg::NOTICE,"FileCache::getOptimimumFile(%s) found closest_below variant '%s'",filename.c_str(),fd_closest_below->getFileName().c_str());
+        log(level,"FileCache::getOptimimumFile(%s) found closest_below variant '%s'",filename.c_str(),fd_closest_below->getFileName().c_str());
         return fd_closest_below->getFileName();
     }
 
-    log(osg::NOTICE,"FileCache::getOptimimumFile(%s) no suitable variants found returning ''",filename.c_str());
+    log(level,"FileCache::getOptimimumFile(%s) no suitable variants found returning ''",filename.c_str());
     return std::string();
 }
 

@@ -187,9 +187,10 @@ bool SpatialProperties::intersects(const SpatialProperties& sp) const
 
 bool SpatialProperties::compatible(const SpatialProperties& sp) const
 {
-//    osg::notify(osg::NOTICE)<<"  SpatialProperties::compatible(sp) : equvilantCoordinateSystem(sp)="<<equvilantCoordinateSystem(sp)<<std::endl;
-//    osg::notify(osg::NOTICE)<<"                                    : intersects(sp)="<<intersects(sp)<<std::endl;
-//    osg::notify(osg::NOTICE)<<"                                    : valid()="<<intersects(sp)<<std::endl;
+#if 0
+    osg::notify(osg::NOTICE)<<"  SpatialProperties::compatible(sp) : equvilantCoordinateSystem(sp)="<<equvilantCoordinateSystem(sp)<<std::endl;
+    osg::notify(osg::NOTICE)<<"                                    : intersects(sp)="<<intersects(sp)<<std::endl;
+#endif
     return equvilantCoordinateSystem(sp) && intersects(sp);
 }
 
