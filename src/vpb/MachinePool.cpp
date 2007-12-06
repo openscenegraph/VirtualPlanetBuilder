@@ -193,12 +193,12 @@ void Machine::startThreads()
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_threadsMutex);
 
-    log(osg::NOTICE,"Machine::startThreads() hostname=%s, threads=%d",_hostname.c_str(),_threads.size());
+    log(osg::INFO,"Machine::startThreads() hostname=%s, threads=%d",_hostname.c_str(),_threads.size());
     for(Threads::iterator itr = _threads.begin();
         itr != _threads.end();
         ++itr)
     {
-        log(osg::NOTICE,"  Started thread");
+        log(osg::INFO,"  Started thread");
     
         (*itr)->setDone(false);
         (*itr)->startThread();

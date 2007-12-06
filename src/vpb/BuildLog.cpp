@@ -18,6 +18,7 @@
 
 using namespace vpb;
 
+
 struct ThreadLog
 {
     typedef std::list<osg::ref_ptr<OperationLog> > OperationLogStack;
@@ -28,13 +29,14 @@ struct ThreadLog
     void log(osg::NotifySeverity level, const char* str)
     { 
         if (!_logStack.empty()) _logStack.back()->log(level, str);
-        else if (level<=osg::getNotifyLevel()) { printf("%s\n",str); }
+        else if (level<=osg::getNotifyLevel()) { printf("fallback: %s\n",str); }
     }
 
     OperationLogStack _logStack;
     
 };
 
+#if 0
 typedef std::map<OpenThreads::Thread*, ThreadLog > OperationLogMap;
 static OpenThreads::Mutex s_opertionLogMapMutex;
 static OperationLogMap s_opertionLogMap;
@@ -70,6 +72,37 @@ void vpb::popOperationLog()
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_opertionLogMapMutex);
     s_opertionLogMap[thread].pop();
 }
+#else
+static OpenThreads::Mutex s_opertionLogMapMutex;
+static ThreadLog s_opertionLogMap;
+
+void vpb::log(osg::NotifySeverity level, const char* format, ...)
+{
+    if (level>osg::getNotifyLevel()) return;
+
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_opertionLogMapMutex);
+    
+    ThreadLog& tl = s_opertionLogMap;
+    
+    va_list args; va_start(args, format);
+    char str[1024];
+    vsnprintf(str, sizeof(str), format, args);
+    tl.log(level, str);
+    va_end(args);
+}
+
+void vpb::pushOperationLog(OperationLog* operationLog)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_opertionLogMapMutex);
+    s_opertionLogMap.push(operationLog);
+}
+
+void vpb::popOperationLog()
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(s_opertionLogMapMutex);
+    s_opertionLogMap.pop();
+}
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //

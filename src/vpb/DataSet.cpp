@@ -1509,13 +1509,14 @@ bool DataSet::generateTasks(TaskManager* taskManager)
 
 int DataSet::run()
 {
+    if (!getBuildLog())
+    {
+        if (!getLogFileName().empty()) getBuildLog()->openLogFile(getLogFileName());
+    }
+
     if (getBuildLog())
     {
         pushOperationLog(getBuildLog());
-        
-        if (!getLogFileName().empty()) getBuildLog()->openLogFile(getLogFileName());
-        
-        // getBuildLog()->setLogStream(getBuildLog()->getLogStreamForThread(OpenThreads::Thread::CurrentThread()));
     }
 
     loadSources();
