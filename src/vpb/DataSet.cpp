@@ -1515,7 +1515,7 @@ int DataSet::run()
     if (!getLogFileName().empty())
     {
         if (!getBuildLog()) setBuildLog(new BuildLog());
-    
+        
         getBuildLog()->openLogFile(getLogFileName());
     }
 
