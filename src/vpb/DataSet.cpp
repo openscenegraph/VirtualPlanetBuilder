@@ -1404,15 +1404,18 @@ bool DataSet::generateTasks(TaskManager* taskManager)
 {
     if (getDistributedBuildSplitLevel()==0) return false;
 
+    if (!getLogFileName().empty())
+    {
+        if (!getBuildLog()) setBuildLog(new BuildLog());
+    
+        getBuildLog()->openLogFile(getLogFileName());
+    }
+
     if (getBuildLog())
     {
         pushOperationLog(getBuildLog());
-        
-        if (!getLogFileName().empty()) getBuildLog()->openLogFile(getLogFileName());
-        
-        // getBuildLog()->setLogStream(getBuildLog()->getLogStreamForThread(OpenThreads::Thread::CurrentThread()));
     }
-
+    
     loadSources();
 
     computeDestinationGraphFromSources(getDistributedBuildSplitLevel()+1);
@@ -1509,9 +1512,11 @@ bool DataSet::generateTasks(TaskManager* taskManager)
 
 int DataSet::run()
 {
-    if (!getBuildLog())
+    if (!getLogFileName().empty())
     {
-        if (!getLogFileName().empty()) getBuildLog()->openLogFile(getLogFileName());
+        if (!getBuildLog()) setBuildLog(new BuildLog());
+    
+        getBuildLog()->openLogFile(getLogFileName());
     }
 
     if (getBuildLog())
