@@ -202,6 +202,7 @@ public:
 
         { AEP(NotifyLevel); AEV(ALWAYS); AEV(FATAL); AEV(WARN); AEV(NOTICE); AEV(INFO); AEV(DEBUG_INFO); AEV(DEBUG_FP); }
 
+        ADD_BOOL_PROPERTY(DisableWrites);
     }
     
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)

@@ -223,6 +223,9 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setNotifyLevel(const std::string& level);
         void setNotifyLevel(NotifyLevel level);
         NotifyLevel getNotifyLevel() const { return _notifyLevel; }
+        
+        void setDisableWrites(bool flag) { _disableWrites = flag; }
+        bool getDisableWrites() const { return _disableWrites; }
 
     protected:
 
@@ -269,6 +272,7 @@ class VPB_EXPORT BuildOptions : public osg::Object
         unsigned int                                _subtileY;
         
         NotifyLevel                                 _notifyLevel;
+        bool                                        _disableWrites;
 };
 
 }

@@ -62,6 +62,7 @@ BuildOptions::BuildOptions():
     _subtileY = 0;
     
     _notifyLevel = NOTICE;
+    _disableWrites = false;
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop):
@@ -124,6 +125,7 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _subtileY = rhs._subtileY;
     
     _notifyLevel = rhs._notifyLevel;
+    _disableWrites = rhs._disableWrites;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)

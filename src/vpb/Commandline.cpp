@@ -413,7 +413,11 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
     while(arguments.read("--notify-level", notifyLevel))
     {
         buildOptions->setNotifyLevel(notifyLevel);
+    }
 
+    while(arguments.read("--disable-writes"))
+    {
+        buildOptions->setDisableWrites(true);
     }
 
     std::string buildname;    
