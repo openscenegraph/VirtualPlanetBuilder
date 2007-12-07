@@ -764,7 +764,7 @@ void DataSet::_equalizeRow(Row& row)
 
 void DataSet::_writeNodeFile(const osg::Node& node,const std::string& filename)
 {
-#if 0
+#if 1
     if (_archive.valid()) _archive->writeNode(node,filename);
     else osgDB::writeNodeFile(node, filename);
 #endif
@@ -772,7 +772,7 @@ void DataSet::_writeNodeFile(const osg::Node& node,const std::string& filename)
 
 void DataSet::_writeImageFile(const osg::Image& image,const std::string& filename)
 {
-#if 0
+#if 1
     if (_archive.valid()) _archive->writeImage(image,filename);
     else osgDB::writeImageFile(image, filename);
 #endif
