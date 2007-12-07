@@ -15,6 +15,7 @@
 #define BUILDOPTIONS_H 1
 
 #include <osg/CoordinateSystemNode>
+#include <osgDB/Archive>
 #include <osgTerrain/Terrain>
 #include <osgDB/Archive>
 
@@ -208,6 +209,20 @@ class VPB_EXPORT BuildOptions : public osg::Object
 
         void setSubtileY(unsigned int y) { _subtileY = y; }
         unsigned int getSubtileY() const { return _subtileY; }
+        
+        enum NotifyLevel {
+            ALWAYS=osg::ALWAYS,
+            FATAL=osg::FATAL,
+            WARN=osg::WARN,
+            NOTICE=osg::NOTICE,
+            INFO=osg::INFO,
+            DEBUG_INFO=osg::DEBUG_INFO,
+            DEBUG_FP=osg::DEBUG_FP
+        };
+
+        void setNotifyLevel(const std::string& level);
+        void setNotifyLevel(NotifyLevel level);
+        NotifyLevel getNotifyLevel() const { return _notifyLevel; }
 
     protected:
 
@@ -252,6 +267,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
         unsigned int                                _subtileLevel;
         unsigned int                                _subtileX;
         unsigned int                                _subtileY;
+        
+        NotifyLevel                                 _notifyLevel;
 };
 
 }

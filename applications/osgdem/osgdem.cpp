@@ -63,7 +63,7 @@ int main(int argc, char** argv)
     }
     
     vpb::System::instance()->readArguments(arguments);
-
+    
     std::string taskFileName;
     osg::ref_ptr<vpb::Task> taskFile;
     while (arguments.read("--task",taskFileName))
@@ -122,6 +122,7 @@ int main(int argc, char** argv)
     int result = vpb::readSourceArguments(std::cout, arguments, terrain.get());
     if (result) return result;
 
+
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();
 
@@ -132,6 +133,7 @@ int main(int argc, char** argv)
         return 1;
     }
     
+
     if (!terrainOutputName.empty())
     {
         if (terrain.valid())
@@ -153,10 +155,16 @@ int main(int argc, char** argv)
     {
         try 
         {
-            osg::ref_ptr<vpb::DataSet> dataset = new vpb::DataSet;
 
             vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(terrain->getTerrainTechnique());
             vpb::BuildOptions* bo = db ? db->getBuildOptions() : 0;
+
+            if (bo)
+            {
+                osg::setNotifyLevel(osg::NotifySeverity(bo->getNotifyLevel()));
+
+            }
+            osg::ref_ptr<vpb::DataSet> dataset = new vpb::DataSet;
 
             if (bo && !(bo->getLogFileName().empty()))
             {

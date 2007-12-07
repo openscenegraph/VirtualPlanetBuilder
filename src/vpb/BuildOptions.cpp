@@ -60,6 +60,8 @@ BuildOptions::BuildOptions():
     _subtileLevel = 0;
     _subtileX = 0;
     _subtileY = 0;
+    
+    _notifyLevel = NOTICE;
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop):
@@ -120,6 +122,8 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _subtileLevel = rhs._subtileLevel;
     _subtileX = rhs._subtileX;
     _subtileY = rhs._subtileY;
+    
+    _notifyLevel = rhs._notifyLevel;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)
@@ -184,6 +188,25 @@ void BuildOptions::setDestinationCoordinateSystemNode(osg::CoordinateSystemNode*
     {
         _destinationCoordinateSystemString.clear();
     }
-    
 
 }
+
+void BuildOptions::setNotifyLevel(NotifyLevel level)
+{
+    _notifyLevel = level;
+}
+
+void BuildOptions::setNotifyLevel(const std::string& notifyLevel)
+{
+    if      (notifyLevel=="ALWAYS") setNotifyLevel(ALWAYS);
+    else if (notifyLevel=="DISABLE") setNotifyLevel(ALWAYS);
+    else if (notifyLevel=="OFF") setNotifyLevel(ALWAYS);
+    else if (notifyLevel=="FATAL") setNotifyLevel(FATAL);
+    else if (notifyLevel=="WARN") setNotifyLevel(WARN);
+    else if (notifyLevel=="NOTICE") setNotifyLevel(NOTICE);
+    else if (notifyLevel=="INFO") setNotifyLevel(INFO);
+    else if (notifyLevel=="DEBUG") setNotifyLevel(DEBUG_INFO);
+    else if (notifyLevel=="DEBUG_INFO") setNotifyLevel(DEBUG_INFO);
+    else if (notifyLevel=="DEBUG_FP") setNotifyLevel(DEBUG_FP);
+}
+

@@ -199,6 +199,9 @@ public:
         ADD_UINT_PROPERTY(SubtileLevel);
         ADD_UINT_PROPERTY(SubtileX);
         ADD_UINT_PROPERTY(SubtileY);
+
+        { AEP(NotifyLevel); AEV(ALWAYS); AEV(FATAL); AEV(WARN); AEV(NOTICE); AEV(INFO); AEV(DEBUG_INFO); AEV(DEBUG_FP); }
+
     }
     
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)

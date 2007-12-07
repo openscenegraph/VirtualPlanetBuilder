@@ -764,14 +764,18 @@ void DataSet::_equalizeRow(Row& row)
 
 void DataSet::_writeNodeFile(const osg::Node& node,const std::string& filename)
 {
+#if 0
     if (_archive.valid()) _archive->writeNode(node,filename);
     else osgDB::writeNodeFile(node, filename);
+#endif
 }
 
 void DataSet::_writeImageFile(const osg::Image& image,const std::string& filename)
 {
+#if 0
     if (_archive.valid()) _archive->writeImage(image,filename);
     else osgDB::writeImageFile(image, filename);
+#endif
 }
 
 
@@ -1435,7 +1439,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
         std::string fileCacheName;
         if (System::instance()->getFileCache()) fileCacheName = System::instance()->getFileCache()->getFileName(); 
         
-        bool logging = true;
+        bool logging = getNotifyLevel() > ALWAYS;
         
         // create root task
         {
@@ -1456,11 +1460,12 @@ bool DataSet::generateTasks(TaskManager* taskManager)
                 logfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.log";
                 app<<" --log "<<logfile.str();
             }
+#if 0            
             else
             {
                 app<<" > /dev/null";
             }
-            
+#endif            
 
             taskManager->addTask(taskfile.str(), app.str(), sourceFile);
         }
@@ -1492,11 +1497,12 @@ bool DataSet::generateTasks(TaskManager* taskManager)
                 logfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
                 app<<" --log "<<logfile.str();
             }
+#if 0
             else
             {
                 app<<" > /dev/null";
             }
-
+#endif
             taskManager->addTask(taskfile.str(), app.str(), sourceFile);
         }
 

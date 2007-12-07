@@ -422,13 +422,27 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const Spati
     
     if (fd_closest_above)
     {
-        log(level,"FileCache::getOptimimumFile(%s) found closest_above variant '%s'",filename.c_str(),fd_closest_above->getFileName().c_str());
+        if (fd_closest_above->getHostName()==hostname)
+        {
+            log(level,"FileCache::getOptimimumFile(%s) found local closest_above variant '%s'",filename.c_str(),fd_closest_above->getFileName().c_str());
+        }
+        else
+        {
+            log(level,"FileCache::getOptimimumFile(%s) found remote closest_above variant '%s'",filename.c_str(),fd_closest_above->getFileName().c_str());
+        }
         return fd_closest_above->getFileName();
     }
     
     if (fd_closest_below)
     {
-        log(level,"FileCache::getOptimimumFile(%s) found closest_below variant '%s'",filename.c_str(),fd_closest_below->getFileName().c_str());
+        if (fd_closest_below->getHostName()==hostname)
+        {
+            log(level,"FileCache::getOptimimumFile(%s) found local fd_closest_below variant '%s'",filename.c_str(),fd_closest_below->getFileName().c_str());
+        }
+        else
+        {
+            log(level,"FileCache::getOptimimumFile(%s) found remote fd_closest_below variant '%s'",filename.c_str(),fd_closest_below->getFileName().c_str());
+        }
         return fd_closest_below->getFileName();
     }
 

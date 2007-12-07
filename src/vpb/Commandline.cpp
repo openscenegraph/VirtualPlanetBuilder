@@ -350,6 +350,7 @@ void vpb::getSourceUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--record-subtile-on-leaf-tiles","Enable the setting of the subtile file name of the leaf tiles.");
     usage.addCommandLineOption("--split","Set the distributed build split level.");
     usage.addCommandLineOption("--run-path","Set the path that the build should be run from.");
+    usage.addCommandLineOption("--notify-level","Set the notify level when logging messages.");
 }
 
 int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrain)
@@ -406,6 +407,13 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
     while(arguments.read("--record-subtile-on-leaf-tiles"))
     {
         buildOptions->setRecordSubtileFileNamesOnLeafTile(true);
+    }
+
+    std::string notifyLevel;
+    while(arguments.read("--notify-level", notifyLevel))
+    {
+        buildOptions->setNotifyLevel(notifyLevel);
+
     }
 
     std::string buildname;    
