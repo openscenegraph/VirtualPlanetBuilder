@@ -27,6 +27,7 @@
 
 #include <osgViewer/GraphicsWindow>
 #include <osgViewer/Viewer>
+#include <osgViewer/Version>
 
 #include <vpb/DataSet>
 #include <vpb/DatabaseBuilder>
@@ -1564,7 +1565,7 @@ int DataSet::run()
             MyGraphicsContext context(getBuildLog());
             if (!context.valid())
             {
-                log(osg::NOTICE,"Error: Unable to create graphis context - cannot run database build, try disabling use of compressed textures.");
+                log(osg::NOTICE,"Error: Unable to create graphis context, problem with running osgViewer-%s, cannot run compression.",osgViewerGetVersion());
                 return 1;
             }
 
