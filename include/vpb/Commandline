@@ -15,6 +15,7 @@
 #include <osgTerrain/Terrain>
 
 #include <vpb/Source>
+#include <vpb/BuildOptions>
 
 namespace vpb
 {
@@ -46,6 +47,7 @@ class VPB_EXPORT Commandline
     protected:
     
         osg::ref_ptr<osgTerrain::Terrain> terrain;
+        osg::ref_ptr<BuildOptions>        buildOptions; 
     
         vpb::SpatialProperties::DataType dataType;
         std::string currentCS;
@@ -59,6 +61,7 @@ class VPB_EXPORT Commandline
         unsigned int max_level;
         unsigned int layerNum;
 
+        std::string heightAttributeName;
         double height;
 };
 

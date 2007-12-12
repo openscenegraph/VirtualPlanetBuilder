@@ -19,6 +19,8 @@
 #include <osg/Notify>
 #include <osg/io_utils>
 
+#include <osgSim/ShapeAttribute>
+
 #include <osgDB/ReadFile>
 #include <osgDB/FileUtils>
 #include <osgDB/FileNameUtils>
@@ -33,6 +35,7 @@ Commandline::Commandline()
 void Commandline::init()
 {
     maximumPossibleLevel = 30;
+    heightAttributeName = "HEIGHT";
     reset();
 }
 
@@ -49,7 +52,7 @@ void Commandline::reset()
     geoTransformSet = false;
     geoTransformScale = false;
     geoTransform.makeIdentity();            
-    height = 0.0;
+    height = -1.0; // negative signifies that no height has been defined.
 }
 
 void Commandline::computeGeoTransForRange(double xMin, double xMax, double yMin, double yMax)
@@ -158,6 +161,37 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
     }
 }
 
+class ApplyUserDataToDrawables : public osg::NodeVisitor
+{
+    public:
+    
+        ApplyUserDataToDrawables(osg::Referenced* userData, bool replace):
+            osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN),
+            _userData(userData),
+            _replace(userData) {}
+            
+            
+        void apply(osg::Geode& geode)
+        {
+            osg::notify(osg::NOTICE)<<"Applying UserData "<<std::endl;
+
+            for(unsigned int i=0; i<geode.getNumDrawables(); ++i)
+            {
+                osg::Drawable* drawable = geode.getDrawable(i);
+                if (drawable)
+                {
+                    if (_replace || !drawable->getUserData())
+                    {
+                        drawable->setUserData(_userData.get());
+                    }
+                }
+            }
+        }
+            
+        osg::ref_ptr<Referenced>    _userData;
+        bool                        _replace;      
+};
+
 void Commandline::processShapeFile(vpb::Source::Type type, const std::string& filename)
 {
     osg::ref_ptr<osg::Node> model = osgDB::readNodeFile(filename);
@@ -184,7 +218,19 @@ void Commandline::processShapeFile(vpb::Source::Type type, const std::string& fi
                 locator->setDefinedInFile(false);
             }
         }
-
+        
+        if (height>=0.0)
+        {
+            osg::notify(osg::NOTICE)<<"Setting height "<<height<<std::endl;
+        
+            osgSim::ShapeAttributeList* sal = new osgSim::ShapeAttributeList;
+            sal->push_back(osgSim::ShapeAttribute(heightAttributeName.c_str(), height));
+            
+            ApplyUserDataToDrawables audtd(sal, true);
+            
+            model->accept(audtd);
+        }
+        
         switch(type)
         {
             case(Source::BUILDING_SHAPEFILE):
@@ -197,6 +243,11 @@ void Commandline::processShapeFile(vpb::Source::Type type, const std::string& fi
                 break;
             default:
                 break;
+        }
+
+        if (!heightAttributeName.empty())
+        {
+            model->addDescription(std::string("HeightAttributeName ")+heightAttributeName);
         }
 
         terrain->addChild(model.get());
@@ -326,7 +377,8 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--split","Set the distributed build split level.");
     usage.addCommandLineOption("--run-path","Set the path that the build should be run from.");
     usage.addCommandLineOption("--notify-level","Set the notify level when logging messages.");
-    usage.addCommandLineOption("--height","Set the default height.");
+    usage.addCommandLineOption("--height-attribute","Set the attribute name for height attributes used in shapefile/dbase files.");
+    usage.addCommandLineOption("--height","Set the height to use for asscociated shapefiles.");
 }
 
 int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrainInput)
@@ -340,11 +392,11 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         terrain->setTerrainTechnique(databaseBuilder);
     }
     
-    vpb::BuildOptions* buildOptions = databaseBuilder->getBuildOptions();
+    buildOptions = databaseBuilder->getBuildOptions();
     if (!buildOptions)
     {
         buildOptions = new vpb::BuildOptions;
-        databaseBuilder->setBuildOptions(buildOptions);
+        databaseBuilder->setBuildOptions(buildOptions.get());
     }
 
     std::string logFilename;
@@ -450,6 +502,7 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     std::string comment;
     while (arguments.read("--comment",comment)) { buildOptions->setCommentString(comment); }
 
+
     std::string archiveName;
     while (arguments.read("-a",archiveName)) { buildOptions->setArchiveName(archiveName); }
 
@@ -536,7 +589,14 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     {
         std::string def;
 
-        if (arguments.read(pos, "--cs",def))
+        if (arguments.read(pos, "--height-attribute",def)) 
+        {
+            heightAttributeName = def;
+        }
+        else if (arguments.read(pos, "--height",height)) 
+        {            
+        }
+        else if (arguments.read(pos, "--cs",def))
         {
             currentCS = !def.empty() ? vpb::coordinateSystemStringToWTK(def) : "";
             fout<<"--cs \""<<def<<"\" converted to "<<currentCS<<std::endl;

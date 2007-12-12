@@ -226,7 +226,7 @@ class VPB_EXPORT BuildOptions : public osg::Object
         
         void setDisableWrites(bool flag) { _disableWrites = flag; }
         bool getDisableWrites() const { return _disableWrites; }
-
+        
     protected:
 
         bool                                        _buildOverlays;
@@ -273,6 +273,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
         
         NotifyLevel                                 _notifyLevel;
         bool                                        _disableWrites;
+        
+        std::string                                 _heightAttributeName;
 };
 
 }
