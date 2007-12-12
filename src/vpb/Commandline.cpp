@@ -165,10 +165,12 @@ class ApplyUserDataToDrawables : public osg::NodeVisitor
 {
     public:
     
-        ApplyUserDataToDrawables(osg::Referenced* userData, bool replace):
+        ApplyUserDataToDrawables(osgSim::ShapeAttributeList* sal, bool replace):
             osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN),
-            _userData(userData),
-            _replace(userData) {}
+            _sal(sal),
+            _replace(replace)
+        {
+        }
             
             
         void apply(osg::Geode& geode)
@@ -180,16 +182,55 @@ class ApplyUserDataToDrawables : public osg::NodeVisitor
                 osg::Drawable* drawable = geode.getDrawable(i);
                 if (drawable)
                 {
-                    if (_replace || !drawable->getUserData())
-                    {
-                        drawable->setUserData(_userData.get());
-                    }
+                    osgSim::ShapeAttributeList* user_sal = dynamic_cast<osgSim::ShapeAttributeList*>(drawable->getUserData());
+                    if (user_sal) _shapeAttributeSet.insert(user_sal);
+                    else drawable->setUserData(_sal.get());
+                }
+            }
+            
+            merge();
+        }
+        
+        void merge()
+        {
+            for(ShapeAttributesSet::iterator itr = _shapeAttributeSet.begin();
+                itr != _shapeAttributeSet.end();
+                ++itr)
+            {
+                osgSim::ShapeAttributeList* user_sal = const_cast<osgSim::ShapeAttributeList*>(*itr);
+                for(osgSim::ShapeAttributeList::iterator sitr = _sal->begin();
+                    sitr != _sal->end();
+                    ++sitr)
+                {
+                    merge(user_sal, *sitr);
                 }
             }
         }
+        
+        void merge(osgSim::ShapeAttributeList* user_sal, osgSim::ShapeAttribute& sa)
+        {
+            for(osgSim::ShapeAttributeList::iterator sitr = user_sal->begin();
+                    sitr != user_sal->end();
+                    ++sitr)
+            {
+                if (sitr->getName()==sa.getName())
+                {
+                    if (_replace)
+                    {
+                        *sitr = sa;
+                    }
+                    return;
+                }
+            }
             
-        osg::ref_ptr<Referenced>    _userData;
-        bool                        _replace;      
+            user_sal->push_back(sa);
+        }
+        
+        typedef std::set<osgSim::ShapeAttributeList*> ShapeAttributesSet;
+            
+        osg::ref_ptr<osgSim::ShapeAttributeList>    _sal;
+        ShapeAttributesSet                          _shapeAttributeSet;
+        bool                                        _replace;      
 };
 
 void Commandline::processShapeFile(vpb::Source::Type type, const std::string& filename)
