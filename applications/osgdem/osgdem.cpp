@@ -34,7 +34,9 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->addCommandLineOption("-h or --help","Display this information");
     arguments.getApplicationUsage()->addCommandLineOption("--cache <filename>","Read the cache file to use a look up for locally cached files.");
 
-    vpb::getSourceUsage(*arguments.getApplicationUsage());
+    vpb::Commandline commandline;
+
+    commandline.getUsage(*arguments.getApplicationUsage());
 
 
     if (arguments.read("--version"))
@@ -119,7 +121,7 @@ int main(int argc, char** argv)
     bool report = false;
     while (arguments.read("--report")) { report = true; }
 
-    int result = vpb::readSourceArguments(std::cout, arguments, terrain.get());
+    int result = commandline.read(std::cout, arguments, terrain.get());
     if (result) return result;
 
 

@@ -25,269 +25,244 @@
 
 using namespace vpb;
 
-static osg::Matrixd newComputeGeoTransForRange(double xMin, double xMax, double yMin, double yMax)
+Commandline::Commandline()
 {
-    osg::Matrixd matrix;
-    matrix(0,0) = xMax-xMin;
-    matrix(3,0) = xMin;
+    init();
+}
 
-    matrix(1,1) = yMax-yMin;
-    matrix(3,1) = yMin;
-    
-    return matrix;
+void Commandline::init()
+{
+    maximumPossibleLevel = 30;
+    reset();
+}
+
+void Commandline::reset()
+{
+    dataType = vpb::SpatialProperties::RASTER;
+
+    minmaxLevelSet = false;
+    min_level=0; 
+    max_level=maximumPossibleLevel;
+    layerNum = 0;
+
+    currentCS = "";
+    geoTransformSet = false;
+    geoTransformScale = false;
+    geoTransform.makeIdentity();            
+    height = 0.0;
+}
+
+void Commandline::computeGeoTransForRange(double xMin, double xMax, double yMin, double yMax)
+{
+    geoTransformSet = true;
+    geoTransformScale = true;
+
+    geoTransform.makeIdentity();
+
+    geoTransform(0,0) = xMax-xMin;
+    geoTransform(3,0) = xMin;
+    geoTransform(1,1) = yMax-yMin;
+    geoTransform(3,1) = yMin;
 }
 
 
-static void processFile(const std::string& filename,
-                 vpb::Source::Type type,
-                 vpb::SpatialProperties::DataType dataType,
-                 const std::string& currentCS, 
-                 osg::Matrixd& geoTransform,
-                 bool geoTransformSet,
-                 bool geoTransformScale,
-                 bool minmaxLevelSet, unsigned int min_level, unsigned int max_level,
-                 unsigned int layerNum,
-                 osgTerrain::Terrain* terrain)
+void Commandline::processFile(vpb::Source::Type type, const std::string& filename)
 {
-
     if (filename.empty()) return;
-    
-    osg::notify(osg::INFO)<<"processFile "<<filename<<" cs="<<currentCS<<std::endl;
 
     if (osgDB::fileType(filename) == osgDB::REGULAR_FILE)
     {
-
-        bool modelType = (type==vpb::Source::MODEL) ||
-                         (type==vpb::Source::BUILDING_SHAPEFILE) || 
-                         (type==vpb::Source::FOREST_SHAPEFILE);
-                         
-        bool loadLayer = false;
-        
-        if (loadLayer && !modelType)
+        switch(type)
         {
+            case(vpb::Source::IMAGE):               processImageOrHeightField(type,filename); break;
+            case(vpb::Source::HEIGHT_FIELD):        processImageOrHeightField(type,filename); break;
+            case(vpb::Source::MODEL):               processModel(filename); break;
+            case(vpb::Source::BUILDING_SHAPEFILE):  processShapeFile(type, filename); break;
+            case(vpb::Source::FOREST_SHAPEFILE):    processShapeFile(type, filename); break;
+        }
+    }
+    else
+    {
+        processDirectory(type, filename);
+    }
+}
 
-            osg::ref_ptr<osg::Object> loadedObject = osgDB::readObjectFile(filename+".gdal");
-            osgTerrain::Layer* loadedLayer = dynamic_cast<osgTerrain::Layer*>(loadedObject.get());
+void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::string& filename)
+{
+    osgTerrain::Layer* existingLayer = 0;
+    osgTerrain::CompositeLayer* compositeLayer = 0;
 
-            if (loadedLayer)
+    if (type==vpb::Source::IMAGE)
+    {
+        existingLayer = (layerNum < terrain->getNumColorLayers()) ? terrain->getColorLayer(layerNum) : 0;
+        compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+
+        if (!compositeLayer)
+        {
+            compositeLayer = new osgTerrain::CompositeLayer;
+            if (existingLayer) compositeLayer->addLayer(existingLayer);
+
+            terrain->setColorLayer(layerNum, compositeLayer);
+        }
+    }
+    else if (type==vpb::Source::HEIGHT_FIELD)
+    {
+        existingLayer = terrain->getElevationLayer();
+        compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+
+        if (!compositeLayer)
+        {
+            compositeLayer = new osgTerrain::CompositeLayer;
+            if (existingLayer) compositeLayer->addLayer(existingLayer);
+
+            terrain->setElevationLayer(compositeLayer);
+        }
+    }
+
+    if (!currentCS.empty() || geoTransformSet)
+    {
+        osg::ref_ptr<osg::Object> loadedObject = osgDB::readObjectFile(filename+".gdal");
+        osgTerrain::Layer* loadedLayer = dynamic_cast<osgTerrain::Layer*>(loadedObject.get());
+
+        if (loadedLayer)
+        {
+            osgTerrain::Locator* locator = loadedLayer->getLocator();
+
+            if (!loadedLayer->getLocator())
             {
-                osgTerrain::Locator* locator = loadedLayer->getLocator();
+                locator = new osgTerrain::Locator;
+                loadedLayer->setLocator(locator);
+            }
 
-                if (!loadedLayer->getLocator())
-                {
-                    locator = new osgTerrain::Locator;
-                    loadedLayer->setLocator(locator);
-                }
+            if (!currentCS.empty())
+            {
+                osg::notify(osg::INFO)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
+                locator->setFormat("WKT");
+                locator->setCoordinateSystem(currentCS);
+                locator->setDefinedInFile(false);
+            } 
 
-                if (!currentCS.empty())
-                {
-                    osg::notify(osg::INFO)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
-                    locator->setFormat("WKT");
-                    locator->setCoordinateSystem(currentCS);
-                    locator->setDefinedInFile(false);
-                } 
+            if (geoTransformSet)
+            {
+                osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
+                locator->setTransform(geoTransform);
+                locator->setDefinedInFile(false);
+            }
 
-                if (geoTransformSet)
-                {
-                    osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
-                    locator->setTransform(geoTransform);
-                    locator->setDefinedInFile(false);
-                }
+            compositeLayer->addLayer(loadedLayer);
+        }                    
+    }
+    else
+    {
+        compositeLayer->addLayer(filename);
+    }
+}
 
-                if (type==vpb::Source::IMAGE)
-                {
-                    osgTerrain::Layer* existingLayer = (layerNum < terrain->getNumColorLayers()) ? terrain->getColorLayer(layerNum) : 0;
-                    osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+void Commandline::processShapeFile(vpb::Source::Type type, const std::string& filename)
+{
+    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile(filename);
 
-                    if (compositeLayer)
-                    {
-                        compositeLayer->addLayer( loadedLayer );
-                    }
-                    else if (existingLayer)
-                    {
-                        compositeLayer = new osgTerrain::CompositeLayer;
-                        compositeLayer->addLayer( existingLayer );
-                        compositeLayer->addLayer( loadedLayer );
+    if (model.valid())
+    {
+        if (!currentCS.empty() || geoTransformSet)
+        {
+            osgTerrain::Locator* locator = new osgTerrain::Locator;
+            model->setUserData(locator);
 
-                        terrain->setColorLayer(layerNum, compositeLayer);
-                    }
-                    else
-                    {
-                        terrain->setColorLayer(layerNum, loadedLayer);
-                    }
-                }
-                else if (type==vpb::Source::HEIGHT_FIELD)
-                {
-                    osgTerrain::Layer* existingLayer = terrain->getElevationLayer();
-                    osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+            if (!currentCS.empty())
+            {
+                osg::notify(osg::INFO)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
+                locator->setFormat("WKT");
+                locator->setCoordinateSystem(currentCS);
+                locator->setDefinedInFile(false);
+            } 
 
-                    if (compositeLayer)
-                    {
-                        compositeLayer->addLayer( loadedLayer );
-                    }
-                    else if (existingLayer)
-                    {
-                        compositeLayer = new osgTerrain::CompositeLayer;
-                        compositeLayer->addLayer( existingLayer );
-                        compositeLayer->addLayer( loadedLayer );
-
-                        terrain->setElevationLayer(compositeLayer);
-                    }
-                    else
-                    {
-                        terrain->setElevationLayer(loadedLayer);
-                    }
-                }
-                else
-                {
-                    log(osg::NOTICE,"Error source type %d not handled for file %s", type, filename.c_str());
-                }
+            if (geoTransformSet)
+            {
+                osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
+                locator->setTransform(geoTransform);
+                locator->setDefinedInFile(false);
             }
         }
-        else if (!modelType)
+
+        switch(type)
         {
-            osgTerrain::Layer* existingLayer = 0;
-            osgTerrain::CompositeLayer* compositeLayer = 0;
-
-            if (type==vpb::Source::IMAGE)
-            {
-                existingLayer = (layerNum < terrain->getNumColorLayers()) ? terrain->getColorLayer(layerNum) : 0;
-                compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
-            
-                if (!compositeLayer)
-                {
-                    compositeLayer = new osgTerrain::CompositeLayer;
-                    if (existingLayer) compositeLayer->addLayer(existingLayer);
-                    
-                    terrain->setColorLayer(layerNum, compositeLayer);
-                }
-            }
-            else if (type==vpb::Source::HEIGHT_FIELD)
-            {
-                existingLayer = terrain->getElevationLayer();
-                compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
-
-                if (!compositeLayer)
-                {
-                    compositeLayer = new osgTerrain::CompositeLayer;
-                    if (existingLayer) compositeLayer->addLayer(existingLayer);
-                    
-                    terrain->setElevationLayer(compositeLayer);
-                }
-            }
-
-            if (!currentCS.empty() || geoTransformSet)
-            {
-                osg::ref_ptr<osg::Object> loadedObject = osgDB::readObjectFile(filename+".gdal");
-                osgTerrain::Layer* loadedLayer = dynamic_cast<osgTerrain::Layer*>(loadedObject.get());
-
-                if (loadedLayer)
-                {
-                    osgTerrain::Locator* locator = loadedLayer->getLocator();
-
-                    if (!loadedLayer->getLocator())
-                    {
-                        locator = new osgTerrain::Locator;
-                        loadedLayer->setLocator(locator);
-                    }
-
-                    if (!currentCS.empty())
-                    {
-                        osg::notify(osg::INFO)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
-                        locator->setFormat("WKT");
-                        locator->setCoordinateSystem(currentCS);
-                        locator->setDefinedInFile(false);
-                    } 
-
-                    if (geoTransformSet)
-                    {
-                        osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
-                        locator->setTransform(geoTransform);
-                        locator->setDefinedInFile(false);
-                    }
-
-                    compositeLayer->addLayer(loadedLayer);
-                }                    
-            }
-            else
-            {
-                compositeLayer->addLayer(filename);
-            }
-        }
-        else
-        {
-
-            osg::ref_ptr<osg::Node> model = osgDB::readNodeFile(filename);
-
-            if (model.valid())
-            {
-                if (!currentCS.empty() || geoTransformSet)
-                {
-                    osgTerrain::Locator* locator = new osgTerrain::Locator;
-                    model->setUserData(locator);
-
-                    if (!currentCS.empty())
-                    {
-                        osg::notify(osg::INFO)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
-                        locator->setFormat("WKT");
-                        locator->setCoordinateSystem(currentCS);
-                        locator->setDefinedInFile(false);
-                    } 
-
-                    if (geoTransformSet)
-                    {
-                        osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
-                        locator->setTransform(geoTransform);
-                        locator->setDefinedInFile(false);
-                    }
-                }
-                
-                switch(type)
-                {
-                    case(Source::BUILDING_SHAPEFILE):
-                        model->setName(filename);
-                        model->addDescription("BUILDING_SHAPEFILE");
-                        break;
-                    case(Source::FOREST_SHAPEFILE):
-                        model->setName(filename);
-                        model->addDescription("FOREST_SHAPEFILE");
-                        break;
-                    case(Source::MODEL):
-                        model->setName(filename);
-                        model->addDescription("MODEL");
-                        break;
-                }
-                
-                terrain->addChild(model.get());
-            }
-            else
-            {
-                log(osg::NOTICE,"Error: unable to load file %s", filename.c_str());
-            }
-
+            case(Source::BUILDING_SHAPEFILE):
+                model->setName(filename);
+                model->addDescription("BUILDING_SHAPEFILE");
+                break;
+            case(Source::FOREST_SHAPEFILE):
+                model->setName(filename);
+                model->addDescription("FOREST_SHAPEFILE");
+                break;
+            default:
+                break;
         }
 
-    } else if (osgDB::fileType(filename) == osgDB::DIRECTORY) {
+        terrain->addChild(model.get());
+    }
+    else
+    {
+        log(osg::NOTICE,"Error: unable to load file %s", filename.c_str());
+    }
+}
 
-        osgDB::DirectoryContents dirContents= osgDB::getDirectoryContents(filename);
-        
-        // loop through directory contents and call processFile
-        std::vector<std::string>::iterator i;
-        std::string fullfilename;
-        for(i = dirContents.begin(); i != dirContents.end(); ++i) {
-            if((*i != ".") && (*i != "..")) {
-                fullfilename = filename + '/' + *i;
-                processFile(fullfilename, type, dataType, currentCS, 
-                            geoTransform, geoTransformSet, geoTransformScale, 
-                            minmaxLevelSet, min_level, max_level,
-                            layerNum,
-                            terrain);
+void Commandline::processModel(const std::string& filename)
+{
+    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile(filename);
+
+    if (model.valid())
+    {
+        if (!currentCS.empty() || geoTransformSet)
+        {
+            osgTerrain::Locator* locator = new osgTerrain::Locator;
+            model->setUserData(locator);
+
+            if (!currentCS.empty())
+            {
+                osg::notify(osg::INFO)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
+                locator->setFormat("WKT");
+                locator->setCoordinateSystem(currentCS);
+                locator->setDefinedInFile(false);
+            } 
+
+            if (geoTransformSet)
+            {
+                osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
+                locator->setTransform(geoTransform);
+                locator->setDefinedInFile(false);
             }
+        }
+
+        model->setName(filename);
+        model->addDescription("MODEL");
+
+        terrain->addChild(model.get());
+    }
+    else
+    {
+        log(osg::NOTICE,"Error: unable to load file %s", filename.c_str());
+    }
+}
+
+void Commandline::processDirectory(vpb::Source::Type type, const std::string& filename)
+{
+    osgDB::DirectoryContents dirContents= osgDB::getDirectoryContents(filename);
+
+    // loop through directory contents and call processFile
+    std::vector<std::string>::iterator i;
+    std::string fullfilename;
+    for(i = dirContents.begin(); i != dirContents.end(); ++i)
+    {
+        if((*i != ".") && (*i != ".."))
+        {
+            fullfilename = filename + '/' + *i;
+            processFile(type, fullfilename);
         }
     }
 }
 
-void vpb::getSourceUsage(osg::ApplicationUsage& usage)
+void Commandline::getUsage(osg::ApplicationUsage& usage)
 {
     usage.addCommandLineOption("-d <filename>","Specify the digital elevation map input file to process");
     usage.addCommandLineOption("-t <filename>","Specify the texture map input file to process");
@@ -351,10 +326,13 @@ void vpb::getSourceUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--split","Set the distributed build split level.");
     usage.addCommandLineOption("--run-path","Set the path that the build should be run from.");
     usage.addCommandLineOption("--notify-level","Set the notify level when logging messages.");
+    usage.addCommandLineOption("--height","Set the default height.");
 }
 
-int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrain)
+int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrainInput)
 {
+    terrain = terrainInput;
+
     vpb::DatabaseBuilder* databaseBuilder = dynamic_cast<vpb::DatabaseBuilder*>(terrain->getTerrainTechnique());
     if (!databaseBuilder) 
     {
@@ -550,22 +528,9 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
         osgDB::Registry::instance()->setOptions(options);
     }
 
-    unsigned int maximumPossibleLevel = 30;
-
-
-    // read the input data
-
     std::string filename;
-    std::string currentCS;
-    osg::Matrixd geoTransform;
-    bool geoTransformSet = false; 
-    bool geoTransformScale = false; 
     double xMin, xMax, yMin, yMax;
-    bool minmaxLevelSet = false;
-    unsigned int min_level=0, max_level=maximumPossibleLevel;
-    unsigned int currentLayerNum = 0;
-    vpb::SpatialProperties::DataType dataType = vpb::SpatialProperties::RASTER;
-         
+    
     int pos = 1;
     while(pos<arguments.argc())
     {
@@ -605,19 +570,15 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
         else if (arguments.read(pos, "--bluemarble-east"))
         {
             currentCS = vpb::coordinateSystemStringToWTK("WGS84");
-            geoTransformSet = true;
-            geoTransformScale = true;
-            geoTransform = newComputeGeoTransForRange(0.0, 180.0, -90.0, 90.0);
+            computeGeoTransForRange(0.0, 180.0, -90.0, 90.0);
             
-            fout<<"--bluemarble-east"<<currentCS<<" matrix="<<geoTransform<<std::endl;
+            fout<<"--bluemarble-east "<<currentCS<<" matrix="<<geoTransform<<std::endl;
         }
 
         else if (arguments.read(pos, "--bluemarble-west"))
         {
             currentCS = vpb::coordinateSystemStringToWTK("WGS84");
-            geoTransformSet = true;
-            geoTransformScale = true;
-            geoTransform = newComputeGeoTransForRange(-180.0, 0.0, -90.0, 90.0);
+            computeGeoTransForRange(-180.0, 0.0, -90.0, 90.0);
             
             fout<<"--bluemarble-west "<<currentCS<<" matrix="<<geoTransform<<std::endl;
         }
@@ -625,18 +586,14 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
         else if (arguments.read(pos, "--whole-globe"))
         {
             currentCS = vpb::coordinateSystemStringToWTK("WGS84");
-            geoTransformSet = true;
-            geoTransformScale = true;
-            geoTransform = newComputeGeoTransForRange(-180.0, 180.0, -90.0, 90.0);
+            computeGeoTransForRange(-180.0, 180.0, -90.0, 90.0);
             
             fout<<"--whole-globe "<<currentCS<<" matrix="<<geoTransform<<std::endl;
         }
 
         else if (arguments.read(pos, "--range", xMin, xMax, yMin, yMax))
         {
-            geoTransformSet = true;
-            geoTransformScale = true;
-            geoTransform = newComputeGeoTransForRange( xMin, xMax, yMin, yMax);
+            computeGeoTransForRange( xMin, xMax, yMin, yMax);
             
             fout<<"--range, matrix="<<geoTransform<<std::endl;
         }
@@ -731,9 +688,9 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
             fout<<"--levels, min_level="<<min_level<<"  max_level="<<max_level<<std::endl;
         }
         
-        else if (arguments.read(pos, "--layer", currentLayerNum))
+        else if (arguments.read(pos, "--layer", layerNum))
         {
-            fout<<"--layer layeNumber="<<currentLayerNum<<std::endl;
+            fout<<"--layer layeNumber="<<layerNum<<std::endl;
         }
 
         else if (arguments.read(pos, "--vector"))
@@ -752,81 +709,36 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
         {
             fout<<"-d "<<filename<<std::endl;
 
-            processFile(filename, vpb::Source::HEIGHT_FIELD, dataType, currentCS, 
-                        geoTransform, geoTransformSet, geoTransformScale,
-                        minmaxLevelSet, min_level, max_level,
-                        currentLayerNum,
-                        terrain);
-
-            minmaxLevelSet = false;
-            min_level=0; max_level=maximumPossibleLevel;
-            currentLayerNum = 0;
-            
-            currentCS = "";
-            geoTransformSet = false;
-            geoTransformScale = false;
-            geoTransform.makeIdentity();
-            dataType = vpb::SpatialProperties::RASTER;
+            processFile(vpb::Source::HEIGHT_FIELD, filename);
+            reset();
         }
         else if (arguments.read(pos, "-t",filename))
         {
             fout<<"-t "<<filename<<std::endl;
 
-            processFile(filename, vpb::Source::IMAGE, dataType, currentCS, 
-                        geoTransform, geoTransformSet, geoTransformScale, 
-                        minmaxLevelSet, min_level, max_level, 
-                        currentLayerNum,
-                        terrain);
+            processFile(vpb::Source::IMAGE, filename);
+            reset();
+        }
+        else if (arguments.read(pos, "-m",filename))
+        {
+            fout<<"-m "<<filename<<std::endl;
 
-            minmaxLevelSet = false;
-            min_level=0; max_level=maximumPossibleLevel;
-            currentLayerNum = 0;
-            
-            currentCS = "";
-            geoTransformSet = false;
-            geoTransformScale = false;
-            geoTransform.makeIdentity();            
-            dataType = vpb::SpatialProperties::RASTER;
+            processFile(vpb::Source::MODEL, filename);
+            reset();
         }
         else if (arguments.read(pos, "--building",filename) || arguments.read(pos, "-b",filename))
         {
             fout<<"--building "<<filename<<std::endl;
 
-            processFile(filename, vpb::Source::BUILDING_SHAPEFILE, dataType, currentCS, 
-                        geoTransform, geoTransformSet, geoTransformScale, 
-                        minmaxLevelSet, min_level, max_level, 
-                        currentLayerNum,
-                        terrain);
-
-            minmaxLevelSet = false;
-            min_level=0; max_level=maximumPossibleLevel;
-            currentLayerNum = 0;
-            
-            currentCS = "";
-            geoTransformSet = false;
-            geoTransformScale = false;
-            geoTransform.makeIdentity();            
-            dataType = vpb::SpatialProperties::RASTER;
+            processFile(vpb::Source::BUILDING_SHAPEFILE, filename);
+            reset();
         }
         else if (arguments.read(pos, "--forest",filename) || arguments.read(pos, "-f",filename))
         {
             fout<<"--forest "<<filename<<std::endl;
 
-            processFile(filename, vpb::Source::FOREST_SHAPEFILE, dataType, currentCS, 
-                        geoTransform, geoTransformSet, geoTransformScale, 
-                        minmaxLevelSet, min_level, max_level, 
-                        currentLayerNum,
-                        terrain);
-
-            minmaxLevelSet = false;
-            min_level=0; max_level=maximumPossibleLevel;
-            currentLayerNum = 0;
-            
-            currentCS = "";
-            geoTransformSet = false;
-            geoTransformScale = false;
-            geoTransform.makeIdentity();            
-            dataType = vpb::SpatialProperties::RASTER;
+            processFile(vpb::Source::FOREST_SHAPEFILE, filename);
+            reset();
         }
         else if (arguments.read(pos, "-o",filename)) 
         {
@@ -835,14 +747,7 @@ int vpb::readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments,
             
             if (!currentCS.empty()) buildOptions->setDestinationCoordinateSystem(currentCS);
 
-            minmaxLevelSet = false;
-            min_level=0; max_level=maximumPossibleLevel;
-            
-            currentCS = "";
-            geoTransformSet = false;
-            geoTransformScale = false;
-            geoTransform.makeIdentity();            
-
+            reset();
         }
         else
         {

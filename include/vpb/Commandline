@@ -14,10 +14,52 @@
 #include <osg/ArgumentParser>
 #include <osgTerrain/Terrain>
 
-#include <vpb/Export>
+#include <vpb/Source>
 
 namespace vpb
 {
-    void VPB_EXPORT getSourceUsage(osg::ApplicationUsage& arguments);
-    int VPB_EXPORT readSourceArguments(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrain);
+
+class VPB_EXPORT Commandline
+{
+    public:
+    
+        Commandline();
+
+        void init();
+
+        void reset();
+
+        void computeGeoTransForRange(double xMin, double xMax, double yMin, double yMax);
+
+        void processFile(vpb::Source::Type type, const std::string& filename);
+
+        void processImageOrHeightField(vpb::Source::Type type, const std::string& filename);
+        void processShapeFile(vpb::Source::Type type, const std::string& filename);
+        void processModel(const std::string& filename);
+
+        void processDirectory(vpb::Source::Type type, const std::string& filename);
+
+        void getUsage(osg::ApplicationUsage& usage);
+            
+        int read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrainInput);
+
+    protected:
+    
+        osg::ref_ptr<osgTerrain::Terrain> terrain;
+    
+        vpb::SpatialProperties::DataType dataType;
+        std::string currentCS;
+        osg::Matrixd geoTransform;
+        bool geoTransformSet;
+        bool geoTransformScale;
+
+        bool minmaxLevelSet;
+        unsigned int maximumPossibleLevel;
+        unsigned int min_level;
+        unsigned int max_level;
+        unsigned int layerNum;
+
+        double height;
+};
+
 }

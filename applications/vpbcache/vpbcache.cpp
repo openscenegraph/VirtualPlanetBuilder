@@ -37,6 +37,7 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->addCommandLineOption("--overviews","Build overviews for the source data.");
     arguments.getApplicationUsage()->addCommandLineOption("--report","Report the contents of the file cache");
 
+    vpb::Commandline commandline;
 
     // if user request help write it out to cout.
     if (arguments.read("-h") || arguments.read("--help"))
@@ -73,7 +74,7 @@ int main(int argc, char** argv)
         
     }
     
-    int result = vpb::readSourceArguments(std::cout, arguments, terrain.get());
+    int result = commandline.read(std::cout, arguments, terrain.get());
     if (result) return result;
     
     vpb::System::instance()->readArguments(arguments);

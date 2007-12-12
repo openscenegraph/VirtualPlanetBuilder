@@ -92,10 +92,13 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     std::string terrainOutputName;
     while (arguments.read("--so",terrainOutputName)) {}
 
-    int result = vpb::readSourceArguments(std::cout, arguments, _terrain.get());
+
+    Commandline commandlineParser;
+    
+
+    int result = commandlineParser.read(std::cout, arguments, _terrain.get());
     if (result) return result;
     
-        
     while (arguments.read("--build-name",_buildName)) {}
     
 
