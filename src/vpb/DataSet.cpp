@@ -13,6 +13,7 @@
 
 
 #include <osg/Texture2D>
+#include <osg/ComputeBoundsVisitor>
 #include <osg/io_utils>
 
 #include <osg/GLU>
@@ -1101,14 +1102,28 @@ bool DataSet::addModel(Source::Type type, osg::Node* model)
     osgTerrain::Locator* locator = dynamic_cast<osgTerrain::Locator*>(model->getUserData());
     if (locator && !locator->getDefinedInFile())
     {
-        source->setGeoTransformPolicy(vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION);
+        source->setGeoTransformPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
         source->setGeoTransform(locator->getTransform());
 
         source->setCoordinateSystemPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
         source->setCoordinateSystem(locator->getCoordinateSystem());
     }
+    
+    osg::ComputeBoundsVisitor cbv;
+    model->accept(cbv);
+    
+    source->_extents.xMin() = cbv.getBoundingBox().xMin();
+    source->_extents.xMax() = cbv.getBoundingBox().xMax();
+
+    source->_extents.yMin() = cbv.getBoundingBox().yMin();
+    source->_extents.yMax() = cbv.getBoundingBox().yMax();
+    
+    source->getSourceData()->_extents._min = source->_extents._min;
+    source->getSourceData()->_extents._max = source->_extents._max;
 
     osg::notify(osg::NOTICE)<<"addModel("<<type<<","<<model->getName()<<")"<<std::endl;
+    osg::notify(osg::NOTICE)<<"   extents "<<source->_extents.xMin()<<" "<<source->_extents.xMin()<<std::endl;
+    osg::notify(osg::NOTICE)<<"           "<<source->_extents.yMin()<<" "<<source->_extents.yMin()<<std::endl;
     
     addSource(source);    
 }
@@ -1212,6 +1227,8 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
 
 bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
 {
+    osg::notify(osg::NOTICE)<<"Adding terrain "<<terrain->getName()<<std::endl;
+
     if (terrain->getLocator())
     {
     }
@@ -1238,8 +1255,11 @@ bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
     
     for(unsigned int ci=0; ci<terrain->getNumChildren(); ++ci)
     {
+    
         osg::Node* model = terrain->getChild(ci);
     
+        osg::notify(osg::NOTICE)<<"Adding model"<<model->getName()<<std::endl;
+
         Source::Type type = vpb::Source::MODEL;
         for(unsigned di = 0; di< model->getNumDescriptions(); ++di)
         {

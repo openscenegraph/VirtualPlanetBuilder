@@ -260,7 +260,12 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
 {
     // return nothing when repoject is inappropriate.
     if (!_sourceData) return 0;
-    if (_type==MODEL) return 0;
+    
+    if (_type!=IMAGE || _type!=HEIGHT_FIELD)
+    {
+        log(osg::NOTICE,"Source::doReproject() reprojection of a model/shapefile not appropriate.");
+        return 0;
+    }
     
     log(osg::NOTICE,"reprojecting to file %s",filename.c_str());
 

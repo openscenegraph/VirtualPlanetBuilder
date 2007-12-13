@@ -64,6 +64,9 @@ System::System()
     _maxNumDatasets = (unsigned int)(double(getdtablesize()) * 0.8);
     
     readEnvironmentVariables();
+    
+    // preload the .osg plugin so its available in case we need to output source files containing core osg nodes
+    osgDB::Registry::instance()->loadLibrary(osgDB::Registry::instance()->createLibraryNameForExtension("osg"));
 }
 
 System::~System()
