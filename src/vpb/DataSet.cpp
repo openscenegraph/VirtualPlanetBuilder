@@ -1122,8 +1122,8 @@ bool DataSet::addModel(Source::Type type, osg::Node* model)
     source->getSourceData()->_extents._max = source->_extents._max;
 
     osg::notify(osg::NOTICE)<<"addModel("<<type<<","<<model->getName()<<")"<<std::endl;
-    osg::notify(osg::NOTICE)<<"   extents "<<source->_extents.xMin()<<" "<<source->_extents.xMin()<<std::endl;
-    osg::notify(osg::NOTICE)<<"           "<<source->_extents.yMin()<<" "<<source->_extents.yMin()<<std::endl;
+    osg::notify(osg::NOTICE)<<"   extents "<<source->_extents.xMin()<<" "<<source->_extents.xMax()<<std::endl;
+    osg::notify(osg::NOTICE)<<"           "<<source->_extents.yMin()<<" "<<source->_extents.yMax()<<std::endl;
     
     addSource(source);    
 }
