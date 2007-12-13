@@ -1873,14 +1873,9 @@ void DestinationTile::readFrom(CompositeSource* sourceGraph)
                     log(osg::NOTICE,"DestinationTile::readFrom() model %s not handled.", source->getFileName().c_str());
                     break;
                 }
-                case(Source::BUILDING_SHAPEFILE):
+                case(Source::SHAPEFILE):
                 {
-                    log(osg::NOTICE,"DestinationTile::readFrom() building shapefile %s not handled", source->getFileName().c_str());
-                    break;
-                }
-                case(Source::FOREST_SHAPEFILE):
-                {
-                    log(osg::NOTICE,"DestinationTile::readFrom() forest shapefile %s not handled", source->getFileName().c_str());
+                    log(osg::NOTICE,"DestinationTile::readFrom() shapefile %s not handled", source->getFileName().c_str());
                     break;
                 }
                 default:

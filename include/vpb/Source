@@ -31,8 +31,7 @@ public:
     {
         IMAGE,
         HEIGHT_FIELD,
-        BUILDING_SHAPEFILE,
-        FOREST_SHAPEFILE,
+        SHAPEFILE,
         MODEL
     };
 

@@ -35,6 +35,7 @@ Commandline::Commandline()
 void Commandline::init()
 {
     maximumPossibleLevel = 30;
+    typeAttributeName = "NAME";
     heightAttributeName = "HEIGHT";
     terrainmask = 0xffffffff;
 
@@ -57,7 +58,8 @@ void Commandline::reset()
     
     mask = 0xffffffff;
     
-    height = -1.0; // negative signifies that no height has been defined.
+    heightAttribute = -1.0; // negative signifies that no height has been defined.
+    typeAttribute = ""; // empty signifies no type attribute has been defined.
     
     
 }
@@ -84,11 +86,10 @@ void Commandline::processFile(vpb::Source::Type type, const std::string& filenam
     {
         switch(type)
         {
-            case(vpb::Source::IMAGE):               processImageOrHeightField(type,filename); break;
-            case(vpb::Source::HEIGHT_FIELD):        processImageOrHeightField(type,filename); break;
-            case(vpb::Source::MODEL):               processModel(filename); break;
-            case(vpb::Source::BUILDING_SHAPEFILE):  processShapeFile(type, filename); break;
-            case(vpb::Source::FOREST_SHAPEFILE):    processShapeFile(type, filename); break;
+            case(vpb::Source::IMAGE):           processImageOrHeightField(type,filename); break;
+            case(vpb::Source::HEIGHT_FIELD):    processImageOrHeightField(type,filename); break;
+            case(vpb::Source::MODEL):           processModel(filename); break;
+            case(vpb::Source::SHAPEFILE):       processShapeFile(type, filename); break;
         }
     }
     else
@@ -150,6 +151,7 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
                 locator->setFormat("WKT");
                 locator->setCoordinateSystem(currentCS);
                 locator->setDefinedInFile(false);
+                locator->setTransformScaledByResolution(!geoTransformScale);
             } 
 
             if (geoTransformSet)
@@ -157,6 +159,7 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
                 osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
                 locator->setTransform(geoTransform);
                 locator->setDefinedInFile(false);
+                locator->setTransformScaledByResolution(!geoTransformScale);
             }
 
             compositeLayer->addLayer(loadedLayer);
@@ -242,7 +245,10 @@ class ApplyUserDataToDrawables : public osg::NodeVisitor
 
 void Commandline::processShapeFile(vpb::Source::Type type, const std::string& filename)
 {
-    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile(filename);
+    osg::ref_ptr<osgDB::ReaderWriter::Options> options = new osgDB::ReaderWriter::Options;
+    options->setOptionString("double");
+
+    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile(filename, options.get());
 
     if (model.valid())
     {
@@ -257,6 +263,7 @@ void Commandline::processShapeFile(vpb::Source::Type type, const std::string& fi
                 locator->setFormat("WKT");
                 locator->setCoordinateSystem(currentCS);
                 locator->setDefinedInFile(false);
+                locator->setTransformScaledByResolution(false);
             } 
 
             if (geoTransformSet)
@@ -264,40 +271,43 @@ void Commandline::processShapeFile(vpb::Source::Type type, const std::string& fi
                 osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
                 locator->setTransform(geoTransform);
                 locator->setDefinedInFile(false);
+                locator->setTransformScaledByResolution(false);
             }
         }
         
-        if (height>=0.0)
+        osg::ref_ptr<osgSim::ShapeAttributeList> sal = new osgSim::ShapeAttributeList;
+
+        if (!typeAttribute.empty())
         {
-            osg::notify(osg::NOTICE)<<"Setting height "<<height<<std::endl;
+            sal->push_back(osgSim::ShapeAttribute(typeAttributeName.c_str(), typeAttribute.c_str()));
+        }
+
+        if (heightAttribute>=0.0)
+        {
+            sal->push_back(osgSim::ShapeAttribute(heightAttributeName.c_str(), heightAttribute));
+        }
         
-            osgSim::ShapeAttributeList* sal = new osgSim::ShapeAttributeList;
-            sal->push_back(osgSim::ShapeAttribute(heightAttributeName.c_str(), height));
-            
-            ApplyUserDataToDrawables audtd(sal, true);
-            
+        if (!sal->empty())
+        {
+            ApplyUserDataToDrawables audtd(sal.get(), true);
             model->accept(audtd);
         }
-        
-        switch(type)
-        {
-            case(Source::BUILDING_SHAPEFILE):
-                model->setName(filename);
-                model->addDescription("BUILDING_SHAPEFILE");
-                break;
-            case(Source::FOREST_SHAPEFILE):
-                model->setName(filename);
-                model->addDescription("FOREST_SHAPEFILE");
-                break;
-            default:
-                break;
-        }
-        
+
         model->setNodeMask(mask);
 
         if (!heightAttributeName.empty())
         {
+            model->addDescription(std::string("SHAPEFILE"));
+        }
+
+        if (!heightAttributeName.empty())
+        {
             model->addDescription(std::string("HeightAttributeName ")+heightAttributeName);
+        }
+
+        if (!typeAttributeName.empty())
+        {
+            model->addDescription(std::string("TypeAttributeName ")+typeAttributeName);
         }
 
         terrain->addChild(model.get());
@@ -433,6 +443,7 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--split","Set the distributed build split level.");
     usage.addCommandLineOption("--run-path","Set the path that the build should be run from.");
     usage.addCommandLineOption("--notify-level","Set the notify level when logging messages.");
+    usage.addCommandLineOption("--type-attribute","Set the type name which specify how the shapes should be interpreted in shapefile/dbase files.");
     usage.addCommandLineOption("--height-attribute","Set the attribute name for height attributes used in shapefile/dbase files.");
     usage.addCommandLineOption("--height","Set the height to use for asscociated shapefiles.");
     usage.addCommandLineOption("--mask","Set the mask to assign indivual shapefile/model.");
@@ -638,6 +649,11 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         }
     }
 
+    while (arguments.read("--height-attribute",heightAttributeName)) {}
+
+    while (arguments.read("--type-attribute",typeAttributeName)) {}
+
+
     if (arguments.read("-O",str))
     {
         osgDB::ReaderWriter::Options* options = new osgDB::ReaderWriter::Options;
@@ -653,11 +669,10 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     {
         std::string def;
 
-        if (arguments.read(pos, "--height-attribute",def)) 
-        {
-            heightAttributeName = def;
+        if (arguments.read(pos, "--height",heightAttribute)) 
+        {            
         }
-        else if (arguments.read(pos, "--height",height)) 
+        else if (arguments.read(pos, "--type",typeAttribute)) 
         {            
         }
         else if (arguments.read(pos, "--mask",def)) 
@@ -858,14 +873,21 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         {
             fout<<"--building "<<filename<<std::endl;
 
-            processFile(vpb::Source::BUILDING_SHAPEFILE, filename);
+            typeAttribute = "Building";
+            processFile(vpb::Source::SHAPEFILE, filename);
             reset();
         }
         else if (arguments.read(pos, "--forest",filename) || arguments.read(pos, "-f",filename))
         {
             fout<<"--forest "<<filename<<std::endl;
-
-            processFile(vpb::Source::FOREST_SHAPEFILE, filename);
+            typeAttribute = "Forest";
+            processFile(vpb::Source::SHAPEFILE, filename);
+            reset();
+        }
+        else if (arguments.read(pos, "--sf",filename))
+        {
+            fout<<"--sf "<<filename<<std::endl;
+            processFile(vpb::Source::SHAPEFILE, filename);
             reset();
         }
         else if (arguments.read(pos, "-o",filename)) 

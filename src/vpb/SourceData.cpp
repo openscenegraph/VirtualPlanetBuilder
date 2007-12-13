@@ -393,13 +393,9 @@ void SourceData::read(DestinationData& destination)
         log(osg::INFO,"B.2");
         readHeightField(destination);
         break;
-    case(Source::BUILDING_SHAPEFILE):
+    case(Source::SHAPEFILE):
         log(osg::INFO,"B.3");
-        readBuildingShapeFile(destination);
-        break;
-    case(Source::FOREST_SHAPEFILE):
-        log(osg::INFO,"B.4");
-        readForestShapeFile(destination);
+        readShapeFile(destination);
         break;
     case(Source::MODEL):
         log(osg::INFO,"B.5");
@@ -977,20 +973,11 @@ void SourceData::readHeightField(DestinationData& destination)
     }
 }
 
-void SourceData::readBuildingShapeFile(DestinationData& destination)
+void SourceData::readShapeFile(DestinationData& destination)
 {
     if (_model.valid())
     {
-        log(osg::INFO,"Reading building shapefile");
-        destination._models.push_back(_model);
-    }
-}
-
-void SourceData::readForestShapeFile(DestinationData& destination)
-{
-    if (_model.valid())
-    {
-        log(osg::INFO,"Reading forest shapefile");
+        log(osg::INFO,"Reading shapefile");
         destination._models.push_back(_model);
     }
 }

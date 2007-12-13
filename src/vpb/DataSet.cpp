@@ -1115,6 +1115,7 @@ bool DataSet::addModel(Source::Type type, osg::Node* model)
 
 bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum)
 {
+    
     osgTerrain::HeightFieldLayer* hfl = dynamic_cast<osgTerrain::HeightFieldLayer*>(layer);
     if (hfl)
     {
@@ -1124,7 +1125,11 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
 
         if (layer->getLocator() && !layer->getLocator()->getDefinedInFile())
         {
-            source->setGeoTransformPolicy(vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION);
+            vpb::Source::ParameterPolicy geoTransformPolicy = layer->getLocator()->getTransformScaledByResolution() ?
+                    vpb::Source::PREFER_CONFIG_SETTINGS :
+                    vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION;
+
+            source->setGeoTransformPolicy(geoTransformPolicy);
             source->setGeoTransform(layer->getLocator()->getTransform());
 
             source->setCoordinateSystemPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
@@ -1144,7 +1149,11 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
 
         if (layer->getLocator() && !layer->getLocator()->getDefinedInFile())
         {
-            source->setGeoTransformPolicy(vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION);
+            vpb::Source::ParameterPolicy geoTransformPolicy = layer->getLocator()->getTransformScaledByResolution() ?
+                    vpb::Source::PREFER_CONFIG_SETTINGS :
+                    vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION;
+
+            source->setGeoTransformPolicy(geoTransformPolicy);
             source->setGeoTransform(layer->getLocator()->getTransform());
 
             source->setCoordinateSystemPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
@@ -1166,7 +1175,11 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
 
         if (layer->getLocator() && !layer->getLocator()->getDefinedInFile())
         {
-            source->setGeoTransformPolicy(vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION);
+            vpb::Source::ParameterPolicy geoTransformPolicy = layer->getLocator()->getTransformScaledByResolution() ?
+                    vpb::Source::PREFER_CONFIG_SETTINGS :
+                    vpb::Source::PREFER_CONFIG_SETTINGS_BUT_SCALE_BY_FILE_RESOLUTION;
+
+            source->setGeoTransformPolicy(geoTransformPolicy);
             source->setGeoTransform(layer->getLocator()->getTransform());
 
             source->setCoordinateSystemPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
@@ -1231,8 +1244,7 @@ bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
         for(unsigned di = 0; di< model->getNumDescriptions(); ++di)
         {
             const std::string& desc = model->getDescription(di);
-            if (desc=="BUILDING_SHAPEFILE") type = Source::BUILDING_SHAPEFILE;
-            else if (desc=="FOREST_SHAPEFILE") type = Source::FOREST_SHAPEFILE;
+            if (desc=="SHAPEFILE") type = Source::SHAPEFILE;
         }
         
         addModel(type, model);

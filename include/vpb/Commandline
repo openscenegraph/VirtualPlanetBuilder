@@ -66,8 +66,11 @@ class VPB_EXPORT Commandline
         unsigned int terrainmask;
         unsigned int mask;
 
+        std::string typeAttributeName;
+        std::string typeAttribute;
+        
         std::string heightAttributeName;
-        double height;
+        double heightAttribute;
 };
 
 }
