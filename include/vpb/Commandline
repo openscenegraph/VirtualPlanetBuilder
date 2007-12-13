@@ -46,6 +46,8 @@ class VPB_EXPORT Commandline
 
     protected:
     
+        unsigned int readMask(const std::string& maskstring);
+    
         osg::ref_ptr<osgTerrain::Terrain> terrain;
         osg::ref_ptr<BuildOptions>        buildOptions; 
     
@@ -60,6 +62,9 @@ class VPB_EXPORT Commandline
         unsigned int min_level;
         unsigned int max_level;
         unsigned int layerNum;
+
+        unsigned int terrainmask;
+        unsigned int mask;
 
         std::string heightAttributeName;
         double height;

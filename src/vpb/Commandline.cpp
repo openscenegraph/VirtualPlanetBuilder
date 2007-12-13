@@ -36,6 +36,8 @@ void Commandline::init()
 {
     maximumPossibleLevel = 30;
     heightAttributeName = "HEIGHT";
+    terrainmask = 0xffffffff;
+
     reset();
 }
 
@@ -52,7 +54,12 @@ void Commandline::reset()
     geoTransformSet = false;
     geoTransformScale = false;
     geoTransform.makeIdentity();            
+    
+    mask = 0xffffffff;
+    
     height = -1.0; // negative signifies that no height has been defined.
+    
+    
 }
 
 void Commandline::computeGeoTransForRange(double xMin, double xMax, double yMin, double yMax)
@@ -285,6 +292,8 @@ void Commandline::processShapeFile(vpb::Source::Type type, const std::string& fi
             default:
                 break;
         }
+        
+        model->setNodeMask(mask);
 
         if (!heightAttributeName.empty())
         {
@@ -354,6 +363,12 @@ void Commandline::processDirectory(vpb::Source::Type type, const std::string& fi
     }
 }
 
+unsigned int Commandline::readMask(const std::string& maskstring)
+{
+    mask = strtoul(maskstring.c_str(),NULL,0);
+    return mask;
+}
+
 void Commandline::getUsage(osg::ApplicationUsage& usage)
 {
     usage.addCommandLineOption("-d <filename>","Specify the digital elevation map input file to process");
@@ -420,6 +435,8 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--notify-level","Set the notify level when logging messages.");
     usage.addCommandLineOption("--height-attribute","Set the attribute name for height attributes used in shapefile/dbase files.");
     usage.addCommandLineOption("--height","Set the height to use for asscociated shapefiles.");
+    usage.addCommandLineOption("--mask","Set the mask to assign indivual shapefile/model.");
+    usage.addCommandLineOption("--terrain-mask","Set the overall mask to assign terrain.");
 }
 
 int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrainInput)
@@ -500,6 +517,12 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     while (arguments.read("--HEIGHT_FIELD"))
     {
         buildOptions->setGeometryType(vpb::BuildOptions::HEIGHT_FIELD);
+    }
+
+    std::string maskstring;
+    while (arguments.read("--terrain-mask",maskstring))
+    {
+        terrainmask = readMask(maskstring);
     }
 
     while (arguments.read("--POLYGONAL"))
@@ -636,6 +659,10 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         }
         else if (arguments.read(pos, "--height",height)) 
         {            
+        }
+        else if (arguments.read(pos, "--mask",def)) 
+        {
+            mask = readMask(def);
         }
         else if (arguments.read(pos, "--cs",def))
         {
