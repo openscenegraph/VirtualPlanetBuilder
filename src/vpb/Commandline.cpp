@@ -259,7 +259,7 @@ void Commandline::processShapeFile(vpb::Source::Type type, const std::string& fi
 
             if (!currentCS.empty())
             {
-                osg::notify(osg::INFO)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
+                osg::notify(osg::NOTICE)<<"locator->setCoordateSystem "<<currentCS<<std::endl;
                 locator->setFormat("WKT");
                 locator->setCoordinateSystem(currentCS);
                 locator->setDefinedInFile(false);
@@ -268,7 +268,7 @@ void Commandline::processShapeFile(vpb::Source::Type type, const std::string& fi
 
             if (geoTransformSet)
             {
-                osg::notify(osg::INFO)<<"locator->setTransform "<<geoTransform<<std::endl;
+                osg::notify(osg::NOTICE)<<"locator->setTransform "<<geoTransform<<std::endl;
                 locator->setTransform(geoTransform);
                 locator->setDefinedInFile(false);
                 locator->setTransformScaledByResolution(false);

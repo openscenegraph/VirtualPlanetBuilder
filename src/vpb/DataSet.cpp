@@ -99,11 +99,14 @@ void DataSet::loadSources()
         
             if (fileCache && source->needReproject(_intermediateCoordinateSystem.get()))
             {
-                Source* newSource = source->doReprojectUsingFileCache(_intermediateCoordinateSystem.get());
-                
-                if (newSource)
+                if (source->isRaster())
                 {
-                    *itr = newSource;
+                    Source* newSource = source->doRasterReprojectionUsingFileCache(_intermediateCoordinateSystem.get());
+
+                    if (newSource)
+                    {
+                        *itr = newSource;
+                    }
                 }
             }
         }
@@ -577,7 +580,6 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
     {
         _destinationGraph->addRequiredResolutions(_sourceGraph.get());
 
-
         for(CompositeSource::source_iterator sitr(_sourceGraph.get());sitr.valid();++sitr)
         {
             Source* source = sitr->get();
@@ -630,17 +632,25 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
             
                 if (getReprojectSources())
                 {
-                    // do the reprojection to a tempory file.
-                    std::string newFileName = temporyFilePrefix + osgDB::getStrippedName(source->getFileName()) + ".tif";
+                    if (source->isRaster())
+                    {
+                
+                        // do the reprojection to a tempory file.
+                        std::string newFileName = temporyFilePrefix + osgDB::getStrippedName(source->getFileName()) + ".tif";
 
-                    Source* newSource = source->doReproject(newFileName,_intermediateCoordinateSystem.get());
+                        Source* newSource = source->doRasterReprojection(newFileName,_intermediateCoordinateSystem.get());
 
-                    // replace old source by new one.
-                    if (newSource) *itr = newSource;
+                        // replace old source by new one.
+                        if (newSource) *itr = newSource;
+                        else
+                        {
+                            log(osg::WARN, "Failed to reproject %s",source->getFileName().c_str());
+                            *itr = 0;
+                        }
+                    }
                     else
                     {
-                        log(osg::WARN, "Failed to reproject %s",source->getFileName().c_str());
-                        *itr = 0;
+                        source->do3DObjectReprojection(_intermediateCoordinateSystem.get());
                     }
                 }
                 else
@@ -1100,13 +1110,16 @@ bool DataSet::addModel(Source::Type type, osg::Node* model)
     vpb::Source* source = new vpb::Source(type, model);
     
     osgTerrain::Locator* locator = dynamic_cast<osgTerrain::Locator*>(model->getUserData());
-    if (locator && !locator->getDefinedInFile())
+    if (locator)
     {
+        osg::notify(osg::NOTICE)<<"addModel : Assigned coordinate system ()"<<std::endl;
+
         source->setGeoTransformPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
         source->setGeoTransform(locator->getTransform());
 
         source->setCoordinateSystemPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
         source->setCoordinateSystem(locator->getCoordinateSystem());
+        
     }
     
     osg::ComputeBoundsVisitor cbv;

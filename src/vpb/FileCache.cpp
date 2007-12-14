@@ -521,13 +521,13 @@ void FileCache::buildRequiredReprojections(osgTerrain::Terrain* source)
         for(CompositeSource::source_iterator itr(dataset->getSourceGraph());itr.valid();++itr)
         {
             Source* source = itr->get();
-            if (source->needReproject(dataset->getIntermediateCoordinateSystem()))
+            if (source->needReproject(dataset->getIntermediateCoordinateSystem()) && source->isRaster())
             {
                 std::string newFileName = filePrefix + osgDB::getStrippedName(source->getFileName()) + ".tif";
 
                 log(osg::NOTICE,"     reprojecting file=%s, reprojected file will be = %s",source->getFileName().c_str(), newFileName.c_str());
 
-                osg::ref_ptr<Source> newSource = source->doReproject(newFileName,dataset->getIntermediateCoordinateSystem());
+                osg::ref_ptr<Source> newSource = source->doRasterReprojection(newFileName,dataset->getIntermediateCoordinateSystem());
 
                 if (newSource.valid())
                 {

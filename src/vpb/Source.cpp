@@ -17,13 +17,16 @@
 #include <vpb/DataSet>
 #include <vpb/System>
 
+#include <osg/Geometry>
 #include <osg/Notify>
 #include <osg/io_utils>
+
 #include <osgDB/ReadFile>
 #include <osgDB/FileNameUtils>
 
 #include <gdal_priv.h>
 #include <gdalwarper.h>
+#include <ogr_spatialref.h>
 
 using namespace vpb;
 
@@ -256,14 +259,14 @@ bool Source::needReproject(const osg::CoordinateSystemNode* cs, double minResolu
     return false;
 }
 
-Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNode* cs, double targetResolution) const
+Source* Source::doRasterReprojection(const std::string& filename, osg::CoordinateSystemNode* cs, double targetResolution) const
 {
     // return nothing when repoject is inappropriate.
     if (!_sourceData) return 0;
     
-    if (_type!=IMAGE || _type!=HEIGHT_FIELD)
+    if (!isRaster())
     {
-        log(osg::NOTICE,"Source::doReproject() reprojection of a model/shapefile not appropriate.");
+        log(osg::NOTICE,"Source::doReprojection() reprojection of a model/shapefile not appropriate.");
         return 0;
     }
     
@@ -546,7 +549,7 @@ Source* Source::doReproject(const std::string& filename, osg::CoordinateSystemNo
     return newSource;
 }
 
-Source* Source::doReprojectUsingFileCache(osg::CoordinateSystemNode* cs)
+Source* Source::doRasterReprojectionUsingFileCache(osg::CoordinateSystemNode* cs)
 {
     FileCache* fileCache = System::instance()->getFileCache();
     if (!fileCache) return 0;
@@ -580,6 +583,170 @@ Source* Source::doReprojectUsingFileCache(osg::CoordinateSystemNode* cs)
     return 0;
 }
 
+
+class ReprojectionVisitor : public osg::NodeVisitor
+{
+public:
+    ReprojectionVisitor():
+        osg::NodeVisitor(TRAVERSE_ALL_CHILDREN) {}
+                        
+    void reset()
+    {
+        _geometries.clear();
+    }
+    
+    void apply(osg::Geode& geode)
+    {
+        for(unsigned int i=0; i<geode.getNumDrawables(); ++i)
+        {
+            osg::Geometry* geometry = dynamic_cast<osg::Geometry*>(geode.getDrawable(i));
+            if (geometry) _geometries.insert(geometry);
+            else log(osg::NOTICE,"Warning: ReprojectionVisitor unable to reproject non standard Drawables.");
+        }
+    }
+    
+    void transform(osg::CoordinateSystemNode* sourceCS, osg::CoordinateSystemNode* destinationCS)
+    {
+        if (!sourceCS)
+        {
+            log(osg::NOTICE,"Warning: no source coordinate system to reproject from.");
+            return;
+        }
+
+        if (!destinationCS)
+        {
+            log(osg::NOTICE,"Warning: no target coordinate system to reproject from.");
+            return;
+        }
+
+        char* source_projection_string = strdup(sourceCS->getCoordinateSystem().c_str());
+        char* importString = source_projection_string;
+        OGRSpatialReference* sourceProjection = new OGRSpatialReference;
+        sourceProjection->importFromWkt(&importString);
+
+        char* destination_projection_string = strdup(destinationCS->getCoordinateSystem().c_str());
+        importString = destination_projection_string;
+        OGRSpatialReference* destinationProjection = new OGRSpatialReference;
+        destinationProjection->importFromWkt(&importString);
+
+        OGRCoordinateTransformation* ct =  OGRCreateCoordinateTransformation( sourceProjection, destinationProjection );
+
+        transform(ct);
+
+        delete ct;
+        delete destinationProjection;
+        delete sourceProjection;
+
+        free(destination_projection_string);
+        free(source_projection_string);
+    }
+    
+    void transform(OGRCoordinateTransformation* ct)
+    {
+        for(Geometries::iterator itr = _geometries.begin();
+            itr != _geometries.end();
+            ++itr)
+        {
+            transform(ct, const_cast<osg::Geometry*>(*itr));
+        }
+    }
+    
+    void transform(OGRCoordinateTransformation* ct, osg::Geometry* geometry)
+    {
+        osg::Vec3dArray* vec3darray = dynamic_cast<osg::Vec3dArray*>(geometry->getVertexArray());
+        osg::Vec3Array* vec3farray = (vec3darray!=0) ? 0 : dynamic_cast<osg::Vec3Array*>(geometry->getVertexArray());
+        
+        unsigned int nCount = geometry->getVertexArray()->getNumElements();
+
+        // if no data to work with return;
+        if (!vec3darray && !vec3farray || nCount==0) return;
+
+        double* xArray = new double[nCount];
+        double* yArray = new double[nCount];
+        double* zArray = new double[nCount];
+    
+
+        // copy the soure array to the temporary arrays
+        if (vec3darray)
+        {
+            for(unsigned int i=0; i<nCount; ++i)
+            {
+                osg::Vec3d& v = (*vec3darray)[i];
+                xArray[i] = v.x();
+                yArray[i] = v.y();
+                zArray[i] = v.z();
+            }            
+        }
+        else if (vec3farray)
+        {
+            for(unsigned int i=0; i<nCount; ++i)
+            {
+                osg::Vec3& v = (*vec3farray)[i];
+                xArray[i] = v.x();
+                yArray[i] = v.y();
+                zArray[i] = v.z();
+            }            
+        }
+        
+        // log(osg::NOTICE,"   reprojecting %i vertices",nCount);
+
+        ct->Transform(nCount, xArray, yArray, zArray);
+
+        // copy the data back to the original arrays.
+        if (vec3darray)
+        {
+            for(unsigned int i=0; i<nCount; ++i)
+            {
+                osg::Vec3d& v = (*vec3darray)[i];
+                //osg::notify(osg::NOTICE)<<"   Before "<<v;
+                v.x() = xArray[i];
+                v.y() = yArray[i];
+                v.z() = zArray[i];
+                // osg::notify(osg::NOTICE)<<"  after "<<v<<std::endl;
+            }            
+        }
+        else if (vec3farray)
+        {
+            for(unsigned int i=0; i<nCount; ++i)
+            {
+                osg::Vec3& v = (*vec3farray)[i];
+                v.x() = xArray[i];
+                v.y() = yArray[i];
+                v.z() = zArray[i];
+            }            
+        }
+
+        // clean up the temporary arrays
+        delete [] xArray;
+        delete [] yArray;
+        delete [] zArray;
+    }
+        
+
+    typedef std::set<osg::Geometry*> Geometries;
+    Geometries _geometries;
+        
+};
+
+bool Source::do3DObjectReprojection(osg::CoordinateSystemNode* cs)
+{
+    // return if we aren't a 3D object
+    if (!is3DObject()) return false;
+    
+    // return if there is nothing to work on.
+    if (!_sourceData || !_sourceData->_model) return false;
+    
+    log(osg::NOTICE,"Source::do3DObjectReprojectionUsingFileCache(), should be setting projection to %s",cs->getCoordinateSystem().c_str());
+
+    ReprojectionVisitor rpv;
+    
+    // collect all the geoemtries of interest
+    _sourceData->_model->accept(rpv);
+    
+    rpv.transform(_cs.get(), cs);
+
+    return false;
+}
 
 void Source::consolodateRequiredResolutions()
 {
