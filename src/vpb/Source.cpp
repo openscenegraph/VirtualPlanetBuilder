@@ -605,18 +605,18 @@ public:
         }
     }
     
-    void transform(osg::CoordinateSystemNode* sourceCS, osg::CoordinateSystemNode* destinationCS)
+    bool transform(osg::CoordinateSystemNode* sourceCS, osg::CoordinateSystemNode* destinationCS)
     {
         if (!sourceCS)
         {
             log(osg::NOTICE,"Warning: no source coordinate system to reproject from.");
-            return;
+            return false;
         }
 
         if (!destinationCS)
         {
             log(osg::NOTICE,"Warning: no target coordinate system to reproject from.");
-            return;
+            return false;
         }
 
         char* source_projection_string = strdup(sourceCS->getCoordinateSystem().c_str());
@@ -631,17 +631,25 @@ public:
 
         OGRCoordinateTransformation* ct =  OGRCreateCoordinateTransformation( sourceProjection, destinationProjection );
 
-        transform(ct);
+        bool success = false;
 
-        delete ct;
+        if (ct)
+        {
+            success = transform(ct);
+
+            delete ct;
+        }
+        
         delete destinationProjection;
         delete sourceProjection;
 
         free(destination_projection_string);
         free(source_projection_string);
+        
+        return success;
     }
     
-    void transform(OGRCoordinateTransformation* ct)
+    bool transform(OGRCoordinateTransformation* ct)
     {
         for(Geometries::iterator itr = _geometries.begin();
             itr != _geometries.end();
@@ -651,7 +659,7 @@ public:
         }
     }
     
-    void transform(OGRCoordinateTransformation* ct, osg::Geometry* geometry)
+    bool transform(OGRCoordinateTransformation* ct, osg::Geometry* geometry)
     {
         osg::Vec3dArray* vec3darray = dynamic_cast<osg::Vec3dArray*>(geometry->getVertexArray());
         osg::Vec3Array* vec3farray = (vec3darray!=0) ? 0 : dynamic_cast<osg::Vec3Array*>(geometry->getVertexArray());
@@ -659,7 +667,7 @@ public:
         unsigned int nCount = geometry->getVertexArray()->getNumElements();
 
         // if no data to work with return;
-        if (!vec3darray && !vec3farray || nCount==0) return;
+        if (!vec3darray && !vec3farray || nCount==0) return true;
 
         double* xArray = new double[nCount];
         double* yArray = new double[nCount];
@@ -720,6 +728,8 @@ public:
         delete [] xArray;
         delete [] yArray;
         delete [] zArray;
+        
+        return true;
     }
         
 
@@ -743,9 +753,18 @@ bool Source::do3DObjectReprojection(osg::CoordinateSystemNode* cs)
     // collect all the geoemtries of interest
     _sourceData->_model->accept(rpv);
     
-    rpv.transform(_cs.get(), cs);
-
-    return false;
+    if (rpv.transform(_cs.get(), cs))
+    {
+        _cs = cs;
+        // need to recompute extents.
+        
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+        
 }
 
 void Source::consolodateRequiredResolutions()
