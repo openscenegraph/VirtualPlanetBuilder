@@ -421,7 +421,10 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--bluemarble-east","Set the coordinates system for next texture or dem to represent the eastern hemisphere of the earth.");     
     usage.addCommandLineOption("--bluemarble-west","Set the coordinates system for next texture or dem to represent the western hemisphere of the earth.");     
     usage.addCommandLineOption("--whole-globe","Set the coordinates system for next texture or dem to represent the whole hemisphere of the earth.");
-    usage.addCommandLineOption("--geocentric","");
+    usage.addCommandLineOption("--geocentric","Build a database in geocentric (i.e. whole earth) database.");
+    usage.addCommandLineOption("--radius-polar","Set the polar radius of the ellipsoid model when building a geocentric database.");
+    usage.addCommandLineOption("--radius-equator","Set the polar radius of the ellipsoid model when building a geocentric database.");
+    usage.addCommandLineOption("--spherical","Set the polar and equator radius both to the average of the two.");
     usage.addCommandLineOption("--range","");     
     usage.addCommandLineOption("--xx","");     
     usage.addCommandLineOption("--xt","");     
@@ -616,6 +619,35 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         buildOptions->setSimplifyTerrain(false);
     }
 
+    while (arguments.read("--geocentric"))
+    {
+        buildOptions->setConvertFromGeographicToGeocentric(true);
+        fout<<"--geocentric "<<currentCS<<std::endl;
+    }
+
+    double radius;
+    while (arguments.read("--radius-polar", radius))
+    {
+        osg::EllipsoidModel* ellipsoid = buildOptions->getEllipsoidModel();
+        ellipsoid->setRadiusPolar(radius);
+    }
+    
+    while (arguments.read("--radius-equator", radius))
+    {
+        osg::EllipsoidModel* ellipsoid = buildOptions->getEllipsoidModel();
+        ellipsoid->setRadiusEquator(radius);
+    }
+    
+    while (arguments.read("--spherical"))
+    {
+        osg::EllipsoidModel* ellipsoid = buildOptions->getEllipsoidModel();
+        double radius = (ellipsoid->getRadiusPolar() + ellipsoid->getRadiusEquator())*0.5;
+        ellipsoid->setRadiusPolar(radius);
+        ellipsoid->setRadiusEquator(radius);
+        fout<<"--spherical, new radius set to "<<radius<<std::endl;
+    }
+
+
     std::string str;
     while (arguments.read("--default-color",str) ||
            arguments.read("--default_color",str))
@@ -704,12 +736,6 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
                 fout<<"--wkt-file "<<currentCS<<std::endl;
             }
         }
-        else if (arguments.read(pos, "--geocentric"))
-        {
-            buildOptions->setConvertFromGeographicToGeocentric(true);
-            fout<<"--geocentric "<<currentCS<<std::endl;
-        }
-
         else if (arguments.read(pos, "--bluemarble-east"))
         {
             currentCS = vpb::coordinateSystemStringToWTK("WGS84");

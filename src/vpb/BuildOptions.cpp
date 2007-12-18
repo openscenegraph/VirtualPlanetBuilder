@@ -31,7 +31,8 @@ BuildOptions::BuildOptions():
     _decorateWithMultiTextureControl = true;
     _defaultColor.set(0.5f,0.5f,1.0f,1.0f);
     _destinationCoordinateSystemString = "";
-    _destinationCoordinateSystem = new osg::CoordinateSystemNode; _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
+    _destinationCoordinateSystem = new osg::CoordinateSystemNode; 
+    _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
     _directory = "";
     _geometryType = POLYGONAL;
     _imageExtension = ".dds";
