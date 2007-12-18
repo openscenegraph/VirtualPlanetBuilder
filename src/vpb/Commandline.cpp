@@ -622,7 +622,7 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     while (arguments.read("--geocentric"))
     {
         buildOptions->setConvertFromGeographicToGeocentric(true);
-        fout<<"--geocentric "<<currentCS<<std::endl;
+        fout<<"--geocentric "<<std::endl;
     }
 
     double radius;

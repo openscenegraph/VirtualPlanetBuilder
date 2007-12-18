@@ -537,11 +537,20 @@ void DataSet::assignIntermediateCoordinateSystem()
             // coordinate system.
             OGRSpatialReference oSRS;
             
-            char    *pszWKT = NULL;
-            oSRS.SetWellKnownGeogCS( "WGS84" );
-            oSRS.exportToWkt( &pszWKT );
+            if (_destinationCoordinateSystem.valid() && !_destinationCoordinateSystem->getCoordinateSystem().empty())
+            {
+                setIntermediateCoordinateSystem(_destinationCoordinateSystem->getCoordinateSystem());
+            }
+            else
+            {
+                char    *pszWKT = NULL;
+                oSRS.SetWellKnownGeogCS( "WGS84" );
+                oSRS.exportToWkt( &pszWKT );
+
+                setIntermediateCoordinateSystem(pszWKT);                
+                setDestinationCoordinateSystem(pszWKT);
+            }
             
-            setIntermediateCoordinateSystem(pszWKT);
         }
         else
         {
