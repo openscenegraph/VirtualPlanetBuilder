@@ -33,8 +33,6 @@ struct DestinationData : public osg::Referenced, SpatialProperties
         _maxDistance(FLT_MAX) {}
 
 
-    typedef std::vector< osg::ref_ptr<osg::Image> > ImageList;
-    typedef std::vector< osg::ref_ptr<osg::Node> > ModelList;
 
     DataSet*                                    _dataSet;
 
@@ -45,6 +43,7 @@ struct DestinationData : public osg::Referenced, SpatialProperties
     osg::ref_ptr<osg::Image>                    _image;
     osg::ref_ptr<osg::HeightField>              _heightField;
     ModelList                                   _models;
+    ModelList                                   _shapeFiles;
 };
 
 

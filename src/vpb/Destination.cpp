@@ -932,14 +932,40 @@ void DestinationTile::optimizeResolution()
 
 osg::Node* DestinationTile::createScene()
 {
+    osg::Node* node = 0;
+
     if (_dataSet->getGeometryType()==DataSet::HEIGHT_FIELD)
     {
-        return createHeightField();
+        node = createHeightField();
     }
     else
     {
-        return createPolygonal();
+        node = createPolygonal();
     }
+    
+    if (_models.valid())
+    {
+        osg::Group* group = new osg::Group;
+        if (node) group->addChild(node);
+        
+        for(ModelList::iterator itr = _models->_models.begin();
+            itr != _models->_models.end();
+            ++itr)
+        {
+            group->addChild(itr->get());
+        }
+        
+        for(ModelList::iterator itr = _models->_shapeFiles.begin();
+            itr != _models->_shapeFiles.end();
+            ++itr)
+        {
+            group->addChild(itr->get());
+        }
+        
+        node = group;
+    }
+    
+    return node;
 }
 
 osg::StateSet* DestinationTile::createStateSet()
@@ -1826,9 +1852,9 @@ void DestinationTile::readFrom(CompositeSource* sourceGraph)
     log(osg::INFO,"DestinationTile::readFrom() ");
     for(CompositeSource::source_iterator itr(sourceGraph);itr.valid();++itr)
     {
-    
         Source* source = itr->get();
         if (source && 
+            source->intersects(*this) &&
             _level>=source->getMinLevel() && _level<=source->getMaxLevel() && 
             (*itr)->getSourceData()) 
         {
@@ -1870,12 +1896,14 @@ void DestinationTile::readFrom(CompositeSource* sourceGraph)
                 }
                 case(Source::MODEL):
                 {
-                    log(osg::NOTICE,"DestinationTile::readFrom() model %s not handled.", source->getFileName().c_str());
+                    if (!_models) _models = new DestinationData(_dataSet);
+                    data->read(*_models);
                     break;
                 }
                 case(Source::SHAPEFILE):
                 {
-                    log(osg::NOTICE,"DestinationTile::readFrom() shapefile %s not handled", source->getFileName().c_str());
+                    if (!_models) _models = new DestinationData(_dataSet);
+                    data->read(*_models);
                     break;
                 }
                 default:

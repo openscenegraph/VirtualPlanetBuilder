@@ -32,6 +32,8 @@ namespace vpb
 class Source;
 class DestinationData;
 
+typedef std::list< osg::ref_ptr<osg::Node> > ModelList;
+
 struct VPB_EXPORT SourceData : public osg::Referenced, public SpatialProperties
 {
 

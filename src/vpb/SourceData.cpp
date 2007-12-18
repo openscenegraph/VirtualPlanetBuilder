@@ -977,8 +977,8 @@ void SourceData::readShapeFile(DestinationData& destination)
 {
     if (_model.valid())
     {
-        log(osg::INFO,"Reading shapefile");
-        destination._models.push_back(_model);
+        log(osg::INFO,"SourceData::readShapeFile");
+        destination._shapeFiles.push_back(_model);
     }
 }
 
@@ -986,7 +986,7 @@ void SourceData::readModels(DestinationData& destination)
 {
     if (_model.valid())
     {
-        log(osg::INFO,"Reading model");
+        log(osg::INFO,"SourceData::readShapeFile");
         destination._models.push_back(_model);
     }
 }
