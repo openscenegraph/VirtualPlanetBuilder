@@ -24,6 +24,26 @@ class DestinationTile;
 class CompositeDestination;
 class DataSet;
 
+class VPB_EXPORT TransformToLocal : public osg::Referenced
+{
+
+    TransformToLocal();
+
+    osg::Matrixd localToWorld;
+    osg::Matrixd worldToLocal;
+
+    const osg::EllipsoidModel* _et;
+    bool _mapLatLongsToXYZ;
+    bool _useLocalToTileTransform;
+
+
+    void transformVertex(const osg::Vec3d& v_in, osg::Vec3& v_out);
+    void transformNormal(const osg::Vec3& n_in, osg::Vec3& n_out);
+    
+    
+};
+
+
 struct DestinationData : public osg::Referenced, SpatialProperties
 {
 
@@ -31,8 +51,6 @@ struct DestinationData : public osg::Referenced, SpatialProperties
         _dataSet(dataSet),
         _minDistance(0.0),
         _maxDistance(FLT_MAX) {}
-
-
 
     DataSet*                                    _dataSet;
 
@@ -105,7 +123,7 @@ public:
 
     bool computeImageResolution(unsigned int layer, unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY);
     bool computeTerrainResolution(unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY);
-
+;
     void allocate();
 
     void addRequiredResolutions(CompositeSource* sourceGraph);
@@ -124,6 +142,14 @@ public:
 
     void optimizeResolution();
 
+    osg::HeightField* getSourceHeightField() { return _terrain->_heightField.get(); }
+
+    void setScene(osg::Node* node) { _createdScene = node; }
+    osg::Node* getScene() { if (!_createdScene) createScene(); return _createdScene.get(); }
+    
+    void addNodeToScene(osg::Node* node, bool transformIfRequired = true);
+
+    // create final scene graph elements,
     osg::Node* createScene();
 
     osg::StateSet* createStateSet();
@@ -183,6 +209,8 @@ public:
     typedef std::vector<osg::Vec2> HeightDeltaList;
     HeightDeltaList                             _heightDeltas[NUMBER_OF_POSITIONS];
 
+    osg::ref_ptr<osg::StateSet>                 _stateset;
+    osg::ref_ptr<osg::Node>                     _createdScene;
 };
 
 class VPB_EXPORT CompositeDestination : public osg::Referenced, public SpatialProperties

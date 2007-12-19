@@ -38,6 +38,8 @@
 #include <vpb/Destination>
 #include <vpb/BuildOptions>
 #include <vpb/BuildLog>
+#include <vpb/ObjectPlacer>
+
 
 // forward declare so we can avoid tieing vpb to GDAL.
 class GDALDataset;
@@ -170,6 +172,11 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
 
         unsigned int getNumOfTextureLevels() const { return _numTextureLevels; }
 
+        void setModelPlacer(ObjectPlacer* placer) { _modelPlacer = placer; }
+        ObjectPlacer* getModelPlacer() { return _modelPlacer.get(); }
+        
+        void setShapeFilePlacer(ObjectPlacer* placer) { _shapeFilePlacer = placer; }
+        ObjectPlacer* getShapeFilePlacer() { return _shapeFilePlacer.get(); }
 
     protected:
 
@@ -205,6 +212,9 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         osg::ref_ptr<osg::CoordinateSystemNode>     _intermediateCoordinateSystem;
 
         osg::ref_ptr<Task>                          _taskFile;
+
+        osg::ref_ptr<ObjectPlacer>                  _modelPlacer;
+        osg::ref_ptr<ObjectPlacer>                  _shapeFilePlacer;
         
 };
 

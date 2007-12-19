@@ -930,46 +930,91 @@ void DestinationTile::optimizeResolution()
     }
 }
 
-osg::Node* DestinationTile::createScene()
+void DestinationTile::addNodeToScene(osg::Node* node, bool transformIfRequired)
 {
-    osg::Node* node = 0;
-
-    if (_dataSet->getGeometryType()==DataSet::HEIGHT_FIELD)
+    if (!_createdScene) _createdScene = new osg::Group;
+    
+    osg::MatrixTransform* transform = dynamic_cast<osg::MatrixTransform*>(_createdScene.get());
+    if (transformIfRequired && transform)
     {
-        node = createHeightField();
+        transform->addChild(node);
     }
     else
     {
-        node = createPolygonal();
+        osg::Group* group = dynamic_cast<osg::Group*>(_createdScene.get());
+        if (!group)
+        {
+            group = new osg::Group;
+            group->addChild(_createdScene.get());
+            _createdScene = group;
+        }
+    
+        group->addChild(node);
+    }
+}
+
+
+osg::Node* DestinationTile::createScene()
+{
+    if (_createdScene.valid()) return _createdScene.get();
+
+    if (_dataSet->getGeometryType()==DataSet::HEIGHT_FIELD)
+    {
+        _createdScene = createHeightField();
+    }
+    else
+    {
+        _createdScene = createPolygonal();
     }
     
     if (_models.valid())
     {
-        osg::Group* group = new osg::Group;
-        if (node) group->addChild(node);
-        
-        for(ModelList::iterator itr = _models->_models.begin();
-            itr != _models->_models.end();
-            ++itr)
+        if (_dataSet->getModelPlacer())
         {
-            group->addChild(itr->get());
+            for(ModelList::iterator itr = _models->_models.begin();
+                itr != _models->_models.end();
+                ++itr)
+            {
+                _dataSet->getModelPlacer()->place(*this, itr->get());
+            }
+        }
+        else
+        {                
+            for(ModelList::iterator itr = _models->_models.begin();
+                itr != _models->_models.end();
+                ++itr)
+            {
+                addNodeToScene(itr->get());
+            }
         }
         
-        for(ModelList::iterator itr = _models->_shapeFiles.begin();
-            itr != _models->_shapeFiles.end();
-            ++itr)
+        if (_dataSet->getShapeFilePlacer())
         {
-            group->addChild(itr->get());
+            for(ModelList::iterator itr = _models->_shapeFiles.begin();
+                itr != _models->_shapeFiles.end();
+                ++itr)
+            {
+                _dataSet->getShapeFilePlacer()->place(*this, itr->get());
+            }
         }
-        
-        node = group;
+        else
+        {                
+            for(ModelList::iterator itr = _models->_shapeFiles.begin();
+                itr != _models->_shapeFiles.end();
+                ++itr)
+            {
+                addNodeToScene(itr->get());
+            }
+        }
     }
     
-    return node;
+    return _createdScene.get();
 }
 
 osg::StateSet* DestinationTile::createStateSet()
 {
+    if (_stateset.valid()) return _stateset.get();
+
     if (_imagery.empty()) return 0;
 
     unsigned int numValidImagerLayers = 0;
@@ -987,7 +1032,7 @@ osg::StateSet* DestinationTile::createStateSet()
     
     if (numValidImagerLayers==0) return 0;
 
-    osg::StateSet* stateset = new osg::StateSet;
+    _stateset = new osg::StateSet;
 
     osg::Texture* baseTexture = 0;
     for(layerNum=0;
@@ -1041,7 +1086,7 @@ osg::StateSet* DestinationTile::createStateSet()
         }        
 
         texture->setMaxAnisotropy(_dataSet->getMaxAnisotropy());
-        stateset->setTextureAttributeAndModes(layerNum,texture,osg::StateAttribute::ON);
+        _stateset->setTextureAttributeAndModes(layerNum,texture,osg::StateAttribute::ON);
 
         bool inlineImageFile = _dataSet->getDestinationTileExtension()==".ive";
         bool compressedImageSupported = inlineImageFile || imageExension==".dds";
@@ -1130,43 +1175,35 @@ osg::StateSet* DestinationTile::createStateSet()
                     !imageData._imagery->_image.valid()) applyBaseTexture=true;
             }
             if (applyBaseTexture)        
-                stateset->setTextureAttributeAndModes(layerNum,baseTexture,osg::StateAttribute::ON);
+                _stateset->setTextureAttributeAndModes(layerNum,baseTexture,osg::StateAttribute::ON);
         }
     }
         
-    return stateset;
+    return _stateset.get();
 }
 
 osg::Node* DestinationTile::createHeightField()
 {
     osg::ShapeDrawable* shapeDrawable = 0;
-
-    if (_terrain.valid() && _terrain->_heightField.valid())
-    {
-        log(osg::INFO,"--- Have terrain build tile ----");
-
-        osg::HeightField* hf = _terrain->_heightField.get();
-        
-        shapeDrawable = new osg::ShapeDrawable(hf);
-
-        hf->setSkirtHeight(shapeDrawable->getBound().radius()*0.01f);
-    }
-    else 
+    
+    if (!_terrain) _terrain = new DestinationData(_dataSet);
+    
+    if (!_terrain->_heightField)
     {
         log(osg::INFO,"**** No terrain to build tile from use flat terrain fallback ****");
         // create a dummy height field to file in the gap
-        osg::HeightField* hf = new osg::HeightField;
-        hf->allocate(2,2);
-        hf->setOrigin(osg::Vec3(_extents.xMin(),_extents.yMin(),0.0f));
-        hf->setXInterval(_extents.xMax()-_extents.xMin());
-        hf->setYInterval(_extents.yMax()-_extents.yMin());
-
-        shapeDrawable = new osg::ShapeDrawable(hf);
-
-        hf->setSkirtHeight(shapeDrawable->getBound().radius()*0.01f);
+        _terrain->_heightField = new osg::HeightField;
+        _terrain->_heightField->allocate(2,2);
+        _terrain->_heightField->setOrigin(osg::Vec3(_extents.xMin(),_extents.yMin(),0.0f));
+        _terrain->_heightField->setXInterval(_extents.xMax()-_extents.xMin());
+        _terrain->_heightField->setYInterval(_extents.yMax()-_extents.yMin());
     }
 
+    osg::HeightField* hf = _terrain->_heightField.get();
+    shapeDrawable = new osg::ShapeDrawable(hf);
     if (!shapeDrawable) return 0;
+
+    hf->setSkirtHeight(shapeDrawable->getBound().radius()*0.01f);
 
     osg::StateSet* stateset = createStateSet();
     if (stateset)
@@ -1514,7 +1551,7 @@ osg::Node* DestinationTile::createPolygonal()
                 drawElements[ei++] = i10;
                 drawElements[ei++] = i11;
             }
-            }
+        }
     }
 
 #if 1

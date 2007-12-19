@@ -35,6 +35,8 @@
 #include <vpb/TaskManager>
 #include <vpb/System>
 
+#include <vpb/ShapeFilePlacer>
+
 // GDAL includes
 #include <gdal_priv.h>
 #include <ogr_spatialref.h>
@@ -63,6 +65,10 @@ void DataSet::init()
     }
 
     _numTextureLevels = 1;
+    
+    _modelPlacer = new ObjectPlacer;
+    _shapeFilePlacer = new ShapeFilePlacer;
+    
 }
 
 void DataSet::addSource(Source* source)

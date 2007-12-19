@@ -18,6 +18,8 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/Destination
 	${HEADER_PATH}/Export
 	${HEADER_PATH}/MachinePool
+	${HEADER_PATH}/ObjectPlacer
+	${HEADER_PATH}/ShapeFilePlacer
 	${HEADER_PATH}/FileCache
 	${HEADER_PATH}/FileDetails
 	${HEADER_PATH}/PropertyFile
@@ -48,6 +50,8 @@ ADD_LIBRARY(${LIB_NAME}
 	FileCache.cpp
 	FileDetails.cpp
         MachinePool.cpp
+        ObjectPlacer.cpp
+        ShapeFilePlacer.cpp
         PropertyFile.cpp
 	Source.cpp
 	SourceData.cpp
