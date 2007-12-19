@@ -1289,7 +1289,9 @@ osg::Node* DestinationTile::createPolygonal()
         grid->allocate(numColumns,numRows);
         grid->setOrigin(osg::Vec3(_extents.xMin(),_extents.yMin(),0.0f));
         grid->setXInterval((_extents.xMax()-_extents.xMin())/(float)(numColumns-1));
-        grid->setYInterval((_extents.yMax()-_extents.yMin())/(float)(numRows-1));
+        grid->setYInterval((_extents.yMax()-_extents.yMin())/(float)(numRows-1)); 
+        
+        _terrain->_heightField = grid;
     }
 
     if (!grid)
