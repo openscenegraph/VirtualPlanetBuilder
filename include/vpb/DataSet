@@ -187,7 +187,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         friend class DestinationTile;
         
         osg::ref_ptr<ThreadPool> _readThreadPool;
-        osg::ref_ptr<ThreadPool> _buildThreadPool;
+        osg::ref_ptr<ThreadPool> _writeThreadPool;
 
         void _readRow(Row& row);
         void _equalizeRow(Row& row);

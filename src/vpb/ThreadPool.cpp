@@ -51,13 +51,16 @@ void ThreadPool::init(unsigned int numThreads)
 
 void ThreadPool::startThreads()
 {
+    int numProcessors = OpenThreads::GetNumberOfProcessors();
+    int processNum = 0;
     _done = false;
     for(Threads::iterator itr = _threads.begin();
         itr != _threads.end();
-        ++itr)
+        ++itr, ++processNum)
     {
         if (!((*itr)->isRunning()))
-        {
+        {            
+            (*itr)->setProcessorAffinity(processNum % numProcessors);
             (*itr)->startThread();
         }
     }

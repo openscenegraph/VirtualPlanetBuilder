@@ -951,9 +951,9 @@ void DataSet::_writeRow(Row& row)
             {
                 parent->setSubTilesGenerated(true);
                 
-                if (_buildThreadPool.valid())
+                if (_writeThreadPool.valid())
                 {
-                    _buildThreadPool->run(new WriteOperation(this, parent));
+                    _writeThreadPool->run(new WriteOperation(this, parent));
                 }
                 else
                 {
@@ -1027,7 +1027,7 @@ void DataSet::_writeRow(Row& row)
         }
     }
 
-    if (_buildThreadPool.valid()) _buildThreadPool->waitForCompletion();
+    if (_writeThreadPool.valid()) _writeThreadPool->waitForCompletion();
 }
 
 void DataSet::createDestination(unsigned int numLevels)
@@ -1703,8 +1703,8 @@ int DataSet::run()
         if (numWriteThreads>1)
         {
             log(osg::NOTICE,"Starting %i write threads.",numWriteThreads);
-            _buildThreadPool = new ThreadPool(numWriteThreads);
-            _buildThreadPool->startThreads();
+            _writeThreadPool = new ThreadPool(numWriteThreads);
+            _writeThreadPool->startThreads();
         }
     }
     
