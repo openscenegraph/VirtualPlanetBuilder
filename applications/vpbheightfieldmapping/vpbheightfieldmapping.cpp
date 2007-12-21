@@ -12,7 +12,9 @@
 #include <osgDB/ReadFile>
 #include <osgUtil/Optimizer>
 #include <osg/CoordinateSystemNode>
+#include <osg/Material>
 
+#include <osg/Vec4>
 #include <osg/Switch>
 #include <osgText/Text>
 
@@ -27,13 +29,55 @@
 #include <osgGA/AnimationPathManipulator>
 #include <osgGA/TerrainManipulator>
 
-#include <vpb/ExtrudeVisitor>
+#include <vpb/HeightFieldMapper>
 
 #include <iostream>
 
 #include <osg/Geometry>
+#include <osg/ShapeDrawable>
+#include <osg/Shape>
 #include <osg/Geode>
 #include <osg/PolygonMode>
+
+
+osg::Geode * createSceneGraph()
+{
+    osg::Geometry * geo = new osg::Geometry;
+    
+    osg::Vec3Array * vertexArray = new osg::Vec3Array;
+    vertexArray->push_back(osg::Vec3(0.0f, 0.0f, 0.0f));
+    vertexArray->push_back(osg::Vec3(1.0f, 0.0f, 0.0f));
+    vertexArray->push_back(osg::Vec3(1.0f, 1.0f, 0.0f));
+    vertexArray->push_back(osg::Vec3(0.0f, 1.0f, 0.0f));
+    geo->setVertexArray(vertexArray);
+    
+    osg::DrawElementsUInt * de = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS);
+    de->push_back(0);
+    de->push_back(1);
+    de->push_back(2);
+    de->push_back(3);
+    
+    geo->addPrimitiveSet(de);
+    
+    osg::Vec3Array * colorArray = new osg::Vec3Array;
+    colorArray->push_back(osg::Vec3(1.0f, 0.0f, 0.0f));
+    colorArray->push_back(osg::Vec3(0.0f, 1.0f, 0.0f));
+    colorArray->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
+    colorArray->push_back(osg::Vec3(1.0f, 1.0f, 1.0f));
+    geo->setColorArray(colorArray);
+    geo->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+    
+    osg::Geode * geode = new osg::Geode;
+    geode->addDrawable(geo);
+    
+    return geode;
+}
+
+
+
+
+
+
 
 
 int main(int argc, char** argv)
@@ -124,13 +168,42 @@ int main(int argc, char** argv)
     viewer.addEventHandler(new osgViewer::RecordCameraPathHandler);
 
     // load the data
-    osg::ref_ptr<osg::Node> loadedModel = osgDB::readNodeFiles(arguments);
+//    osg::ref_ptr<osg::Node> loadedModel = osgDB::readNodeFiles(arguments);
+    std::string modelFile("/home/ledocc/Work/VPB/data/lines.shp");
+    osg::ref_ptr<osg::Node> loadedModel = osgDB::readNodeFile(modelFile);
     if (!loadedModel) 
     {
         std::cout << arguments.getApplicationName() <<": No data loaded" << std::endl;
         return 1;
     }
-
+    
+    std::string heightFieldFile("/home/ledocc/Work/VPB/data/dtm_200m.tif.gdal");
+    osg::ref_ptr<osg::HeightField> hf = osgDB::readHeightFieldFile(heightFieldFile);
+    
+    // ** map loaded model on HeightField
+    vpb::HeightFieldMapper hfm(*hf.get());
+    vpb::HeightFieldMapperVisitor hfmv(hfm);
+    loadedModel->accept(hfmv);
+    
+    
+    osg::Material * mat = new osg::Material;
+    osg::Vec4 red(1.0,0.0,0.0,1.0);
+    mat->setDiffuse(osg::Material::FRONT, red);
+    
+    
+    osg::StateSet * ss = loadedModel->getOrCreateStateSet();
+    ss->setAttributeAndModes(mat, osg::StateAttribute::ON);
+    
+    
+    // ** make scene graph
+    osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+    geode->addDrawable(new osg::ShapeDrawable(hf.get()));
+    
+    osg::ref_ptr<osg::Group> group(new osg::Group); 
+    group->addChild(loadedModel.get());
+    group->addChild(geode.get());
+    
+    
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();
 
@@ -141,17 +214,13 @@ int main(int argc, char** argv)
         return 1;
     }
 
-
-    vpb::ExtrudeVisitor ev;
-    loadedModel->accept(ev);
-
-    
+  
     // optimize the scene graph, remove redundant nodes and state etc.
     osgUtil::Optimizer optimizer;
-    optimizer.optimize(loadedModel.get());
+    optimizer.optimize(group.get());
 
     
-    viewer.setSceneData( loadedModel.get() );
+    viewer.setSceneData( group.get() );
 
     // add the state manipulator
     viewer.addEventHandler( new osgGA::StateSetManipulator(loadedModel->getOrCreateStateSet()) );
