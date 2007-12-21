@@ -68,7 +68,7 @@ void DataSet::init()
     
     _modelPlacer = new ObjectPlacer;
     _shapeFilePlacer = new ShapeFilePlacer;
-    
+
 }
 
 void DataSet::addSource(Source* source)
@@ -750,21 +750,63 @@ void DataSet::populateDestinationGraphFromSources()
 }
 
 
+class ReadFromOperation : public BuildOperation
+{
+    public:
+
+        ReadFromOperation(BuildLog* buildLog, DestinationTile* tile, CompositeSource* sourceGraph):
+            BuildOperation(buildLog, "ReadFromOperation", false),
+            _tile(tile),
+            _sourceGraph(sourceGraph) {}
+
+        virtual void build()
+        {
+            log(osg::NOTICE, "   ReadFromOperation: reading tile level=%u X=%u Y=%u",_tile->_level,_tile->_tileX,_tile->_tileY);
+            _tile->readFrom(_sourceGraph.get());
+        }
+      
+        osg::ref_ptr<DestinationTile> _tile;
+        osg::ref_ptr<CompositeSource> _sourceGraph;
+};
+
 void DataSet::_readRow(Row& row)
 {
     log(osg::NOTICE, "_readRow %u",row.size());
-    for(Row::iterator citr=row.begin();
-        citr!=row.end();
-        ++citr)
+    
+    if (_readThreadPool.valid())
     {
-        CompositeDestination* cd = citr->second;
-        for(CompositeDestination::TileList::iterator titr=cd->_tiles.begin();
-            titr!=cd->_tiles.end();
-            ++titr)
+        for(Row::iterator citr=row.begin();
+            citr!=row.end();
+            ++citr)
         {
-            DestinationTile* tile = titr->get();
-            log(osg::NOTICE, "   reading tile level=%u X=%u Y=%u",tile->_level,tile->_tileX,tile->_tileY);
-            tile->readFrom(_sourceGraph.get());
+            CompositeDestination* cd = citr->second;
+            for(CompositeDestination::TileList::iterator titr=cd->_tiles.begin();
+                titr!=cd->_tiles.end();
+                ++titr)
+            {
+                _readThreadPool->run(new ReadFromOperation(getBuildLog(), titr->get(), _sourceGraph.get()));
+            }
+        }
+
+        // wait for the threads to complete.
+        _readThreadPool->waitForCompletion();
+
+    }
+    else
+    {    
+        for(Row::iterator citr=row.begin();
+            citr!=row.end();
+            ++citr)
+        {
+            CompositeDestination* cd = citr->second;
+            for(CompositeDestination::TileList::iterator titr=cd->_tiles.begin();
+                titr!=cd->_tiles.end();
+                ++titr)
+            {
+                DestinationTile* tile = titr->get();
+                log(osg::NOTICE, "   reading tile level=%u X=%u Y=%u",tile->_level,tile->_tileX,tile->_tileY);
+                tile->readFrom(_sourceGraph.get());
+            }
         }
     }
 }
@@ -851,6 +893,48 @@ public:
     }
 };
 
+class WriteOperation : public BuildOperation
+{
+    public:
+
+        WriteOperation(DataSet* dataset,CompositeDestination* cd):
+            BuildOperation(dataset->getBuildLog(), "WriteOperation", false),
+            _dataset(dataset),
+            _cd(cd) {}
+
+        virtual void build()
+        {
+            notify(osg::NOTICE)<<"   WriteOperation"<<std::endl;
+
+            osg::ref_ptr<osg::Node> node = _cd->createSubTileScene();
+            std::string filename = _dataset->getDirectory() + _cd->getSubTileName();
+            if (node.valid())
+            {
+                log(osg::NOTICE, "   writeSubTile filename= %s",filename.c_str());
+                
+                osg::notify(osg::NOTICE)<<"   writeSubTile filename= "<<filename<<std::endl;
+                
+                _dataset->_writeNodeFile(*node,filename);
+
+                if (_dataset->getDestinationTileExtension()==".osg")
+                {
+                    WriteImageFilesVisitor wifv(_dataset);
+                    node->accept(wifv);
+                }
+
+                _cd->setSubTilesGenerated(true);
+                _cd->unrefSubTileData();
+            }
+            else
+            {
+                log(osg::WARN, "   failed to writeSubTile node for tile, filename=%s",filename.c_str());
+            }
+        }
+      
+        DataSet* _dataset;
+        osg::ref_ptr<CompositeDestination> _cd;
+};
+
 void DataSet::_writeRow(Row& row)
 {
     log(osg::NOTICE, "_writeRow %u",row.size());
@@ -865,25 +949,35 @@ void DataSet::_writeRow(Row& row)
         {
             if (!parent->getSubTilesGenerated() && parent->areSubTilesComplete())
             {
-                osg::ref_ptr<osg::Node> node = parent->createSubTileScene();
-                std::string filename = _directory+parent->getSubTileName();
-                if (node.valid())
+                parent->setSubTilesGenerated(true);
+                
+                if (_buildThreadPool.valid())
                 {
-                    log(osg::NOTICE, "   writeSubTile filename= %s",filename.c_str());
-                    _writeNodeFile(*node,filename);
-
-                    if (_tileExtension==".osg")
-                    {
-                        WriteImageFilesVisitor wifv(this);
-                        node->accept(wifv);
-                    }
-
-                    parent->setSubTilesGenerated(true);
-                    parent->unrefSubTileData();
+                    _buildThreadPool->run(new WriteOperation(this, parent));
                 }
                 else
                 {
-                    log(osg::WARN, "   failed to writeSubTile node for tile, filename=%s",filename.c_str());
+                    osg::ref_ptr<osg::Node> node = parent->createSubTileScene();
+                    std::string filename = _directory+parent->getSubTileName();
+                    if (node.valid())
+                    {
+                        log(osg::NOTICE, "   writeSubTile filename= %s",filename.c_str());
+                        _writeNodeFile(*node,filename);
+
+                        if (_tileExtension==".osg")
+                        {
+                            WriteImageFilesVisitor wifv(this);
+                            node->accept(wifv);
+                        }
+
+                        parent->setSubTilesGenerated(true);
+                        parent->unrefSubTileData();
+
+                    }
+                    else
+                    {
+                        log(osg::WARN, "   failed to writeSubTile node for tile, filename=%s",filename.c_str());
+                    }
                 }
             }
         }
@@ -932,6 +1026,8 @@ void DataSet::_writeRow(Row& row)
 
         }
     }
+
+    if (_buildThreadPool.valid()) _buildThreadPool->waitForCompletion();
 }
 
 void DataSet::createDestination(unsigned int numLevels)
@@ -1590,6 +1686,28 @@ int DataSet::run()
     {
         pushOperationLog(getBuildLog());
     }
+    
+
+    int numProcessors = OpenThreads::GetNumberOfProcessors();
+    if (numProcessors>1)
+    {
+        int numReadThreads = int(ceilf(getNumReadThreadsToCoresRatio() * float(numProcessors)));
+        if (numReadThreads>1)
+        {
+            log(osg::NOTICE,"Starting %i read threads.",numReadThreads);
+            _readThreadPool = new ThreadPool(numReadThreads);
+            _readThreadPool->startThreads();
+        }
+        
+        int numWriteThreads = int(ceilf(getNumWriteThreadsToCoresRatio() * float(numProcessors)));
+        if (numWriteThreads>1)
+        {
+            log(osg::NOTICE,"Starting %i write threads.",numWriteThreads);
+            _buildThreadPool = new ThreadPool(numWriteThreads);
+            _buildThreadPool->startThreads();
+        }
+    }
+    
 
     loadSources();
 

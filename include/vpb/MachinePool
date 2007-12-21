@@ -20,6 +20,7 @@
 
 #include <vpb/Task>
 #include <vpb/BuildLog>
+#include <vpb/BlockOperation>
 
 namespace vpb
 {
@@ -36,23 +37,12 @@ class VPB_EXPORT MachineOperation : public osg::Operation
         osg::ref_ptr<Task> _task;
 };
 
-class VPB_EXPORT BlockOperation : public osg::Operation, public OpenThreads::Block
-{
-    public:
-    
-        BlockOperation();
-
-        virtual void release();
-
-        virtual void operator () (osg::Object* object);
-};
         
 // forward declare to allow MachinePool and TaskManager to allow them to be declared as friends
 class MachinePool;
 class TaskManager;
 
 
-typedef std::list< osg::ref_ptr<osg::OperationsThread> > Threads;
 
 class TaskStats
 {

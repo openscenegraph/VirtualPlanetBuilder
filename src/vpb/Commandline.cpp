@@ -34,7 +34,7 @@ Commandline::Commandline()
 
 void Commandline::init()
 {
-    maximumPossibleLevel = 30;
+    maximumPossibleLevel = MAXIMUM_NUMBER_OF_LEVELS;
     typeAttributeName = "NAME";
     heightAttributeName = "HEIGHT";
     terrainmask = 0xffffffff;
@@ -451,6 +451,8 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--height","Set the height to use for asscociated shapefiles.");
     usage.addCommandLineOption("--mask","Set the mask to assign indivual shapefile/model.");
     usage.addCommandLineOption("--terrain-mask","Set the overall mask to assign terrain.");
+    usage.addCommandLineOption("--read-threads-ratio <ratio>","Set the ratio number of read threads relative to number of cores to use.");
+    usage.addCommandLineOption("--write-threads-ratio <ratio>","Set the ratio number of write threads relative to number of cores to use.");
 }
 
 int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrainInput)
@@ -684,6 +686,10 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     while (arguments.read("--height-attribute",heightAttributeName)) {}
 
     while (arguments.read("--type-attribute",typeAttributeName)) {}
+
+    float ratio=0.0f;
+    while(arguments.read("--read-threads-ratio",ratio)) { buildOptions->setNumReadThreadsToCoresRatio(ratio); }
+    while(arguments.read("--write-threads-ratio",ratio)) { buildOptions->setNumWriteThreadsToCoresRatio(ratio); }
 
 
     if (arguments.read("-O",str))

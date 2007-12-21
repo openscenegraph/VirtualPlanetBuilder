@@ -20,6 +20,7 @@
 #include <vpb/SourceData>
 
 #include <osg/Shape>
+#include <osgTerrain/Layer>
 
 namespace vpb
 {

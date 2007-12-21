@@ -414,6 +414,8 @@ void SourceData::readImage(DestinationData& destination)
         osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getOptimumGeospatialDataset(destination, READ_ONLY);
         if (!_gdalDataset) return;
         
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_gdalDataset->getMutex());
+
         GeospatialExtents s_bb = getExtents(destination._cs.get());
         GeospatialExtents d_bb = destination._extents;
 
@@ -774,6 +776,8 @@ void SourceData::readHeightField(DestinationData& destination)
 
         osg::ref_ptr<GeospatialDataset> _gdalDataset = _source->getOptimumGeospatialDataset(destination, READ_ONLY);
         if (!_gdalDataset.valid()) return;
+        
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_gdalDataset->getMutex());
 
         GeospatialExtents s_bb = getExtents(destination._cs.get());
         GeospatialExtents d_bb = destination._extents;

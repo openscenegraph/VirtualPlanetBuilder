@@ -30,6 +30,7 @@ SET(LIB_PUBLIC_HEADERS
 	${HEADER_PATH}/System
 	${HEADER_PATH}/Task
 	${HEADER_PATH}/TaskManager
+	${HEADER_PATH}/ThreadPool
 	${HEADER_PATH}/Version
 )
 
@@ -59,6 +60,7 @@ ADD_LIBRARY(${LIB_NAME}
 	System.cpp
 	Task.cpp
 	TaskManager.cpp
+	ThreadPool.cpp
 	Version.cpp
 )
 

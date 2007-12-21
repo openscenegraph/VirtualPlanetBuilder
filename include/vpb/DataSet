@@ -39,6 +39,7 @@
 #include <vpb/BuildOptions>
 #include <vpb/BuildLog>
 #include <vpb/ObjectPlacer>
+#include <vpb/ThreadPool>
 
 
 // forward declare so we can avoid tieing vpb to GDAL.
@@ -95,6 +96,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
 
         DataSet();
         
+       
         void setTask(Task* taskFile) { _taskFile = taskFile; }
         Task* getTask() { return _taskFile.get(); }
         const Task* getTask() const { return _taskFile.get(); }
@@ -183,8 +185,9 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         virtual ~DataSet() {}
 
         friend class DestinationTile;
-
-
+        
+        osg::ref_ptr<ThreadPool> _readThreadPool;
+        osg::ref_ptr<ThreadPool> _buildThreadPool;
 
         void _readRow(Row& row);
         void _equalizeRow(Row& row);

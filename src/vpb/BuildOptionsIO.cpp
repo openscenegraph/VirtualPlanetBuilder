@@ -203,6 +203,9 @@ public:
         { AEP(NotifyLevel); AEV(ALWAYS); AEV(FATAL); AEV(WARN); AEV(NOTICE); AEV(INFO); AEV(DEBUG_INFO); AEV(DEBUG_FP); }
 
         ADD_BOOL_PROPERTY(DisableWrites);
+        
+        ADD_FLOAT_PROPERTY(NumReadThreadsToCoresRatio);
+        ADD_FLOAT_PROPERTY(NumWriteThreadsToCoresRatio);
     }
     
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)

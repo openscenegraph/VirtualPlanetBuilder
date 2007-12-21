@@ -493,9 +493,12 @@ void MachinePool::waitForCompletion()
     // there can still be operations running though so need to double check.
     while(getNumThreadsActive()>0 && !done())
     {
-        log(osg::INFO, "MachinePool::waitForCompletion : Waiting for threads to complete = %d",getNumThreadsActive());
-        
-        OpenThreads::Thread::microSleep(1000000);
+        // log(osg::INFO, "MachinePool::waitForCompletion : Waiting for threads to complete = %d",getNumThreadsActive());
+#if 0        
+        // OpenThreads::Thread::microSleep(1000000);
+#else
+        OpenThreads::Thread::YieldCurrentThread();
+#endif        
     }
 
     log(osg::INFO, "MachinePool::waitForCompletion : done %d",done());

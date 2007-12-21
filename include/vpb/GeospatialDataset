@@ -17,6 +17,8 @@
 #include <osg/Timer>
 #include <osgDB/FileUtils>
 
+#include <OpenThreads/Mutex>
+
 #include <vpb/Export>
 
 #include <gdal_priv.h>
@@ -67,12 +69,15 @@ class VPB_EXPORT GeospatialDataset : public osg::Referenced
         
         double getTimeStamp() const { return _timeStamp; }
         
+        OpenThreads::Mutex& getMutex() const { return _mutex; }
+        
     protected:
 
         virtual ~GeospatialDataset();
         
-        GDALDataset*    _dataset;
-        double          _timeStamp;
+        mutable OpenThreads::Mutex  _mutex;
+        GDALDataset*                _dataset;
+        double                      _timeStamp;
 };
 
 }

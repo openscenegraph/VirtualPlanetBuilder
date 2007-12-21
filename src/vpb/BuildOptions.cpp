@@ -64,6 +64,9 @@ BuildOptions::BuildOptions():
     
     _notifyLevel = NOTICE;
     _disableWrites = false;
+    
+    _numReadThreadsToCoresRatio = 0.0f;
+    _numWriteThreadsToCoresRatio = 0.0f;
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop):
@@ -127,6 +130,9 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     
     _notifyLevel = rhs._notifyLevel;
     _disableWrites = rhs._disableWrites;
+    
+    _numReadThreadsToCoresRatio = rhs._numReadThreadsToCoresRatio;
+    _numWriteThreadsToCoresRatio = rhs._numWriteThreadsToCoresRatio;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)

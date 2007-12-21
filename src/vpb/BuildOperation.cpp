@@ -12,6 +12,7 @@
 */
 
 #include <vpb/BuildOperation>
+#include <vpb/ThreadPool>
 
 using namespace vpb;
 
@@ -27,8 +28,12 @@ BuildOperation::BuildOperation(BuildLog* buildLog, const std::string& name, bool
     }
 }
 
-void BuildOperation::operator () (osg::Object*)
+void BuildOperation::operator () (osg::Object* object)
 {
+    ThreadPool* threadPool = dynamic_cast<ThreadPool*>(object);
+
+    if (threadPool) threadPool->runningOperation(this);
+
     pushOperationLog(_log.get());
 
     if (_buildLog.valid())
@@ -42,5 +47,8 @@ void BuildOperation::operator () (osg::Object*)
     if (_buildLog.valid()) _buildLog->completedOperation(this);
     
     popOperationLog();
+
+    if (threadPool) threadPool->completedOperation(this);
+
 }
 

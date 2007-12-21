@@ -24,8 +24,6 @@
 class GDALDataset;
 class GDALRasterBand;
 
-#define MAXIMUM_NUMBER_OF_LEVELS 30
-
 namespace vpb
 {
 

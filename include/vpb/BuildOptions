@@ -227,6 +227,12 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setDisableWrites(bool flag) { _disableWrites = flag; }
         bool getDisableWrites() const { return _disableWrites; }
         
+        void setNumReadThreadsToCoresRatio(float ratio) { _numReadThreadsToCoresRatio = ratio; }
+        float getNumReadThreadsToCoresRatio() const { return _numReadThreadsToCoresRatio; }
+        
+        void setNumWriteThreadsToCoresRatio(float ratio) { _numWriteThreadsToCoresRatio = ratio; }
+        float getNumWriteThreadsToCoresRatio() const { return _numWriteThreadsToCoresRatio; }
+        
     protected:
 
         bool                                        _buildOverlays;
@@ -274,7 +280,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
         NotifyLevel                                 _notifyLevel;
         bool                                        _disableWrites;
         
-        std::string                                 _heightAttributeName;
+        float                                       _numReadThreadsToCoresRatio;
+        float                                       _numWriteThreadsToCoresRatio;
 };
 
 }

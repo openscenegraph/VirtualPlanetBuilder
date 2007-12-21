@@ -13,6 +13,7 @@
 
 #include <vpb/System>
 #include <osg/Notify>
+#include <OpenThreads/ScopedLock>
 
 using namespace vpb;
 
@@ -108,6 +109,7 @@ CPLErr GeospatialDataset::RasterIO( GDALRWFlag a, int b, int c, int d, int e,
                       int j, int * k, int l, int m, int n)
 {
     updateTimeStamp();
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
     return _dataset->RasterIO(a,b,c,d,e,f,g,h,i,j,k,l,m,n); 
 }
 
@@ -115,6 +117,7 @@ CPLErr GeospatialDataset::BuildOverviews( const char * a, int b, int * c,
                        int d, int * e, GDALProgressFunc f, void * g)
 {
     updateTimeStamp();
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
     return _dataset->BuildOverviews(a,b,c,d,e,f,g);
 }
 

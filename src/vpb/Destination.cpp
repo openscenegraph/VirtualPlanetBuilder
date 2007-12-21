@@ -1844,9 +1844,11 @@ osg::Node* DestinationTile::createPolygonal()
     if (_dataSet->getSimplifyTerrain())
     {
         unsigned int targetMaxNumVertices = 512;
-        float sample_ratio = (numVertices <= targetMaxNumVertices) ? 1.0f : (float)targetMaxNumVertices/(float)numVertices; 
+        double sample_ratio = (numVertices <= targetMaxNumVertices) ? 1.0 : (double)targetMaxNumVertices/(double)numVertices; 
+        double radius = double(geometry->getBound().radius());
+        double maximumError = radius / 2000.0;
     
-        osgUtil::Simplifier simplifier(sample_ratio,geometry->getBound().radius()/2000.0f);
+        osgUtil::Simplifier simplifier(sample_ratio,maximumError);
 
         simplifier.setDoTriStrip(false);
         simplifier.setSmoothing(false);
@@ -1963,6 +1965,9 @@ void DestinationTile::unrefData()
     _imagery.clear();
     _terrain = 0;
     _models = 0;
+    
+    _createdScene = 0;
+    _stateset = 0;
 }
 
 void DestinationTile::addRequiredResolutions(CompositeSource* sourceGraph)
