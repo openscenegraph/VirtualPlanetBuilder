@@ -112,7 +112,7 @@ void ThreadPool::startThreads()
         osg::OperationThread* thread = itr->first.get();
         if (!thread->isRunning())
         {            
-            thread->setProcessorAffinity(processNum % numProcessors);
+            //thread->setProcessorAffinity(processNum % numProcessors);
             thread->startThread();
         }
     }

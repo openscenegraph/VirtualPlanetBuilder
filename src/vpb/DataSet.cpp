@@ -910,9 +910,7 @@ class WriteOperation : public BuildOperation
             std::string filename = _dataset->getDirectory() + _cd->getSubTileName();
             if (node.valid())
             {
-                log(osg::NOTICE, "   writeSubTile filename= %s",filename.c_str());
-                
-                osg::notify(osg::NOTICE)<<"   writeSubTile filename= "<<filename<<std::endl;
+                if (_buildLog.valid()) _buildLog->log(osg::NOTICE, "   writeSubTile filename= %s",filename.c_str());
                 
                 _dataset->_writeNodeFile(*node,filename);
 
@@ -1027,7 +1025,10 @@ void DataSet::_writeRow(Row& row)
         }
     }
 
+#if 0
     if (_writeThreadPool.valid()) _writeThreadPool->waitForCompletion();
+#endif
+
 }
 
 void DataSet::createDestination(unsigned int numLevels)
@@ -1185,11 +1186,16 @@ void DataSet::_buildDestination(bool writeToDisk)
                 }
                 
                 _equalizeRow(prev_itr->second);
+                
                 if (writeToDisk)
                 {
-                    _writeRow(prev_itr->second);
+                    if (writeToDisk) _writeRow(prev_itr->second);
                 }
+
+                if (_writeThreadPool.valid()) _writeThreadPool->waitForCompletion();
+
             }
+
         }
 
         if (_archive.valid())
@@ -1351,7 +1357,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
 
 bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
 {
-    osg::notify(osg::NOTICE)<<"Adding terrain "<<terrain->getName()<<std::endl;
+    log(osg::NOTICE,"Adding terrain %s",terrain->getName().c_str());
 
     if (terrain->getLocator())
     {
@@ -1690,10 +1696,12 @@ int DataSet::run()
     bool requiresGraphicsContextInMainThread = true;
     
     int numProcessors = OpenThreads::GetNumberOfProcessors();
+#if 0    
     if (numProcessors>1)
+#endif
     {
         int numReadThreads = int(ceilf(getNumReadThreadsToCoresRatio() * float(numProcessors)));
-        if (numReadThreads>1)
+        if (numReadThreads>=1)
         {
             log(osg::NOTICE,"Starting %i read threads.",numReadThreads);
             _readThreadPool = new ThreadPool(numReadThreads, false);
@@ -1701,7 +1709,7 @@ int DataSet::run()
         }
         
         int numWriteThreads = int(ceilf(getNumWriteThreadsToCoresRatio() * float(numProcessors)));
-        if (numWriteThreads>1)
+        if (numWriteThreads>=1)
         {
             log(osg::NOTICE,"Starting %i write threads.",numWriteThreads);
             _writeThreadPool = new ThreadPool(numWriteThreads, true);

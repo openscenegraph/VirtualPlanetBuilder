@@ -490,12 +490,14 @@ void MachinePool::waitForCompletion()
     // wait till block is complete i.e. the operation queue has been cleared up to the block    
     _blockOp->block();
 
+    if (!done()) OpenThreads::Thread::YieldCurrentThread();
+
     // there can still be operations running though so need to double check.
     while(getNumThreadsActive()>0 && !done())
     {
         // log(osg::INFO, "MachinePool::waitForCompletion : Waiting for threads to complete = %d",getNumThreadsActive());
-#if 0        
-        // OpenThreads::Thread::microSleep(1000000);
+#if 1
+        OpenThreads::Thread::microSleep(1000000);
 #else
         OpenThreads::Thread::YieldCurrentThread();
 #endif        
