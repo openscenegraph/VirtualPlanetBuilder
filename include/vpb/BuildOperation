@@ -27,11 +27,13 @@
 namespace vpb
 {
 
+class ThreadPool;
+
 class VPB_EXPORT BuildOperation : public osg::Operation
 {
     public:
     
-        BuildOperation(BuildLog* buildLog, const std::string& name, bool keep);
+        BuildOperation(ThreadPool* threadPool, BuildLog* buildLog, const std::string& name, bool keep);
         
         /** Set the OperationLog to use store log messages.*/    
         void setOperationLog(OperationLog* log) { _log = log; }
@@ -51,6 +53,7 @@ class VPB_EXPORT BuildOperation : public osg::Operation
 
     protected:
     
+        ThreadPool*                 _threadPool;
         osg::ref_ptr<OperationLog>  _log;
         osg::observer_ptr<BuildLog> _buildLog;
 

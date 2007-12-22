@@ -15,14 +15,18 @@
 
 using namespace vpb;
 
-ThreadPool::ThreadPool(unsigned int numThreads)
+ThreadPool::ThreadPool(unsigned int numThreads, bool requiresGraphicsContext):
+    _numThreads(numThreads),
+    _requiresGraphicsContext(requiresGraphicsContext)
 {
-    init(numThreads);
+    init();
 }
 
-ThreadPool::ThreadPool(const ThreadPool& tp, const osg::CopyOp& copyop)
+ThreadPool::ThreadPool(const ThreadPool& tp, const osg::CopyOp& copyop):
+    _numThreads(tp._numThreads),
+    _requiresGraphicsContext(tp._requiresGraphicsContext)
 {
-    init(tp._threads.size());
+    init();
 }
 
 ThreadPool::~ThreadPool()
@@ -31,7 +35,7 @@ ThreadPool::~ThreadPool()
 }
 
 
-void ThreadPool::init(unsigned int numThreads)
+void ThreadPool::init()
 {
     _numRunningOperations = 0;
     _done = false;
@@ -39,13 +43,60 @@ void ThreadPool::init(unsigned int numThreads)
     _operationQueue = new osg::OperationQueue;
     _blockOp = new BlockOperation;    
 
-    for(unsigned int i=0; i<numThreads; ++i)
+    osg::GraphicsContext* sharedContext = 0;
+
+    for(unsigned int i=0; i<_numThreads; ++i)
     {
-        osg::OperationThread* thread = new osg::OperationThread;
-        thread->setOperationQueue(_operationQueue.get());
-        thread->setParent(this);
+        osg::ref_ptr<osg::OperationThread> thread;
+        osg::ref_ptr<osg::GraphicsContext> gc;
+    
+        if (_requiresGraphicsContext)
+        {
+            osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+            traits->x = 0;
+            traits->y = 0;
+            traits->width = 1;
+            traits->height = 1;
+            traits->windowDecoration = false;
+            traits->doubleBuffer = false;
+            traits->sharedContext = sharedContext;
+            traits->pbuffer = true;
+            
+
+            gc = osg::GraphicsContext::createGraphicsContext(traits.get());
+
+            if (!gc)
+            {
+                traits->pbuffer = false;
+                gc = osg::GraphicsContext::createGraphicsContext(traits.get());
+            }
+
+            if (gc.valid()) 
+            {
+                gc->realize();                
+                
+                if (!sharedContext) sharedContext = gc.get();
+                
+                gc->createGraphicsThread();
+                
+                thread = gc->getGraphicsThread();
+            }
         
-        _threads.push_back(thread);
+        }
+        else
+        {
+        
+            thread = new osg::OperationThread;
+            thread->setParent(this);
+
+        }
+
+        if (thread.valid()) 
+        {
+            thread->setOperationQueue(_operationQueue.get());
+
+            _threads.push_back(ThreadContextPair(thread, gc));
+        }
     }
 }
 
@@ -58,10 +109,11 @@ void ThreadPool::startThreads()
         itr != _threads.end();
         ++itr, ++processNum)
     {
-        if (!((*itr)->isRunning()))
+        osg::OperationThread* thread = itr->first.get();
+        if (!thread->isRunning())
         {            
-            (*itr)->setProcessorAffinity(processNum % numProcessors);
-            (*itr)->startThread();
+            thread->setProcessorAffinity(processNum % numProcessors);
+            thread->startThread();
         }
     }
 }
@@ -74,14 +126,15 @@ void ThreadPool::stopThreads()
         itr != _threads.end();
         ++itr)
     {
-        if ((*itr)->isRunning())
+        osg::OperationThread* thread = itr->first.get();
+        if (thread->isRunning())
         {
-            (*itr)->setDone(true);
+            thread->setDone(true);
         }
     }
 }
 
-void ThreadPool::run(BuildOperation* op)
+void ThreadPool::run(osg::Operation* op)
 {
     if (_done)
     {

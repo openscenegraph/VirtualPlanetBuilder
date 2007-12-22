@@ -16,8 +16,9 @@
 
 using namespace vpb;
 
-BuildOperation::BuildOperation(BuildLog* buildLog, const std::string& name, bool keep):
+BuildOperation::BuildOperation(ThreadPool* threadPool, BuildLog* buildLog, const std::string& name, bool keep):
     osg::Operation(name,keep),
+    _threadPool(threadPool),
     _buildLog(buildLog)
 {
     _log = new OperationLog(name);
@@ -28,11 +29,9 @@ BuildOperation::BuildOperation(BuildLog* buildLog, const std::string& name, bool
     }
 }
 
-void BuildOperation::operator () (osg::Object* object)
+void BuildOperation::operator () (osg::Object*)
 {
-    ThreadPool* threadPool = dynamic_cast<ThreadPool*>(object);
-
-    if (threadPool) threadPool->runningOperation(this);
+    if (_threadPool) _threadPool->runningOperation(this);
 
     pushOperationLog(_log.get());
 
@@ -48,7 +47,7 @@ void BuildOperation::operator () (osg::Object* object)
     
     popOperationLog();
 
-    if (threadPool) threadPool->completedOperation(this);
+    if (_threadPool) _threadPool->completedOperation(this);
 
 }
 

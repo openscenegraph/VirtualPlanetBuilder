@@ -16,6 +16,7 @@
 
 #include <osg/Referenced>
 #include <osg/OperationThread>
+#include <osg/GraphicsContext>
 
 #include <vpb/BuildOperation>
 #include <vpb/BlockOperation>
@@ -27,7 +28,7 @@ class ThreadPool : public osg::Object
 {
      public:
      
-        ThreadPool(unsigned int numThreads=1);
+        ThreadPool(unsigned int numThreads=0, bool requiresGraphicsContext=false);
         
         ThreadPool(const ThreadPool&, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
 
@@ -37,7 +38,7 @@ class ThreadPool : public osg::Object
         
         void stopThreads();
         
-        void run(BuildOperation* op);
+        void run(osg::Operation* op);
 
         void waitForCompletion();
         
@@ -49,7 +50,7 @@ class ThreadPool : public osg::Object
     
         virtual ~ThreadPool();
     
-        void init(unsigned int numThreads);
+        void init();
     
         friend class BuildOperation;
     
@@ -57,6 +58,13 @@ class ThreadPool : public osg::Object
         void completedOperation(BuildOperation* op);
 
         osg::ref_ptr<osg::OperationQueue>   _operationQueue;
+        
+        typedef std::pair< osg::ref_ptr<osg::OperationThread>, osg::ref_ptr<osg::GraphicsContext> > ThreadContextPair;
+        typedef std::list< ThreadContextPair > Threads;
+        
+        unsigned int                        _numThreads;
+        bool                                _requiresGraphicsContext;
+        
         Threads                             _threads;
      
         mutable OpenThreads::Mutex          _mutex;

@@ -754,8 +754,8 @@ class ReadFromOperation : public BuildOperation
 {
     public:
 
-        ReadFromOperation(BuildLog* buildLog, DestinationTile* tile, CompositeSource* sourceGraph):
-            BuildOperation(buildLog, "ReadFromOperation", false),
+        ReadFromOperation(ThreadPool* threadPool, BuildLog* buildLog, DestinationTile* tile, CompositeSource* sourceGraph):
+            BuildOperation(threadPool, buildLog, "ReadFromOperation", false),
             _tile(tile),
             _sourceGraph(sourceGraph) {}
 
@@ -784,7 +784,7 @@ void DataSet::_readRow(Row& row)
                 titr!=cd->_tiles.end();
                 ++titr)
             {
-                _readThreadPool->run(new ReadFromOperation(getBuildLog(), titr->get(), _sourceGraph.get()));
+                _readThreadPool->run(new ReadFromOperation(_readThreadPool.get(), getBuildLog(), titr->get(), _sourceGraph.get()));
             }
         }
 
@@ -897,14 +897,14 @@ class WriteOperation : public BuildOperation
 {
     public:
 
-        WriteOperation(DataSet* dataset,CompositeDestination* cd):
-            BuildOperation(dataset->getBuildLog(), "WriteOperation", false),
+        WriteOperation(ThreadPool* threadPool, DataSet* dataset,CompositeDestination* cd):
+            BuildOperation(threadPool, dataset->getBuildLog(), "WriteOperation", false),
             _dataset(dataset),
             _cd(cd) {}
 
         virtual void build()
         {
-            notify(osg::NOTICE)<<"   WriteOperation"<<std::endl;
+            //notify(osg::NOTICE)<<"   WriteOperation"<<std::endl;
 
             osg::ref_ptr<osg::Node> node = _cd->createSubTileScene();
             std::string filename = _dataset->getDirectory() + _cd->getSubTileName();
@@ -953,7 +953,7 @@ void DataSet::_writeRow(Row& row)
                 
                 if (_writeThreadPool.valid())
                 {
-                    _writeThreadPool->run(new WriteOperation(this, parent));
+                    _writeThreadPool->run(new WriteOperation(_writeThreadPool.get(), this, parent));
                 }
                 else
                 {
@@ -1500,7 +1500,7 @@ osgTerrain::Terrain* DataSet::createTerrainRepresentation()
     return terrain.release();
 }
 
-class MyGraphicsContext {
+class MyGraphicsContext : public osg::Referenced {
     public:
         MyGraphicsContext(BuildLog* buildLog)
         {
@@ -1687,7 +1687,8 @@ int DataSet::run()
         pushOperationLog(getBuildLog());
     }
     
-
+    bool requiresGraphicsContextInMainThread = true;
+    
     int numProcessors = OpenThreads::GetNumberOfProcessors();
     if (numProcessors>1)
     {
@@ -1695,7 +1696,7 @@ int DataSet::run()
         if (numReadThreads>1)
         {
             log(osg::NOTICE,"Starting %i read threads.",numReadThreads);
-            _readThreadPool = new ThreadPool(numReadThreads);
+            _readThreadPool = new ThreadPool(numReadThreads, false);
             _readThreadPool->startThreads();
         }
         
@@ -1703,8 +1704,10 @@ int DataSet::run()
         if (numWriteThreads>1)
         {
             log(osg::NOTICE,"Starting %i write threads.",numWriteThreads);
-            _writeThreadPool = new ThreadPool(numWriteThreads);
+            _writeThreadPool = new ThreadPool(numWriteThreads, true);
             _writeThreadPool->startThreads();
+            
+            //requiresGraphicsContextInMainThread = false;
         }
     }
     
@@ -1740,11 +1743,16 @@ int DataSet::run()
             // dummy Viewer to get round silly Windows autoregistration problem for GraphicsWindowWin32.cpp
             osgViewer::Viewer viewer;
 
-            MyGraphicsContext context(getBuildLog());
-            if (!context.valid())
+            osg::ref_ptr<MyGraphicsContext> context;
+            
+            if (requiresGraphicsContextInMainThread)
             {
-                log(osg::NOTICE,"Error: Unable to create graphis context, problem with running osgViewer-%s, cannot run compression.",osgViewerGetVersion());
-                return 1;
+                context  = new MyGraphicsContext(getBuildLog());
+                if (!context || !context->valid())
+                {
+                    log(osg::NOTICE,"Error: Unable to create graphis context, problem with running osgViewer-%s, cannot run compression.",osgViewerGetVersion());
+                    return 1;
+                }
             }
 
             writeDestination();
