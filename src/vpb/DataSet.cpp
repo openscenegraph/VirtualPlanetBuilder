@@ -1192,8 +1192,9 @@ void DataSet::_buildDestination(bool writeToDisk)
                     if (writeToDisk) _writeRow(prev_itr->second);
                 }
 
+#if 0
                 if (_writeThreadPool.valid()) _writeThreadPool->waitForCompletion();
-
+#endif
             }
 
         }
@@ -1208,6 +1209,8 @@ void DataSet::_buildDestination(bool writeToDisk)
         {
             log(osg::NOTICE, "completed DataSet::writeDestination(%s)",filename.c_str());
         }
+
+        if (_writeThreadPool.valid()) _writeThreadPool->waitForCompletion();
 
     }
     else
