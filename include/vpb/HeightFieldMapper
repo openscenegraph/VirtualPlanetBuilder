@@ -18,7 +18,7 @@
 #include <osg/NodeVisitor>
 #include <osg/ref_ptr>
 
-
+#include <vpb/Export>
 
 namespace osg
 {
@@ -30,16 +30,16 @@ namespace vpb
 {
 
 /// HeightFieldMapper class do a mapping of a geometry on a HeightField.
-/// geometry have to be in the Xmin-Xmax and Ymin Ymax of the HeightField to woke fine.
-class HeightFieldMapper
+/// Geometry have to be in the Xmin-Xmax and Ymin-Ymax of the HeightField to work fine.
+class VPB_EXPORT HeightFieldMapper
 {
     public:
         
-        /// in PER_GEOMETRY mode, HeightFieldMapper detect the edgebound loop,
+        /// in PER_GEOMETRY mode, HeightFieldMapper detect edgebound loop,
         ///  compute the centroid of this polygon and map this point on the height
-        ///  then adjust the z vaule of all vertex
+        ///  then adjust the z value of all vertex
         ///
-        /// in PER_VERTEX mode, all vertex are mapped on the HeightField
+        /// in PER_VERTEX mode, all vertices are mapped on the HeightField
         enum Mode
         {
             PER_GEOMETRY,
@@ -48,28 +48,39 @@ class HeightFieldMapper
         
         // ** CTOR/DTOR
         HeightFieldMapper(osg::HeightField & hf);
+        HeightFieldMapper(osg::HeightField & hf, double xMin, double xMax, double yMin, double yMax);
         virtual ~HeightFieldMapper();
                 
         // ** map the geometry on heightfield
-        void map(osg::Geometry & geometry) const;        
+        bool map(osg::Geometry & geometry) const;
         
         // ** compute z value of HeightField for x y coordinates 
         double getZfromXY(double x, double y) const;
-                
+        
+        // set/get mode to use
+        void setMode(Mode mode) { _mappingMode = mode; }
+        Mode getMode() { return _mappingMode; }
+        
+        
     protected:
         
-        void getCentroid(osg::Geometry & geometry);
-        
+        bool getCentroid(osg::Geometry & geometry, osg::Vec3 & centroid) const;
         
     private:
         
         Mode _mappingMode;
         
         osg::HeightField & _hf;
+        
+        // ** HeightField Min Max
+        double _xMin;
+        double _yMin;
+        double _xMax;
+        double _yMax;
 };
 
 
-class HeightFieldMapperVisitor : public osg::NodeVisitor
+class VPB_EXPORT HeightFieldMapperVisitor : public osg::NodeVisitor
 {
     public:
         

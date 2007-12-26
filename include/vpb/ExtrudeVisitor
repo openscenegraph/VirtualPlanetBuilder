@@ -17,9 +17,11 @@
 #include <osg/NodeVisitor>
 #include <osg/Geometry>
 
+#include <vpb/Export>
+
 namespace vpb {
 
-class ExtrudeVisitor : public osg::NodeVisitor
+class VPB_EXPORT ExtrudeVisitor : public osg::NodeVisitor
 {
     public:
 
@@ -29,20 +31,27 @@ class ExtrudeVisitor : public osg::NodeVisitor
             Merge
         };
         
-        ExtrudeVisitor(Mode mode) : _mode(mode) {}
         ExtrudeVisitor() : _mode(Merge) {}
-        
+        ExtrudeVisitor(Mode mode) : _mode(mode) {}
+        ExtrudeVisitor(Mode mode, osg::Vec3d & extrudeVector) : _mode(mode), _extrudeVector(extrudeVector) {}
+
         Mode getMode() { return _mode; }
         void setMode(Mode mode) { _mode = mode; }
+
+        osg::Vec3d & getExtrudeVector() { return _extrudeVector; }
+        const osg::Vec3d & getExtrudeVector() const { return _extrudeVector; }
+        void setExtrudeVector(osg::Vec3d extrudeVector) { _extrudeVector = extrudeVector; }
+
+        void extrude(osg::Geometry& geometry, osg::Vec3d & extrudeVector);
         
         virtual void apply(osg::Geode& node);
         
     private:
         
-        void extrude(osg::Geometry& geometry, osg::Vec3 & extrudeVector);
         osg::DrawElementsUInt * linkAsTriangleStrip(osg::UIntArray & originalIndexArray,
                                                     osg::UIntArray & extrudeIndexArray);
         Mode _mode;
+        osg::Vec3d _extrudeVector;
 };
 
 } // end vpb namespace

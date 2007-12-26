@@ -26,9 +26,23 @@
 namespace vpb {
 
 HeightFieldMapper::HeightFieldMapper(osg::HeightField & hf)
-: 	_hf(hf),
-	_mappingMode(PER_VERTEX)
+:     _mappingMode(PER_VERTEX),
+    _hf(hf)
 {
+    _xMin = _hf.getOrigin().x();
+    _yMin = _hf.getOrigin().y();
+    _xMax = _xMin + _hf.getXInterval() * _hf.getNumColumns();
+    _yMax = _yMin + _hf.getYInterval() * _hf.getNumRows();
+
+}
+HeightFieldMapper::HeightFieldMapper(osg::HeightField & hf, double xMin, double xMax, double yMin, double yMax)
+:     _mappingMode(PER_VERTEX),
+    _hf(hf),
+    _xMin(xMin),
+    _yMin(yMin),
+    _xMax(xMax),
+    _yMax(yMax)
+{    
 }
 
 HeightFieldMapper::~HeightFieldMapper()
@@ -73,7 +87,7 @@ class ComputeCentroidVisitor : public osg::ArrayVisitor
                 centroidY += (vec0.y() + vec1.y()) * centroidTmp;
             }
             
-            typename ArrayType::ElementDataType & vec0 = array[*(it + 1)];
+            typename ArrayType::ElementDataType & vec0 = array[_ia.back()];
             typename ArrayType::ElementDataType & vec1 = array[_ia.front()];
             
             area += vec0.x() * vec1.y();
@@ -126,34 +140,50 @@ class HeightFieldMapperArrayVisitor : public osg::ArrayVisitor
 };
 
 
-void HeightFieldMapper::map(osg::Geometry & geometry) const
+bool HeightFieldMapper::getCentroid(osg::Geometry & geometry, osg::Vec3 & centroid) const
 {
-    if (_mappingMode == PER_VERTEX)
-    {
-        HeightFieldMapperArrayVisitor hfmv(*this);
-        geometry.getVertexArray()->accept(hfmv);
-    }
-    else if (_mappingMode == PER_GEOMETRY)
+    if (_mappingMode == PER_GEOMETRY)
     {
         osgUtil::EdgeCollector ec;
         ec.setGeometry(&geometry);
-        if (ec._triangleSet.size() == 0) return;
-    //    osg::notify(osg::INFO)<<"****************Extruder : found " << ec._pointSet.size() << " Points"<<std::endl;
-    //    osg::notify(osg::INFO)<<"****************Extruder : found " << ec._edgeSet.size() << " Edges"<<std::endl;
-    //    osg::notify(osg::INFO)<<"****************Extruder : found " << ec._triangleSet.size() << " Triangles"<<std::endl;
-
-        
+        if (ec._triangleSet.empty()) return false;
+            
         // ** get IndexArray of each Edgeloop
         osgUtil::EdgeCollector::IndexArrayList indexArrayList;
         ec.getEdgeloopIndexList(indexArrayList);
-        if (indexArrayList.empty()) return;
+        if (indexArrayList.empty()) return false;
         
         // ** compute centroid
         ComputeCentroidVisitor ccv(*indexArrayList.front());
         geometry.getVertexArray()->accept(ccv);
         
+        centroid = ccv._centroid;
+        return true;
+    }
+    
+    return false;
+}
+
+bool HeightFieldMapper::map(osg::Geometry & geometry) const
+{
+    if (_mappingMode == PER_VERTEX)
+    {
+        HeightFieldMapperArrayVisitor hfmv(*this);
+        geometry.getVertexArray()->accept(hfmv);
+        
+        return true;
+    }
+    
+    if (_mappingMode == PER_GEOMETRY)
+    {
+        osg::Vec3 centroid;
+        if (getCentroid(geometry, centroid) == false) return false;
+        
         // ** get z value to add to Z coordinates
-        double z = ccv._centroid.z() - getZfromXY(ccv._centroid.x(), ccv._centroid.y());
+        double zHeightField = getZfromXY(centroid.x(), centroid.y());
+        if (zHeightField == FLT_MAX) return false;
+        
+        double z = centroid.z() - zHeightField;
         
         // add z value to z coordinates to all vertex 
         osgUtil::AddRangeFunctor arf;
@@ -161,12 +191,18 @@ void HeightFieldMapper::map(osg::Geometry & geometry) const
         arf._begin = 0;
         arf._count = geometry.getVertexArray()->getNumElements();
         geometry.getVertexArray()->accept(arf);
+        
+        return true;
     }
+    
+    return false;
 }
 
 
 double HeightFieldMapper::getZfromXY(double x, double y) const
 {
+    if ((x > _xMax) || (x < _xMin) || (y > _yMax) || (y < _yMin)) return false;
+
     osg::Vec3 point(x,y,0.0f);
     
     /////////////////////////////////////////////////
@@ -174,11 +210,6 @@ double HeightFieldMapper::getZfromXY(double x, double y) const
     
     point -= _hf.getOrigin();
     
-    // ** out of heightfield plane
-    double maxX = _hf.getXInterval() * _hf.getNumColumns();
-    double maxY = _hf.getYInterval() * _hf.getNumRows();
-    
-    if ((maxX < point.x() || (maxY) < point.y())) return 0.0f;
     
     unsigned int column = static_cast<unsigned int>(point.x() / _hf.getXInterval());
     unsigned int row = static_cast<unsigned int>(point.y() / _hf.getYInterval());

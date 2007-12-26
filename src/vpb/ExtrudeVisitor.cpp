@@ -63,7 +63,7 @@ struct OffsetIndices
 
 // ** search BoundaryEdgeloop in the geometry, extrude this loop
 // **  and create primitiveSet to link original loop and extruded loop
-void ExtrudeVisitor::extrude(osg::Geometry& geometry, osg::Vec3 & extrudeVector)
+void ExtrudeVisitor::extrude(osg::Geometry& geometry, osg::Vec3d & extrudeVector)
 {
 //    osg::notify(osg::INFO)<<"****************Extruder : Start ************"<<std::endl;
 
@@ -242,6 +242,8 @@ void ExtrudeVisitor::extrude(osg::Geometry& geometry, osg::Vec3 & extrudeVector)
         }
     }
     
+
+    osgUtil::SmoothingVisitor::smooth(geometry);
 //    osg::notify(osg::INFO)<<"****************Extruder : finish ************"<<std::endl;
 }
 
@@ -270,17 +272,15 @@ void ExtrudeVisitor::apply(osg::Geode & node)
 {
     unsigned int numDrawable = node.getNumDrawables();
     
-    osg::Vec3 extrudeVector(0.0f, 0.0f, 0.0f);
+    
     
     for (unsigned int i = 0; i < numDrawable; ++i)
     {
-        extrudeVector.z() = 0.00005;
         osg::Geometry * geo = dynamic_cast<osg::Geometry *>(node.getDrawable(i));
         
         if (geo)
         {
-            extrude(*geo, extrudeVector);
-            osgUtil::SmoothingVisitor::smooth(*geo);        
+            extrude(*geo, _extrudeVector);        
         }
     }
     
