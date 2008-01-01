@@ -21,7 +21,7 @@
 
 #include <osgUtil/OperationArrayFunctor>
 #include <osgUtil/EdgeCollector>
-
+#include <osgUtil/ConvertVec>
 
 namespace vpb {
 
@@ -104,7 +104,7 @@ class ComputeCentroidVisitor : public osg::ArrayVisitor
         
         
         osg::UIntArray & _ia;
-        osg::Vec3 _centroid;
+        osg::Vec3d _centroid;
 };
 
 class HeightFieldMapperArrayVisitor : public osg::ArrayVisitor
@@ -140,7 +140,7 @@ class HeightFieldMapperArrayVisitor : public osg::ArrayVisitor
 };
 
 
-bool HeightFieldMapper::getCentroid(osg::Geometry & geometry, osg::Vec3 & centroid) const
+bool HeightFieldMapper::getCentroid(osg::Geometry & geometry, osg::Vec3d & centroid) const
 {
     if (_mappingMode == PER_GEOMETRY)
     {
@@ -176,18 +176,18 @@ bool HeightFieldMapper::map(osg::Geometry & geometry) const
     
     if (_mappingMode == PER_GEOMETRY)
     {
-        osg::Vec3 centroid;
+        osg::Vec3d centroid;
         if (getCentroid(geometry, centroid) == false) return false;
         
         // ** get z value to add to Z coordinates
         double zHeightField = getZfromXY(centroid.x(), centroid.y());
-        if (zHeightField == FLT_MAX) return false;
+        if (zHeightField == DBL_MAX) return false;
         
-        double z = centroid.z() - zHeightField;
+        double z = centroid.z() + zHeightField;
         
         // add z value to z coordinates to all vertex 
         osgUtil::AddRangeFunctor arf;
-        arf._vector = osg::Vec3(0,0,z);
+        arf._vector = osg::Vec3d(0,0,z);
         arf._begin = 0;
         arf._count = geometry.getVertexArray()->getNumElements();
         geometry.getVertexArray()->accept(arf);
@@ -201,29 +201,37 @@ bool HeightFieldMapper::map(osg::Geometry & geometry) const
 
 double HeightFieldMapper::getZfromXY(double x, double y) const
 {
-    if ((x > _xMax) || (x < _xMin) || (y > _yMax) || (y < _yMin)) return false;
+    if ((x > _xMax) || (x < _xMin) || (y > _yMax) || (y < _yMin)) return DBL_MAX;
 
-    osg::Vec3 point(x,y,0.0f);
+    osg::Vec3d point(x,y,0.0);
     
-    /////////////////////////////////////////////////
     // ** search column and row containing this point
+    point = point - osg::Vec3d(_hf.getOrigin());
     
-    point -= _hf.getOrigin();
+    unsigned int column = static_cast<unsigned int>(point.x() / (double)_hf.getXInterval());
+    unsigned int row = static_cast<unsigned int>(point.y() / (double)_hf.getYInterval());
+    
+    // ** take 3 points, POO(0,0), P1O(1,0) and PO1(0,1)
+    osg::Vec3d P00, P10, P01;
+    
+    osg::Vec3f vTmp(_hf.getVertex(column, row) - _hf.getOrigin());
+    osgUtil::ConvertVec<osg::Vec3f, osg::Vec3d>::convert(vTmp, P00);
+    
+    vTmp.set(_hf.getVertex(column+1, row) - _hf.getOrigin());
+    osgUtil::ConvertVec<osg::Vec3f, osg::Vec3d>::convert(vTmp, P10);
+    
+    vTmp.set(_hf.getVertex(column, row+1) - _hf.getOrigin());
+    osgUtil::ConvertVec<osg::Vec3f, osg::Vec3d>::convert(vTmp, P01);
+    
+    // ** compute the ratio in X and Y direction
+    double ratio00_10 = (point.x() - P00.x()) / (P10.x() - P00.x());
+    double ratio00_01 = (point.y() - P00.y()) / (P01.y() - P00.y());
+    
+    // ** apply the ratio on z coordinates to find the distance between P00.z and point.z
+    double z = (ratio00_10 * (P10.z() - P00.z())) + (ratio00_01 * (P01.z() - P00.z()));
     
     
-    unsigned int column = static_cast<unsigned int>(point.x() / _hf.getXInterval());
-    unsigned int row = static_cast<unsigned int>(point.y() / _hf.getYInterval());
-    
-    osg::Vec3 P00(_hf.getVertex(column, row) - _hf.getOrigin());
-    osg::Vec3 P10(_hf.getVertex(column+1, row) - _hf.getOrigin());
-    osg::Vec3 P01(_hf.getVertex(column, row+1) - _hf.getOrigin());
-    
-    float ratio00_10 = (point.x() - P00.x()) / (P10.x() - P00.x());
-    float ratio00_01 = (point.y() - P00.y()) / (P01.y() - P00.y());
-    
-    float z = (ratio00_10 * (P10.z() - P00.z())) + (ratio00_01 * (P01.z() - P00.z()));
-    
-    return (P00.z() + z);  
+    return (P00.z() + z);
 }
 
 

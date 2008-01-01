@@ -31,6 +31,12 @@ class VPB_EXPORT ExtrudeVisitor : public osg::NodeVisitor
             Merge
         };
         
+        enum Type
+        {
+            PER_VERTEX,
+            PER_GEOMETRY
+        };
+        
         ExtrudeVisitor() : _mode(Merge) {}
         ExtrudeVisitor(Mode mode) : _mode(mode) {}
         ExtrudeVisitor(Mode mode, osg::Vec3d & extrudeVector) : _mode(mode), _extrudeVector(extrudeVector) {}

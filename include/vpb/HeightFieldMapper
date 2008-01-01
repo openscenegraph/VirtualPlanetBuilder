@@ -64,7 +64,7 @@ class VPB_EXPORT HeightFieldMapper
         
     protected:
         
-        bool getCentroid(osg::Geometry & geometry, osg::Vec3 & centroid) const;
+        bool getCentroid(osg::Geometry & geometry, osg::Vec3d & centroid) const;
         
     private:
         

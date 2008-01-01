@@ -23,7 +23,27 @@
 #include <osgUtil/ConvertVec>
 #include <osgUtil/DrawElementTypeSimplifier>
 
+#include <osgSim/ShapeAttribute>
+
+#include <osg/Material>
+
 using namespace vpb;
+
+
+struct MatrixMultiplyArrayFunctor
+{
+    MatrixMultiplyArrayFunctor(osg::Matrixd & matrix) : _matrix(matrix) {}
+    
+    void operator() (osg::Vec3d & vec) 
+    {   
+        vec = osg::Vec3d(vec.x()*_matrix(0,0) + vec.y()*_matrix(1,0) + vec.z()*_matrix(2,0) + _matrix(3,0),
+                         vec.x()*_matrix(0,1) + vec.y()*_matrix(1,1) + vec.z()*_matrix(2,1) + _matrix(3,1),
+                         vec.x()*_matrix(0,2) + vec.y()*_matrix(1,2) + vec.z()*_matrix(2,2) + _matrix(3,2));
+    }
+    
+    osg::Matrixd & _matrix;
+};
+
 
 class DoubleToFloatVisitor : public osg::ArrayVisitor
 {
@@ -291,6 +311,12 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
 {
     public:
     
+        enum ShapeFileType
+        {
+            Forest,
+            Building
+        };
+        
         ShapeFileOverlapingHeightFieldPlacer(GeospatialExtents & ge, osg::HeightField & hf) :
             _hf(hf),
             _ge(ge)
@@ -329,7 +355,15 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
         
         virtual void apply(osg::Geode& node)                     
         { 
-            bool isBuilding = true;
+            osg::Matrixd localToWorld;
+            osg::Matrixd worldToLocal;
+            
+            double midX = _hf.getOrigin().x()+_hf.getXInterval()*((double)(_hf.getNumColumns()-1))*0.5;
+            double midY = _hf.getOrigin().y()+_hf.getYInterval()*((double)(_hf.getNumRows()-1))*0.5;
+            double midZ = _hf.getOrigin().z();
+            localToWorld.makeTranslate(midX,midY,midZ);
+            worldToLocal.invert(localToWorld);
+            
             
             const osg::BoundingBox & bb = node.getBoundingBox();
             
@@ -351,6 +385,26 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                     
                     osg::Geometry * geom = drawable->asGeometry();
                     if (geom == NULL) continue;
+
+                    
+                    ShapeFileType shapeType = Building;
+                    double height = 0.00005;
+                    
+                    osgSim::ShapeAttributeList* sal = dynamic_cast<osgSim::ShapeAttributeList*>(geom->getUserData());
+                    for(osgSim::ShapeAttributeList::iterator sitr = sal->begin(); sitr != sal->end(); ++sitr)
+                    {
+                        if ((sitr->getName() == "NAME") && (sitr->getType() == osgSim::ShapeAttribute::STRING))
+                        {
+                            if (sitr->getString() == "Building") shapeType = Building;
+                            else if (sitr->getString() == "Forest") shapeType = Forest;
+                        }
+                        
+                        else if ((sitr->getName() == "HEIGHT") && (sitr->getType() == osgSim::ShapeAttribute::DOUBLE))
+                        {
+                            height = sitr->getDouble();
+                        }
+                    }
+                    
                     
                     // ** if geometry overlap the HeightField
                     ComputeBoundd cb;
@@ -363,25 +417,33 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                         osg::ref_ptr<osg::Geometry> clonedGeom = static_cast<osg::Geometry*>(geom->clone(osg::CopyOp::DEEP_COPY_ARRAYS | osg::CopyOp::DEEP_COPY_PRIMITIVES));
                         
                         HeightFieldMapper hfm(_hf, _ge.xMin(), _ge.xMax(), _ge.yMin(), _ge.yMax());
-                        hfm.setMode(isBuilding ? HeightFieldMapper::PER_GEOMETRY : HeightFieldMapper::PER_VERTEX);
+                        hfm.setMode(shapeType == Building ? HeightFieldMapper::PER_GEOMETRY : HeightFieldMapper::PER_VERTEX);
                         
                         // ** if the geometry have centroid out of the HeightField, 
                         // **  don't extrude and insert the geometry in scene graph
                         if (hfm.map(*clonedGeom.get()))
                         {                        
-                            osg::Vec3d vec(0.0, 0.0, 0.00005);
+                            osg::Vec3d vec(0.0, 0.0, height);
                             
+                            // ** Extrude the geometry
                             ExtrudeVisitor ev;
                             ev.setMode(ExtrudeVisitor::Replace);
                             ev.extrude(*clonedGeom.get(), vec);
                             
+                            osg::Vec3dArray * vertexArray = dynamic_cast<osg::Vec3dArray*>(clonedGeom->getVertexArray());
+                            MatrixMultiplyArrayFunctor mmaf(worldToLocal);
+                            std::for_each(vertexArray->begin(), vertexArray->end(), mmaf);
+                            
+                            // ** replace VertexArray type osg::Vec3dArray by osg::Vec3Array
                             DoubleToFloatVisitor dtfVisitor;
                             clonedGeom->getVertexArray()->accept(dtfVisitor);
                             clonedGeom->setVertexArray(dtfVisitor._vertexArray.get());
                             
+                            // ** replace IndexArray type osg::ArrayUInt by osg::ArrayUShort or osg::ArrayUBytes if possible
                             osgUtil::DrawElementTypeSimplifier dets;
                             dets.simplify(*(clonedGeom.get()));
                             
+                            // ** insert the geometry in scnene graph
                             clonedGeode->addDrawable(clonedGeom.get());
                         }
                     }
@@ -422,22 +484,6 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
         osg::ref_ptr<osg::Node> _createdModel;
 };
 
-class PrintNodeVisitor : public virtual osg::NodeVisitor
-{
-    public:
-
-        PrintNodeVisitor() : _depth(0) {}
-        virtual void apply(osg::Node& node)
-        {
-            osg::notify(osg::WARN) << "Depth = " << _depth << ". Node type : " << node.libraryName() << "::" << node.className() << "." << std::endl;
-            ++_depth;
-            osg::NodeVisitor::apply(node);
-            --_depth;
-        }
-        
-        int _depth;
-};
-
 
 
 bool ShapeFilePlacer::place(DestinationTile& destinationTile, osg::Node* model)
@@ -448,16 +494,16 @@ bool ShapeFilePlacer::place(DestinationTile& destinationTile, osg::Node* model)
     osg::HeightField * hf = destinationTile.getSourceHeightField();
     if (hf == NULL) return true;
       
-//    PrintNodeVisitor pnv;
-//    model->accept(pnv);
-//    destinationTile.addNodeToScene(static_cast<osg::Node*>(model->clone(osg::CopyOp::DEEP_COPY_ALL)), true);
-    
-    
+        
     ShapeFileOverlapingHeightFieldPlacer shapePlacer(destinationTile._extents, *hf);
     model->accept(shapePlacer);
-//    
+
+    osg::Material * mat = new osg::Material;
+    mat->setDiffuse(osg::Material::FRONT, osg::Vec4f(1.0f,0.0f,0.0f,1.0f));
+    model->getOrCreateStateSet()->setAttributeAndModes(mat, osg::StateAttribute::ON);
+    
     if (shapePlacer.getCreatedModel())
-        destinationTile.addNodeToScene(shapePlacer.getCreatedModel(), false);
+        destinationTile.addNodeToScene(shapePlacer.getCreatedModel(), true);
     
     return true;
 }
