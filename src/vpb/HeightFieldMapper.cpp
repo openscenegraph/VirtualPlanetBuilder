@@ -31,8 +31,8 @@ HeightFieldMapper::HeightFieldMapper(osg::HeightField & hf)
 {
     _xMin = _hf.getOrigin().x();
     _yMin = _hf.getOrigin().y();
-    _xMax = _xMin + _hf.getXInterval() * _hf.getNumColumns();
-    _yMax = _yMin + _hf.getYInterval() * _hf.getNumRows();
+    _xMax = _xMin + _hf.getXInterval() * double(_hf.getNumColumns()-1);
+    _yMax = _yMin + _hf.getYInterval() * double(_hf.getNumRows()-1);
 
 }
 HeightFieldMapper::HeightFieldMapper(osg::HeightField & hf, double xMin, double xMax, double yMin, double yMax)
@@ -64,7 +64,7 @@ class ComputeCentroidVisitor : public osg::ArrayVisitor
         void apply(osg::Vec3dArray& array) { computeCentroid<osg::Vec3dArray>(array); }
         void apply(osg::Vec4dArray& array) { computeCentroid<osg::Vec4dArray>(array); }
     
-        
+#if 0        
         template <typename ArrayType>
         void computeCentroid(ArrayType & array)
         {
@@ -101,7 +101,28 @@ class ComputeCentroidVisitor : public osg::ArrayVisitor
             area = 1 / (6 * area);
             _centroid.set(area * centroidX, area * centroidY, vec0.z());
         }
+#else
+
+        template <typename ArrayType>
+        void computeCentroid(ArrayType & array)
+        {
+            if (_ia.empty()) return;
         
+            osg::Vec3d total(0.0,0.0,0.0);
+            
+            for (osg::UIntArray::iterator it = _ia.begin(); it != _ia.end(); ++it)
+            {
+                typename ArrayType::ElementDataType & vec = array[*it];
+                total.x() += vec.x();
+                total.y() += vec.y();
+                total.z() += vec.z();
+            }
+            
+            _centroid = total / double(_ia.size()) ;
+        }
+
+
+#endif        
         
         osg::UIntArray & _ia;
         osg::Vec3d _centroid;
@@ -176,14 +197,14 @@ bool HeightFieldMapper::map(osg::Geometry & geometry) const
     
     if (_mappingMode == PER_GEOMETRY)
     {
-        osg::Vec3d centroid;
+        osg::Vec3d centroid(0.0,0.0,0.0);
         if (getCentroid(geometry, centroid) == false) return false;
         
         // ** get z value to add to Z coordinates
         double zHeightField = getZfromXY(centroid.x(), centroid.y());
         if (zHeightField == DBL_MAX) return false;
         
-        double z = centroid.z() + zHeightField;
+        double z = zHeightField - centroid.z();
         
         // add z value to z coordinates to all vertex 
         osgUtil::AddRangeFunctor arf;
@@ -200,6 +221,22 @@ bool HeightFieldMapper::map(osg::Geometry & geometry) const
 
 
 double HeightFieldMapper::getZfromXY(double x, double y) const
+{
+#if 1
+    return robert_getZfromXY(x,y);
+#else
+    double david_z = david_getZfromXY(x,y);
+    double robert_z = robert_getZfromXY(x,y);
+    if (david_z != robert_z)
+    {
+        osg::notify(osg::NOTICE)<<"Warning HeightFieldMapper::getZfromXY("<<x<<","<<y<<") david_z="<<david_z<<" robert_z="<<robert_z<<std::endl;
+    }
+    
+    return robert_z;
+#endif
+}
+
+double HeightFieldMapper::david_getZfromXY(double x, double y) const
 {
     if ((x > _xMax) || (x < _xMin) || (y > _yMax) || (y < _yMin)) return DBL_MAX;
 
@@ -232,6 +269,41 @@ double HeightFieldMapper::getZfromXY(double x, double y) const
     
     
     return (P00.z() + z);
+}
+
+double HeightFieldMapper::robert_getZfromXY(double x, double y) const
+{
+    if ((x > _xMax) || (x < _xMin) || (y > _yMax) || (y < _yMin)) return DBL_MAX;
+
+    double dx_origin = x-_hf.getOrigin().x();
+    double dy_origin = y-_hf.getOrigin().y();
+
+    // compute the cell coordinates
+    double cx = dx_origin / double(_hf.getXInterval());
+    double cy = dy_origin / double(_hf.getYInterval());
+    
+    // compute the cell by taking the floor
+    double fx = floor(cx);
+    double fy = floor(cy);
+    int c = static_cast<int>(fx);
+    int r = static_cast<int>(fy);
+    
+    // compute the local cell ratio.
+    double rx = cx-fx;
+    double ry = cy-fy;
+    
+    double h00 = _hf.getHeight(c,r);
+    double h01 = ((r+1) < _hf.getNumRows()) ? _hf.getHeight(c,r+1) : h00;
+    double h10 = ((c) < _hf.getNumColumns()) ? _hf.getHeight(c+1,r) : h00;
+    double h11 = ((c+1) < _hf.getNumColumns() && (r+1) < _hf.getNumRows()) ? _hf.getHeight(c+1,r+1) : h00;
+
+    double z = _hf.getOrigin().z() + 
+                h00*(1.0-rx)*(1.0-ry) + 
+                h01*(1.0-rx)*(ry) + 
+                h10*(rx)*(1.0-ry) + 
+                h11*(rx)*(ry);
+    
+    return z;
 }
 
 

@@ -209,6 +209,9 @@ public:
     typedef std::vector<osg::Vec2> HeightDeltaList;
     HeightDeltaList                             _heightDeltas[NUMBER_OF_POSITIONS];
 
+    osg::Matrixd                                _localToWorld;
+    osg::Matrixd                                _worldToLocal;
+
     osg::ref_ptr<osg::StateSet>                 _stateset;
     osg::ref_ptr<osg::Node>                     _createdScene;
 };

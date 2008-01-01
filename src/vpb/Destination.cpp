@@ -1325,8 +1325,8 @@ osg::Node* DestinationTile::createPolygonal()
     osg::ref_ptr<osg::Vec3Array> n = new osg::Vec3Array(numVertices); // must use ref_ptr so the array isn't removed when smooothvisitor is used    
     
     float skirtRatio = _dataSet->getSkirtRatio();
-    osg::Matrixd localToWorld;
-    osg::Matrixd worldToLocal;
+    _localToWorld.makeIdentity();
+    _worldToLocal.makeIdentity();
     osg::Vec3 skirtVector(0.0f,0.0f,0.0f);
 
     
@@ -1345,7 +1345,7 @@ osg::Node* DestinationTile::createPolygonal()
             double midLong = grid->getOrigin().x()+grid->getXInterval()*((double)(numColumns-1))*0.5;
             double midLat = grid->getOrigin().y()+grid->getYInterval()*((double)(numRows-1))*0.5;
             double midZ = grid->getOrigin().z();
-            et->computeLocalToWorldTransformFromLatLongHeight(osg::DegreesToRadians(midLat),osg::DegreesToRadians(midLong),midZ,localToWorld);
+            et->computeLocalToWorldTransformFromLatLongHeight(osg::DegreesToRadians(midLat),osg::DegreesToRadians(midLong),midZ,_localToWorld);
             
             double minLong = grid->getOrigin().x();
             double minLat = grid->getOrigin().y();
@@ -1364,10 +1364,10 @@ osg::Node* DestinationTile::createPolygonal()
             center_normal.set(midX,midY,midZ);
             center_normal.normalize();
             
-            worldToLocal.invert(localToWorld);
+            _worldToLocal.invert(_localToWorld);
             
-            center_position = computeLocalPosition(worldToLocal,midX,midY,midZ);
-            transformed_center_normal = osg::Matrixd::transform3x3(localToWorld,center_normal);
+            center_position = computeLocalPosition(_worldToLocal,midX,midY,midZ);
+            transformed_center_normal = osg::Matrixd::transform3x3(_localToWorld,center_normal);
             
         }
         else
@@ -1375,8 +1375,8 @@ osg::Node* DestinationTile::createPolygonal()
             double midX = grid->getOrigin().x()+grid->getXInterval()*((double)(numColumns-1))*0.5;
             double midY = grid->getOrigin().y()+grid->getYInterval()*((double)(numRows-1))*0.5;
             double midZ = grid->getOrigin().z();
-            localToWorld.makeTranslate(midX,midY,midZ);
-            worldToLocal.invert(localToWorld);
+            _localToWorld.makeTranslate(midX,midY,midZ);
+            _worldToLocal.invert(_localToWorld);
             
             skirtVector.set(0.0f,0.0f,-skirtLength);
         }
@@ -1432,7 +1432,7 @@ osg::Node* DestinationTile::createPolygonal()
 
             if (useLocalToTileTransform)
             {
-                v[vi] = computeLocalPosition(worldToLocal,X,Y,Z);
+                v[vi] = computeLocalPosition(_worldToLocal,X,Y,Z);
             }
             else
             {
@@ -1645,7 +1645,7 @@ osg::Node* DestinationTile::createPolygonal()
                     double Z = orig_Z + grid->getHeight(i,j);
                     osg::Matrixd normalLocalToWorld;
                     et->computeLocalToWorldTransformFromLatLongHeight(osg::DegreesToRadians(Y),osg::DegreesToRadians(X),Z,normalLocalToWorld);
-                    osg::Matrixd normalToLocalReferenceFrame(normalLocalToWorld*worldToLocal);
+                    osg::Matrixd normalToLocalReferenceFrame(normalLocalToWorld*_worldToLocal);
 
                     // need to compute the x and y delta for this point in space.
                     double X0, Y0, Z0;
@@ -1739,7 +1739,7 @@ osg::Node* DestinationTile::createPolygonal()
                
             osg::Vec3 localSkirtVector = !mapLatLongsToXYZ ? 
                                             skirtVector :
-                                            computeLocalSkirtVector(et, grid.get(), c, r, skirtLength, useLocalToTileTransform, localToWorld);
+                                            computeLocalSkirtVector(et, grid.get(), c, r, skirtLength, useLocalToTileTransform, _localToWorld);
             
             // add in the new point on the bottom of the skirt
             v[vi] = v[(r)*numColumns+c]+localSkirtVector;
@@ -1760,7 +1760,7 @@ osg::Node* DestinationTile::createPolygonal()
 
             osg::Vec3 localSkirtVector = !mapLatLongsToXYZ ? 
                                             skirtVector :
-                                            computeLocalSkirtVector(et, grid.get(), c, r, skirtLength, useLocalToTileTransform, localToWorld);
+                                            computeLocalSkirtVector(et, grid.get(), c, r, skirtLength, useLocalToTileTransform, _localToWorld);
             
             // add in the new point on the bottom of the skirt
             v[vi] = v[(r)*numColumns+c]+localSkirtVector;
@@ -1781,7 +1781,7 @@ osg::Node* DestinationTile::createPolygonal()
 
             osg::Vec3 localSkirtVector = !mapLatLongsToXYZ ? 
                                             skirtVector :
-                                            computeLocalSkirtVector(et, grid.get(), c, r, skirtLength, useLocalToTileTransform, localToWorld);
+                                            computeLocalSkirtVector(et, grid.get(), c, r, skirtLength, useLocalToTileTransform, _localToWorld);
             
             // add in the new point on the bottom of the skirt
             v[vi] = v[(r)*numColumns+c]+localSkirtVector;
@@ -1802,7 +1802,7 @@ osg::Node* DestinationTile::createPolygonal()
 
             osg::Vec3 localSkirtVector = !mapLatLongsToXYZ ? 
                                             skirtVector :
-                                            computeLocalSkirtVector(et, grid.get(), c, r, skirtLength, useLocalToTileTransform, localToWorld);
+                                            computeLocalSkirtVector(et, grid.get(), c, r, skirtLength, useLocalToTileTransform, _localToWorld);
             
             // add in the new point on the bottom of the skirt
             v[vi] = v[(r)*numColumns+c]+localSkirtVector;
@@ -1867,7 +1867,7 @@ osg::Node* DestinationTile::createPolygonal()
     if (useLocalToTileTransform)
     {
         osg::MatrixTransform* mt = new osg::MatrixTransform;
-        mt->setMatrix(localToWorld);
+        mt->setMatrix(_localToWorld);
         mt->addChild(geode);
         
         bool addLocalAxes = false;

@@ -32,7 +32,7 @@ using namespace vpb;
 
 struct MatrixMultiplyArrayFunctor
 {
-    MatrixMultiplyArrayFunctor(osg::Matrixd & matrix) : _matrix(matrix) {}
+    MatrixMultiplyArrayFunctor(const osg::Matrixd & matrix) : _matrix(matrix) {}
     
     void operator() (osg::Vec3d & vec) 
     {   
@@ -41,7 +41,7 @@ struct MatrixMultiplyArrayFunctor
                          vec.x()*_matrix(0,2) + vec.y()*_matrix(1,2) + vec.z()*_matrix(2,2) + _matrix(3,2));
     }
     
-    osg::Matrixd & _matrix;
+    const osg::Matrixd & _matrix;
 };
 
 
@@ -317,9 +317,9 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
             Building
         };
         
-        ShapeFileOverlapingHeightFieldPlacer(GeospatialExtents & ge, osg::HeightField & hf) :
+        ShapeFileOverlapingHeightFieldPlacer(DestinationTile & dt, osg::HeightField & hf) :
             _hf(hf),
-            _ge(ge)
+            _dt(dt)
         {
             _createdModel = new osg::Group;
             _nodeStack.push_back(_createdModel.get());
@@ -355,15 +355,8 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
         
         virtual void apply(osg::Geode& node)                     
         { 
-            osg::Matrixd localToWorld;
-            osg::Matrixd worldToLocal;
-            
-            double midX = _hf.getOrigin().x()+_hf.getXInterval()*((double)(_hf.getNumColumns()-1))*0.5;
-            double midY = _hf.getOrigin().y()+_hf.getYInterval()*((double)(_hf.getNumRows()-1))*0.5;
-            double midZ = _hf.getOrigin().z();
-            localToWorld.makeTranslate(midX,midY,midZ);
-            worldToLocal.invert(localToWorld);
-            
+            const osg::Matrixd& localToWorld = _dt._localToWorld;
+            const osg::Matrixd& worldToLocal = _dt._worldToLocal;
             
             const osg::BoundingBox & bb = node.getBoundingBox();
             
@@ -405,6 +398,7 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                         }
                     }
                     
+//                    height *= 0.0;
                     
                     // ** if geometry overlap the HeightField
                     ComputeBoundd cb;
@@ -416,7 +410,7 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                     {
                         osg::ref_ptr<osg::Geometry> clonedGeom = static_cast<osg::Geometry*>(geom->clone(osg::CopyOp::DEEP_COPY_ARRAYS | osg::CopyOp::DEEP_COPY_PRIMITIVES));
                         
-                        HeightFieldMapper hfm(_hf, _ge.xMin(), _ge.xMax(), _ge.yMin(), _ge.yMax());
+                        HeightFieldMapper hfm(_hf, _dt._extents.xMin(), _dt._extents.xMax(), _dt._extents.yMin(), _dt._extents.yMax());
                         hfm.setMode(shapeType == Building ? HeightFieldMapper::PER_GEOMETRY : HeightFieldMapper::PER_VERTEX);
                         
                         // ** if the geometry have centroid out of the HeightField, 
@@ -457,7 +451,7 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
     
         bool overlap(double xMin, double yMin, double xMax, double yMax)
         {    
-            if ((_ge.xMin() > xMax) || (xMin > _ge.xMax()) || (_ge.yMin() > yMax) || (yMin > _ge.yMax()))
+            if ((_dt._extents.xMin() > xMax) || (xMin > _dt._extents.xMax()) || (_dt._extents.yMin() > yMax) || (yMin > _dt._extents.yMax()))
                 return false;
             else
                 return true;
@@ -477,7 +471,7 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
     private:
         
         osg::HeightField & _hf;
-        GeospatialExtents & _ge;
+        DestinationTile & _dt;
         
         
         osg::fast_back_stack<osg::Node*> _nodeStack;
@@ -495,7 +489,7 @@ bool ShapeFilePlacer::place(DestinationTile& destinationTile, osg::Node* model)
     if (hf == NULL) return true;
       
         
-    ShapeFileOverlapingHeightFieldPlacer shapePlacer(destinationTile._extents, *hf);
+    ShapeFileOverlapingHeightFieldPlacer shapePlacer(destinationTile, *hf);
     model->accept(shapePlacer);
 
     osg::Material * mat = new osg::Material;
