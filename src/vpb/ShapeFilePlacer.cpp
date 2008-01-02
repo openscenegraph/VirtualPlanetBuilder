@@ -32,16 +32,30 @@ using namespace vpb;
 
 struct MatrixMultiplyArrayFunctor
 {
-    MatrixMultiplyArrayFunctor(const osg::Matrixd & matrix) : _matrix(matrix) {}
+    MatrixMultiplyArrayFunctor(const osg::Matrixd & matrix, const osg::EllipsoidModel* em=0):
+        _matrix(matrix),
+        _em(em) {}
     
     void operator() (osg::Vec3d & vec) 
     {   
+        if (_em)
+        {
+            double latitude = osg::DegreesToRadians(vec.y());
+            double longitude = osg::DegreesToRadians(vec.x());
+            double height = vec.z();
+            _em->convertLatLongHeightToXYZ(latitude,longitude,height,
+                                           vec.x(),vec.y(),vec.z());
+        }
+
         vec = osg::Vec3d(vec.x()*_matrix(0,0) + vec.y()*_matrix(1,0) + vec.z()*_matrix(2,0) + _matrix(3,0),
                          vec.x()*_matrix(0,1) + vec.y()*_matrix(1,1) + vec.z()*_matrix(2,1) + _matrix(3,1),
                          vec.x()*_matrix(0,2) + vec.y()*_matrix(1,2) + vec.z()*_matrix(2,2) + _matrix(3,2));
     }
     
     const osg::Matrixd & _matrix;
+    const osg::EllipsoidModel* _em;
+
+
 };
 
 
@@ -355,6 +369,11 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
         
         virtual void apply(osg::Geode& node)                     
         { 
+            const osg::EllipsoidModel* em = _dt._dataSet->getEllipsoidModel();
+            bool mapLatLongsToXYZ = _dt._dataSet->mapLatLongsToXYZ();
+            bool useLocalToTileTransform = _dt._dataSet->getUseLocalTileTransform();
+            double verticalScale = _dt._dataSet->getVerticalScale();
+
             const osg::Matrixd& localToWorld = _dt._localToWorld;
             const osg::Matrixd& worldToLocal = _dt._worldToLocal;
             
@@ -381,7 +400,7 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
 
                     
                     ShapeFileType shapeType = Building;
-                    double height = 0.00005;
+                    double height = 10.0;
                     
                     osgSim::ShapeAttributeList* sal = dynamic_cast<osgSim::ShapeAttributeList*>(geom->getUserData());
                     for(osgSim::ShapeAttributeList::iterator sitr = sal->begin(); sitr != sal->end(); ++sitr)
@@ -392,14 +411,21 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                             else if (sitr->getString() == "Forest") shapeType = Forest;
                         }
                         
-                        else if ((sitr->getName() == "HEIGHT") && (sitr->getType() == osgSim::ShapeAttribute::DOUBLE))
+                        else if (sitr->getName() == "HGT")
                         {
-                            height = sitr->getDouble();
+                            if (sitr->getType() == osgSim::ShapeAttribute::DOUBLE)
+                            {
+                                height = sitr->getDouble();
+                            }
+                            else if (sitr->getType() == osgSim::ShapeAttribute::INTEGER)
+                            {
+                                height = double(sitr->getInt());
+                            }
                         }
                     }
                     
-//                    height *= 0.0;
-                    
+                    height *= verticalScale;
+
                     // ** if geometry overlap the HeightField
                     ComputeBoundd cb;
                     geom->accept(cb);
@@ -424,9 +450,13 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                             ev.setMode(ExtrudeVisitor::Replace);
                             ev.extrude(*clonedGeom.get(), vec);
                             
-                            osg::Vec3dArray * vertexArray = dynamic_cast<osg::Vec3dArray*>(clonedGeom->getVertexArray());
-                            MatrixMultiplyArrayFunctor mmaf(worldToLocal);
-                            std::for_each(vertexArray->begin(), vertexArray->end(), mmaf);
+                            
+                            if (useLocalToTileTransform || mapLatLongsToXYZ)
+                            {
+                                osg::Vec3dArray * vertexArray = dynamic_cast<osg::Vec3dArray*>(clonedGeom->getVertexArray());
+                                MatrixMultiplyArrayFunctor mmaf(worldToLocal, mapLatLongsToXYZ ? em : 0);
+                                std::for_each(vertexArray->begin(), vertexArray->end(), mmaf);                            
+                            }
                             
                             // ** replace VertexArray type osg::Vec3dArray by osg::Vec3Array
                             DoubleToFloatVisitor dtfVisitor;
