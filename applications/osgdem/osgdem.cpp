@@ -92,7 +92,14 @@ int main(int argc, char** argv)
     std::string sourceName;
     while (arguments.read("-s",sourceName))
     {
-        osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(sourceName);
+        std::string fileName = osgDB::findDataFile( sourceName);
+        if (fileName.empty()) 
+        {
+            osg::notify(osg::NOTICE)<<"Error: could not find source file \""<<sourceName<<"\""<<std::endl;
+            return 1;
+        }
+            
+        osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(fileName);
         if (node.valid())
         {
             osgTerrain::Terrain* loaded_terrain = dynamic_cast<osgTerrain::Terrain*>(node.get());
@@ -109,6 +116,24 @@ int main(int argc, char** argv)
         else
         {
             osg::notify(osg::NOTICE)<<"Error: unable to load source file \""<<sourceName<<"\""<<std::endl;
+            osg::notify(osg::NOTICE)<<"       the file was found as \""<<fileName<<"\""<<std::endl;
+            osg::notify(osg::NOTICE)<<"       now setting NotifyLevel to DEBUG, and re-running load:"<<std::endl;
+            osg::notify(osg::NOTICE)<<std::endl;
+            
+            osg::setNotifyLevel(osg::DEBUG_INFO);
+            
+            osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(fileName);
+            if (node.valid())
+            {
+                osg::notify(osg::NOTICE)<<std::endl;
+                osg::notify(osg::NOTICE)<<"Second attempt to load source file \""<<sourceName<<"\" has also succeded!"<<std::endl;
+            }
+            else
+            {
+                osg::notify(osg::NOTICE)<<std::endl;
+                osg::notify(osg::NOTICE)<<"Second attempt to load source file \""<<sourceName<<"\" has also failed."<<std::endl;
+            }
+            
             return 1;
         }
     }
