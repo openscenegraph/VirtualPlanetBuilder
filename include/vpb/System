@@ -34,6 +34,26 @@ extern VPB_EXPORT std::string& getLogDirectory();
 extern VPB_EXPORT std::string& getTaskDirectory();
 extern VPB_EXPORT std::string& getMachineFileName();
 
+inline bool getAttributeValue(const std::string& field, const std::string& name, std::string& value)
+{
+    if (field.compare(0,name.size(), name)==0)
+    {
+        value.assign(field, name.size()+1, std::string::npos);
+        return true;
+    }
+    else return false;
+}
+
+inline bool getAttributeValue(const std::string& field, const std::string& name, int& value)
+{
+    std::string str;
+    if (getAttributeValue(field, name, str))
+    {
+        value = atoi(str.c_str());
+        return true;
+    }
+    return false;
+}
 
 class VPB_EXPORT System : public osg::Referenced
 {

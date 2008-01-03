@@ -1243,6 +1243,26 @@ bool DataSet::addModel(Source::Type type, osg::Node* model)
     }
     
     osg::ComputeBoundsVisitor cbv;
+    
+    
+    const osg::Node::DescriptionList& descriptions = model->getDescriptions();
+    for(osg::Node::DescriptionList::const_iterator itr = descriptions.begin();
+        itr != descriptions.end();
+        ++itr)
+    {
+        int value=0;
+        const std::string& desc = *itr;
+        if (getAttributeValue(desc, "MinLevel", value))
+        {
+            source->setMinLevel(value);
+        }
+        else if (getAttributeValue(desc, "MaxLevel", value))
+        {
+            source->setMaxLevel(value);
+        }
+    }
+   
+    
     model->accept(cbv);
     
     source->_extents.xMin() = cbv.getBoundingBox().xMin();
@@ -1270,6 +1290,8 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
         // need to read locator.
         vpb::Source* source = new vpb::Source(type, hfl->getFileName());
         source->setLayer(layerNum);
+        source->setMinLevel(layer->getMinLevel());
+        source->setMaxLevel(layer->getMaxLevel());
 
         if (layer->getLocator() && !layer->getLocator()->getDefinedInFile())
         {
@@ -1294,6 +1316,8 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
         // need to read locator
         vpb::Source* source = new vpb::Source(type, iml->getFileName());
         source->setLayer(layerNum);
+        source->setMinLevel(layer->getMinLevel());
+        source->setMaxLevel(layer->getMaxLevel());
 
         if (layer->getLocator() && !layer->getLocator()->getDefinedInFile())
         {
@@ -1320,6 +1344,8 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
     
         vpb::Source* source = new vpb::Source(type, pl->getFileName());
         source->setLayer(layerNum);
+        source->setMinLevel(layer->getMinLevel());
+        source->setMaxLevel(layer->getMaxLevel());
 
         if (layer->getLocator() && !layer->getLocator()->getDefinedInFile())
         {
@@ -1349,6 +1375,8 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
             else if (!compositeLayer->getFileName(i).empty())
             {
                 vpb::Source* source = new vpb::Source(type, compositeLayer->getFileName(i));
+                source->setMinLevel(layer->getMinLevel());
+                source->setMaxLevel(layer->getMaxLevel());
                 source->setLayer(layerNum);
                 addSource(source);
             }

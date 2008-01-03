@@ -162,12 +162,28 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
                 locator->setTransformScaledByResolution(!geoTransformScale);
             }
 
+            if (min_level!=0) loadedLayer->setMinLevel(min_level);
+            if (max_level!=maximumPossibleLevel) loadedLayer->setMaxLevel(max_level);
+
             compositeLayer->addLayer(loadedLayer);
         }                    
     }
     else
     {
-        compositeLayer->addLayer(filename);
+        if (min_level!=0 || max_level!=maximumPossibleLevel)
+        {
+            osgTerrain::ImageLayer* layer = new osgTerrain::ImageLayer;
+            layer->setFileName(filename);
+            
+            if (min_level!=0) layer->setMinLevel(min_level);
+            if (max_level!=maximumPossibleLevel) layer->setMaxLevel(max_level);
+
+            compositeLayer->addLayer(layer);
+        }
+        else
+        {
+            compositeLayer->addLayer(filename);
+        }
     }
 }
 
@@ -306,6 +322,20 @@ void Commandline::processShapeFile(vpb::Source::Type type, const std::string& fi
         {
             model->addDescription(std::string("TypeAttributeName ")+typeAttributeName);
         }
+
+        if (min_level!=0)
+        {
+            std::stringstream ostr;
+            ostr<<"MinLevel "<<min_level;
+            model->addDescription(ostr.str());
+        }
+        if (max_level!=maximumPossibleLevel)
+        {
+            std::stringstream ostr;
+            ostr<<"MaxLevel "<<max_level;
+            model->addDescription(ostr.str());
+        }
+
 
         terrain->addChild(model.get());
     }
@@ -898,9 +928,9 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
             processFile(vpb::Source::MODEL, filename);
             reset();
         }
-        else if (arguments.read(pos, "--building",filename) || arguments.read(pos, "-b",filename))
+        else if (arguments.read(pos, "--buildings",filename) arguments.read(pos, "--building",filename) || arguments.read(pos, "-b",filename))
         {
-            fout<<"--building "<<filename<<std::endl;
+            fout<<"--buildings "<<filename<<std::endl;
 
             typeAttribute = "Building";
             processFile(vpb::Source::SHAPEFILE, filename);

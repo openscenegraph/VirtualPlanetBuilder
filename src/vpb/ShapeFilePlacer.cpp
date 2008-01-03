@@ -17,6 +17,7 @@
 #include <vpb/DataSet>
 #include <vpb/HeightFieldMapper>
 #include <vpb/ExtrudeVisitor>
+#include <vpb/System>
 
 #include <osg/NodeVisitor>
 #include <osg/Array>
@@ -371,17 +372,6 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
             _nodeStack.pop_back();
         }
         
-        
-        bool getAttributeValue(const std::string& field, const std::string& name, std::string& value)
-        {
-            if (field.compare(0,name.size(), name)==0)
-            {
-                value.assign(field, name.size()+1, std::string::npos);
-                return true;
-            }
-            else return false;
-        }
-        
         bool pushAttributeNames(osg::Node& node)
         {
             if (node.getDescriptions().empty()) return false;
@@ -389,12 +379,12 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
             std::string heightAttributeName;
             std::string typeAttributeName;
 
-            osg::Node::DescriptionList& descriptions = node.getDescriptions();
-            for(osg::Node::DescriptionList::iterator itr = descriptions.begin();
+            const osg::Node::DescriptionList& descriptions = node.getDescriptions();
+            for(osg::Node::DescriptionList::const_iterator itr = descriptions.begin();
                 itr != descriptions.end();
                 ++itr)
             {
-                std::string& desc = *itr;
+                const std::string& desc = *itr;
                 getAttributeValue(desc, _TypeAttributeName, typeAttributeName);
                 getAttributeValue(desc, _HeightAttributeName, heightAttributeName);
             }
