@@ -36,7 +36,7 @@ void Commandline::init()
 {
     maximumPossibleLevel = MAXIMUM_NUMBER_OF_LEVELS;
     typeAttributeName = "NAME";
-    heightAttributeName = "HEIGHT";
+    heightAttributeName = "HGT";
     terrainmask = 0xffffffff;
 
     reset();
@@ -295,10 +295,7 @@ void Commandline::processShapeFile(vpb::Source::Type type, const std::string& fi
 
         model->setNodeMask(mask);
 
-        if (!heightAttributeName.empty())
-        {
-            model->addDescription(std::string("SHAPEFILE"));
-        }
+        model->addDescription(std::string("SHAPEFILE"));
 
         if (!heightAttributeName.empty())
         {

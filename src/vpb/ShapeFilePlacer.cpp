@@ -333,11 +333,15 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
         
         ShapeFileOverlapingHeightFieldPlacer(DestinationTile & dt, osg::HeightField & hf) :
             _hf(hf),
-            _dt(dt)
+            _dt(dt),
+            _TypeAttributeName("TypeAttributeName"),
+            _HeightAttributeName("HeightAttributeName")
         {
             _createdModel = new osg::Group;
             _nodeStack.push_back(_createdModel.get());
-        }
+            _typeAttributeNameStack.push_back("NAME");
+            _heightAttributeNameStack.push_back("HGT");
+       }
         
         virtual void apply(osg::Node& node)
         {
@@ -367,6 +371,67 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
             _nodeStack.pop_back();
         }
         
+        
+        bool getAttributeValue(const std::string& field, const std::string& name, std::string& value)
+        {
+            if (field.compare(0,name.size(), name)==0)
+            {
+                value.assign(field, name.size()+1, std::string::npos);
+                return true;
+            }
+            else return false;
+        }
+        
+        bool pushAttributeNames(osg::Node& node)
+        {
+            if (node.getDescriptions().empty()) return false;
+
+            std::string heightAttributeName;
+            std::string typeAttributeName;
+
+            osg::Node::DescriptionList& descriptions = node.getDescriptions();
+            for(osg::Node::DescriptionList::iterator itr = descriptions.begin();
+                itr != descriptions.end();
+                ++itr)
+            {
+                std::string& desc = *itr;
+                getAttributeValue(desc, _TypeAttributeName, typeAttributeName);
+                getAttributeValue(desc, _HeightAttributeName, heightAttributeName);
+            }
+
+            if (!heightAttributeName.empty() || !typeAttributeName.empty())
+            {
+                if (typeAttributeName.empty() && !_typeAttributeNameStack.empty()) typeAttributeName = _typeAttributeNameStack.back();
+                if (heightAttributeName.empty() && !_heightAttributeNameStack.empty()) heightAttributeName = _heightAttributeNameStack.back();
+            
+                // osg::notify(osg::NOTICE)<<"PushingAttributeName("<<typeAttributeName<<","<<heightAttributeName<<")"<<std::endl;
+            
+                _typeAttributeNameStack.push_back(typeAttributeName);
+                _heightAttributeNameStack.push_back(heightAttributeName);
+
+                return true;
+            }
+
+        
+            return false;
+        }
+        
+        void popAttributeNames()
+        {
+            if (_typeAttributeNameStack.size()>1) _typeAttributeNameStack.pop_back();
+            if (_heightAttributeNameStack.size()>1) _heightAttributeNameStack.pop_back();
+        }
+        
+        const std::string& getTypeAttributeName() const
+        {
+            return _typeAttributeNameStack.back();
+        }
+
+        const std::string& getHeightAttributeName() const
+        {
+            return _heightAttributeNameStack.back();
+        }
+        
         virtual void apply(osg::Geode& node)                     
         { 
             const osg::EllipsoidModel* em = _dt._dataSet->getEllipsoidModel();
@@ -389,6 +454,8 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                 unsigned int numDrawables = clonedGeode->getNumDrawables();
                 clonedGeode->removeDrawables(0, numDrawables);
             
+                bool pushedAttributeNames = pushAttributeNames(node);
+
                 for (unsigned int i = 0; i < numDrawables; ++i)
                 {
                     // ** get the geometry
@@ -398,20 +465,19 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                     osg::Geometry * geom = drawable->asGeometry();
                     if (geom == NULL) continue;
 
-                    
                     ShapeFileType shapeType = Building;
                     double height = 10.0;
                     
                     osgSim::ShapeAttributeList* sal = dynamic_cast<osgSim::ShapeAttributeList*>(geom->getUserData());
                     for(osgSim::ShapeAttributeList::iterator sitr = sal->begin(); sitr != sal->end(); ++sitr)
                     {
-                        if ((sitr->getName() == "NAME") && (sitr->getType() == osgSim::ShapeAttribute::STRING))
+                        if ((sitr->getName() == getTypeAttributeName()) && (sitr->getType() == osgSim::ShapeAttribute::STRING))
                         {
                             if (sitr->getString() == "Building") shapeType = Building;
                             else if (sitr->getString() == "Forest") shapeType = Forest;
                         }
                         
-                        else if (sitr->getName() == "HGT")
+                        else if (sitr->getName() == getHeightAttributeName())
                         {
                             if (sitr->getType() == osgSim::ShapeAttribute::DOUBLE)
                             {
@@ -471,11 +537,13 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                             clonedGeode->addDrawable(clonedGeom.get());
                         }
                     }
-                    
                 }
+                
                 osg::notify(osg::WARN) << clonedGeode->getNumDrawables() << " added on " << numDrawables << "." << std::endl;
                 addAndTraverse(node, clonedGeode.get());
                 
+                if (pushedAttributeNames) popAttributeNames();
+
             }
         }
     
@@ -502,10 +570,17 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
         
         osg::HeightField & _hf;
         DestinationTile & _dt;
+
+        std::string _TypeAttributeName;
+        std::string _HeightAttributeName;
         
         
         osg::fast_back_stack<osg::Node*> _nodeStack;
         osg::ref_ptr<osg::Node> _createdModel;
+        
+        typedef std::list<std::string> StringStack;
+        StringStack _typeAttributeNameStack;
+        StringStack _heightAttributeNameStack;
 };
 
 
