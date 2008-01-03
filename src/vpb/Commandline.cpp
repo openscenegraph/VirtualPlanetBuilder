@@ -928,7 +928,7 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
             processFile(vpb::Source::MODEL, filename);
             reset();
         }
-        else if (arguments.read(pos, "--buildings",filename) arguments.read(pos, "--building",filename) || arguments.read(pos, "-b",filename))
+        else if (arguments.read(pos, "--buildings",filename) || arguments.read(pos, "--building",filename) || arguments.read(pos, "-b",filename))
         {
             fout<<"--buildings "<<filename<<std::endl;
 
