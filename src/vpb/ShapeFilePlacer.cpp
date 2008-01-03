@@ -21,8 +21,10 @@
 
 #include <osg/NodeVisitor>
 #include <osg/Array>
+
 #include <osgUtil/ConvertVec>
 #include <osgUtil/DrawElementTypeSimplifier>
+#include <osgUtil/SmoothingVisitor>
 
 #include <osgSim/ShapeAttribute>
 
@@ -523,8 +525,22 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                             osgUtil::DrawElementTypeSimplifier dets;
                             dets.simplify(*(clonedGeom.get()));
                             
+                            
+                            osg::Vec4Array* colours = dynamic_cast<osg::Vec4Array*>(clonedGeom->getColorArray());
+                            if (!colours)
+                            {                            
+                                colours = new osg::Vec4Array(1);
+                                (*colours)[0].set(1.0f,1.0f,1.0f,1.0f);
+                                clonedGeom->setColorArray(colours);
+                                clonedGeom->setColorBinding(osg::Geometry::BIND_OVERALL);
+                            }
+                            
                             // ** insert the geometry in scnene graph
                             clonedGeode->addDrawable(clonedGeom.get());
+
+                            osgUtil::SmoothingVisitor sv;
+                            sv.smooth(*clonedGeom);  // this will replace the normal vector with a new one
+
                         }
                     }
                 }
@@ -587,9 +603,11 @@ bool ShapeFilePlacer::place(DestinationTile& destinationTile, osg::Node* model)
     ShapeFileOverlapingHeightFieldPlacer shapePlacer(destinationTile, *hf);
     model->accept(shapePlacer);
 
+#if 0
     osg::Material * mat = new osg::Material;
-    mat->setDiffuse(osg::Material::FRONT, osg::Vec4f(1.0f,0.0f,0.0f,1.0f));
+    mat->setDiffuse(osg::Material::FRONT, osg::Vec4f(1.0f,1.0f,1.0f,1.0f));
     model->getOrCreateStateSet()->setAttributeAndModes(mat, osg::StateAttribute::ON);
+#endif
     
     if (shapePlacer.getCreatedModel())
         destinationTile.addNodeToScene(shapePlacer.getCreatedModel(), true);
