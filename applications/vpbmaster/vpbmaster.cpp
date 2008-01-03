@@ -108,6 +108,9 @@ int main(int argc, char** argv)
             taskManager->log(osg::NOTICE,"Generated tasks file = %s",tasksOutputFileName.c_str());
         }
     
+        // make sure the OS writes changes to disk
+        sync();
+
         if (taskManager->hasMachines())
         {
             taskManager->run();
@@ -121,6 +124,9 @@ int main(int argc, char** argv)
     double duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
 
     taskManager->log(osg::NOTICE,"Total elapsed time = %f",duration);
+    
+    // make sure the OS writes changes to disk
+    sync();
 
     return 0;
 }

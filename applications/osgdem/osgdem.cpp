@@ -166,6 +166,10 @@ int main(int argc, char** argv)
         if (terrain.valid())
         {
             osgDB::writeNodeFile(*terrain, terrainOutputName);
+
+            // make sure the OS writes changes to disk
+            sync();
+
         }
         else
         {
@@ -205,6 +209,9 @@ int main(int argc, char** argv)
 
             dataset->addTerrain(terrain.get());
 
+            // make sure the OS writes changes to disk
+            sync();
+
             int result = dataset->run();
 
             if (dataset->getBuildLog() && report)
@@ -232,6 +239,9 @@ int main(int argc, char** argv)
         taskFile->setProperty("duration",duration);
         taskFile->write();
     }
+    
+    // make sure the OS writes changes to disk
+    sync();
     
     return 0;
 }

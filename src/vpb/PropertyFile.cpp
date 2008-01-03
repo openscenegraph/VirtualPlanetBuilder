@@ -47,6 +47,8 @@ struct FileProxy
             _fileID = open (filename.c_str(), O_RDWR);
 
             fchmod(_fileID, S_IREAD | S_IWRITE | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+            
+            fsync();
 
             // osg::notify(osg::NOTICE)<<"Opened new file "<<filename<<" _fileID = "<<_fileID<<std::endl;
         }

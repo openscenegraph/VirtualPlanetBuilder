@@ -27,6 +27,7 @@
 #include <iostream>
 
 #include <signal.h>
+#include <unistd.h>
 
 using namespace vpb;
 
@@ -124,6 +125,9 @@ int TaskManager::read(osg::ArgumentParser& arguments)
         if (_terrain.valid())
         {
             osgDB::writeNodeFile(*_terrain, terrainOutputName);
+            
+            // make sure the changes are written to disk.
+            sync();
         }
         else
         {
@@ -323,7 +327,7 @@ bool TaskManager::run()
                 case(Task::PENDING):
                 {
                     // run the task
-                    log(osg::NOTICE,"Running task : %s",task->getFileName().c_str());
+                    log(osg::NOTICE,"scheduling task : %s",task->getFileName().c_str());
                     getMachinePool()->run(task);
                     break;
                 }
@@ -458,6 +462,10 @@ bool TaskManager::writeSource(const std::string& filename)
         _sourceFileName = filename;
     
         osgDB::writeNodeFile(*_terrain, _sourceFileName);
+
+        // make sure the OS writes the file to disk
+        sync();
+
         return true;
     }
     else

@@ -133,6 +133,8 @@ int main(int argc, char** argv)
         fileCache->report(std::cout);
     }
 
+    // make sure the OS writes changes to disk
+    sync();
 
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();
