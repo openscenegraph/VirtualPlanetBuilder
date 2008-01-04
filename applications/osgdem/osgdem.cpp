@@ -95,7 +95,29 @@ int main(int argc, char** argv)
         std::string fileName = osgDB::findDataFile( sourceName);
         if (fileName.empty()) 
         {
-            osg::notify(osg::NOTICE)<<"Error: could not find source file \""<<sourceName<<"\""<<std::endl;
+
+            osg::notify(osg::NOTICE)<<"Error: osgdem running on \""<<vpb::getLocalHostName()<<"\", could not find source file \""<<sourceName<<"\""<<std::endl;
+            char str[2048]; 
+            if (getcwd( str, sizeof(str) ))
+            {
+                osg::notify(osg::NOTICE)<<"       current working directory at time of error = "<<str<<std::endl;
+            }
+            osg::setNotifyLevel(osg::DEBUG_INFO);
+
+            osg::notify(osg::NOTICE)<<"       now setting NotifyLevel to DEBUG, and re-running find:"<<std::endl;
+            osg::notify(osg::NOTICE)<<std::endl;
+            fileName = osgDB::findDataFile( sourceName);
+            if (!fileName.empty())
+            {
+                osg::notify(osg::NOTICE)<<std::endl<<"Second attempt at finding source file successful!"<<std::endl<<std::endl;
+            }
+            else
+            {
+                osg::notify(osg::NOTICE)<<std::endl<<"Second attempt at finding source file also failed."<<std::endl<<std::endl;
+            }
+
+            osg::setNotifyLevel(osg::NOTICE);
+
             return 1;
         }
             
@@ -126,14 +148,16 @@ int main(int argc, char** argv)
             if (node.valid())
             {
                 osg::notify(osg::NOTICE)<<std::endl;
-                osg::notify(osg::NOTICE)<<"Second attempt to load source file \""<<sourceName<<"\" has also succeded!"<<std::endl;
+                osg::notify(osg::NOTICE)<<"Second attempt to load source file \""<<sourceName<<"\" has also succeded!"<<std::endl<<std::endl;
             }
             else
             {
                 osg::notify(osg::NOTICE)<<std::endl;
-                osg::notify(osg::NOTICE)<<"Second attempt to load source file \""<<sourceName<<"\" has also failed."<<std::endl;
+                osg::notify(osg::NOTICE)<<"Second attempt to load source file \""<<sourceName<<"\" has also failed."<<std::endl<<std::endl;
             }
             
+            osg::setNotifyLevel(osg::NOTICE);
+
             return 1;
         }
     }
