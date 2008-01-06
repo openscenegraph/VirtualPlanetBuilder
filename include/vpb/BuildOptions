@@ -146,7 +146,9 @@ class VPB_EXPORT BuildOptions : public osg::Object
         {
             HEIGHT_FIELD,
             POLYGONAL,
+            TERRAIN
         };
+        
         void setGeometryType(GeometryType type) { _geometryType = type; }
         GeometryType getGeometryType() const { return _geometryType; }
 

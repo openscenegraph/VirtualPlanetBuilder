@@ -32,6 +32,8 @@
 #include <osgUtil/Simplifier>
 #include <osgUtil/TriStripVisitor>
 
+#include <osgTerrain/GeometryTechnique>
+
 using namespace vpb;
 
 #define SHIFT_RASTER_BY_HALF_CELL
@@ -962,6 +964,10 @@ osg::Node* DestinationTile::createScene()
     {
         _createdScene = createHeightField();
     }
+    else if (_dataSet->getGeometryType()==DataSet::TERRAIN)
+    {
+        _createdScene = createTerrainTile();
+    }
     else
     {
         _createdScene = createPolygonal();
@@ -1220,6 +1226,77 @@ osg::Node* DestinationTile::createHeightField()
     
     return geode;
 
+}
+
+osg::Node* DestinationTile::createTerrainTile()
+{
+#if 0
+    return createHeightField();
+#else
+
+    if (!_terrain) _terrain = new DestinationData(_dataSet);
+
+    // call createStateSet() here even when we don't use it directly as
+    // we still want any OpenGL compression and mipmap generation that it'll provide, will 
+    // replace with a more tuned implementation later.
+    createStateSet();
+
+    // create a default height field when non has already been created.
+    if (!_terrain->_heightField)
+    {
+        log(osg::INFO,"**** No terrain to build tile from use flat terrain fallback ****");
+        // create a dummy height field to file in the gap
+        _terrain->_heightField = new osg::HeightField;
+        _terrain->_heightField->allocate(2,2);
+        _terrain->_heightField->setOrigin(osg::Vec3(_extents.xMin(),_extents.yMin(),0.0f));
+        _terrain->_heightField->setXInterval(_extents.xMax()-_extents.xMin());
+        _terrain->_heightField->setYInterval(_extents.yMax()-_extents.yMin());
+    }
+
+    osg::HeightField* hf = _terrain->_heightField.get();
+
+    // set up the locator place the data all in the correction position
+    osgTerrain::Locator* locator = new osgTerrain::Locator;
+
+    // create the terrain node that we'll hang the height field off
+    osgTerrain::Terrain* terrain = new osgTerrain::Terrain;
+    terrain->setLocator(locator);    
+
+
+    // assign height field
+    {
+        osgTerrain::HeightFieldLayer* hfLayer = new osgTerrain::HeightFieldLayer;
+        hfLayer->setHeightField(hf);
+        hfLayer->setLocator(locator);
+        
+        terrain->setElevationLayer(hfLayer);
+    }
+    
+    
+    // assign the imagery
+    for(unsigned int layerNum=0;
+        layerNum<_imagery.size();
+        ++layerNum)
+    {
+        ImageData& imageData = _imagery[layerNum];
+        if (!imageData._imagery.valid() || !imageData._imagery->_image.valid()) continue;
+        
+        osg::Image* image = imageData._imagery->_image.get();
+
+        osgTerrain::ImageLayer* imageLayer = new osgTerrain::ImageLayer;
+        imageLayer->setImage(image);
+        imageLayer->setLocator(locator);
+        
+        terrain->setColorLayer(layerNum, imageLayer);
+    }
+    
+
+    // assign the terrain technique that will be used to render the terrain tile.
+    osgTerrain::GeometryTechnique* gt = new osgTerrain::GeometryTechnique;
+    terrain->setTerrainTechnique(gt);
+    
+    return terrain;
+#endif
 }
 
 

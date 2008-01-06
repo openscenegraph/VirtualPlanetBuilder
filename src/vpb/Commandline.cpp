@@ -426,6 +426,7 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--skirt-ratio <float>","Set the ratio of skirt height to tile size");     
     usage.addCommandLineOption("--HEIGHT_FIELD","Create a height field database");     
     usage.addCommandLineOption("--POLYGONAL","Create a height field database");     
+    usage.addCommandLineOption("--TERRAIN","Create a osgTerrain::Terrain database");     
     usage.addCommandLineOption("--LOD","Create a LOD'd database");     
     usage.addCommandLineOption("--PagedLOD","Create a PagedLOD'd database");     
     usage.addCommandLineOption("-v","Set the vertical multiplier");     
@@ -557,20 +558,25 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         buildOptions->setIntermediateBuildName(buildname);
     }
 
-    while (arguments.read("--HEIGHT_FIELD"))
-    {
-        buildOptions->setGeometryType(vpb::BuildOptions::HEIGHT_FIELD);
-    }
-
     std::string maskstring;
     while (arguments.read("--terrain-mask",maskstring))
     {
         terrainmask = readMask(maskstring);
     }
 
-    while (arguments.read("--POLYGONAL"))
+    while (arguments.read("--HEIGHT_FIELD") || arguments.read("--height-field") )
+    {
+        buildOptions->setGeometryType(vpb::BuildOptions::HEIGHT_FIELD);
+    }
+
+    while (arguments.read("--POLYGONAL") || arguments.read("--polygonal") )
     {
         buildOptions->setGeometryType(vpb::BuildOptions::POLYGONAL);
+    }
+
+    while (arguments.read("--TERRAIN") || arguments.read("--terrain"))
+    {
+        buildOptions->setGeometryType(vpb::BuildOptions::TERRAIN);
     }
 
     while (arguments.read("--LOD"))
