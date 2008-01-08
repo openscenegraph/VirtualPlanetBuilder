@@ -1255,6 +1255,8 @@ osg::Node* DestinationTile::createTerrainTile()
 
     osg::HeightField* hf = _terrain->_heightField.get();
 
+    hf->setSkirtHeight(0.01f);
+
     // set up the locator place the data all in the correction position
     osgTerrain::Locator* locator = new osgTerrain::Locator;
 
@@ -1290,10 +1292,11 @@ osg::Node* DestinationTile::createTerrainTile()
         terrain->setColorLayer(layerNum, imageLayer);
     }
     
-
+#if 1
     // assign the terrain technique that will be used to render the terrain tile.
     osgTerrain::GeometryTechnique* gt = new osgTerrain::GeometryTechnique;
     terrain->setTerrainTechnique(gt);
+#endif
     
     return terrain;
 #endif
@@ -2198,6 +2201,14 @@ public:
 
     CollectClusterCullingCallbacks():
         osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) {}
+
+    virtual void apply(osg::Group& group)
+    {
+        if (dynamic_cast<osgTerrain::Terrain*>(&group)==0)
+        {
+            osg::NodeVisitor::apply(group);
+        }
+    }
 
     virtual void apply(osg::Geode& geode)
     {

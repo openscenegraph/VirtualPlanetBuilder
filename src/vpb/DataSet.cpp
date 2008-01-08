@@ -865,6 +865,26 @@ public:
         traverse(node);
     }
 
+    virtual void apply(osg::Group& group)
+    {
+        osgTerrain::Terrain* terrain = dynamic_cast<osgTerrain::Terrain*>(&group);
+        if (terrain)
+        {
+            applyTerrain(*terrain);
+        }
+        else
+        {
+            osg::NodeVisitor::apply(group);
+        }
+    }
+
+    void applyTerrain(osgTerrain::Terrain& terrain)
+    {
+        if (terrain.getStateSet()) apply(*(terrain.getStateSet()));
+        
+        // need to iterator through images stored in layers
+    }
+
     virtual void apply(osg::Geode& geode)
     {
         if (geode.getStateSet()) apply(*(geode.getStateSet()));
