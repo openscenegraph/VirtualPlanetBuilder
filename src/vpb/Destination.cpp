@@ -1247,10 +1247,10 @@ osg::Node* DestinationTile::createTerrainTile()
         log(osg::INFO,"**** No terrain to build tile from use flat terrain fallback ****");
         // create a dummy height field to file in the gap
         _terrain->_heightField = new osg::HeightField;
-        _terrain->_heightField->allocate(2,2);
+        _terrain->_heightField->allocate(8,8);
         _terrain->_heightField->setOrigin(osg::Vec3(_extents.xMin(),_extents.yMin(),0.0f));
-        _terrain->_heightField->setXInterval(_extents.xMax()-_extents.xMin());
-        _terrain->_heightField->setYInterval(_extents.yMax()-_extents.yMin());
+        _terrain->_heightField->setXInterval((_extents.xMax()-_extents.xMin())/7.0);
+        _terrain->_heightField->setYInterval((_extents.yMax()-_extents.yMin())/7.0);
     }
 
     osg::HeightField* hf = _terrain->_heightField.get();
