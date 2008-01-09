@@ -334,9 +334,9 @@ void DestinationTile::computeNeighboursFromQuadMap()
 }
 
 void DestinationTile::setNeighbours(DestinationTile* left, DestinationTile* left_below, 
-                                             DestinationTile* below, DestinationTile* below_right,
-                                             DestinationTile* right, DestinationTile* right_above,
-                                             DestinationTile* above, DestinationTile* above_left)
+                                    DestinationTile* below, DestinationTile* below_right,
+                                    DestinationTile* right, DestinationTile* right_above,
+                                    DestinationTile* above, DestinationTile* above_left)
 {
     _neighbour[LEFT] = left;
     _neighbour[LEFT_BELOW] = left_below;
@@ -1259,6 +1259,24 @@ osg::Node* DestinationTile::createTerrainTile()
 
     // set up the locator place the data all in the correction position
     osgTerrain::Locator* locator = new osgTerrain::Locator;
+    locator->setEllipsoidModel(_dataSet->getEllipsoidModel());
+    locator->setTransformAsExtents(_extents.xMin(), _extents.yMin(), _extents.xMax(), _extents.yMax());
+    
+    if (_dataSet->getDestinationCoordinateSystemNode())
+    {
+        locator->setFormat(_dataSet->getDestinationCoordinateSystemNode()->getFormat());
+        locator->setCoordinateSystem(_dataSet->getDestinationCoordinateSystemNode()->getCoordinateSystem());
+    }
+    
+    if (_dataSet->getConvertFromGeographicToGeocentric()) 
+    {
+        locator->setCoordinateSystemType(osgTerrain::Locator::GEOCENTRIC);
+    }
+    else
+    {
+        locator->setCoordinateSystemType(osgTerrain::Locator::PROJECTED);
+        locator->setCoordinateSystemType(osgTerrain::Locator::GEOGRAPHIC);
+    }
 
     // create the terrain node that we'll hang the height field off
     osgTerrain::Terrain* terrain = new osgTerrain::Terrain;
