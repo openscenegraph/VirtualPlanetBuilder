@@ -1255,12 +1255,12 @@ osg::Node* DestinationTile::createTerrainTile()
 
     osg::HeightField* hf = _terrain->_heightField.get();
 
+    // need to work out what the skirt should be...
     hf->setSkirtHeight(0.01f);
-
+       
     // set up the locator place the data all in the correction position
     osgTerrain::Locator* locator = new osgTerrain::Locator;
     locator->setEllipsoidModel(_dataSet->getEllipsoidModel());
-    locator->setTransformAsExtents(_extents.xMin(), _extents.yMin(), _extents.xMax(), _extents.yMax());
     
     if (_dataSet->getDestinationCoordinateSystemNode())
     {
@@ -1271,11 +1271,20 @@ osg::Node* DestinationTile::createTerrainTile()
     if (_dataSet->getConvertFromGeographicToGeocentric()) 
     {
         locator->setCoordinateSystemType(osgTerrain::Locator::GEOCENTRIC);
+        locator->setTransformAsExtents(osg::DegreesToRadians(_extents.xMin()),
+                                       osg::DegreesToRadians(_extents.yMin()),
+                                       osg::DegreesToRadians(_extents.xMax()), 
+                                       osg::DegreesToRadians(_extents.yMax()));
     }
     else
     {
+        locator->setTransformAsExtents(_extents.xMin(),
+                                       _extents.yMin(),
+                                       _extents.xMax(), 
+                                       _extents.yMax());
+
         locator->setCoordinateSystemType(osgTerrain::Locator::PROJECTED);
-        locator->setCoordinateSystemType(osgTerrain::Locator::GEOGRAPHIC);
+        // locator->setCoordinateSystemType(osgTerrain::Locator::GEOGRAPHIC);
     }
 
     // create the terrain node that we'll hang the height field off
