@@ -28,7 +28,7 @@
     int     vpb::ftruncate(int fildes, off_t length)              { return ::_chsize(fildes, length); }
 
     // No equivalent to sync() on Win32, could use fsync(fd) on each file.
-    void    vpb::sync()                                           { }
+    void    vpb::sync()                                           { (void) _flushall(); }
     int     vpb::fsync(int fd)                                    { if (fd) return ::_commit(fd); return 0; }
     int     vpb::getpid()                                         { return ::_getpid(); }
     int     vpb::gethostname(char *name, size_t namelen)          { return ::gethostname(name, namelen); }
