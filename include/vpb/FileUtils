@@ -18,7 +18,8 @@
 #include <vpb/Export>
 
 #include <stdio.h>
-
+#include <fcntl.h>
+    
 #ifdef WIN32
     #include <sys/types.h>
     #include <sys/stat.h>
@@ -42,7 +43,6 @@
     #define S_IWOTH 0
 #else
     #include <unistd.h>
-    #include <fcntl.h>
 #endif
 
 namespace vpb
