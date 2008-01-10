@@ -14,6 +14,7 @@
 #include <vpb/TaskManager>
 #include <vpb/BuildLog>
 #include <vpb/System>
+#include <vpb/FileUtils>
 
 #include <osg/Timer>
 #include <osgDB/ReadFile>
@@ -134,7 +135,7 @@ int main(int argc, char** argv)
     }
 
     // make sure the OS writes changes to disk
-    sync();
+    vpb::sync();
 
     // any option left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();

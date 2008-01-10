@@ -15,6 +15,7 @@
 #include <vpb/DatabaseBuilder>
 #include <vpb/System>
 #include <vpb/Version>
+#include <vpb/FileUtils>
 
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>
@@ -192,7 +193,7 @@ int main(int argc, char** argv)
             osgDB::writeNodeFile(*terrain, terrainOutputName);
 
             // make sure the OS writes changes to disk
-            sync();
+            vpb::sync();
 
         }
         else
@@ -234,7 +235,7 @@ int main(int argc, char** argv)
             dataset->addTerrain(terrain.get());
 
             // make sure the OS writes changes to disk
-            sync();
+            vpb::sync();
 
             int result = dataset->run();
 
@@ -265,7 +266,7 @@ int main(int argc, char** argv)
     }
     
     // make sure the OS writes changes to disk
-    sync();
+    vpb::sync();
     
     return 0;
 }

@@ -13,6 +13,7 @@
 #include <vpb/Commandline>
 #include <vpb/TaskManager>
 #include <vpb/System>
+#include <vpb/FileUtils>
 
 #include <osg/Timer>
 #include <osgDB/ReadFile>
@@ -109,7 +110,7 @@ int main(int argc, char** argv)
         }
     
         // make sure the OS writes changes to disk
-        sync();
+        vpb::sync();
 
         if (taskManager->hasMachines())
         {
@@ -126,7 +127,7 @@ int main(int argc, char** argv)
     taskManager->log(osg::NOTICE,"Total elapsed time = %f",duration);
     
     // make sure the OS writes changes to disk
-    sync();
+    vpb::sync();
 
     return 0;
 }
