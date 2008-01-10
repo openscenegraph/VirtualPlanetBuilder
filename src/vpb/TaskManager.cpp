@@ -15,6 +15,7 @@
 #include <vpb/Commandline>
 #include <vpb/DatabaseBuilder>
 #include <vpb/System>
+#include <vpb/FileUtils>
 
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>
@@ -126,7 +127,7 @@ int TaskManager::read(osg::ArgumentParser& arguments)
             osgDB::writeNodeFile(*_terrain, terrainOutputName);
             
             // make sure the changes are written to disk.
-            sync();
+            vpb::sync();
         }
         else
         {
@@ -463,7 +464,7 @@ bool TaskManager::writeSource(const std::string& filename)
         osgDB::writeNodeFile(*_terrain, _sourceFileName);
 
         // make sure the OS writes the file to disk
-        sync();
+        vpb::sync();
 
         return true;
     }

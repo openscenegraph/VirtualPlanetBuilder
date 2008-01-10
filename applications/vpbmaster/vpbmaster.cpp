@@ -27,14 +27,16 @@ int main(int argc, char** argv)
 {
     osg::ref_ptr<vpb::TaskManager> taskManager = vpb::System::instance()->getTaskManager();
 
+#ifndef _WIN32
     taskManager->setSignalAction(SIGHUP, vpb::TaskManager::COMPLETE_RUNNING_TASKS_THEN_EXIT);
-    taskManager->setSignalAction(SIGINT, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
     taskManager->setSignalAction(SIGQUIT, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
-    taskManager->setSignalAction(SIGABRT, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
     taskManager->setSignalAction(SIGKILL, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
-    taskManager->setSignalAction(SIGTERM, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
     taskManager->setSignalAction(SIGUSR1, vpb::TaskManager::RESET_MACHINE_POOL);
     taskManager->setSignalAction(SIGUSR2, vpb::TaskManager::UPDATE_MACHINE_POOL);
+#endif
+    taskManager->setSignalAction(SIGABRT, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
+    taskManager->setSignalAction(SIGINT, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
+    taskManager->setSignalAction(SIGTERM, vpb::TaskManager::TERMINATE_RUNNING_TASKS_THEN_EXIT);
 
     osg::Timer_t startTick = osg::Timer::instance()->tick();
 
