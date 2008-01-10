@@ -218,7 +218,7 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
 
         enum TaskFailureOperation
         {
-            IGNORE,
+            IGNORE_FAILED_TASK,
             BLACKLIST_MACHINE_AND_RESUBMIT_TASK,
             COMPLETE_RUNNING_TASKS_THEN_EXIT,
             TERMINATE_RUNNING_TASKS_THEN_EXIT            

@@ -772,7 +772,7 @@ void TaskManager::handleSignal(int sig)
 
     switch(getSignalAction(sig))
     {
-        case(IGNORE):
+        case(IGNORE_SIGNAL):
         {
             log(osg::NOTICE,"Ignoring signal %d.",sig);
             break;

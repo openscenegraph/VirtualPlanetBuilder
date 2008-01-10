@@ -107,7 +107,7 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
 
         enum SignalAction
         {
-            IGNORE,
+            IGNORE_SIGNAL,
             DO_NOT_HANDLE,
             COMPLETE_RUNNING_TASKS_THEN_EXIT,
             TERMINATE_RUNNING_TASKS_THEN_EXIT,

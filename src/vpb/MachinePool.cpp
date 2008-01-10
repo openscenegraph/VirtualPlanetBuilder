@@ -327,7 +327,7 @@ void Machine::taskFailed(Task* task, int result)
     {
         switch(_machinePool->getTaskFailureOperation())
         {
-            case(MachinePool::IGNORE):
+            case(MachinePool::IGNORE_FAILED_TASK):
             {
                 log(osg::INFO,"   IGNORE");
                 break;
@@ -344,7 +344,7 @@ void Machine::taskFailed(Task* task, int result)
             case(MachinePool::COMPLETE_RUNNING_TASKS_THEN_EXIT):
             {
                 log(osg::NOTICE,"   COMPLETE_RUNNING_TASKS_THEN_EXIT");
-                _machinePool->setTaskFailureOperation(MachinePool::IGNORE);
+                _machinePool->setTaskFailureOperation(MachinePool::IGNORE_FAILED_TASK);
                 System::instance()->getTaskManager()->setDone(true);
                 _machinePool->removeAllOperations();
                 _machinePool->release();
@@ -353,7 +353,7 @@ void Machine::taskFailed(Task* task, int result)
             case(MachinePool::TERMINATE_RUNNING_TASKS_THEN_EXIT):
             {
                 log(osg::NOTICE,"   TERMINATE_RUNNING_TASKS_THEN_EXIT");
-                _machinePool->setTaskFailureOperation(MachinePool::IGNORE);
+                _machinePool->setTaskFailureOperation(MachinePool::IGNORE_FAILED_TASK);
                 System::instance()->getTaskManager()->setDone(true);
                 _machinePool->removeAllOperations();
                 _machinePool->signal(SIGTERM);
@@ -407,10 +407,10 @@ void Machine::setDone(bool done)
 //
 
 MachinePool::MachinePool():
-    _taskFailureOperation(IGNORE),
+    _taskFailureOperation(IGNORE_FAILED_TASK),
     _done(false)
 {
-    //_taskFailureOperation = IGNORE;
+    //_taskFailureOperation = IGNORE_FAILED_TASK;
     _taskFailureOperation = BLACKLIST_MACHINE_AND_RESUBMIT_TASK;
     //_taskFailureOperation = COMPLETE_RUNNING_TASKS_THEN_EXIT;
     //_taskFailureOperation = TERMINATE_RUNNING_TASKS_THEN_EXIT;
