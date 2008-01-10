@@ -18,6 +18,7 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/Export
     ${HEADER_PATH}/FileCache
     ${HEADER_PATH}/FileDetails
+    ${HEADER_PATH}/FileUtils
     ${HEADER_PATH}/GeospatialDataset
     ${HEADER_PATH}/MachinePool
     ${HEADER_PATH}/ObjectPlacer
@@ -50,6 +51,7 @@ ADD_LIBRARY(${LIB_NAME}
     ExtrudeVisitor.cpp
     FileCache.cpp
     FileDetails.cpp
+    FileUtils.cpp
     GeospatialDataset.cpp
     HeightFieldMapper.cpp
     MachinePool.cpp
