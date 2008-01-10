@@ -657,6 +657,8 @@ public:
         {
             transform(ct, const_cast<osg::Geometry*>(*itr));
         }
+        
+        return true;
     }
     
     bool transform(OGRCoordinateTransformation* ct, osg::Geometry* geometry)

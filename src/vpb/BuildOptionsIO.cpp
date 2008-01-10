@@ -52,6 +52,8 @@ public:
             P value = (object.*_getter)();
             fw.indent()<<_fieldName<<" "<<value._min[0]<<" "<<value._min[1]<<" "<<value._max[0]<<" "<<value._max[1]<<std::endl;
         }
+        
+        return true;
      }
 
     bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
@@ -63,6 +65,8 @@ public:
             (object.*_setter)(value);
             itrAdvanced = true;
         }
+        
+        return true;
      }
      
      std::string        _fieldName;

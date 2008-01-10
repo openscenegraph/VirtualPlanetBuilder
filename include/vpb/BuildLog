@@ -37,10 +37,10 @@ class BuildOperation;
 class BuildLog;
 class OperationLog;
 
-extern void log(osg::NotifySeverity level, const char* format, ...);
+extern void VPB_EXPORT log(osg::NotifySeverity level, const char* format, ...);
 
-extern void pushOperationLog(OperationLog* operationLog);
-extern void popOperationLog();
+extern void VPB_EXPORT pushOperationLog(OperationLog* operationLog);
+extern void VPB_EXPORT popOperationLog();
 
 struct Message : public osg::Referenced
 {

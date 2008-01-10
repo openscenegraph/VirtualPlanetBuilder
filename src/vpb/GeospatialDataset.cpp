@@ -83,7 +83,7 @@ bool GeospatialDataset::containsOverviews()
     {
         if (GetOverviewCount(i)>0) return true;
     }
-    false;
+    return false;
 }
 
 int GeospatialDataset::GetGCPCount()

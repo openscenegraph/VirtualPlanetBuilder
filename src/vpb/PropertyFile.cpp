@@ -152,6 +152,8 @@ bool vpb::Parameter::getString(std::string& str)
             break;
         }
     }
+
+    return true;
 }
 
 
@@ -356,6 +358,8 @@ bool PropertyFile::write()
 #endif
     
     _propertiesModified = false;
+
+    return true;
 }
 
 void PropertyFile::report(std::ostream& out)

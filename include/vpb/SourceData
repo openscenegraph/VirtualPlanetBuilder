@@ -28,7 +28,7 @@ namespace vpb
 {
 
 class Source;
-class DestinationData;
+struct DestinationData;
 
 typedef std::list< osg::ref_ptr<osg::Node> > ModelList;
 

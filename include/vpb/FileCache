@@ -53,7 +53,7 @@ class VPB_EXPORT FileCache : public osg::Object
         bool write(const std::string& filename);
         
         /** if the FileCache in memory has been modified since last read/writer then call write.*/
-        bool sync() { if (_requiresWrite) write(_filename); }
+        bool sync() { if (_requiresWrite) return write(_filename); else return false; }
 
         typedef std::list< osg::ref_ptr<FileDetails> > Variants;
         typedef std::map<std::string, Variants> VariantMap;

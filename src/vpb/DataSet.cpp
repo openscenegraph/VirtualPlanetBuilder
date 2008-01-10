@@ -1298,7 +1298,9 @@ bool DataSet::addModel(Source::Type type, osg::Node* model)
     osg::notify(osg::NOTICE)<<"   extents "<<source->_extents.xMin()<<" "<<source->_extents.xMax()<<std::endl;
     osg::notify(osg::NOTICE)<<"           "<<source->_extents.yMin()<<" "<<source->_extents.yMax()<<std::endl;
     
-    addSource(source);    
+    addSource(source);
+
+    return true;
 }
 
 bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum)
@@ -1826,4 +1828,6 @@ int DataSet::run()
     {
         popOperationLog();
     }
+
+    return true;
 }

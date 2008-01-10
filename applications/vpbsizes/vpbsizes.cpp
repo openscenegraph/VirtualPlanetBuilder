@@ -21,7 +21,7 @@
 unsigned int computeNumTiles(unsigned int numTilesLevel1, int level)
 {
     if (level==0) return 1;
-    else return static_cast<unsigned int>(numTilesLevel1 * pow(2, level-1));
+    else return static_cast<unsigned int>(numTilesLevel1 * pow(2.0f, level-1));
 }
 
 unsigned int computeTotalSize(unsigned int numTilesLevel1, unsigned int s, bool wrap, int level)

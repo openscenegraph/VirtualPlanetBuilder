@@ -34,7 +34,7 @@ Task::~Task()
 void Task::init(osg::ArgumentParser& arguments)
 {
     std::string application;
-    for(unsigned int i=0; i<arguments.argc(); ++i)
+    for(int i=0; i<arguments.argc(); ++i)
     {
         if (i>0) application += " ";
         application += arguments[i];

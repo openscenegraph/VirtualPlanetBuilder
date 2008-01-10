@@ -108,6 +108,8 @@ public:
         {
             fw.indent()<<_fieldName<<" "<<getString((object.*_getter)())<<std::endl;
         }
+        
+        return true;
     }
 
     bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
@@ -119,6 +121,8 @@ public:
             fr += 2;
             itrAdvanced = true;
         }
+        
+        return true;
     }
 
     std::string        _fieldName;
@@ -152,6 +156,8 @@ public:
         {
             fw.indent()<<_fieldName<<" "<<fw.wrapString((object.*_getter)())<<std::endl;
         }
+        
+        return true;
      }
 
     bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
@@ -163,6 +169,8 @@ public:
             fr += 2;
             itrAdvanced = true;
         }
+        
+        return true;
      }
      
      std::string        _fieldName;
@@ -194,6 +202,8 @@ public:
         {
             fw.indent()<<_fieldName<<" "<<(object.*_getter)()<<std::endl;
         }
+        
+        return true;
      }
 
     bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
@@ -205,6 +215,8 @@ public:
             (object.*_setter)(value);
             itrAdvanced = true;
         }
+        
+        return true;
      }
      
      std::string        _fieldName;
@@ -237,6 +249,8 @@ public:
         {
             fw.indent()<<_fieldName<<" "<<(object.*_getter)()<<std::endl;
         }
+        
+        return true;
      }
 
     bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
@@ -249,6 +263,8 @@ public:
             fr += 2;
             itrAdvanced = true;
         }
+        
+        return true;
      }
      
      std::string        _fieldName;
@@ -281,6 +297,8 @@ public:
         {
             fw.indent()<<_fieldName<<" "<<((object.*_getter)() ? "TRUE" : "FALSE")<<std::endl;
         }
+        
+        return true;
      }
 
     bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
@@ -292,6 +310,8 @@ public:
             fr += 2;
             itrAdvanced = true;
         }
+        
+        return true;
      }
      
      std::string        _fieldName;
