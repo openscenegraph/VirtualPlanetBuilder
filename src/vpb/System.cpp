@@ -14,6 +14,7 @@
 #include <vpb/System>
 #include <vpb/BuildLog>
 #include <vpb/Date>
+#include <vpb/FileUtils>
 
 #include <map>
 
@@ -23,7 +24,7 @@ using namespace vpb;
 std::string vpb::getLocalHostName()
 {
     char hostname[1024];
-    if (gethostname(hostname, sizeof(hostname))==0)
+    if (vpb::gethostname(hostname, sizeof(hostname))==0)
     {
         return std::string(hostname);
     }
@@ -35,7 +36,7 @@ std::string vpb::getLocalHostName()
 
 int vpb::getProcessID()
 {
-    return getpid();
+    return vpb::getpid();
 }
 
 
@@ -61,7 +62,7 @@ System::System()
 {
     _trimOldestTiles = true;
     _numUnusedDatasetsToTrimFromCache = 10;
-    _maxNumDatasets = (unsigned int)(double(getdtablesize()) * 0.8);
+    _maxNumDatasets = (unsigned int)(double(vpb::getdtablesize()) * 0.8);
     
     readEnvironmentVariables();
     

@@ -57,6 +57,7 @@
     void    vpb::sync()                                             { ::sync(); }
     int     vpb::fsync(int fildes)                                  { return ::fsync(fildes); }
     int     vpb::getpid()                                           { return ::getpid(); }
+    int     vpb::gethostname(char *name, size_t namelen)            { return ::gethostname(name, namelen); }
     int     vpb::getdtablesize()                                    { return ::getdtablesize(); }
 
 #endif  // WIN32

@@ -12,9 +12,8 @@
 */
 
 #include <vpb/PropertyFile>
+#include <vpb/FileUtils>
 
-#include <fcntl.h>
-#include <unistd.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -31,9 +30,9 @@ struct FileProxy
     FileProxy(const std::string& filename):
         _fileID(0)
     {
-        if (access(filename.c_str(), F_OK)==0)
+        if (vpb::access(filename.c_str(), F_OK)==0)
         {
-            _fileID = open (filename.c_str(), O_RDWR);
+            _fileID = vpb::open (filename.c_str(), O_RDWR);
 
             // osg::notify(osg::NOTICE)<<"Opened existing file "<<filename<<" _fileID = "<<_fileID<<std::endl;
         }
@@ -41,14 +40,15 @@ struct FileProxy
         {
             _requiresSync = true;
 
-            FILE* file = fopen(filename.c_str(), "wr");
-            fclose(file);
+            FILE* file = vpb::fopen(filename.c_str(), "wr");
 
-            _fileID = open (filename.c_str(), O_RDWR);
+            vpb::fclose(file);
 
-            fchmod(_fileID, S_IREAD | S_IWRITE | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+            _fileID = vpb::open (filename.c_str(), O_RDWR);
+
+            vpb::fchmod(_fileID, S_IREAD | S_IWRITE | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
             
-            fsync();
+            vpb::fsync();
 
             // osg::notify(osg::NOTICE)<<"Opened new file "<<filename<<" _fileID = "<<_fileID<<std::endl;
         }
@@ -59,48 +59,48 @@ struct FileProxy
         // osg::notify(osg::NOTICE)<<"Closing _fileID = "<<_fileID<<std::endl;
         if (_fileID)
         {
-            if (_requiresSync) fsync();
+            if (_requiresSync) vpb::fsync();
             
-            close(_fileID);
+            vpb::close(_fileID);
         }
     }
 
     offset_t lseek (offset_t __offset, int __whence)
     {
         // osg::notify(osg::NOTICE)<<"lseek("<<_fileID<<", "<<__offset<<", "<<__whence<<")"<<std::endl;
-        return ::lseek(_fileID, __offset, __whence);
+        return vpb::lseek(_fileID, __offset, __whence);
     }
     
     int lockf (int __cmd, offset_t __len)
     {
         // osg::notify(osg::NOTICE)<<"lockf("<<_fileID<<", "<<__cmd<<", "<<__len<<")"<<std::endl;
-        return ::lockf(_fileID, __cmd, __len);
+        return vpb::lockf(_fileID, __cmd, __len);
     }
     
     ssize_t read (void *__buf, size_t __nbytes)
     {
         // osg::notify(osg::NOTICE)<<"read("<<_fileID<<", "<<__buf<<", "<<__nbytes<<")"<<std::endl;
-        return ::read(_fileID, __buf, __nbytes);
+        return vpb::read(_fileID, __buf, __nbytes);
     }
     
     ssize_t write (__const void *__buf, size_t __n)
     {
         // osg::notify(osg::NOTICE)<<"write("<<_fileID<<", "<<__buf<<", "<<__n<<")"<<std::endl;
         _requiresSync = true;
-        return ::write(_fileID, __buf, __n);
+        return vpb::write(_fileID, __buf, __n);
     }
     
     int ftruncate (__off_t __length)
     {
         // osg::notify(osg::NOTICE)<<"ftruncate("<<_fileID<<", "<<__length<<")"<<std::endl;
         _requiresSync = true;
-        return ::ftruncate(_fileID, __length);
+        return vpb::ftruncate(_fileID, __length);
     }
     
     int fsync ()
     {
         _requiresSync = false;
-        return ::fsync(_fileID);
+        return vpb::fsync(_fileID);
     }
 
     int _fileID;
