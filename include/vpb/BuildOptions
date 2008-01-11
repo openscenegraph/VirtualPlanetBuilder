@@ -235,6 +235,9 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setNumWriteThreadsToCoresRatio(float ratio) { _numWriteThreadsToCoresRatio = ratio; }
         float getNumWriteThreadsToCoresRatio() const { return _numWriteThreadsToCoresRatio; }
         
+        void setBuildOptionsString(const std::string& str) { _buildOptionsString = str; }
+        const std::string& getBuildOptionsString() const { return _buildOptionsString; }
+        
     protected:
 
         bool                                        _buildOverlays;
@@ -284,6 +287,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
         
         float                                       _numReadThreadsToCoresRatio;
         float                                       _numWriteThreadsToCoresRatio;
+        
+        std::string                                 _buildOptionsString;
 };
 
 }

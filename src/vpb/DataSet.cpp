@@ -125,6 +125,15 @@ bool DataSet::mapLatLongsToXYZ() const
     return result;
 }
 
+void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
+                               const GeospatialExtents& extents,
+                               unsigned int maxImageSize,
+                               unsigned int maxTerrainSize,
+                               unsigned int maxNumLevels)
+{
+    log(osg::NOTICE,"createNewDestinationGraph");
+}
+
 CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* parent,
                                                       osg::CoordinateSystemNode* cs,
                                                       const GeospatialExtents& extents,
@@ -494,17 +503,29 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     log(osg::INFO, "extents = xMin() %f %f",extents.xMin(),extents.xMax());
     log(osg::INFO, "          yMin() %f %f",extents.yMin(),extents.yMax());
 
-    // then create the destinate graph accordingly.
-    _destinationGraph = createDestinationGraph(0,
-                                               _intermediateCoordinateSystem.get(),
-                                               extents,
-                                               _maximumTileImageSize,
-                                               _maximumTileTerrainSize,
-                                               0,
-                                               0,
-                                               0,
-                                               numLevels);
-                                                           
+
+    if (getBuildOptionsString() == "new")
+    {
+        createNewDestinationGraph(_intermediateCoordinateSystem.get(),
+                                  extents,
+                                  _maximumTileImageSize,
+                                  _maximumTileTerrainSize,
+                                  numLevels);
+    }
+    else
+    {
+        // then create the destination graph accordingly.
+        _destinationGraph = createDestinationGraph(0,
+                                                   _intermediateCoordinateSystem.get(),
+                                                   extents,
+                                                   _maximumTileImageSize,
+                                                   _maximumTileTerrainSize,
+                                                   0,
+                                                   0,
+                                                   0,
+                                                   numLevels);
+    }
+                                                               
     // now traverse the destination graph to build neighbours.        
     _destinationGraph->computeNeighboursFromQuadMap();
 

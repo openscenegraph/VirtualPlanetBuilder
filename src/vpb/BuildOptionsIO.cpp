@@ -210,6 +210,8 @@ public:
         
         ADD_FLOAT_PROPERTY(NumReadThreadsToCoresRatio);
         ADD_FLOAT_PROPERTY(NumWriteThreadsToCoresRatio);
+
+        ADD_STRING_PROPERTY(BuildOptionsString);
     }
     
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)

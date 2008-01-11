@@ -133,6 +133,8 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     
     _numReadThreadsToCoresRatio = rhs._numReadThreadsToCoresRatio;
     _numWriteThreadsToCoresRatio = rhs._numWriteThreadsToCoresRatio;
+    
+    _buildOptionsString = rhs._buildOptionsString;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)

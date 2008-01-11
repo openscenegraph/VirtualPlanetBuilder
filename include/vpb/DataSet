@@ -132,6 +132,12 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         static int getNotifyOffset();
 
 
+        void createNewDestinationGraph(osg::CoordinateSystemNode* cs,
+                                       const GeospatialExtents& extents,
+                                       unsigned int maxImageSize,
+                                       unsigned int maxTerrainSize,
+                                       unsigned int maxNumLevels);
+
         CompositeDestination* createDestinationGraph(CompositeDestination* parent,
                                                      osg::CoordinateSystemNode* cs,
                                                      const GeospatialExtents& extents,
@@ -144,6 +150,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         
         
         void computeDestinationGraphFromSources(unsigned int numLevels);
+
         void updateSourcesForDestinationGraphNeeds();
         void populateDestinationGraphFromSources();
         
