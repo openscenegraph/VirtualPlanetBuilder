@@ -110,7 +110,7 @@ void DestinationTile::computeMaximumSourceResolution(CompositeSource* sourceGrap
         }
 
         SourceData* data = source->getSourceData();
-        if (data && source->getType()!=Source::MODEL)
+        if (data && (source->getType()==Source::IMAGE || source->getType()==Source::HEIGHT_FIELD))
         {
 
             SpatialProperties sp = data->computeSpatialProperties(_cs.get());

@@ -132,6 +132,152 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                                unsigned int maxNumLevels)
 {
     log(osg::NOTICE,"createNewDestinationGraph");
+    
+    // first decide the C1 and R1 values.
+    unsigned int C1 = 1;
+    unsigned int R1 = 1;
+    
+    double destination_xRange = extents.xMax()-extents.xMin();
+    double destination_yRange = extents.yMax()-extents.yMin();
+    double AR = destination_xRange / destination_yRange;
+    
+    bool swapAxis = AR<1.0;
+    if (swapAxis) AR = 1.0/AR;
+    
+    double lower_AR = floor(AR);   
+    double upper_AR = ceil(AR);
+    
+    if (AR<sqrt(lower_AR*upper_AR)) 
+    {
+        C1 = (unsigned int)(lower_AR);
+        R1 = 1;
+    }
+    else
+    {
+        C1 = (unsigned int)(upper_AR);
+        R1 = 1;
+    }
+    
+    if (swapAxis)
+    {
+        std::swap(C1,R1);
+    }
+    
+    log(osg::NOTICE,"AR=%f C1=%i R1=%i",AR,C1,R1);
+    
+    
+    typedef std::list< osg::ref_ptr<Source> > SourceList;
+    SourceList modelSources;
+    
+    for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
+    {
+        Source* source = (*itr).get();
+
+        if (source->getMinLevel()>maxNumLevels)
+        {
+            log(osg::NOTICE,"Skipping source %s as its min level excees destination max level.",source->getFileName().c_str());
+            continue;
+        }
+
+        SourceData* sd = (*itr)->getSourceData();
+        if (!sd)
+        {
+            log(osg::NOTICE,"Skipping source %s as no data loaded from it.",source->getFileName().c_str());
+            continue;
+        }
+        
+        const SpatialProperties& sp = sd->computeSpatialProperties(cs);
+
+        if (!sp._extents.intersects(extents))
+        {
+            // skip this source since it doesn't overlap this tile.
+            log(osg::NOTICE,"Skipping source %s as its extents don't overlap destination extents.",source->getFileName().c_str());
+            continue;
+        }
+
+        double source_xRange = sp._extents.xMax()-sp._extents.xMin();
+        double source_yRange = sp._extents.yMax()-sp._extents.yMin();
+        
+        unsigned int level = 0;
+        
+        if (source->getType()!=Source::IMAGE && source->getType()!=Source::HEIGHT_FIELD)
+        {
+            // place models and shapefiles into a separate temporary source list and then process these after
+            // the main handling of terrain/imagery sources.
+            modelSources.push_back(source);
+        }
+        else
+        {
+
+            float sourceResolutionX = (source_xRange)/(float)sp._numValuesX;
+            float sourceResolutionY = (source_yRange)/(float)sp._numValuesY;
+
+            log(osg::NOTICE,"Source %s resX %f resY %f",source->getFileName().c_str(), sourceResolutionX, sourceResolutionX);
+
+            double tileSize = source->getType()==Source::IMAGE ? maxImageSize-2 : maxTerrainSize-1;
+
+            int k_cols( ceil( 1.0 + ::log( destination_xRange / (C1 * sourceResolutionX * tileSize ) ) / ::log(2.0) ) );
+            int k_rows( ceil( 1.0 + ::log( destination_yRange / (R1 * sourceResolutionY * tileSize ) ) / ::log(2.0) ) );
+            int k = std::min( std::max(k_cols, k_rows), int(maxNumLevels-1) );
+
+            log(osg::NOTICE,"     k_cols = %i  k_rows=%i k=%i",k_cols, k_rows, k);
+            
+            int Ck = pow(2.0, double(k-1)) * C1;
+            int Rk = pow(2.0, double(k-1)) * R1;
+            
+            log(osg::NOTICE,"     Ck = %i Rk=%i",Ck, Rk);
+
+            int i_min( floor( ((sp._extents.xMin() - extents.xMin()) / destination_xRange) * double(Ck) ) );
+            int j_min( floor( ((sp._extents.yMin() - extents.yMin()) / destination_yRange) * double(Rk) ) );
+            
+            // note i_max and j_max are one beyond the extents required so that the below for loop can use <
+            // and the clamping to the 0..Ck-1 and 0..Rk-1 extents will work fine.
+            int i_max( ceil( ((sp._extents.xMax() - extents.xMin()) / destination_xRange) * double(Ck)));
+            int j_max( ceil( ((sp._extents.yMax() - extents.yMin()) / destination_yRange) * double(Rk)));
+            
+            // clamp j range to 0 to Ck range
+            if (i_min<0) i_min = 0;
+            if (i_max<0) i_max = 0;
+            if (i_min>Ck) i_min = Ck;
+            if (i_max>Ck) i_max = Ck;
+
+            // clamp j range to 0 to Rk range
+            if (j_min<0) j_min = 0;
+            if (j_max<0) j_max = 0;
+            if (j_min>Rk) j_min = Rk;
+            if (j_max>Rk) j_max = Rk;
+
+            log(osg::NOTICE,"     i_min = %i i_max=%i j_min=%i j_max=%i",i_min, i_max, j_min, j_max);
+            
+            
+            for(int j=j_min; j<j_max;++j)
+            {
+                for(int i=i_min; i<i_max;++i)
+                {
+                    log(osg::NOTICE,"       destination graph (%i,%i,%i)", i,j,k);
+                }
+            }
+
+        }
+
+    }
+    
+    for(SourceList::iterator ml_itr = modelSources.begin();
+        ml_itr != modelSources.end();
+        ++ml_itr)
+    {
+        Source* source = (*ml_itr).get();
+        SourceData* sd = (*ml_itr)->getSourceData();
+
+        const SpatialProperties& sp = sd->computeSpatialProperties(cs);
+        double source_xRange = sp._extents.xMax()-sp._extents.xMin();
+        double source_yRange = sp._extents.yMax()-sp._extents.yMin();
+
+
+        log(osg::NOTICE,"Need to handle shapefile/model source %s.",source->getFileName().c_str());
+    }
+    
+    
 }
 
 CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* parent,
@@ -504,6 +650,8 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     log(osg::INFO, "          yMin() %f %f",extents.yMin(),extents.yMax());
 
 
+    osg::Timer_t before = osg::Timer::instance()->tick();
+
     if (getBuildOptionsString() == "new")
     {
         createNewDestinationGraph(_intermediateCoordinateSystem.get(),
@@ -526,6 +674,11 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
                                                    numLevels);
     }
                                                                
+    osg::Timer_t after = osg::Timer::instance()->tick();
+    
+    log(osg::NOTICE,"Time for createDestinationGraph %f", osg::Timer::instance()->delta_s(before, after));
+
+
     // now traverse the destination graph to build neighbours.        
     _destinationGraph->computeNeighboursFromQuadMap();
 
@@ -1382,9 +1535,9 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
     osgTerrain::ProxyLayer* pl = dynamic_cast<osgTerrain::ProxyLayer*>(layer);
     if (pl)
     {
-        // close the ProxyLayer so that it nolonger retains a GDAL file handle.
-        pl->close();
-    
+        // remove any implementation as we don't need it.
+        pl->setImplementation(0);
+
         vpb::Source* source = new vpb::Source(type, pl->getFileName());
         source->setLayer(layerNum);
         source->setMinLevel(layer->getMinLevel());
