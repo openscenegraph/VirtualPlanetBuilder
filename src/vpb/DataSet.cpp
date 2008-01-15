@@ -248,14 +248,104 @@ bool DataSet::computeOptimumTileSystemDimensions(int& C1, int& R1)
     return true;
 }
 
-bool DataSet::createDestinationTile(int level, int tileX, int tileY)
+bool DataSet::createDestinationTile(int currentLevel, int currentX, int currentY)
 {
-    log(osg::NOTICE,"       no composite (%i,%i,%i)", level,tileX,tileY);
-    CompositeDestination* cd = new CompositeDestination;
-    cd->_level = level;
-    cd->_tileX = tileX;
-    cd->_tileY = tileY;
-    insertTileToQuadMap(cd);
+    CompositeDestination* parent = 0;
+    GeospatialExtents extents;
+
+    if (currentLevel==0) 
+    {
+        extents = _destinationExtents;
+    }
+    else
+    {
+        // compute the extents
+        double destination_xRange = _destinationExtents.xMax()-_destinationExtents.xMin();
+        double destination_yRange = _destinationExtents.yMax()-_destinationExtents.yMin();
+
+        int Ck = pow(2.0, double(currentLevel-1)) * _C1;
+        int Rk = pow(2.0, double(currentLevel-1)) * _R1;
+        
+        extents.xMin() = _destinationExtents.xMin() + (double(currentX)/double(Ck)) * destination_xRange;
+        extents.xMax() = _destinationExtents.xMin() + (double(currentX+1)/double(Ck)) * destination_xRange;
+
+        extents.yMin() = _destinationExtents.yMin() + (double(currentY)/double(Rk)) * destination_yRange;
+        extents.yMax() = _destinationExtents.yMin() + (double(currentY+1)/double(Rk)) * destination_yRange;
+        
+        // compute the parent
+        if (currentLevel == 1)
+        {
+            parent = _destinationGraph.get();
+        }
+        else
+        {
+            parent = getComposite(currentLevel-1,currentX/2,currentY/2);
+        }
+        
+    }
+
+    CompositeDestination* destinationGraph = new CompositeDestination(_intermediateCoordinateSystem.get(),extents);
+
+    if (currentLevel==0) _destinationGraph = destinationGraph;
+
+    if (mapLatLongsToXYZ())
+    {
+        // we need to project the extents into world coords to get the appropriate size to use for control max visible distance
+        float max_range = osg::maximum(extents.xMax()-extents.xMin(),extents.yMax()-extents.yMin());
+        float projected_radius =  osg::DegreesToRadians(max_range) * getEllipsoidModel()->getRadiusEquator();
+        float center_offset = (max_range/360.0f) * getEllipsoidModel()->getRadiusEquator();
+        destinationGraph->_maxVisibleDistance = projected_radius * getRadiusToMaxVisibleDistanceRatio() + center_offset;
+    }
+    else
+    {
+        destinationGraph->_maxVisibleDistance = extents.radius()*getRadiusToMaxVisibleDistanceRatio();
+    }
+
+    // first create the topmost tile
+
+    // create the name
+    std::ostringstream os;
+    os << _tileBasename << "_L"<<currentLevel<<"_X"<<currentX<<"_Y"<<currentY;
+
+    destinationGraph->_parent = parent;
+    destinationGraph->_name = os.str();
+    destinationGraph->_level = currentLevel;
+    destinationGraph->_tileX = currentX;
+    destinationGraph->_tileY = currentY;
+    destinationGraph->_dataSet = this;
+
+
+    DestinationTile* tile = new DestinationTile;
+    tile->_name = destinationGraph->_name;
+    tile->_level = currentLevel;
+    tile->_tileX = currentX;
+    tile->_tileY = currentY;
+    tile->_dataSet = this;
+    tile->_cs = destinationGraph->_cs;
+    tile->_extents = extents;
+
+    // set to NONE as the tile is a mix of RASTER and VECTOR
+    // that way the default of RASTER for image and VECTOR for height is maintained
+    tile->_dataType = SpatialProperties::NONE;
+
+    tile->_pixelFormat = (getTextureType()==COMPRESSED_RGBA_TEXTURE||
+                          getTextureType()==RGBA ||
+                          getTextureType()==RGBA_16) ? GL_RGBA : GL_RGB;
+
+    tile->setMaximumImagerySize(_maximumTileImageSize,_maximumTileImageSize);
+    tile->setMaximumTerrainSize(_maximumTileTerrainSize,_maximumTileTerrainSize);
+    //tile->computeMaximumSourceResolution(_sourceGraph.get());
+
+    destinationGraph->_tiles.push_back(tile);
+
+    if (parent)
+    {
+        parent->_type = LOD;
+        parent->addChild(destinationGraph);
+    }
+
+
+    insertTileToQuadMap(destinationGraph);
 }
 
 void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
@@ -317,14 +407,14 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         int k = 0;
         if (!computeOptimumLevel(source, maxNumLevels-1, k)) continue;
         
-        log(osg::NOTICE,"     opt level = %i",k);
+        // log(osg::NOTICE,"     opt level = %i",k);
 
         for(int l=0; l<=k; l++)
         {
             int i_min, i_max, j_min, j_max;
             if (computeCoverage(sp._extents, l, i_min, j_min, i_max, j_max)) 
             {
-                log(osg::NOTICE,"     level=%i i_min=%i i_max=%i j_min=%i j_max=%i",l, i_min, i_max, j_min, j_max);
+                // log(osg::NOTICE,"     level=%i i_min=%i i_max=%i j_min=%i j_max=%i",l, i_min, i_max, j_min, j_max);
 
                 for(int j=j_min; j<j_max;++j)
                 {
@@ -336,7 +426,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                         }
                         else
                         {
-                            log(osg::NOTICE,"       composite already created (%i,%i,%i)", i,j,k);
+                            // log(osg::NOTICE,"       composite already created (%i,%i,%i)", i,j,k);
                         }
                     }
                 }
@@ -764,6 +854,9 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     // now traverse the destination graph to build neighbours.        
     _destinationGraph->computeNeighboursFromQuadMap();
 
+    osg::Timer_t after_computeNeighbours = osg::Timer::instance()->tick();
+
+    log(osg::NOTICE,"Time for after_computeNeighbours %f", osg::Timer::instance()->delta_s(after, after_computeNeighbours));
 }
 
 void DataSet::assignDestinationCoordinateSystem()
@@ -847,6 +940,9 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
 
     std::string temporyFilePrefix("temporaryfile_");
 
+    osg::Timer_t before = osg::Timer::instance()->tick();
+
+#if 0
     // compute the resolutions of the source that are required.
     {
         _destinationGraph->addRequiredResolutions(_sourceGraph.get());
@@ -885,9 +981,12 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
             }
 
         }
-
-
     }
+#endif
+
+    osg::Timer_t after_consolidate = osg::Timer::instance()->tick();
+    
+    log(osg::NOTICE,"Time for consolodateRequiredResolutions %f", osg::Timer::instance()->delta_s(before, after_consolidate));
 
     // do standardisation of coordinates systems.
     // do any reprojection if required.
@@ -932,6 +1031,10 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
         }
     }
     
+    osg::Timer_t after_reproject = osg::Timer::instance()->tick();
+    
+    log(osg::NOTICE,"Time for after_reproject %f", osg::Timer::instance()->delta_s(after_consolidate, after_reproject));
+
     // do sampling of data to required values.
     if (getBuildOverlays())
     {
@@ -960,6 +1063,10 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
         _sourceGraph->sort();
     }
     
+    osg::Timer_t after_sourceGraphsort = osg::Timer::instance()->tick();
+
+    log(osg::NOTICE,"Time for after_sort %f", osg::Timer::instance()->delta_s(after_reproject, after_sourceGraphsort));
+
     log(osg::INFO, "Using source_lod_iterator itr");
         
     // buggy mips compiler requires this local variable in source_lod_iterator
