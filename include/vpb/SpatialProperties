@@ -61,6 +61,14 @@ public:
         _max(xmax, ymax),
         _isGeographic(isGeographic) {}
         
+    GeospatialExtents& operator = (const GeospatialExtents& rhs)
+    {
+        _min = rhs._min;
+        _max = rhs._max;
+        _isGeographic = rhs._isGeographic;
+        return *this;
+    }
+
     bool operator != (const GeospatialExtents& rhs) const
     {
         return (_min != rhs._min) || (_max != rhs._max) || (_isGeographic != rhs._isGeographic);

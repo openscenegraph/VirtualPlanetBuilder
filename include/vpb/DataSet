@@ -206,6 +206,9 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         osg::Node* decorateWithCoordinateSystemNode(osg::Node* subgraph);
         osg::Node* decorateWithMultiTextureControl(osg::Node* subgraph);
 
+        bool computeCoverage(const GeospatialExtents& extents, int level, int& minX, int& minY, int& maxX, int& maxY);
+        bool computeOptimumLevel(Source* source, int maxLevel, int& level);
+        bool computeOptimumTileSystemDimensions(int& C1, int& R1);
 
         osg::ref_ptr<CompositeSource>               _sourceGraph;
         
@@ -225,6 +228,10 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
 
         osg::ref_ptr<ObjectPlacer>                  _modelPlacer;
         osg::ref_ptr<ObjectPlacer>                  _shapeFilePlacer;
+        
+        GeospatialExtents                           _destinationExtents;
+        int                                         _C1;
+        int                                         _R1;
         
 };
 

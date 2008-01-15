@@ -64,6 +64,9 @@ void DataSet::init()
         GDALAllRegister();
     }
 
+    _C1 = 0;
+    _R1 = 0;
+
     _numTextureLevels = 1;
     
     _modelPlacer = new ObjectPlacer;
@@ -125,20 +128,94 @@ bool DataSet::mapLatLongsToXYZ() const
     return result;
 }
 
-void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
-                               const GeospatialExtents& extents,
-                               unsigned int maxImageSize,
-                               unsigned int maxTerrainSize,
-                               unsigned int maxNumLevels)
+bool DataSet::computeCoverage(const GeospatialExtents& extents, int level, int& minX, int& minY, int& maxX, int& maxY)
 {
-    log(osg::NOTICE,"createNewDestinationGraph");
+    if (!_destinationExtents.intersects(extents)) return false;
     
-    // first decide the C1 and R1 values.
-    unsigned int C1 = 1;
-    unsigned int R1 = 1;
+    if (level==0)
+    {
+        minX = 0;
+        maxX = 1;
+        minY = 0;
+        maxY = 1;
+        return true;
+    }
+
+    double destination_xRange = _destinationExtents.xMax()-_destinationExtents.xMin();
+    double destination_yRange = _destinationExtents.yMax()-_destinationExtents.yMin();
+
+    int Ck = pow(2.0, double(level-1)) * _C1;
+    int Rk = pow(2.0, double(level-1)) * _R1;
+
+    int i_min( floor( ((extents.xMin() - _destinationExtents.xMin()) / destination_xRange) * double(Ck) ) );
+    int j_min( floor( ((extents.yMin() - _destinationExtents.yMin()) / destination_yRange) * double(Rk) ) );
+
+    // note i_max and j_max are one beyond the extents required so that the below for loop can use <
+    // and the clamping to the 0..Ck-1 and 0..Rk-1 extents will work fine.
+    int i_max( ceil( ((extents.xMax() - _destinationExtents.xMin()) / destination_xRange) * double(Ck) ) );
+    int j_max( ceil( ((extents.yMax() - _destinationExtents.yMin()) / destination_yRange) * double(Rk) ) );
+
+    // clamp j range to 0 to Ck range
+    if (i_min<0) i_min = 0;
+    if (i_max<0) i_max = 0;
+    if (i_min>Ck) i_min = Ck;
+    if (i_max>Ck) i_max = Ck;
+
+    // clamp j range to 0 to Rk range
+    if (j_min<0) j_min = 0;
+    if (j_max<0) j_max = 0;
+    if (j_min>Rk) j_min = Rk;
+    if (j_max>Rk) j_max = Rk;
     
-    double destination_xRange = extents.xMax()-extents.xMin();
-    double destination_yRange = extents.yMax()-extents.yMin();
+    minX = i_min;
+    maxX = i_max;
+    minY = j_min;
+    maxY = j_max;
+    
+    return (minX<maxX) && (minY<maxY);
+}
+
+bool DataSet::computeOptimumLevel(Source* source, int maxLevel, int& level)
+{
+    if (source->getType()!=Source::IMAGE && source->getType()!=Source::HEIGHT_FIELD) return false;
+
+    if (maxLevel < source->getMinLevel()) return false;
+
+    SourceData* sd = source->getSourceData();
+    if (!sd) return false;
+    
+
+    const SpatialProperties& sp = sd->computeSpatialProperties(_intermediateCoordinateSystem.get());
+
+    double destination_xRange = _destinationExtents.xMax()-_destinationExtents.xMin();
+    double destination_yRange = _destinationExtents.yMax()-_destinationExtents.yMin();
+
+    double source_xRange = sp._extents.xMax()-sp._extents.xMin();
+    double source_yRange = sp._extents.yMax()-sp._extents.yMin();
+
+    float sourceResolutionX = (source_xRange)/(float)sp._numValuesX;
+    float sourceResolutionY = (source_yRange)/(float)sp._numValuesY;
+
+    log(osg::NOTICE,"Source %s resX %f resY %f",source->getFileName().c_str(), sourceResolutionX, sourceResolutionX);
+
+    double tileSize = source->getType()==Source::IMAGE ? _maximumTileImageSize-2 : _maximumTileTerrainSize-1;
+
+    int k_cols( ceil( 1.0 + ::log( destination_xRange / (_C1 * sourceResolutionX * tileSize ) ) / ::log(2.0) ) );
+    int k_rows( ceil( 1.0 + ::log( destination_yRange / (_R1 * sourceResolutionY * tileSize ) ) / ::log(2.0) ) );
+    level = std::max(k_cols, k_rows);
+    level = std::min(level, int(source->getMaxLevel()));
+    level = std::min(level, maxLevel);
+    
+    return true;
+}
+
+bool DataSet::computeOptimumTileSystemDimensions(int& C1, int& R1)
+{
+    C1 = 1;
+    R1 = 1;
+    
+    double destination_xRange = _destinationExtents.xMax()-_destinationExtents.xMin();
+    double destination_yRange = _destinationExtents.yMax()-_destinationExtents.yMin();
     double AR = destination_xRange / destination_yRange;
     
     bool swapAxis = AR<1.0;
@@ -149,12 +226,12 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
     
     if (AR<sqrt(lower_AR*upper_AR)) 
     {
-        C1 = (unsigned int)(lower_AR);
+        C1 = (int)(lower_AR);
         R1 = 1;
     }
     else
     {
-        C1 = (unsigned int)(upper_AR);
+        C1 = (int)(upper_AR);
         R1 = 1;
     }
     
@@ -163,8 +240,25 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         std::swap(C1,R1);
     }
     
+    _C1 = C1;
+    _R1 = R1;
+    
     log(osg::NOTICE,"AR=%f C1=%i R1=%i",AR,C1,R1);
     
+    return true;
+}
+
+void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
+                               const GeospatialExtents& extents,
+                               unsigned int maxImageSize,
+                               unsigned int maxTerrainSize,
+                               unsigned int maxNumLevels)
+{
+    log(osg::NOTICE,"createNewDestinationGraph");
+    
+    computeOptimumTileSystemDimensions(_C1,_R1);
+
+    log(osg::NOTICE,"      C1=%i R1=%i",_C1,_R1);
     
     typedef std::list< osg::ref_ptr<Source> > SourceList;
     SourceList modelSources;
@@ -198,67 +292,51 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         double source_xRange = sp._extents.xMax()-sp._extents.xMin();
         double source_yRange = sp._extents.yMax()-sp._extents.yMin();
         
-        unsigned int level = 0;
+        int level = 0;
         
         if (source->getType()!=Source::IMAGE && source->getType()!=Source::HEIGHT_FIELD)
         {
             // place models and shapefiles into a separate temporary source list and then process these after
             // the main handling of terrain/imagery sources.
             modelSources.push_back(source);
+            
+            continue;
+            
         }
-        else
+        
+        int k = 0;
+        if (!computeOptimumLevel(source, maxNumLevels-1, k)) continue;
+        
+        log(osg::NOTICE,"     opt level = %i",k);
+
+        for(int l=0; l<=k; l++)
         {
-
-            float sourceResolutionX = (source_xRange)/(float)sp._numValuesX;
-            float sourceResolutionY = (source_yRange)/(float)sp._numValuesY;
-
-            log(osg::NOTICE,"Source %s resX %f resY %f",source->getFileName().c_str(), sourceResolutionX, sourceResolutionX);
-
-            double tileSize = source->getType()==Source::IMAGE ? maxImageSize-2 : maxTerrainSize-1;
-
-            int k_cols( ceil( 1.0 + ::log( destination_xRange / (C1 * sourceResolutionX * tileSize ) ) / ::log(2.0) ) );
-            int k_rows( ceil( 1.0 + ::log( destination_yRange / (R1 * sourceResolutionY * tileSize ) ) / ::log(2.0) ) );
-            int k = std::min( std::max(k_cols, k_rows), int(maxNumLevels-1) );
-
-            log(osg::NOTICE,"     k_cols = %i  k_rows=%i k=%i",k_cols, k_rows, k);
-            
-            int Ck = pow(2.0, double(k-1)) * C1;
-            int Rk = pow(2.0, double(k-1)) * R1;
-            
-            log(osg::NOTICE,"     Ck = %i Rk=%i",Ck, Rk);
-
-            int i_min( floor( ((sp._extents.xMin() - extents.xMin()) / destination_xRange) * double(Ck) ) );
-            int j_min( floor( ((sp._extents.yMin() - extents.yMin()) / destination_yRange) * double(Rk) ) );
-            
-            // note i_max and j_max are one beyond the extents required so that the below for loop can use <
-            // and the clamping to the 0..Ck-1 and 0..Rk-1 extents will work fine.
-            int i_max( ceil( ((sp._extents.xMax() - extents.xMin()) / destination_xRange) * double(Ck)));
-            int j_max( ceil( ((sp._extents.yMax() - extents.yMin()) / destination_yRange) * double(Rk)));
-            
-            // clamp j range to 0 to Ck range
-            if (i_min<0) i_min = 0;
-            if (i_max<0) i_max = 0;
-            if (i_min>Ck) i_min = Ck;
-            if (i_max>Ck) i_max = Ck;
-
-            // clamp j range to 0 to Rk range
-            if (j_min<0) j_min = 0;
-            if (j_max<0) j_max = 0;
-            if (j_min>Rk) j_min = Rk;
-            if (j_max>Rk) j_max = Rk;
-
-            log(osg::NOTICE,"     i_min = %i i_max=%i j_min=%i j_max=%i",i_min, i_max, j_min, j_max);
-            
-            
-            for(int j=j_min; j<j_max;++j)
+            int i_min, i_max, j_min, j_max;
+            if (computeCoverage(sp._extents, l, i_min, j_min, i_max, j_max)) 
             {
-                for(int i=i_min; i<i_max;++i)
-                {
-                    log(osg::NOTICE,"       destination graph (%i,%i,%i)", i,j,k);
-                }
-            }
+                log(osg::NOTICE,"     level=%i i_min=%i i_max=%i j_min=%i j_max=%i",l, i_min, i_max, j_min, j_max);
 
+                for(int j=j_min; j<j_max;++j)
+                {
+                    for(int i=i_min; i<i_max;++i)
+                    {
+                        if (getComposite(l,i,j)) continue;
+
+                        //log(osg::NOTICE,"       no composite (%i,%i,%i)", i,j,k);
+                        CompositeDestination* cd = new CompositeDestination;
+                        cd->_level = l;
+                        cd->_tileX = i;
+                        cd->_tileY = j;
+                        insertTileToQuadMap(cd);
+                    }
+                }
+
+            }
         }
+
+            
+            
+            
 
     }
     
@@ -584,10 +662,10 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     }
 
     // get the extents of the sources and
-    GeospatialExtents extents(_extents);
-    extents._isGeographic = destinateCoordSytemType==GEOGRAPHIC;
+    _destinationExtents = _extents;
+    _destinationExtents._isGeographic = destinateCoordSytemType==GEOGRAPHIC;
 
-    if (!extents.valid()) 
+    if (!_destinationExtents.valid()) 
     {
         for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
         {
@@ -615,7 +693,7 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
                     }
                 }
 
-                extents.expandBy(local_extents);
+                _destinationExtents.expandBy(local_extents);
             }
         }
     }
@@ -623,12 +701,12 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
 
     if (destinateCoordSytemType==GEOGRAPHIC)
     {
-        double xRange = extents.xMax() - extents.xMin();
+        double xRange = _destinationExtents.xMax() - _destinationExtents.xMin();
         if (xRange>360.0) 
         {
             // clamp to proper 360 range.
-            extents.xMin() = -180.0;
-            extents.xMax() = 180.0;
+            _destinationExtents.xMin() = -180.0;
+            _destinationExtents.xMax() = 180.0;
         }
     }
     
@@ -646,8 +724,8 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     _numTextureLevels = maxTextureUnit+1;
 
 
-    log(osg::INFO, "extents = xMin() %f %f",extents.xMin(),extents.xMax());
-    log(osg::INFO, "          yMin() %f %f",extents.yMin(),extents.yMax());
+    log(osg::INFO, "extents = xMin() %f %f",_destinationExtents.xMin(),_destinationExtents.xMax());
+    log(osg::INFO, "          yMin() %f %f",_destinationExtents.yMin(),_destinationExtents.yMax());
 
 
     osg::Timer_t before = osg::Timer::instance()->tick();
@@ -655,7 +733,7 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     if (getBuildOptionsString() == "new")
     {
         createNewDestinationGraph(_intermediateCoordinateSystem.get(),
-                                  extents,
+                                  _destinationExtents,
                                   _maximumTileImageSize,
                                   _maximumTileTerrainSize,
                                   numLevels);
@@ -665,7 +743,7 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
         // then create the destination graph accordingly.
         _destinationGraph = createDestinationGraph(0,
                                                    _intermediateCoordinateSystem.get(),
-                                                   extents,
+                                                   _destinationExtents,
                                                    _maximumTileImageSize,
                                                    _maximumTileTerrainSize,
                                                    0,
