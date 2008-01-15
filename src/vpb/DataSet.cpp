@@ -248,6 +248,16 @@ bool DataSet::computeOptimumTileSystemDimensions(int& C1, int& R1)
     return true;
 }
 
+bool DataSet::createDestinationTile(int level, int tileX, int tileY)
+{
+    log(osg::NOTICE,"       no composite (%i,%i,%i)", level,tileX,tileY);
+    CompositeDestination* cd = new CompositeDestination;
+    cd->_level = level;
+    cd->_tileX = tileX;
+    cd->_tileY = tileY;
+    insertTileToQuadMap(cd);
+}
+
 void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                                const GeospatialExtents& extents,
                                unsigned int maxImageSize,
@@ -320,24 +330,18 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                 {
                     for(int i=i_min; i<i_max;++i)
                     {
-                        if (getComposite(l,i,j)) continue;
-
-                        //log(osg::NOTICE,"       no composite (%i,%i,%i)", i,j,k);
-                        CompositeDestination* cd = new CompositeDestination;
-                        cd->_level = l;
-                        cd->_tileX = i;
-                        cd->_tileY = j;
-                        insertTileToQuadMap(cd);
+                        if (!getComposite(l,i,j)) 
+                        {                        
+                            createDestinationTile(l,i,j);
+                        }
+                        else
+                        {
+                            log(osg::NOTICE,"       composite already created (%i,%i,%i)", i,j,k);
+                        }
                     }
                 }
-
             }
         }
-
-            
-            
-            
-
     }
     
     for(SourceList::iterator ml_itr = modelSources.begin();
