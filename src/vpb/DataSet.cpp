@@ -346,6 +346,8 @@ bool DataSet::createDestinationTile(int currentLevel, int currentX, int currentY
 
 
     insertTileToQuadMap(destinationGraph);
+
+    return true;
 }
 
 void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
