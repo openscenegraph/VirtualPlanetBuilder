@@ -21,7 +21,7 @@ BuildOperation::BuildOperation(ThreadPool* threadPool, BuildLog* buildLog, const
     _threadPool(threadPool),
     _buildLog(buildLog)
 {
-    _log = new OperationLog(name);
+    _log = new OperationLog();
     
     if (_buildLog.valid())
     {
