@@ -19,7 +19,6 @@
 #include <osg/Texture2D>
 #include <osg/ShapeDrawable>
 #include <osg/Geometry>
-#include <osg/ClusterCullingCallback>
 #include <osg/MatrixTransform>
 #include <osg/Notify>
 #include <osg/io_utils>
@@ -1242,12 +1241,101 @@ osg::Node* DestinationTile::createHeightField()
 
 }
 
+osg::ClusterCullingCallback* DestinationTile::createClusterCullingCallback()
+{
+    // make sure we are dealing with a geocentric database
+    if (!_dataSet->mapLatLongsToXYZ()) return 0;
+
+    osg::HeightField* grid = _terrain.valid() ? _terrain->_heightField.get() : 0;
+    if (!grid) return 0;
+
+    const osg::EllipsoidModel* et = _dataSet->getEllipsoidModel();
+    double globe_radius = et ? et->getRadiusPolar() : 1.0;
+    unsigned int numColumns = grid->getNumColumns();
+    unsigned int numRows = grid->getNumRows();
+
+
+    double midLong = grid->getOrigin().x()+grid->getXInterval()*((double)(numColumns-1))*0.5;
+    double midLat = grid->getOrigin().y()+grid->getYInterval()*((double)(numRows-1))*0.5;
+    double midZ = grid->getOrigin().z();
+
+    double midX,midY;
+    et->convertLatLongHeightToXYZ(osg::DegreesToRadians(midLat),osg::DegreesToRadians(midLong),midZ, midX,midY,midZ);
+
+    osg::Vec3 center_position(midX,midY,midZ);
+
+    osg::Vec3 center_normal(midX,midY,midZ);
+    center_normal.normalize();
+    
+    osg::Vec3 transformed_center_normal = center_normal;
+
+    unsigned int r,c;
+    
+    // populate the vertex/normal/texcoord arrays from the grid.
+    double orig_X = grid->getOrigin().x();
+    double delta_X = grid->getXInterval();
+    double orig_Y = grid->getOrigin().y();
+    double delta_Y = grid->getYInterval();
+    double orig_Z = grid->getOrigin().z();
+
+
+    float min_dot_product = 1.0f;
+    float max_cluster_culling_height = 0.0f;
+    float max_cluster_culling_radius = 0.0f;
+
+    for(r=0;r<numRows;++r)
+    {
+        for(c=0;c<numColumns;++c)
+        {
+            double X = orig_X + delta_X*(double)c;
+            double Y = orig_Y + delta_Y*(double)r;
+            double Z = orig_Z + grid->getHeight(c,r);
+            double height = Z;
+
+            et->convertLatLongHeightToXYZ(osg::DegreesToRadians(Y),osg::DegreesToRadians(X),Z,
+                                         X,Y,Z);
+
+            osg::Vec3d v(X,Y,Z);
+            osg::Vec3 dv = v - center_position;
+            double d = sqrt(dv.x()*dv.x() + dv.y()*dv.y() + dv.z()*dv.z());
+            double theta = acos( globe_radius/ (globe_radius + fabs(height)) );
+            double phi = 2.0 * asin (d*0.5/globe_radius); // d/globe_radius;
+            double beta = theta+phi;
+            double cutoff = osg::PI_2 - 0.1;
+            
+            //log(osg::INFO,"theta="<<theta<<"\tphi="<<phi<<" beta "<<beta);
+            if (phi<cutoff && beta<cutoff)
+            {
+
+                float local_dot_product = -sin(theta + phi);
+                float local_m = globe_radius*( 1.0/ cos(theta+phi) - 1.0);
+                float local_radius = static_cast<float>(globe_radius * tan(beta)); // beta*globe_radius;
+                min_dot_product = osg::minimum(min_dot_product, local_dot_product);
+                max_cluster_culling_height = osg::maximum(max_cluster_culling_height,local_m);      
+                max_cluster_culling_radius = osg::maximum(max_cluster_culling_radius,local_radius);
+            }
+            else
+            {
+                //log(osg::INFO,"Turning off cluster culling for wrap around tile.");
+                return 0;
+            }
+        }
+    }
+    
+
+    // set up cluster cullling, 
+    osg::ClusterCullingCallback* ccc = new osg::ClusterCullingCallback;
+
+    ccc->set(center_position + transformed_center_normal*max_cluster_culling_height ,
+             transformed_center_normal, 
+             min_dot_product,
+             max_cluster_culling_radius);
+
+    return ccc;
+}
+
 osg::Node* DestinationTile::createTerrainTile()
 {
-#if 0
-    return createHeightField();
-#else
-
     if (!_terrain) _terrain = new DestinationData(_dataSet);
 
     // call createStateSet() here even when we don't use it directly as
@@ -1333,14 +1421,14 @@ osg::Node* DestinationTile::createTerrainTile()
         terrain->setColorLayer(layerNum, imageLayer);
     }
     
-#if 1
     // assign the terrain technique that will be used to render the terrain tile.
     osgTerrain::GeometryTechnique* gt = new osgTerrain::GeometryTechnique;
     terrain->setTerrainTechnique(gt);
-#endif
+    
+    // assign cluster culling callback to terrain
+    terrain->setCullCallback(createClusterCullingCallback());
     
     return terrain;
-#endif
 }
 
 
@@ -2086,7 +2174,8 @@ void DestinationTile::readFrom(CompositeSource* sourceGraph)
             ++numChecked;
             readFrom(itr->get());
         }
-        log(osg::NOTICE,"DestinationTile::readFrom(CompositeSource* ) numChecked %i",numChecked);
+        
+        log(osg::INFO,"DestinationTile::readFrom(CompositeSource* ) numChecked %i",numChecked);
 
         optimizeResolution();
     }
@@ -2101,7 +2190,7 @@ void DestinationTile::readFrom()
 {
     allocate();
 
-    log(osg::NOTICE,"DestinationTile::readFrom() %i",_sources.size());
+    log(osg::INFO,"DestinationTile::readFrom() %i",_sources.size());
     for(Sources::iterator itr = _sources.begin();
         itr != _sources.end();
         ++itr)
@@ -2283,29 +2372,29 @@ public:
     struct Triple
     {
         Triple():
-            _drawable(0),
+            _object(0),
             _callback(0) {}
     
-        Triple(osg::NodePath nodePath, osg::Drawable* drawable, osg::ClusterCullingCallback* callback):
+        Triple(osg::NodePath nodePath, osg::Object* object, osg::ClusterCullingCallback* callback):
             _nodePath(nodePath),
-            _drawable(drawable),
+            _object(object),
             _callback(callback) {}
 
         Triple(const Triple& t):
             _nodePath(t._nodePath),
-            _drawable(t._drawable),
+            _object(t._object),
             _callback(t._callback) {}
 
         Triple& operator = (const Triple& t)
         {
             _nodePath = t._nodePath;
-            _drawable = t._drawable;
+            _object = t._object;
             _callback = t._callback;
             return *this;
         }
 
         osg::NodePath                   _nodePath;
-        osg::Drawable*                  _drawable;
+        osg::Object*                    _object;
         osg::ClusterCullingCallback*    _callback;
     };
 
@@ -2316,7 +2405,16 @@ public:
 
     virtual void apply(osg::Group& group)
     {
-        if (dynamic_cast<osgTerrain::Terrain*>(&group)==0)
+        osgTerrain::Terrain* terrain = dynamic_cast<osgTerrain::Terrain*>(&group);
+        if (terrain)
+        {
+            osg::ClusterCullingCallback* callback = dynamic_cast<osg::ClusterCullingCallback*>(terrain->getCullCallback());
+            if (callback) 
+            {
+                _callbackList.push_back(Triple(getNodePath(),terrain,callback));
+            }
+        }
+        else
         {
             osg::NodeVisitor::apply(group);
         }
@@ -2462,7 +2560,12 @@ osg::Node* CompositeDestination::createScene()
                 myLOD->setCullCallback(triple._callback);
                 
                 // remove it from the drawable.
-                triple._drawable->setCullCallback(0);
+                
+                osg::Drawable* drawable = dynamic_cast<osg::Drawable*>(triple._object);
+                if (drawable) drawable->setCullCallback(0);
+
+                osg::Node* node = dynamic_cast<osg::Node*>(triple._object);
+                if (node) node->setCullCallback(0);
             }
         }
     }
@@ -2683,8 +2786,11 @@ osg::Node* CompositeDestination::createPagedLODScene()
                 // moving cluster culling callback pagedLOD node.
                 pagedLOD->setCullCallback(triple._callback);
                 
-                // remove it from the drawable.
-                triple._drawable->setCullCallback(0);
+                osg::Drawable* drawable = dynamic_cast<osg::Drawable*>(triple._object);
+                if (drawable) drawable->setCullCallback(0);
+
+                osg::Node* node = dynamic_cast<osg::Node*>(triple._object);
+                if (node) node->setCullCallback(0);
             }
         }
     }

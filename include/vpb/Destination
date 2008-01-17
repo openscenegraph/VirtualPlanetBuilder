@@ -15,6 +15,7 @@
 #define DESTINATION_H 1
 
 #include <vpb/Source>
+#include <osg/ClusterCullingCallback>
 
 namespace vpb
 {
@@ -160,6 +161,8 @@ public:
     osg::Node* createHeightField();
     osg::Node* createTerrainTile();
     osg::Node* createPolygonal();
+    
+    osg::ClusterCullingCallback* createClusterCullingCallback();
 
     void addSource(Source* source) { _sources.push_back(source); }
 
