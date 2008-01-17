@@ -209,7 +209,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         bool computeCoverage(const GeospatialExtents& extents, int level, int& minX, int& minY, int& maxX, int& maxY);
         bool computeOptimumLevel(Source* source, int maxLevel, int& level);
         bool computeOptimumTileSystemDimensions(int& C1, int& R1);
-        bool createDestinationTile(int level, int tileX, int tileY);
+        CompositeDestination* createDestinationTile(int level, int tileX, int tileY);
 
         osg::ref_ptr<CompositeSource>               _sourceGraph;
         
@@ -233,6 +233,8 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         GeospatialExtents                           _destinationExtents;
         int                                         _C1;
         int                                         _R1;
+        
+        bool                                        _newDestinationGraph;
         
 };
 

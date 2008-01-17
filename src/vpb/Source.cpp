@@ -101,6 +101,16 @@ void Source::setSortValueFromSourceDataResolution()
     }
 }
 
+void Source::setSortValueFromSourceDataResolution(const osg::CoordinateSystemNode* cs)
+{
+    if (_sourceData.valid())
+    {
+        
+        const SpatialProperties& sp = _sourceData->computeSpatialProperties(cs);
+        setSortValue( sp.computeResolution() );
+    }
+}
+
 void Source::loadSourceData()
 {
     log(osg::INFO,"Source::loadSourceData() %s",_filename.c_str());
@@ -839,6 +849,19 @@ void CompositeSource::setSortValueFromSourceDataResolution()
     for(ChildList::iterator citr=_children.begin();citr!=_children.end();++citr)
     {
         (*citr)->setSortValueFromSourceDataResolution();
+    }
+}
+
+void CompositeSource::setSortValueFromSourceDataResolution(const osg::CoordinateSystemNode* cs)
+{
+    for(SourceList::iterator sitr=_sourceList.begin();sitr!=_sourceList.end();++sitr)
+    {
+        (*sitr)->setSortValueFromSourceDataResolution(cs);
+    }
+
+    for(ChildList::iterator citr=_children.begin();citr!=_children.end();++citr)
+    {
+        (*citr)->setSortValueFromSourceDataResolution(cs);
     }
 }
 

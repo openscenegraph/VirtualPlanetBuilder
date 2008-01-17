@@ -71,6 +71,8 @@ void DataSet::init()
     
     _modelPlacer = new ObjectPlacer;
     _shapeFilePlacer = new ShapeFilePlacer;
+    
+    _newDestinationGraph = false;
 
 }
 
@@ -196,7 +198,7 @@ bool DataSet::computeOptimumLevel(Source* source, int maxLevel, int& level)
     float sourceResolutionX = (source_xRange)/(float)sp._numValuesX;
     float sourceResolutionY = (source_yRange)/(float)sp._numValuesY;
 
-    log(osg::NOTICE,"Source %s resX %f resY %f",source->getFileName().c_str(), sourceResolutionX, sourceResolutionX);
+    // log(osg::NOTICE,"Source %s resX %f resY %f",source->getFileName().c_str(), sourceResolutionX, sourceResolutionX);
 
     double tileSize = source->getType()==Source::IMAGE ? _maximumTileImageSize-2 : _maximumTileTerrainSize-1;
 
@@ -248,7 +250,7 @@ bool DataSet::computeOptimumTileSystemDimensions(int& C1, int& R1)
     return true;
 }
 
-bool DataSet::createDestinationTile(int currentLevel, int currentX, int currentY)
+CompositeDestination* DataSet::createDestinationTile(int currentLevel, int currentX, int currentY)
 {
     CompositeDestination* parent = 0;
     GeospatialExtents extents;
@@ -280,6 +282,11 @@ bool DataSet::createDestinationTile(int currentLevel, int currentX, int currentY
         else
         {
             parent = getComposite(currentLevel-1,currentX/2,currentY/2);
+            
+            if (!parent)
+            {
+                log(osg::NOTICE,"Warning: getComposite(%i,%i,%i) return 0",currentLevel-1,currentX/2,currentY/2);
+            }
         }
         
     }
@@ -334,20 +341,39 @@ bool DataSet::createDestinationTile(int currentLevel, int currentX, int currentY
 
     tile->setMaximumImagerySize(_maximumTileImageSize,_maximumTileImageSize);
     tile->setMaximumTerrainSize(_maximumTileTerrainSize,_maximumTileTerrainSize);
-    //tile->computeMaximumSourceResolution(_sourceGraph.get());
-
+    
     destinationGraph->_tiles.push_back(tile);
 
     if (parent)
     {
         parent->_type = LOD;
         parent->addChild(destinationGraph);
+        
+#if 0
+        unsigned int numParentTiles = parent->_tiles.size();       
+        if (numParentTiles==0)
+        {
+            log(osg::NOTICE,"Parent in DestinationGraph has no tiles");
+        }
+        else if (numParentTiles==1)
+        {
+            DestinationTile::Sources& sources = parent->_tiles.front()->_sources;
+            tile->_sources = sources;
+        }
+        else
+        {
+            log(osg::NOTICE,"Parent in DestinationGraph has %i tiles", numParentTiles);
+            DestinationTile::Sources& sources = parent->_tiles.front()->_sources;
+            tile->_sources = sources;
+        }
+#endif
+
     }
 
 
     insertTileToQuadMap(destinationGraph);
 
-    return true;
+    return destinationGraph;
 }
 
 void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
@@ -358,6 +384,8 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
 {
     log(osg::NOTICE,"createNewDestinationGraph");
     
+    _newDestinationGraph = true;
+
     computeOptimumTileSystemDimensions(_C1,_R1);
 
     log(osg::NOTICE,"      C1=%i R1=%i",_C1,_R1);
@@ -365,6 +393,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
     typedef std::list< osg::ref_ptr<Source> > SourceList;
     SourceList modelSources;
     
+
     for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
     {
         Source* source = (*itr).get();
@@ -372,6 +401,12 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         if (source->getMinLevel()>maxNumLevels)
         {
             log(osg::NOTICE,"Skipping source %s as its min level excees destination max level.",source->getFileName().c_str());
+            continue;
+        }
+
+        if (getGenerateSubtile() && source->getMaxLevel()<getSubtileLevel()) 
+        {
+            log(osg::NOTICE,"Skipping source %s as its max level is lower than the subtile level.",source->getFileName().c_str());
             continue;
         }
 
@@ -411,31 +446,273 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         
         // log(osg::NOTICE,"     opt level = %i",k);
 
-        for(int l=0; l<=k; l++)
+        int startLevel = 0; // getGenerateSubtile() ? getSubtileLevel() : 0;
+
+        for(int l=startLevel; l<=k; l++)
         {
             int i_min, i_max, j_min, j_max;
             if (computeCoverage(sp._extents, l, i_min, j_min, i_max, j_max)) 
             {
                 // log(osg::NOTICE,"     level=%i i_min=%i i_max=%i j_min=%i j_max=%i",l, i_min, i_max, j_min, j_max);
 
+                if (getGenerateSubtile())
+                {
+                    int i_lower, i_upper, j_lower, j_upper;
+                
+                    if (l<getSubtileLevel())
+                    {
+                        // divide by 2 to the power of ((getSubtileLevel()-l);
+                        int delta = getSubtileLevel()-l; 
+                        i_lower = getSubtileX() >> delta;
+                        j_lower = getSubtileY() >> delta;
+                        i_upper = i_lower + 1;
+                        j_upper = j_lower + 1;
+                    }
+                    else
+                    {
+                        // multiply 2 to the power of ((l-getSubtileLevel());
+                        int f = 1 << (l-getSubtileLevel());
+                        i_lower = getSubtileX() * f;
+                        j_lower = getSubtileY() * f;
+                        i_upper = i_lower + f;
+                        j_upper = j_lower + f;
+                    }
+
+                    if (i_min<i_lower) i_min = i_lower;
+                    if (i_max>i_upper) i_max = i_upper;
+                    if (j_min<j_lower) j_min = j_lower;
+                    if (j_max>j_upper) j_max = j_upper;
+                }
+
                 for(int j=j_min; j<j_max;++j)
                 {
                     for(int i=i_min; i<i_max;++i)
                     {
-                        if (!getComposite(l,i,j)) 
+                        CompositeDestination* cd = getComposite(l,i,j);
+                        if (!cd) 
                         {                        
-                            createDestinationTile(l,i,j);
+                            cd = createDestinationTile(l,i,j);
                         }
-                        else
+#if 0                        
+                        if (!cd) continue;
+                        
+                        for(CompositeDestination::TileList::iterator titr = cd->_tiles.begin();
+                            titr != cd->_tiles.end();
+                            ++titr)
                         {
-                            // log(osg::NOTICE,"       composite already created (%i,%i,%i)", i,j,k);
+                            DestinationTile* tile = titr->get();
+                            tile->_sources.push_back(source);
                         }
+#endif
                     }
                 }
             }
         }
     }
     
+
+    for(QuadMap::iterator qitr = _quadMap.begin();
+        qitr != _quadMap.end();
+        ++qitr)
+    {
+        QuadMap::iterator temp_itr = qitr;
+        ++temp_itr;
+        if (temp_itr==_quadMap.end()) continue;
+        
+        int l = qitr->first;
+        
+        Level& level = qitr->second;
+        for(Level::iterator litr = level.begin();
+            litr != level.end();
+            ++litr)
+        {
+            Row& row = litr->second;
+            for(Row::iterator ritr = row.begin();
+                ritr != row.end();
+                ++ritr)
+            {
+                CompositeDestination* cd = ritr->second;
+                    
+                int numChildren = cd->_children.size();
+                int numChildrenExpected = (l==0) ? (_C1*_R1) : 4;
+                if (numChildren!=0 && numChildren!=numChildrenExpected)
+                {
+#if 0
+                    log(osg::NOTICE,"  tile (%i,%i,%i) numTiles=%i numChildren=%i",
+                        cd->_level, cd->_tileX, cd->_tileY, cd->_tiles.size(), cd->_children.size());
+#endif                        
+                    int i_min = (l==0) ? 0   : (cd->_tileX * 2);
+                    int j_min = (l==0) ? 0   : (cd->_tileY * 2);
+                    int i_max = (l==0) ? _C1 : i_min + 2;
+                    int j_max = (l==0) ? _R1 : j_min + 2;
+                    int new_l = l+1;
+
+                    if (getGenerateSubtile())
+                    {
+                        int i_lower, i_upper, j_lower, j_upper;
+                        
+
+                        if (l<getSubtileLevel())
+                        {
+                            // divide by 2 to the power of ((getSubtileLevel()-new_l);
+                            int delta = getSubtileLevel()-new_l; 
+                            i_lower = getSubtileX() >> delta;
+                            j_lower = getSubtileY() >> delta;
+                            i_upper = i_lower + 1;
+                            j_upper = j_lower + 1;
+                        }
+                        else
+                        {
+                            // multiply 2 to the power of ((new_l-getSubtileLevel());
+                            int f = 1 << (new_l-getSubtileLevel());
+                            i_lower = getSubtileX() * f;
+                            j_lower = getSubtileY() * f;
+                            i_upper = i_lower + f;
+                            j_upper = j_lower + f;
+                        }
+
+                        if (i_min<i_lower) i_min = i_lower;
+                        if (i_max>i_upper) i_max = i_upper;
+                        if (j_min<j_lower) j_min = j_lower;
+                        if (j_max>j_upper) j_max = j_upper;
+                    }
+
+                    for(int j=j_min; j<j_max;++j)
+                    {
+                        for(int i=i_min; i<i_max;++i)
+                        {
+                            CompositeDestination* cd = getComposite(new_l,i,j);
+                            if (!cd) 
+                            {                        
+                                cd = createDestinationTile(new_l,i,j);
+                            }
+                        }
+                    }
+                    
+                }
+            }
+        }
+    }
+
+    for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
+    {
+        Source* source = (*itr).get();
+
+        if (source->getMinLevel()>maxNumLevels)
+        {
+            log(osg::NOTICE,"Skipping source %s as its min level excees destination max level.",source->getFileName().c_str());
+            continue;
+        }
+
+        if (getGenerateSubtile() && source->getMaxLevel()<getSubtileLevel()) 
+        {
+            log(osg::NOTICE,"Skipping source %s as its max level is lower than the subtile level.",source->getFileName().c_str());
+            continue;
+        }
+
+        SourceData* sd = (*itr)->getSourceData();
+        if (!sd)
+        {
+            log(osg::NOTICE,"Skipping source %s as no data loaded from it.",source->getFileName().c_str());
+            continue;
+        }
+        
+        const SpatialProperties& sp = sd->computeSpatialProperties(cs);
+
+        if (!sp._extents.intersects(extents))
+        {
+            // skip this source since it doesn't overlap this tile.
+            log(osg::NOTICE,"Skipping source %s as its extents don't overlap destination extents.",source->getFileName().c_str());
+            continue;
+        }
+
+        double source_xRange = sp._extents.xMax()-sp._extents.xMin();
+        double source_yRange = sp._extents.yMax()-sp._extents.yMin();
+        
+        int level = 0;
+        
+        if (source->getType()!=Source::IMAGE && source->getType()!=Source::HEIGHT_FIELD)
+        {
+            // place models and shapefiles into a separate temporary source list and then process these after
+            // the main handling of terrain/imagery sources.
+            modelSources.push_back(source);
+            
+            continue;
+            
+        }
+        
+        int k = 0;
+        if (!computeOptimumLevel(source, maxNumLevels-1, k)) continue;
+        
+        // log(osg::NOTICE,"     opt level = %i",k);
+
+        int startLevel = 0; // getGenerateSubtile() ? getSubtileLevel() : 0;
+
+        for(int l=startLevel; l<=k; l++)
+        {
+            int i_min, i_max, j_min, j_max;
+            if (computeCoverage(sp._extents, l, i_min, j_min, i_max, j_max)) 
+            {
+                // log(osg::NOTICE,"     level=%i i_min=%i i_max=%i j_min=%i j_max=%i",l, i_min, i_max, j_min, j_max);
+
+                if (getGenerateSubtile())
+                {
+                    int i_lower, i_upper, j_lower, j_upper;
+                
+                    if (l<getSubtileLevel())
+                    {
+                        // divide by 2 to the power of ((getSubtileLevel()-l);
+                        int delta = getSubtileLevel()-l; 
+                        i_lower = getSubtileX() >> delta;
+                        j_lower = getSubtileY() >> delta;
+                        i_upper = i_lower + 1;
+                        j_upper = j_lower + 1;
+                    }
+                    else
+                    {
+                        // multiply 2 to the power of ((l-getSubtileLevel());
+                        int f = 1 << (l-getSubtileLevel());
+                        i_lower = getSubtileX() * f;
+                        j_lower = getSubtileY() * f;
+                        i_upper = i_lower + f;
+                        j_upper = j_lower + f;
+                    }
+
+                    if (i_min<i_lower) i_min = i_lower;
+                    if (i_max>i_upper) i_max = i_upper;
+                    if (j_min<j_lower) j_min = j_lower;
+                    if (j_max>j_upper) j_max = j_upper;
+                }
+
+                for(int j=j_min; j<j_max;++j)
+                {
+                    for(int i=i_min; i<i_max;++i)
+                    {
+                        CompositeDestination* cd = getComposite(l,i,j);
+                        if (!cd) continue;
+                        
+
+                        if (l==k)
+                        {
+                            cd->addSource(source);
+                        }
+                        else
+                        {
+                            for(CompositeDestination::TileList::iterator titr = cd->_tiles.begin();
+                                titr != cd->_tiles.end();
+                                ++titr)
+                            {
+                                DestinationTile* tile = titr->get();
+                                tile->_sources.push_back(source);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
     for(SourceList::iterator ml_itr = modelSources.begin();
         ml_itr != modelSources.end();
         ++ml_itr)
@@ -451,7 +728,13 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         log(osg::NOTICE,"Need to handle shapefile/model source %s.",source->getFileName().c_str());
     }
     
-    
+    osg::Timer_t before_computeMax = osg::Timer::instance()->tick();
+
+    _destinationGraph->computeMaximumSourceResolution();
+
+    osg::Timer_t after_computeMax = osg::Timer::instance()->tick();
+
+    log(osg::NOTICE,"Time for _destinationGraph->computeMaximumSourceResolution() = %f", osg::Timer::instance()->delta_s(before_computeMax, after_computeMax));
 }
 
 CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* parent,
@@ -761,6 +1044,27 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     _destinationExtents = _extents;
     _destinationExtents._isGeographic = destinateCoordSytemType==GEOGRAPHIC;
 
+    // sort the sources so that the lowest res tiles are drawn first.
+    {
+    
+#if 0    
+        for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
+        {
+            Source* source = itr->get();
+            if (source)
+            {
+                source->setSortValueFromSourceDataResolution(_intermediateCoordinateSystem.get());
+                log(osg::INFO, "sort %s value %f",source->getFileName().c_str(),source->getSortValue());
+            }
+            
+        }
+        
+        // sort them so highest sortValue is first.
+#endif
+        _sourceGraph->setSortValueFromSourceDataResolution(_intermediateCoordinateSystem.get());
+        _sourceGraph->sort();
+    }
+
     if (!_destinationExtents.valid()) 
     {
         for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
@@ -826,17 +1130,9 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
 
     osg::Timer_t before = osg::Timer::instance()->tick();
 
-    if (getBuildOptionsString() == "new")
+    // then create the destination graph accordingly.
+    if (getBuildOptionsString() != "new")
     {
-        createNewDestinationGraph(_intermediateCoordinateSystem.get(),
-                                  _destinationExtents,
-                                  _maximumTileImageSize,
-                                  _maximumTileTerrainSize,
-                                  numLevels);
-    }
-    else
-    {
-        // then create the destination graph accordingly.
         _destinationGraph = createDestinationGraph(0,
                                                    _intermediateCoordinateSystem.get(),
                                                    _destinationExtents,
@@ -846,6 +1142,14 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
                                                    0,
                                                    0,
                                                    numLevels);
+    }
+    else
+    {
+        createNewDestinationGraph(_intermediateCoordinateSystem.get(),
+                                  _destinationExtents,
+                                  _maximumTileImageSize,
+                                  _maximumTileTerrainSize,
+                                  numLevels);
     }
                                                                
     osg::Timer_t after = osg::Timer::instance()->tick();
@@ -1047,23 +1351,6 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
         }
     }
 
-    // sort the sources so that the lowest res tiles are drawn first.
-    {
-        for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
-        {
-            Source* source = itr->get();
-            if (source)
-            {
-                source->setSortValueFromSourceDataResolution();
-                log(osg::INFO, "sort %s value %f",source->getFileName().c_str(),source->getSortValue());
-            }
-            
-        }
-        
-        // sort them so highest sortValue is first.
-
-        _sourceGraph->sort();
-    }
     
     osg::Timer_t after_sourceGraphsort = osg::Timer::instance()->tick();
 
@@ -1138,6 +1425,8 @@ void DataSet::_readRow(Row& row)
 {
     log(osg::NOTICE, "_readRow %u",row.size());
     
+    CompositeSource* sourceGraph = _newDestinationGraph ? 0 : _sourceGraph.get();
+
     if (_readThreadPool.valid())
     {
         for(Row::iterator citr=row.begin();
@@ -1149,7 +1438,7 @@ void DataSet::_readRow(Row& row)
                 titr!=cd->_tiles.end();
                 ++titr)
             {
-                _readThreadPool->run(new ReadFromOperation(_readThreadPool.get(), getBuildLog(), titr->get(), _sourceGraph.get()));
+                _readThreadPool->run(new ReadFromOperation(_readThreadPool.get(), getBuildLog(), titr->get(), sourceGraph));
             }
         }
 
@@ -1170,7 +1459,7 @@ void DataSet::_readRow(Row& row)
             {
                 DestinationTile* tile = titr->get();
                 log(osg::NOTICE, "   reading tile level=%u X=%u Y=%u",tile->_level,tile->_tileX,tile->_tileY);
-                tile->readFrom(_sourceGraph.get());
+                tile->readFrom(sourceGraph);
             }
         }
     }

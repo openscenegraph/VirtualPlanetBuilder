@@ -119,15 +119,19 @@ public:
         _terrain_maxNumRows = maxNumRows;
     }
 
+    void computeMaximumSourceResolution();
+    void computeMaximumSourceResolution(Source* source);
     void computeMaximumSourceResolution(CompositeSource* sourceGraph);
 
     bool computeImageResolution(unsigned int layer, unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY);
     bool computeTerrainResolution(unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY);
-;
+
     void allocate();
 
     void addRequiredResolutions(CompositeSource* sourceGraph);
 
+    void readFrom();
+    void readFrom(Source* source);
     void readFrom(CompositeSource* sourceGraph);
 
     void allocateEdgeNormals();
@@ -156,6 +160,8 @@ public:
     osg::Node* createHeightField();
     osg::Node* createTerrainTile();
     osg::Node* createPolygonal();
+
+    void addSource(Source* source) { _sources.push_back(source); }
 
     void unrefData();
     
@@ -215,6 +221,10 @@ public:
 
     osg::ref_ptr<osg::StateSet>                 _stateset;
     osg::ref_ptr<osg::Node>                     _createdScene;
+    
+    typedef std::list< osg::ref_ptr<Source> >   Sources;
+    Sources                                     _sources;
+    
 };
 
 class VPB_EXPORT CompositeDestination : public osg::Referenced, public SpatialProperties
@@ -251,6 +261,10 @@ public:
     void addRequiredResolutions(CompositeSource* sourceGraph);
 
     void readFrom(CompositeSource* sourceGraph);
+    
+    void addSource(Source* source);
+
+    void computeMaximumSourceResolution();
 
     void equalizeBoundaries();
 

@@ -75,6 +75,8 @@ public:
     void setSortValue(double s) { _sortValue = s; }
     double getSortValue() const { return _sortValue; }
 
+    void setSortValueFromSourceDataResolution(const osg::CoordinateSystemNode* cs);
+
     void setSortValueFromSourceDataResolution();
 
     void setType(Type type) { _type = type; }
@@ -245,6 +247,8 @@ public:
     CompositeType getType() const { return _type; }
 
     void setSortValueFromSourceDataResolution();
+
+    void setSortValueFromSourceDataResolution(const osg::CoordinateSystemNode* cs);
 
     void sort();
 

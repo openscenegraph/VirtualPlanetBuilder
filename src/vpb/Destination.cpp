@@ -98,73 +98,87 @@ DestinationTile::DestinationTile():
 }
 
 
-void DestinationTile::computeMaximumSourceResolution(CompositeSource* sourceGraph)
+void DestinationTile::computeMaximumSourceResolution(Source* source)
 {
-    for(CompositeSource::source_iterator itr(sourceGraph);itr.valid();++itr)
+    if (!source || source->getMaxLevel()<_level)
     {
-        Source* source = itr->get();
-        if (!source || source->getMaxLevel()<_level)
+        // skip the contribution of this source since this destination tile exceeds its contribution level.
+        return;
+    }
+
+    SourceData* data = source->getSourceData();
+    if (data && (source->getType()==Source::IMAGE || source->getType()==Source::HEIGHT_FIELD))
+    {
+
+        SpatialProperties sp = data->computeSpatialProperties(_cs.get());
+
+        if (!sp._extents.intersects(_extents))
         {
-            // skip the contribution of this source since this destination tile exceeds its contribution level.
-            continue;
+            // skip this source since it doesn't overlap this tile.
+            return;
         }
 
-        SourceData* data = source->getSourceData();
-        if (data && (source->getType()==Source::IMAGE || source->getType()==Source::HEIGHT_FIELD))
+
+        if (sp._numValuesX!=0 && sp._numValuesY!=0)
         {
+            _maxSourceLevel = osg::maximum(source->getMaxLevel(),_maxSourceLevel);
 
-            SpatialProperties sp = data->computeSpatialProperties(_cs.get());
-
-            if (!sp._extents.intersects(_extents))
+            float sourceResolutionX;
+            float sourceResolutionY;
+            // set up properly for vector and raster (previously always raster)
+            if (sp._dataType == SpatialProperties::VECTOR)
             {
-                // skip this source since it doesn't overlap this tile.
-                continue;
+                sourceResolutionX = (sp._extents.xMax()-sp._extents.xMin())/(float)(sp._numValuesX-1);
+                sourceResolutionY = (sp._extents.yMax()-sp._extents.yMin())/(float)(sp._numValuesY-1);
+            }
+            else    // if (sp._dataType == SpatialProperties::RASTER)
+            {
+                sourceResolutionX = (sp._extents.xMax()-sp._extents.xMin())/(float)sp._numValuesX;
+                sourceResolutionY = (sp._extents.yMax()-sp._extents.yMin())/(float)sp._numValuesY;
             }
 
-            
-            if (sp._numValuesX!=0 && sp._numValuesY!=0)
+            switch(source->getType())
             {
-                _maxSourceLevel = osg::maximum((*itr)->getMaxLevel(),_maxSourceLevel);
-
-                float sourceResolutionX;
-                float sourceResolutionY;
-                // set up properly for vector and raster (previously always raster)
-                if (sp._dataType == SpatialProperties::VECTOR)
+                case(Source::IMAGE):
                 {
-                    sourceResolutionX = (sp._extents.xMax()-sp._extents.xMin())/(float)(sp._numValuesX-1);
-                    sourceResolutionY = (sp._extents.yMax()-sp._extents.yMin())/(float)(sp._numValuesY-1);
+                    ImageData& imageData = getImageData(source->getLayer());
+                    if (imageData._imagery_maxSourceResolutionX==0.0f) imageData._imagery_maxSourceResolutionX=sourceResolutionX;
+                    else imageData._imagery_maxSourceResolutionX=osg::minimum(imageData._imagery_maxSourceResolutionX,sourceResolutionX);
+                    if (imageData._imagery_maxSourceResolutionY==0.0f) imageData._imagery_maxSourceResolutionY=sourceResolutionY;
+                    else imageData._imagery_maxSourceResolutionY=osg::minimum(imageData._imagery_maxSourceResolutionY,sourceResolutionY);
+                    break;
                 }
-                else    // if (sp._dataType == SpatialProperties::RASTER)
-                {
-                    sourceResolutionX = (sp._extents.xMax()-sp._extents.xMin())/(float)sp._numValuesX;
-                    sourceResolutionY = (sp._extents.yMax()-sp._extents.yMin())/(float)sp._numValuesY;
-                }
-
-                switch((*itr)->getType())
-                {
-                    case(Source::IMAGE):
-                    {
-                        ImageData& imageData = getImageData(source->getLayer());
-                        if (imageData._imagery_maxSourceResolutionX==0.0f) imageData._imagery_maxSourceResolutionX=sourceResolutionX;
-                        else imageData._imagery_maxSourceResolutionX=osg::minimum(imageData._imagery_maxSourceResolutionX,sourceResolutionX);
-                        if (imageData._imagery_maxSourceResolutionY==0.0f) imageData._imagery_maxSourceResolutionY=sourceResolutionY;
-                        else imageData._imagery_maxSourceResolutionY=osg::minimum(imageData._imagery_maxSourceResolutionY,sourceResolutionY);
-                        break;
-                    }
-                    case(Source::HEIGHT_FIELD):
-                        if (_terrain_maxSourceResolutionX==0.0f) _terrain_maxSourceResolutionX=sourceResolutionX;
-                        else _terrain_maxSourceResolutionX=osg::minimum(_terrain_maxSourceResolutionX,sourceResolutionX);
-                        if (_terrain_maxSourceResolutionY==0.0f) _terrain_maxSourceResolutionY=sourceResolutionY;
-                        else _terrain_maxSourceResolutionY=osg::minimum(_terrain_maxSourceResolutionY,sourceResolutionY);
-                        break;
-                    default:
-                        break;
-                }
+                case(Source::HEIGHT_FIELD):
+                    if (_terrain_maxSourceResolutionX==0.0f) _terrain_maxSourceResolutionX=sourceResolutionX;
+                    else _terrain_maxSourceResolutionX=osg::minimum(_terrain_maxSourceResolutionX,sourceResolutionX);
+                    if (_terrain_maxSourceResolutionY==0.0f) _terrain_maxSourceResolutionY=sourceResolutionY;
+                    else _terrain_maxSourceResolutionY=osg::minimum(_terrain_maxSourceResolutionY,sourceResolutionY);
+                    break;
+                default:
+                    break;
             }
         }
     }
 }
 
+void DestinationTile::computeMaximumSourceResolution(CompositeSource* sourceGraph)
+{
+    for(CompositeSource::source_iterator itr(sourceGraph);itr.valid();++itr)
+    {
+        Source* source = itr->get();
+        computeMaximumSourceResolution(source);
+    }
+}
+
+void DestinationTile::computeMaximumSourceResolution()
+{
+    for(Sources::iterator itr = _sources.begin();
+        itr != _sources.end();
+        ++itr)
+    {
+        computeMaximumSourceResolution(itr->get());
+    }
+}
 
 bool DestinationTile::computeImageResolution(unsigned int layer, unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY)
 {
@@ -1995,79 +2009,111 @@ osg::Node* DestinationTile::createPolygonal()
     }
 }
 
+void DestinationTile::readFrom(Source* source)
+{
+    if (source && 
+        source->intersects(*this) &&
+        _level>=source->getMinLevel() && _level<=source->getMaxLevel() && 
+        source->getSourceData()) 
+    {
+        log(osg::INFO,"DestinationTile::readFrom -> SourceData::read() ");
+        log(osg::INFO,"    destination._level=%d\t%d\t%d",_level,source->getMinLevel(),source->getMaxLevel());
+
+        SourceData* data = source->getSourceData();
+        switch(source->getType())
+        {
+            case(Source::IMAGE):
+            {
+                unsigned int layerNum = source->getLayer();
+
+                if (layerNum==0)
+                {
+                    // copy the base layer 0 into layer 0 and all subsequent layers to provide a backdrop.
+                    for(unsigned int i=0;i<_imagery.size();++i)
+                    {
+                        if (_imagery[i]._imagery.valid())
+                        {
+                            data->read(*(_imagery[i]._imagery));
+                        }
+                    }
+                }
+                else
+                {
+                    // copy specific layer.
+                    if (layerNum<_imagery.size() && _imagery[layerNum]._imagery.valid())
+                    {
+                        data->read(*(_imagery[layerNum]._imagery));
+                    }
+                }
+                break;
+            }
+            case(Source::HEIGHT_FIELD):
+            {
+                if (_terrain.valid()) data->read(*_terrain);
+                break;
+            }
+            case(Source::MODEL):
+            {
+                if (!_models) _models = new DestinationData(_dataSet);
+                data->read(*_models);
+                break;
+            }
+            case(Source::SHAPEFILE):
+            {
+                if (!_models) _models = new DestinationData(_dataSet);
+                data->read(*_models);
+                break;
+            }
+            default:
+            {
+                log(osg::NOTICE,"DestinationTile::readFrom() source type of file %s not handled", source->getFileName().c_str());
+                break;
+            }
+        }
+    }
+}
+
 void DestinationTile::readFrom(CompositeSource* sourceGraph)
+{
+    if (sourceGraph)
+    {
+
+        allocate();
+
+        unsigned int numChecked = 0;
+        for(CompositeSource::source_iterator itr(sourceGraph);itr.valid();++itr)
+        {
+            ++numChecked;
+            readFrom(itr->get());
+        }
+        log(osg::NOTICE,"DestinationTile::readFrom(CompositeSource* ) numChecked %i",numChecked);
+
+        optimizeResolution();
+    }
+    else
+    {
+        readFrom();
+    }
+}
+
+
+void DestinationTile::readFrom()
 {
     allocate();
 
-    log(osg::INFO,"DestinationTile::readFrom() ");
-    for(CompositeSource::source_iterator itr(sourceGraph);itr.valid();++itr)
+    log(osg::NOTICE,"DestinationTile::readFrom() %i",_sources.size());
+    for(Sources::iterator itr = _sources.begin();
+        itr != _sources.end();
+        ++itr)
     {
-        Source* source = itr->get();
-        if (source && 
-            source->intersects(*this) &&
-            _level>=source->getMinLevel() && _level<=source->getMaxLevel() && 
-            (*itr)->getSourceData()) 
-        {
-            log(osg::INFO,"DestinationTile::readFrom -> SourceData::read() ");
-            log(osg::INFO,"    destination._level=%d\t%d\t%d",_level,source->getMinLevel(),source->getMaxLevel());
-
-            SourceData* data = (*itr)->getSourceData();
-            switch((*itr)->getType())
-            {
-                case(Source::IMAGE):
-                {
-                    unsigned int layerNum = source->getLayer();
-
-                    if (layerNum==0)
-                    {
-                        // copy the base layer 0 into layer 0 and all subsequent layers to provide a backdrop.
-                        for(unsigned int i=0;i<_imagery.size();++i)
-                        {
-                            if (_imagery[i]._imagery.valid())
-                            {
-                                data->read(*(_imagery[i]._imagery));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // copy specific layer.
-                        if (layerNum<_imagery.size() && _imagery[layerNum]._imagery.valid())
-                        {
-                            data->read(*(_imagery[layerNum]._imagery));
-                        }
-                    }
-                    break;
-                }
-                case(Source::HEIGHT_FIELD):
-                {
-                    if (_terrain.valid()) data->read(*_terrain);
-                    break;
-                }
-                case(Source::MODEL):
-                {
-                    if (!_models) _models = new DestinationData(_dataSet);
-                    data->read(*_models);
-                    break;
-                }
-                case(Source::SHAPEFILE):
-                {
-                    if (!_models) _models = new DestinationData(_dataSet);
-                    data->read(*_models);
-                    break;
-                }
-                default:
-                {
-                    log(osg::NOTICE,"DestinationTile::readFrom() source type of file %s not handled", source->getFileName().c_str());
-                    break;
-                }
-            }
-        }
+        readFrom(itr->get());
     }
 
     optimizeResolution();
 
 }
+
+
 
 void DestinationTile::unrefData()
 {
@@ -2166,6 +2212,45 @@ void CompositeDestination::readFrom(CompositeSource* sourceGraph)
         ++citr)
     {
         (*citr)->readFrom(sourceGraph);
+    }
+}
+
+void CompositeDestination::addSource(Source* source)
+{
+    // handle leaves
+    for(TileList::iterator titr=_tiles.begin();
+        titr!=_tiles.end();
+        ++titr)
+    {
+        (*titr)->addSource(source);
+    }
+    
+    // handle chilren
+    for(ChildList::iterator citr=_children.begin();
+        citr!=_children.end();
+        ++citr)
+    {
+        (*citr)->addSource(source);
+    }
+}
+
+
+void CompositeDestination::computeMaximumSourceResolution()
+{
+    // handle leaves
+    for(TileList::iterator titr=_tiles.begin();
+        titr!=_tiles.end();
+        ++titr)
+    {
+        (*titr)->computeMaximumSourceResolution();
+    }
+    
+    // handle chilren
+    for(ChildList::iterator citr=_children.begin();
+        citr!=_children.end();
+        ++citr)
+    {
+        (*citr)->computeMaximumSourceResolution();
     }
 }
 
