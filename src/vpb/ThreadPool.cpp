@@ -45,7 +45,7 @@ void ThreadPool::init()
 
     osg::GraphicsContext* sharedContext = 0;
 
-    _maxNumberOfOperationsInQueue = 128;
+    _maxNumberOfOperationsInQueue = 64;
 
     for(unsigned int i=0; i<_numThreads; ++i)
     {
