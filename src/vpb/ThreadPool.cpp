@@ -45,6 +45,8 @@ void ThreadPool::init()
 
     osg::GraphicsContext* sharedContext = 0;
 
+    _maxNumberOfOperationsInQueue = 512;
+
     for(unsigned int i=0; i<_numThreads; ++i)
     {
         osg::ref_ptr<osg::OperationThread> thread;
@@ -140,6 +142,12 @@ void ThreadPool::run(osg::Operation* op)
     {
         log(osg::NOTICE,"ThreadPool::run() Attempt to run BuilderOperation after ThreadPool has been suspended.");
         return;
+    }
+    
+    while (_operationQueue->getNumOperationsInQueue() >= _maxNumberOfOperationsInQueue)
+    {
+        log(osg::NOTICE,"ThreadPool::run() Waiting for operation queue to clear.");
+        OpenThreads::Thread::YieldCurrentThread();
     }
     
     _operationQueue->add(op);

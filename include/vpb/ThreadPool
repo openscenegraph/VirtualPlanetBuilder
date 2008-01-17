@@ -71,6 +71,8 @@ class ThreadPool : public osg::Object
         unsigned int                        _numRunningOperations;
         bool                                _done;
         osg::ref_ptr<BlockOperation>        _blockOp;
+        
+        unsigned int                         _maxNumberOfOperationsInQueue;
        
 };
 
