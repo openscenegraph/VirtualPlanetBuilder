@@ -1222,7 +1222,7 @@ osg::Node* DestinationTile::createHeightField()
     shapeDrawable = new osg::ShapeDrawable(hf);
     if (!shapeDrawable) return 0;
 
-    hf->setSkirtHeight(shapeDrawable->getBound().radius()*0.01f);
+    hf->setSkirtHeight(shapeDrawable->getBound().radius()*_dataSet->getSkirtRatio());
 
     osg::StateSet* stateset = createStateSet();
     if (stateset)
@@ -1355,20 +1355,22 @@ osg::Node* DestinationTile::createTerrainTile()
         _terrain->_heightField->setYInterval((_extents.yMax()-_extents.yMin())/7.0);
     }
 
-    osg::HeightField* hf = _terrain->_heightField.get();
 
-    // need to work out what the skirt should be...
-    hf->setSkirtHeight(0.01f);
+    osg::HeightField* hf = _terrain->_heightField.get();
+    osg::EllipsoidModel* em = _dataSet->getEllipsoidModel();
        
     // set up the locator place the data all in the correction position
     osgTerrain::Locator* locator = new osgTerrain::Locator;
-    locator->setEllipsoidModel(_dataSet->getEllipsoidModel());
+    locator->setEllipsoidModel(em);
     
     if (_dataSet->getDestinationCoordinateSystemNode())
     {
         locator->setFormat(_dataSet->getDestinationCoordinateSystemNode()->getFormat());
         locator->setCoordinateSystem(_dataSet->getDestinationCoordinateSystemNode()->getCoordinateSystem());
     }
+    
+    
+    double radius = (_extents._max-_extents._min).length()*0.5;
     
     if (_dataSet->getConvertFromGeographicToGeocentric()) 
     {
@@ -1377,6 +1379,23 @@ osg::Node* DestinationTile::createTerrainTile()
                                        osg::DegreesToRadians(_extents.yMin()),
                                        osg::DegreesToRadians(_extents.xMax()), 
                                        osg::DegreesToRadians(_extents.yMax()));
+
+        if (em)
+        {
+            double midLong = hf->getOrigin().x() + hf->getXInterval()*((double)(hf->getNumColumns()-1))*0.5;
+            double midLat = hf->getOrigin().y() + hf->getYInterval()*((double)(hf->getNumRows()-1))*0.5;
+
+            double X,Y,Z = hf->getOrigin().z();
+            em->convertLatLongHeightToXYZ(osg::DegreesToRadians(midLat),osg::DegreesToRadians(midLong),Z, X,Y,Z);
+            osg::Vec3d center_position(X,Y,Z);
+
+            Z = hf->getOrigin().z();
+            em->convertLatLongHeightToXYZ(osg::DegreesToRadians(hf->getOrigin().y()),osg::DegreesToRadians(hf->getOrigin().x()),Z, X,Y,Z);
+            osg::Vec3d origin(X,Y,Z);
+            
+            radius = (origin-center_position).length();
+        }            
+
     }
     else
     {
@@ -1388,6 +1407,9 @@ osg::Node* DestinationTile::createTerrainTile()
         locator->setCoordinateSystemType(osgTerrain::Locator::PROJECTED);
         // locator->setCoordinateSystemType(osgTerrain::Locator::GEOGRAPHIC);
     }
+
+    // need to work out what the skirt should be...
+    hf->setSkirtHeight(radius*_dataSet->getSkirtRatio());
 
     // create the terrain node that we'll hang the height field off
     osgTerrain::Terrain* terrain = new osgTerrain::Terrain;
