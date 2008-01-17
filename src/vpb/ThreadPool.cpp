@@ -45,7 +45,7 @@ void ThreadPool::init()
 
     osg::GraphicsContext* sharedContext = 0;
 
-    _maxNumberOfOperationsInQueue = 512;
+    _maxNumberOfOperationsInQueue = 128;
 
     for(unsigned int i=0; i<_numThreads; ++i)
     {
@@ -146,8 +146,10 @@ void ThreadPool::run(osg::Operation* op)
     
     while (_operationQueue->getNumOperationsInQueue() >= _maxNumberOfOperationsInQueue)
     {
-        log(osg::NOTICE,"ThreadPool::run() Waiting for operation queue to clear.");
-        OpenThreads::Thread::YieldCurrentThread();
+        log(osg::INFO,"ThreadPool::run() Waiting for operation queue to clear.");
+
+        // Wait for half a seocnd for the queue to clear.
+        OpenThreads::Thread::microSleep(500000);
     }
     
     _operationQueue->add(op);
