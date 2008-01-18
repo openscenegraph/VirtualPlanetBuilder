@@ -2453,29 +2453,22 @@ int DataSet::run()
 
     if (requiresGenerationOfTiles)
     {
-        if (getTextureType()==COMPRESSED_TEXTURE || getTextureType()==COMPRESSED_RGBA_TEXTURE)
-        {
-            // dummy Viewer to get round silly Windows autoregistration problem for GraphicsWindowWin32.cpp
-            osgViewer::Viewer viewer;
+        // dummy Viewer to get round silly Windows autoregistration problem for GraphicsWindowWin32.cpp
+        osgViewer::Viewer viewer;
 
-            osg::ref_ptr<MyGraphicsContext> context;
-            
-            if (requiresGraphicsContextInMainThread)
+        osg::ref_ptr<MyGraphicsContext> context;
+
+        if (requiresGraphicsContextInMainThread)
+        {
+            context  = new MyGraphicsContext(getBuildLog());
+            if (!context || !context->valid())
             {
-                context  = new MyGraphicsContext(getBuildLog());
-                if (!context || !context->valid())
-                {
-                    log(osg::NOTICE,"Error: Unable to create graphis context, problem with running osgViewer-%s, cannot run compression.",osgViewerGetVersion());
-                    return 1;
-                }
+                log(osg::NOTICE,"Error: Unable to create graphis context, problem with running osgViewer-%s, cannot run compression.",osgViewerGetVersion());
+                return 1;
             }
+        }
 
-            writeDestination();
-        }
-        else
-        {
-            writeDestination();
-        }
+        writeDestination();
     }
 
     if (getBuildLog())
