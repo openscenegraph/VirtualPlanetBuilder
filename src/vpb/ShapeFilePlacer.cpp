@@ -465,20 +465,14 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                     {
                         if ((sitr->getName() == getTypeAttributeName()) && (sitr->getType() == osgSim::ShapeAttribute::STRING))
                         {
-                            if (sitr->getString() == "Building") shapeType = Building;
-                            else if (sitr->getString() == "Forest") shapeType = Forest;
+                            if (strncmp(sitr->getString(), "Building", 8) == 0) shapeType = Building;
+                            else if (strncmp(sitr->getString(), "Forest", 6) == 0) shapeType = Forest;                                    
                         }
                         
                         else if (sitr->getName() == getHeightAttributeName())
                         {
-                            if (sitr->getType() == osgSim::ShapeAttribute::DOUBLE)
-                            {
-                                height = sitr->getDouble();
-                            }
-                            else if (sitr->getType() == osgSim::ShapeAttribute::INTEGER)
-                            {
-                                height = double(sitr->getInt());
-                            }
+                            if (sitr->getType() == osgSim::ShapeAttribute::DOUBLE) height = sitr->getDouble();
+                            else if (sitr->getType() == osgSim::ShapeAttribute::INTEGER) height = double(sitr->getInt());
                         }
                     }
                     
@@ -489,7 +483,6 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                     geom->accept(cb);
                     
                     const BoundingBoxd & geoBB = cb._bb;
-//                    const osg::BoundingBox & geoBB = geom->getBound();
                     if (overlap(geoBB.xMin(), geoBB.yMin(), geoBB.xMax(), geoBB.yMax()))
                     {
                         osg::ref_ptr<osg::Geometry> clonedGeom = static_cast<osg::Geometry*>(geom->clone(osg::CopyOp::DEEP_COPY_ARRAYS | osg::CopyOp::DEEP_COPY_PRIMITIVES));
@@ -504,10 +497,11 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                             osg::Vec3d vec(0.0, 0.0, height);
                             
                             // ** Extrude the geometry
-                            ExtrudeVisitor ev;
-                            ev.setMode(ExtrudeVisitor::Replace);
-                            ev.extrude(*clonedGeom.get(), vec);
-                            
+                            ExtrudeVisitor ev(shapeType == Building ? ExtrudeVisitor::PER_GEOMETRY : ExtrudeVisitor::PER_VERTEX, 
+                                              ExtrudeVisitor::Replace,
+                                              vec);
+                            ev.extrude(*clonedGeom.get());
+                                
                             
                             if (useLocalToTileTransform || mapLatLongsToXYZ)
                             {

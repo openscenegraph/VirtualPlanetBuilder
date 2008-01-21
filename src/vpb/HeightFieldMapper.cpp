@@ -22,6 +22,7 @@
 #include <osgUtil/OperationArrayFunctor>
 #include <osgUtil/EdgeCollector>
 #include <osgUtil/ConvertVec>
+#include <osgUtil/Tessellator>
 
 namespace vpb {
 
@@ -50,13 +51,9 @@ HeightFieldMapper::~HeightFieldMapper()
 }
 
 
-
-class ComputeCentroidVisitor : public osg::ArrayVisitor
+class SetZeroToZVisitor : public osg::ArrayVisitor
 {
     public:
-        
-        ComputeCentroidVisitor(osg::UIntArray & ia) : _ia(ia) {}
-        
         
         void apply(osg::Vec3Array& array) { computeCentroid<osg::Vec3Array>(array); }
         void apply(osg::Vec4Array& array) { computeCentroid<osg::Vec4Array>(array); }
@@ -64,127 +61,606 @@ class ComputeCentroidVisitor : public osg::ArrayVisitor
         void apply(osg::Vec3dArray& array) { computeCentroid<osg::Vec3dArray>(array); }
         void apply(osg::Vec4dArray& array) { computeCentroid<osg::Vec4dArray>(array); }
     
-#if 0        
-        template <typename ArrayType>
-        void computeCentroid(ArrayType & array)
-        {
-            double area = 0.0;
-            double centroidTmp = 0.0;
-            double centroidX = 0.0;
-            double centroidY = 0.0;
-            
-            osg::UIntArray::iterator it, end = _ia.end() - 1;
-            for (it = _ia.begin(); it != end; ++it)
-            {
-                typename ArrayType::ElementDataType & vec0 = array[*it];
-                typename ArrayType::ElementDataType & vec1 = array[*(it + 1)];
-                
-                area += vec0.x() * vec1.y();
-                area -= vec0.y() * vec1.x();
-                
-                centroidTmp = (vec0.x() * vec1.y() - vec1.x() * vec0.y());
-                centroidX += (vec0.x() + vec1.x()) * centroidTmp;
-                centroidY += (vec0.y() + vec1.y()) * centroidTmp;
-            }
-            
-            typename ArrayType::ElementDataType & vec0 = array[_ia.back()];
-            typename ArrayType::ElementDataType & vec1 = array[_ia.front()];
-            
-            area += vec0.x() * vec1.y();
-            area -= vec0.y() * vec1.x();
-            
-            centroidTmp = (vec0.x() * vec1.y() - vec1.x() * vec0.y());
-            centroidX += (vec0.x() + vec1.x()) * centroidTmp;
-            centroidY += (vec0.y() + vec1.y()) * centroidTmp;
-            
-            area *= 0.5;
-            area = 1 / (6 * area);
-            _centroid.set(area * centroidX, area * centroidY, vec0.z());
-        }
-#else
 
         template <typename ArrayType>
         void computeCentroid(ArrayType & array)
         {
-            if (_ia.empty()) return;
+            unsigned int size = array.size();
+            
+            for (unsigned int i=0; i<size; ++i)
+                array[i].z() = 0.0;
+        }
+};
+
+class ComputeCentroidVisitor : public osg::ArrayVisitor
+{
+    public:
         
+        void apply(osg::Vec3Array& array) { computeCentroid<osg::Vec3Array>(array); }
+        void apply(osg::Vec4Array& array) { computeCentroid<osg::Vec4Array>(array); }
+        
+        void apply(osg::Vec3dArray& array) { computeCentroid<osg::Vec3dArray>(array); }
+        void apply(osg::Vec4dArray& array) { computeCentroid<osg::Vec4dArray>(array); }
+    
+
+        template <typename ArrayType>
+        void computeCentroid(ArrayType & array)
+        {
+            unsigned int size = array.size();
             osg::Vec3d total(0.0,0.0,0.0);
             
-            for (osg::UIntArray::iterator it = _ia.begin(); it != _ia.end(); ++it)
+            for (unsigned int i=0; i<size; ++i)
             {
-                typename ArrayType::ElementDataType & vec = array[*it];
+                typename ArrayType::ElementDataType & vec = array[i];
                 total.x() += vec.x();
                 total.y() += vec.y();
                 total.z() += vec.z();
             }
             
-            _centroid = total / double(_ia.size()) ;
+            _centroid = total / double(size) ;
         }
 
-
-#endif        
-        
-        osg::UIntArray & _ia;
         osg::Vec3d _centroid;
 };
 
+struct CopyIndexedOperator
+{ 
+    template <typename ArrayType>
+    void process(ArrayType & array) 
+    {   
+        ArrayType * va = new ArrayType();
+        
+        osg::UIntArray::iterator it, end = _indexArray->end();
+        for (it = _indexArray->begin(); it < end; ++it)
+            va->push_back(array[*it]);
+        
+        _copyArray = va;
+    }
+        
+    osg::ref_ptr<osg::UIntArray> _indexArray;
+    osg::ref_ptr<osg::Array> _copyArray;
+};
+typedef osgUtil::OperationArrayFunctor<CopyIndexedOperator> CopyIndexedFunctor;  
+
+struct IsConvexPolygonVisitor : public osg::ArrayVisitor
+{ 
+    virtual void apply(osg::Vec3Array& array) { process<osg::Vec3Array>(array); }
+    virtual void apply(osg::Vec4Array& array) { process<osg::Vec4Array>(array); }
+
+
+    virtual void apply(osg::Vec3dArray& array) { process<osg::Vec3dArray>(array); }
+    virtual void apply(osg::Vec4dArray& array) { process<osg::Vec4dArray>(array); }
+    
+    template <typename ArrayType>
+    void process(ArrayType & array) 
+    {   
+        typedef typename ArrayType::ElementDataType VecType;
+        
+        bool positif;
+        
+        {
+            const VecType & v1 = array[0];
+            const VecType & v2 = array[1];
+            const VecType & v3 = array[2];
+            
+            positif = (((v1.x() - v2.x()) * (v3.y() - v2.y()) - (v1.y() - v2.y()) * (v3.x() - v2.x())) >= 0.0);
+        }
+        
+        
+        unsigned int size = array.size() - 2;
+        unsigned int i;
+        for (i=1; i<size; ++i)
+        {
+            const VecType & v1 = array[i];
+            const VecType & v2 = array[i+1];
+            const VecType & v3 = array[i+2];
+            
+            if (positif != (((v1.x() - v2.x()) * (v3.y() - v2.y()) - (v1.y() - v2.y()) * (v3.x() - v2.x())) >= 0.0))
+            {
+                _isConvex = false;
+                return;
+            }
+        }
+        
+        {
+            const VecType & v1 = array[i];
+            const VecType & v2 = array[i+1];
+            const VecType & v3 = array[0];
+            
+            if (positif != (((v1.x() - v2.x()) * (v3.y() - v2.y()) - (v1.y() - v2.y()) * (v3.x() - v2.x())) >= 0.0))
+            {
+                _isConvex = false;
+                return;
+            }
+        }
+        
+        {
+            const VecType & v1 = array[i+1];
+            const VecType & v2 = array[0];
+            const VecType & v3 = array[1];
+            
+            if (positif != (((v1.x() - v2.x()) * (v3.y() - v2.y()) - (v1.y() - v2.y()) * (v3.x() - v2.x())) >= 0.0))
+            {
+                _isConvex = false;
+                return;
+            }
+        }
+        
+        _isConvex = true;
+    }
+        
+    bool _isConvex;
+};
+
+
+// ** This operator map each vertex and add them only if they overlap the HeightField
 class HeightFieldMapperArrayVisitor : public osg::ArrayVisitor
 {
-    public:
-        
-        template <class T>
-        struct HeightFieldMapperOperator
-        {
-            HeightFieldMapperOperator(const HeightFieldMapper & hfm) : _hfm(hfm) {}
-            void operator ()(T & vec) { vec.z() = _hfm.getZfromXY(vec.x(), vec.y()); }
+public:
+    
+    HeightFieldMapperArrayVisitor(const HeightFieldMapper & hfm) : _hfm(hfm) {}
+    
+    virtual void apply(osg::Vec3Array& array) { process<osg::Vec3Array>(array); }
+    virtual void apply(osg::Vec4Array& array) { process<osg::Vec4Array>(array); }
 
-        private:
+
+    virtual void apply(osg::Vec3dArray& array) { process<osg::Vec3dArray>(array); }
+    virtual void apply(osg::Vec4dArray& array) { process<osg::Vec4dArray>(array); }
+    
+    template <typename ArrayType>
+    void process(ArrayType & array) 
+    {   
+        unsigned int size = array.size();
+        osg::ref_ptr<ArrayType> newArray(new ArrayType);
+        newArray->reserve(size);
+        
+        ArrayType & refNewArray = *newArray.get();
+        
+        
+        for (unsigned int i=0; i<size; ++i)
+        {
+            typename ArrayType::ElementDataType & vec = array[i];
+            vec.z() = _hfm.getZfromXY(vec.x(), vec.y());
             
-            const HeightFieldMapper _hfm;
+            if (vec.z() != DBL_MAX) refNewArray.push_back(vec);
+        }
+        
+        array = refNewArray;
+    }
+    
+    const HeightFieldMapper & _hfm;
+};
+
+
+// ** This operator reverse the array if its normal is not (0,0,1)
+class AssertUpNormalVisitor : public osg::ArrayVisitor
+{
+    public:
+    
+        virtual void apply(osg::Vec3Array& array) { process<osg::Vec3Array>(array); }
+        virtual void apply(osg::Vec4Array& array) { process<osg::Vec4Array>(array); }
+    
+        virtual void apply(osg::Vec3dArray& array) { process<osg::Vec3dArray>(array); }
+        virtual void apply(osg::Vec4dArray& array) { process<osg::Vec4dArray>(array); }
+    
+        template <typename ArrayType>
+        void process(ArrayType & array) const
+        {
+            typedef typename ArrayType::ElementDataType VecType;
+            
+            const VecType & v1 = array[0];
+            const VecType & v2 = array[1];
+            const VecType & v3 = array[2];
+  
+            if (((v1.x() - v2.x()) * (v3.y() - v2.y()) - (v1.y() - v2.y()) * (v3.x() - v2.x())) > 0.0)
+            {
+                std::reverse(array.begin(), array.end());
+            }
+        }
+};
+
+
+
+// ** This visitor cut the geometry to overlap exactly the HeightField
+template <typename ArrayType, typename CreatePolicy>
+class CutGeometryToOverlapHeightField
+{
+    public:
+
+        typedef typename ArrayType::ElementDataType VecType;
+        
+        
+        CutGeometryToOverlapHeightField(double xMin, double yMin, double xMax, double yMax) 
+        :     _xMin(xMin), _yMin(yMin), _xMax(xMax), _yMax(yMax) 
+        {}
+
+        bool overlapHeightField(double x, double y) const
+        {
+            return !((x > _xMax) || (x < _xMin) || (y > _yMax) || (y < _yMin));
+        }
+        
+        void process(ArrayType & array)
+        {   
+            
+            unsigned int size = array.size();
+            _cuttenVertexArray = new ArrayType;
+            
+            ArrayType & refNewArray = *static_cast<ArrayType*>(_cuttenVertexArray.get());
+            refNewArray.reserve(size);
+            
+            // ** find the first vertex overlaping the HeightField
+            unsigned int i=0;
+            bool notFound = true;
+            while (notFound && (i<size)) 
+            {
+                VecType & vec = array[i];
+                if (overlapHeightField(vec.x(), vec.y()))
+                    notFound = false;
+                else
+                    ++i;
+            }
+            
+            if (i == size) return;
+            
+            // ** move vertex at the end of the array. Now, the first vertex in the array overlap the HeightField
+            if (i)
+            {   
+                std::rotate(array.begin(), array.begin() + i, array.end());
+            }
+            
+            
+            
+            
+            VecType inToOutVec, outToInVec;
+            
+            refNewArray.push_back(array[0]);
+            i=1;
+            while (i<size)
+            {
+                VecType & vec = array[i];
+                
+                // ** if the vertex not overlap the HeightField
+                if (overlapHeightField(vec.x(), vec.y()) == false)
+                {
+                    computeIntersection(array[i-1], array[i], inToOutVec);
+                    ++i;
+                    
+                    bool notOverlap = true;
+                    while (notOverlap && (i<size))
+                    {
+                        VecType & v = array[i];
+                        if (overlapHeightField(v.x(), v.y()))
+                            notOverlap = false;
+                        else 
+                            ++i;
+                    }
+                    
+                    if (notOverlap == false)
+                        computeIntersection(array[i], array[i-1], outToInVec);
+                    else
+                        computeIntersection(array[0], array[i-1], outToInVec);
+                    
+                    
+                    insertIntersectedVertex(refNewArray, inToOutVec, outToInVec);
+                
+                    
+                    if (notOverlap == false)
+                        refNewArray.push_back(array[i]);
+                }
+                else
+                {
+                    refNewArray.push_back(vec);
+                }
+                
+                ++i;                
+            } 
+        }
+        
+        enum Corner
+        {
+            NotACorner = 0,
+            C00, // corner(_xMin, _yMin)
+            C10, // corner(_xMax, _yMin)
+            C11, // corner(_xMax, _yMax)
+            C01  // corner(_xMin, _yMax)
         };
         
+        Corner isCorner(const VecType & v)
+        {
+            if (v.x() == _xMin)
+            {
+                if (v.y() == _yMin) return C00;
+                if (v.y() == _yMax) return C01;
+            }
+            if (v.x() == _xMax)
+            {
+                if (v.y() == _yMin) return C10;
+                if (v.y() == _yMax) return C11;
+            }
+            return (NotACorner);
+        }
         
-        HeightFieldMapperArrayVisitor(const HeightFieldMapper & hfm) : _hfm(hfm) {}
+        void insertIntersectedVertex(ArrayType & array, const VecType & v1, const VecType & v2)
+        {
+            array.push_back(v1);
+            
+            if (v1.x() == _xMin)
+            {
+                if (v2.y() == _yMin)
+                {
+                    if ((isCorner(v1) != C00) && (isCorner(v2) != C00)) array.push_back(CreatePolicy::create(_xMin, _yMin));
+                }
+                else if (v2.x() == _xMax)
+                {
+                    if (isCorner(v1) != C00) array.push_back(CreatePolicy::create(_xMin, _yMin));
+                    array.push_back(CreatePolicy::create(_xMax, _yMin));
+                }
+                else if (v2.y() == _yMax)
+                {
+                    if (isCorner(v1) != C00) array.push_back(CreatePolicy::create(_xMin, _yMin));
+                    array.push_back(CreatePolicy::create(_xMax, _yMin));
+                    array.push_back(CreatePolicy::create(_xMax, _yMax));
+                }
+                else if (v2.x() == _xMin)
+                {
+                    if (v1.y() < v2.y())
+                    {
+                        if (isCorner(v1) != C00) array.push_back(CreatePolicy::create(_xMin, _yMin));
+                        array.push_back(CreatePolicy::create(_xMax, _yMin));
+                        array.push_back(CreatePolicy::create(_xMax, _yMax));
+                        array.push_back(CreatePolicy::create(_xMin, _yMax));
+                    }
+                }
+            }
+            
+            else if (v1.y() == _yMin)
+            {
+                if (v2.x() == _xMax)
+                {
+                    if ((isCorner(v1) != C10) && (isCorner(v2) != C10)) array.push_back(CreatePolicy::create(_xMax, _yMin));
+                }
+                else if (v2.y() == _yMax)
+                {
+                    if (isCorner(v1) != C10) array.push_back(CreatePolicy::create(_xMax, _yMin));
+                    array.push_back(CreatePolicy::create(_xMax, _yMax));
+                }
+                else if (v2.x() == _xMin)
+                {
+                    if (isCorner(v1) != C10) array.push_back(CreatePolicy::create(_xMax, _yMin));
+                    array.push_back(CreatePolicy::create(_xMax, _yMax));
+                    array.push_back(CreatePolicy::create(_xMin, _yMax));
+                }
+                else if (v2.y() == _yMin)
+                {
+                    if (v1.x() > v2.x())
+                    {   
+                        if (isCorner(v1) != C10) array.push_back(CreatePolicy::create(_xMax, _yMin));
+                        array.push_back(CreatePolicy::create(_xMax, _yMax));
+                        array.push_back(CreatePolicy::create(_xMin, _yMax));
+                        array.push_back(CreatePolicy::create(_xMin, _yMin));
+                    }
+                }
+            }
+            
+            else if (v1.x() == _xMax)
+            {
+                if (v2.y() == _yMax)
+                {
+                    if ((isCorner(v1) != C11) && (isCorner(v2) != C11)) array.push_back(CreatePolicy::create(_xMax, _yMax));
+                }
+                else if (v2.x() == _xMin)
+                {
+                    if (isCorner(v1) != C11) array.push_back(CreatePolicy::create(_xMax, _yMax));
+                    array.push_back(CreatePolicy::create(_xMax, _yMin));
+                }
+                else if (v2.y() == _yMin)
+                {
+                    if (isCorner(v1) != C11) array.push_back(CreatePolicy::create(_xMax, _yMax));
+                    array.push_back(CreatePolicy::create(_xMin, _yMax));
+                    array.push_back(CreatePolicy::create(_xMin, _yMin));
+                }
+                else if (v2.x() == _xMax)
+                {
+                    if (v1.y() > v2.y())
+                    {
+                        if (isCorner(v1) != C11) array.push_back(CreatePolicy::create(_xMax, _yMax));
+                        array.push_back(CreatePolicy::create(_xMin, _yMax));
+                        array.push_back(CreatePolicy::create(_xMin, _yMin));
+                        array.push_back(CreatePolicy::create(_xMax, _yMin));
+                    }
+                }
+            }
+            
+            else if (v1.y() == _yMax)
+            {
+                if (v2.x() == _xMin)
+                {
+                    if ((isCorner(v1) != C01) && (isCorner(v2) != C01)) array.push_back(CreatePolicy::create(_xMin, _yMax));
+                }
+                else if (v2.y() == _yMin)
+                {
+                    if (isCorner(v1) != C01) array.push_back(CreatePolicy::create(_xMin, _yMax));
+                    array.push_back(CreatePolicy::create(_xMin, _yMin));
+                }
+                else if (v2.x() == _xMax)
+                {
+                    if (isCorner(v1) != C01) array.push_back(CreatePolicy::create(_xMin, _yMax));
+                    array.push_back(CreatePolicy::create(_xMin, _yMin));
+                    array.push_back(CreatePolicy::create(_xMax, _yMin));
+                }
+                else if (v2.y() == _yMax)
+                {
+                    if (v1.x() < v2.x())
+                    {
+                        if (isCorner(v1) != C01) array.push_back(CreatePolicy::create(_xMin, _yMax));
+                        array.push_back(CreatePolicy::create(_xMin, _yMin));
+                        array.push_back(CreatePolicy::create(_xMax, _yMin));
+                        array.push_back(CreatePolicy::create(_xMax, _yMax));
+                    }
+                }
+            }
+            
+            array.push_back(v2);
+        }
         
-        virtual void apply(osg::Vec3Array & array)
-        { std::for_each(array.begin(), array.end(), HeightFieldMapperOperator<osg::Vec3>(_hfm)); }
-        virtual void apply(osg::Vec4Array & array)
-          { std::for_each(array.begin(), array.end(), HeightFieldMapperOperator<osg::Vec4>(_hfm)); }
-        virtual void apply(osg::Vec3dArray & array)
-          { std::for_each(array.begin(), array.end(), HeightFieldMapperOperator<osg::Vec3d>(_hfm)); }
-        virtual void apply(osg::Vec4dArray & array)
-          { std::for_each(array.begin(), array.end(), HeightFieldMapperOperator<osg::Vec4d>(_hfm)); }
+        
+        void computeIntersection(const VecType & v1, const VecType & v2, VecType & intersec)
+        {
+            if (v2.x() < _xMin)
+            {
+                double xCoef = (v2.y() - v1.y()) / (v2.x() - v1.x());
+                double dist = _xMin - v1.x();
                 
-    private:
+                intersec.x() = _xMin;
+                intersec.y() = v1.y() + xCoef * dist;
+            }
+            else if (v2.x() > _xMax)
+            {
+                double xCoef = (v2.y() - v1.y()) / (v2.x() - v1.x());
+                double dist = _xMax - v1.x();
+                
+                intersec.x() = _xMax;
+                intersec.y() = v1.y() + xCoef * dist;
+            }
+            else if (v2.y() < _yMin)
+            {
+                double yCoef = (v2.x() - v1.x()) / (v2.y() - v1.y());
+                double dist = _yMin - v1.y();
+                
+                intersec.x() = v1.x() + yCoef * dist;
+                intersec.y() = _yMin;
+            }
+            else if (v2.y() > _yMax)
+            {
+                double yCoef = (v2.x() - v1.x()) / (v2.y() - v1.y());
+                double dist = _yMax - v1.y();
+                
+                intersec.x() = v1.x() + yCoef * dist;
+                intersec.y() = _yMax;
+            }
+        }
         
-        const HeightFieldMapper _hfm;
+        osg::ref_ptr<osg::Array> _cuttenVertexArray;
+        
+        double _xMin;
+        double _yMin;
+        double _xMax;
+        double _yMax;
 };
+
+template <typename ArrayType>
+struct CreatePolicy3
+{
+    typedef typename ArrayType::ElementDataType VecType;
+    static VecType create(double x, double y) { return VecType(x, y, 0); } 
+};
+
+template <typename ArrayType>
+struct CreatePolicy4
+{
+    typedef typename ArrayType::ElementDataType VecType;
+    static VecType create(double x, double y) { return VecType(x, y, 0, 1); } 
+};
+
+class CutGeometryToOverlapHeightFieldVisitor : public osg::ArrayVisitor
+{
+    public:
+
+        CutGeometryToOverlapHeightFieldVisitor(double xMin, double yMin, double xMax, double yMax) 
+        :     _xMin(xMin), _yMin(yMin), _xMax(xMax), _yMax(yMax) 
+        {}
+        
+        void apply(osg::Vec3Array& array) 
+        { 
+            CutGeometryToOverlapHeightField<osg::Vec3Array, CreatePolicy3<osg::Vec3Array> > cutter(_xMin, _yMin, _xMax, _yMax);
+            cutter.process(array); 
+            _cuttenVertexArray = cutter._cuttenVertexArray;
+        }
+        void apply(osg::Vec4Array& array) 
+        { 
+            CutGeometryToOverlapHeightField<osg::Vec4Array, CreatePolicy4<osg::Vec4Array> > cutter(_xMin, _yMin, _xMax, _yMax);
+            cutter.process(array);
+            _cuttenVertexArray = cutter._cuttenVertexArray;
+        }
+        void apply(osg::Vec3dArray& array) 
+        { 
+            CutGeometryToOverlapHeightField<osg::Vec3dArray, CreatePolicy3<osg::Vec3dArray> > cutter(_xMin, _yMin, _xMax, _yMax);
+            cutter.process(array);
+            _cuttenVertexArray = cutter._cuttenVertexArray;
+        }
+        void apply(osg::Vec4dArray& array) 
+        { 
+            CutGeometryToOverlapHeightField<osg::Vec4dArray, CreatePolicy4<osg::Vec4dArray> > cutter(_xMin, _yMin, _xMax, _yMax);
+            cutter.process(array);
+            _cuttenVertexArray = cutter._cuttenVertexArray;
+        }
+        
+        
+        osg::ref_ptr<osg::Array> _cuttenVertexArray;
+        
+        double _xMin;
+        double _yMin;
+        double _xMax;
+        double _yMax;
+};
+
 
 
 bool HeightFieldMapper::getCentroid(osg::Geometry & geometry, osg::Vec3d & centroid) const
 {
-    if (_mappingMode == PER_GEOMETRY)
-    {
-        osgUtil::EdgeCollector ec;
-        ec.setGeometry(&geometry);
-        if (ec._triangleSet.empty()) return false;
-            
-        // ** get IndexArray of each Edgeloop
-        osgUtil::EdgeCollector::IndexArrayList indexArrayList;
-        ec.getEdgeloopIndexList(indexArrayList);
-        if (indexArrayList.empty()) return false;
-        
-        // ** compute centroid
-        ComputeCentroidVisitor ccv(*indexArrayList.front());
-        geometry.getVertexArray()->accept(ccv);
-        
-        centroid = ccv._centroid;
-        return true;
-    }
+    if (_mappingMode != PER_GEOMETRY) return false;
+
     
-    return false;
+    // ** compute the OutEdge line
+    osgUtil::EdgeCollector ec;
+    ec.setGeometry(&geometry);
+    if (ec._triangleSet.empty()) return false;
+        
+    // ** get IndexArray of each Edgeloop
+    osgUtil::EdgeCollector::IndexArrayList indexArrayList;
+    ec.getEdgeloopIndexList(indexArrayList);
+    if (indexArrayList.empty()) return false;
+    
+    // ** create a new vertexArray only with vertex composing the out edge line 
+    CopyIndexedFunctor cif;
+    cif._indexArray = indexArrayList.front();
+    geometry.getVertexArray()->accept(cif);
+    geometry.setVertexArray(cif._copyArray.get());
+    if (cif._copyArray.valid() == false) return false;
+        
+    SetZeroToZVisitor zeroVis;
+    geometry.getVertexArray()->accept(zeroVis);
+    
+    AssertUpNormalVisitor aunv;
+    geometry.getVertexArray()->accept(aunv);
+    
+    // ** check if outedge line is concave
+    IsConvexPolygonVisitor convexTest;
+    geometry.getVertexArray()->accept(convexTest);
+    if (convexTest._isConvex == false) 
+        return false;
+        
+    // ** Remove vertex which not overlap the HeightField and insert
+    CutGeometryToOverlapHeightFieldVisitor cutter(_xMin, _yMin, _xMax, _yMax);
+    geometry.getVertexArray()->accept(cutter);
+    geometry.setVertexArray(cutter._cuttenVertexArray.get());
+    if (geometry.getVertexArray()->getNumElements() == 0) return false;
+    
+    // ** compute centroid
+    ComputeCentroidVisitor ccv;
+    geometry.getVertexArray()->accept(ccv);
+    centroid = ccv._centroid;
+    
+    // ** recreate the geometry
+    geometry.getPrimitiveSetList().clear();
+    geometry.addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POLYGON, 0, geometry.getVertexArray()->getNumElements()));
+        
+    return true;
+    
 }
 
+
+ 
 bool HeightFieldMapper::map(osg::Geometry & geometry) const
 {
     if (_mappingMode == PER_VERTEX)
@@ -192,7 +668,7 @@ bool HeightFieldMapper::map(osg::Geometry & geometry) const
         HeightFieldMapperArrayVisitor hfmv(*this);
         geometry.getVertexArray()->accept(hfmv);
         
-        return true;
+        return geometry.getVertexArray()->getNumElements();
     }
     
     if (_mappingMode == PER_GEOMETRY)
@@ -220,58 +696,8 @@ bool HeightFieldMapper::map(osg::Geometry & geometry) const
 }
 
 
+
 double HeightFieldMapper::getZfromXY(double x, double y) const
-{
-#if 1
-    return robert_getZfromXY(x,y);
-#else
-    double david_z = david_getZfromXY(x,y);
-    double robert_z = robert_getZfromXY(x,y);
-    if (david_z != robert_z)
-    {
-        osg::notify(osg::NOTICE)<<"Warning HeightFieldMapper::getZfromXY("<<x<<","<<y<<") david_z="<<david_z<<" robert_z="<<robert_z<<std::endl;
-    }
-    
-    return robert_z;
-#endif
-}
-
-double HeightFieldMapper::david_getZfromXY(double x, double y) const
-{
-    if ((x > _xMax) || (x < _xMin) || (y > _yMax) || (y < _yMin)) return DBL_MAX;
-
-    osg::Vec3d point(x,y,0.0);
-    
-    // ** search column and row containing this point
-    point = point - osg::Vec3d(_hf.getOrigin());
-    
-    unsigned int column = static_cast<unsigned int>(point.x() / (double)_hf.getXInterval());
-    unsigned int row = static_cast<unsigned int>(point.y() / (double)_hf.getYInterval());
-    
-    // ** take 3 points, POO(0,0), P1O(1,0) and PO1(0,1)
-    osg::Vec3d P00, P10, P01;
-    
-    osg::Vec3f vTmp(_hf.getVertex(column, row) - _hf.getOrigin());
-    osgUtil::ConvertVec<osg::Vec3f, osg::Vec3d>::convert(vTmp, P00);
-    
-    vTmp.set(_hf.getVertex(column+1, row) - _hf.getOrigin());
-    osgUtil::ConvertVec<osg::Vec3f, osg::Vec3d>::convert(vTmp, P10);
-    
-    vTmp.set(_hf.getVertex(column, row+1) - _hf.getOrigin());
-    osgUtil::ConvertVec<osg::Vec3f, osg::Vec3d>::convert(vTmp, P01);
-    
-    // ** compute the ratio in X and Y direction
-    double ratio00_10 = (point.x() - P00.x()) / (P10.x() - P00.x());
-    double ratio00_01 = (point.y() - P00.y()) / (P01.y() - P00.y());
-    
-    // ** apply the ratio on z coordinates to find the distance between P00.z and point.z
-    double z = (ratio00_10 * (P10.z() - P00.z())) + (ratio00_01 * (P01.z() - P00.z()));
-    
-    
-    return (P00.z() + z);
-}
-
-double HeightFieldMapper::robert_getZfromXY(double x, double y) const
 {
     if ((x > _xMax) || (x < _xMin) || (y > _yMax) || (y < _yMin)) return DBL_MAX;
 
@@ -293,9 +719,9 @@ double HeightFieldMapper::robert_getZfromXY(double x, double y) const
     double ry = cy-fy;
     
     double h00 = _hf.getHeight(c,r);
-    double h01 = ((r+1) < _hf.getNumRows()) ? _hf.getHeight(c,r+1) : h00;
-    double h10 = ((c) < _hf.getNumColumns()) ? _hf.getHeight(c+1,r) : h00;
-    double h11 = ((c+1) < _hf.getNumColumns() && (r+1) < _hf.getNumRows()) ? _hf.getHeight(c+1,r+1) : h00;
+    double h01 = ((r+1) < (int) _hf.getNumRows()) ? _hf.getHeight(c,r+1) : h00;
+    double h10 = ((c) < (int) _hf.getNumColumns()) ? _hf.getHeight(c+1,r) : h00;
+    double h11 = ((c+1) < (int) _hf.getNumColumns() && (r+1) < (int) _hf.getNumRows()) ? _hf.getHeight(c+1,r+1) : h00;
 
     double z = _hf.getOrigin().z() + 
                 h00*(1.0-rx)*(1.0-ry) + 

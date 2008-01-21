@@ -47,6 +47,42 @@ struct DuplicateIndexOperator
 };
 typedef osgUtil::OperationArrayFunctor<DuplicateIndexOperator> DuplicateIndexFunctor;
 
+struct DuplicateAndInterlaceOperator
+{
+    template <typename ArrayType>
+    void process(ArrayType & array) 
+    {   
+        unsigned int size = array.size();
+        osg::ref_ptr<ArrayType> newArray(new ArrayType(size * 2));
+        ArrayType & refNewArray = *newArray.get();
+        
+        for (unsigned int i=0; i<size; ++i)
+            refNewArray[2*i] = refNewArray[2*i+1] = array[i];
+        
+        array = refNewArray;
+    }
+};   
+typedef osgUtil::OperationArrayFunctor<DuplicateAndInterlaceOperator> DuplicateAndInterlaceFunctor;
+
+struct AddOddOperator
+{
+    template <typename ArrayType>
+    void process(ArrayType & array) 
+    {   
+        typedef typename ArrayType::ElementDataType ElementDataType;
+                        
+        ElementDataType convertedVector;
+        osgUtil::ConvertVec<osg::Vec3d, ElementDataType>::convert(_vector, convertedVector);
+        
+        
+        std::size_t size = array.size();
+        for (unsigned int i = 1; i<size; i+=2)
+            array[i] += convertedVector;
+    }
+    
+    osg::Vec3d _vector;
+};   
+typedef osgUtil::OperationArrayFunctor<AddOddOperator> AddOddFunctor;
 
 
 
@@ -63,188 +99,186 @@ struct OffsetIndices
 
 // ** search BoundaryEdgeloop in the geometry, extrude this loop
 // **  and create primitiveSet to link original loop and extruded loop
-void ExtrudeVisitor::extrude(osg::Geometry& geometry, osg::Vec3d & extrudeVector)
+void ExtrudeVisitor::extrude(osg::Geometry& geometry)
 {
 //    osg::notify(osg::INFO)<<"****************Extruder : Start ************"<<std::endl;
 
     unsigned int originalVertexArraySize = geometry.getVertexArray()->getNumElements();
     
-    
-    
-    // ** collect Edge
-//    osg::notify(osg::INFO)<<"****************Extruder : collect Points, Edges, Triangles"<<std::endl;
-    osgUtil::EdgeCollector ec;
-    ec.setGeometry(&geometry);
-    if (ec._triangleSet.size() == 0) return;
-//    osg::notify(osg::INFO)<<"****************Extruder : found " << ec._pointSet.size() << " Points"<<std::endl;
-//    osg::notify(osg::INFO)<<"****************Extruder : found " << ec._edgeSet.size() << " Edges"<<std::endl;
-//    osg::notify(osg::INFO)<<"****************Extruder : found " << ec._triangleSet.size() << " Triangles"<<std::endl;
 
-    
-    // ** get IndexArray of each Edgeloop
-    
-    osgUtil::EdgeCollector::IndexArrayList originalIndexArrayList;
-    osgUtil::EdgeCollector::IndexArrayList extrudedIndexArrayList;
-       
-    ec.getEdgeloopIndexList(originalIndexArrayList);
-    osgUtil::EdgeCollector::IndexArrayList::iterator iaIt, iaEnd = originalIndexArrayList.end();
-    for (iaIt = originalIndexArrayList.begin(); iaIt != iaEnd; ++iaIt)
+    if (_mode == PER_VERTEX)
     {
-        extrudedIndexArrayList.push_back(new osg::UIntArray(*iaIt->get()));
+        // ** duplicate vertex
+        DuplicateAndInterlaceFunctor daif;
+        geometry.getVertexArray()->accept(daif);
+        
+        // ** extrude vertex with odd index
+        AddOddFunctor aof;
+        aof._vector = _extrudeVector;
+        geometry.getVertexArray()->accept(aof);
+        
+        geometry.getPrimitiveSetList().clear();
+        geometry.addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, geometry.getVertexArray()->getNumElements()));
+        
     }
-    
-    _mode = Replace;
-    
-    // ** replace geometry by extruded geometry
-    if (_mode == Replace)
+    else // if (_mode == PER_GEOMETRY)
     {
-        // ** extrude vertexArray
-//        osg::notify(osg::INFO)<<"****************Extruder : Duplicate Edgeloop and Extrude VertexArray ************"<<std::endl;
+        // ** collect Edge
+        osgUtil::EdgeCollector ec;
+        ec.setGeometry(&geometry);
+        if (ec._triangleSet.size() == 0) return;
+    
         
-        
-        unsigned int currentVertexArraySize = originalVertexArraySize;
-        
-        DuplicateIndexFunctor dif;
+        // ** get IndexArray of each Edgeloop
+        osgUtil::EdgeCollector::IndexArrayList originalIndexArrayList;
+        osgUtil::EdgeCollector::IndexArrayList extrudedIndexArrayList;
+           
+        ec.getEdgeloopIndexList(originalIndexArrayList);
         osgUtil::EdgeCollector::IndexArrayList::iterator iaIt, iaEnd = originalIndexArrayList.end();
         for (iaIt = originalIndexArrayList.begin(); iaIt != iaEnd; ++iaIt)
         {
-            osg::UIntArray & indexArray = *(iaIt->get());
-            
-            // ** duplicate vertex indexed by indexArray
-            dif._indexArray = &indexArray;
-            geometry.getVertexArray()->accept(dif);
-                        
-            // ** remap indexArray
-            unsigned int size = indexArray.size();
-            for (unsigned int i=0; i<size; ++i)
-                indexArray[i] = currentVertexArraySize + i;
-            
-            currentVertexArraySize += size;
+            extrudedIndexArrayList.push_back(new osg::UIntArray(*iaIt->get()));
         }
         
-        // ** extrude original vertex and keep original value in duplicate vertex
-        osgUtil::AddRangeFunctor erf;
-        erf._vector = extrudeVector;
-        erf._begin = 0;
-        erf._count = originalVertexArraySize;
+//        _outputMode = Replace;
         
-        geometry.getVertexArray()->accept(erf);
-    }
-    else //if (_mode == Merge)
-    {
-        // ** duplicate vertexArray
-//        osg::notify(osg::INFO)<<"****************Extruder : Duplicate and extrude VertexArray ************"<<std::endl;
-        
-        // ** duplicate all vertex
-        DuplicateFunctor df;
-        geometry.getVertexArray()->accept(df);
-        
-        // ** duplicate edgeloop index
-        osgUtil::EdgeCollector::IndexArrayList::iterator iaIt, iaEnd = originalIndexArrayList.end();
-        for (iaIt = originalIndexArrayList.begin(); iaIt != iaEnd; ++iaIt)
+        // ** replace geometry by extruded geometry
+        if (_outputMode == Replace)
         {
-            osg::UIntArray & indexArray = *(iaIt->get());
+            // ** extrude vertexArray
+            unsigned int currentVertexArraySize = originalVertexArraySize;
             
-            // ** remap indexArray
-            unsigned int size = indexArray.size();
-            for (unsigned int i=0; i<size; ++i)
-                indexArray[i] += originalVertexArraySize;
+            DuplicateIndexFunctor dif;
+            osgUtil::EdgeCollector::IndexArrayList::iterator iaIt, iaEnd = originalIndexArrayList.end();
+            for (iaIt = originalIndexArrayList.begin(); iaIt != iaEnd; ++iaIt)
+            {
+                osg::UIntArray & indexArray = *(iaIt->get());
+                
+                // ** duplicate vertex indexed by indexArray
+                dif._indexArray = &indexArray;
+                geometry.getVertexArray()->accept(dif);
+                            
+                // ** remap indexArray
+                unsigned int size = indexArray.size();
+                for (unsigned int i=0; i<size; ++i)
+                    indexArray[i] = currentVertexArraySize + i;
+                
+                currentVertexArraySize += size;
+            }
+            
+            // ** extrude original vertex and keep original value in duplicate vertex
+            osgUtil::AddRangeFunctor erf;
+            erf._vector = _extrudeVector;
+            erf._begin = 0;
+            erf._count = originalVertexArraySize;
+            
+            geometry.getVertexArray()->accept(erf);
+        }
+        else //if (_outputMode == Merge)
+        {
+            // ** duplicate all vertex
+            DuplicateFunctor df;
+            geometry.getVertexArray()->accept(df);
+            
+            // ** duplicate edgeloop index
+            osgUtil::EdgeCollector::IndexArrayList::iterator iaIt, iaEnd = originalIndexArrayList.end();
+            for (iaIt = originalIndexArrayList.begin(); iaIt != iaEnd; ++iaIt)
+            {
+                osg::UIntArray & indexArray = *(iaIt->get());
+                
+                // ** remap indexArray
+                unsigned int size = indexArray.size();
+                for (unsigned int i=0; i<size; ++i)
+                    indexArray[i] += originalVertexArraySize;
+            }
+            
+            // ** extrude original vertex and keep original value in duplicate vertex
+            osgUtil::AddRangeFunctor erf;
+            erf._vector = _extrudeVector;
+            erf._begin = 0;
+            erf._count = originalVertexArraySize;
+            geometry.getVertexArray()->accept(erf);
+    
+            // ** offset primitive's indices to draw duplicated vertex
+            osg::Geometry::PrimitiveSetList & psl = geometry.getPrimitiveSetList();
+            std::for_each(psl.begin(), psl.end(), OffsetIndices(originalVertexArraySize));
+        
         }
         
-        // ** extrude original vertex and keep original value in duplicate vertex
-        osgUtil::AddRangeFunctor erf;
-        erf._vector = extrudeVector;
-        erf._begin = 0;
-        erf._count = originalVertexArraySize;
-        geometry.getVertexArray()->accept(erf);
+        
+        
+        
+        
+        // Make top primitiveSet List
+        bool reverseTopShape = false;//needReverseTopShape(extrudeVector, ); TODO
+        {
+            osg::Geometry::PrimitiveSetList newPsl;
+            
+            // ** for each primitive in geometry, we duplicate this primitive and reverse it if need
+            osg::Geometry::PrimitiveSetList & psl = geometry.getPrimitiveSetList();
+            osg::Geometry::PrimitiveSetList::iterator it, end = psl.end();
+            for (it = psl.begin(); it != end; ++it)
+            {
+                osg::ref_ptr<osg::PrimitiveSet> newPs;
+                
+                // ** duplicate
+                if (reverseTopShape)
+                {
+                    osgUtil::ReversePrimitiveFunctor rpf;
+                    (*it)->accept(rpf);
+                    
+                    newPs = rpf.getReversedPrimitiveSet();
+                }
+                else
+                {
+                    newPs = static_cast<osg::PrimitiveSet*>((*it)->clone(osg::CopyOp::SHALLOW_COPY));
+                }
+                
+                if (newPs.valid())
+                {
+                    newPsl.push_back(newPs);
+                }
+            }
+            
+            // ** Replace by or Merge new Primitives
+            if (_outputMode == Replace)
+            {
+                psl = newPsl;
+            }
+            else //if (_outputMode == Merge)
+            {
+                psl.insert(psl.end(), newPsl.begin(), newPsl.end());
+            }
+        }
+        
 
-        // ** offset primitive's indices to draw duplicated vertex
-        osg::Geometry::PrimitiveSetList & psl = geometry.getPrimitiveSetList();
-        std::for_each(psl.begin(), psl.end(), OffsetIndices(originalVertexArraySize));
-    
-    }
-    
-    
-    
-    
-    
-    
-    bool reverseTopShape = true;//needReverseTopShape(extrudeVector, ); TODO
-    
-//    osg::notify(osg::INFO)<<"****************Extruder : Make top primitiveSet List ************"<<std::endl;
-    {
-        osg::Geometry::PrimitiveSetList newPsl;
         
-        // ** for each primitive in geometry, we duplicate this primitive and reverse it if need
-        osg::Geometry::PrimitiveSetList & psl = geometry.getPrimitiveSetList();
-        osg::Geometry::PrimitiveSetList::iterator it, end = psl.end();
-        for (it = psl.begin(); it != end; ++it)
+        // ** link original and extruded Boundary Edgeloops 
+        osgUtil::EdgeCollector::IndexArrayList::iterator oit, oend = originalIndexArrayList.end();
+        osgUtil::EdgeCollector::IndexArrayList::iterator eit = extrudedIndexArrayList.begin();
+        for (oit = originalIndexArrayList.begin(); oit != oend; ++oit, ++eit)
         {
-            osg::ref_ptr<osg::PrimitiveSet> newPs;
             
-            // ** duplicate
-            if (reverseTopShape)
+            osg::ref_ptr<osg::DrawElementsUInt> de = linkAsTriangleStrip(*(*oit), *(*eit));
+            
+            // ** if bottom shape have up normal, we need to reverse the extruded face   
+            if (reverseTopShape == false)
             {
                 osgUtil::ReversePrimitiveFunctor rpf;
-                (*it)->accept(rpf);
+                de->accept(rpf);
                 
-                newPs = rpf.getReversedPrimitiveSet();
+                geometry.addPrimitiveSet(rpf._reversedPrimitiveSet.get());
             }
             else
             {
-                newPs = static_cast<osg::PrimitiveSet*>((*it)->clone(osg::CopyOp::SHALLOW_COPY));
-            }
-            
-            if (newPs.valid())
-            {
-                newPsl.push_back(newPs);
+                // ** add the extruded face
+                geometry.addPrimitiveSet(de.get());
             }
         }
         
-        // ** Replace by or Merge new Primitives
-        if (_mode == Replace)
-        {
-            psl = newPsl;
-        }
-        else //if (_mode == Merge)
-        {
-            psl.insert(psl.end(), newPsl.begin(), newPsl.end());
-        }
+    
+        osgUtil::SmoothingVisitor::smooth(geometry);
     }
-    
-    
-    
-    
-    
-    
-//    osg::notify(osg::INFO)<<"****************Extruder : link original and extruded Boundary Edgeloops ************"<<std::endl;
-    // ** link original and extruded Boundary Edgeloops 
-    
-    osgUtil::EdgeCollector::IndexArrayList::iterator oit, oend = originalIndexArrayList.end();
-    osgUtil::EdgeCollector::IndexArrayList::iterator eit = extrudedIndexArrayList.begin();
-    for (oit = originalIndexArrayList.begin(); oit != oend; ++oit, ++eit)
-    {
-        
-        osg::ref_ptr<osg::DrawElementsUInt> de = linkAsTriangleStrip(*(*oit), *(*eit));
-        
-        // ** if bottom shape have up normal, we need to reverse the extruded face   
-        if (reverseTopShape == false)
-        {
-            osgUtil::ReversePrimitiveFunctor rpf;
-            de->accept(rpf);
-            
-            geometry.addPrimitiveSet(rpf._reversedPrimitiveSet.get());
-        }
-        else
-        {
-            // ** add the extruded face
-            geometry.addPrimitiveSet(de.get());
-        }
-    }
-    
-
-    osgUtil::SmoothingVisitor::smooth(geometry);
-//    osg::notify(osg::INFO)<<"****************Extruder : finish ************"<<std::endl;
 }
 
 osg::DrawElementsUInt * ExtrudeVisitor::linkAsTriangleStrip(osg::UIntArray & originalIndexArray,
@@ -280,7 +314,7 @@ void ExtrudeVisitor::apply(osg::Geode & node)
         
         if (geo)
         {
-            extrude(*geo, _extrudeVector);        
+            extrude(*geo);        
         }
     }
     
