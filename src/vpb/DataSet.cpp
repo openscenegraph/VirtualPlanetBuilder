@@ -2310,14 +2310,35 @@ public:
 
 bool DataSet::generateTasks(TaskManager* taskManager)
 {
+    if (!getLogFileName().empty())
+    {
+        if (!getBuildLog()) setBuildLog(new BuildLog());
+    
+        getBuildLog()->openLogFile(getLogFileName());
+    }
+
+    if (getBuildLog())
+    {
+        pushOperationLog(getBuildLog());
+    }
+
+    bool result = false;
     if (getBuildOptionsString().find("tm")!=std::string::npos)
     {
-        return generateTasks_new(taskManager);
+        result = generateTasks_new(taskManager);
     }
     else
     {
-        return generateTasks_old(taskManager);
+        result = generateTasks_old(taskManager);
     }
+
+    if (getBuildLog())
+    {
+        popOperationLog();
+    }
+    
+    return result;
+
 }
 
 void DataSet::selectAppropriateSplitLevels()
@@ -2400,18 +2421,7 @@ void DataSet::selectAppropriateSplitLevels()
 bool DataSet::generateTasks_new(TaskManager* taskManager)
 {
     log(osg::NOTICE,"DataSet::generateTasks_new");
-    if (!getLogFileName().empty())
-    {
-        if (!getBuildLog()) setBuildLog(new BuildLog());
-    
-        getBuildLog()->openLogFile(getLogFileName());
-    }
 
-    if (getBuildLog())
-    {
-        pushOperationLog(getBuildLog());
-    }
-    
     loadSources();
 
     if (!prepareForDestinationGraphCreation()) return false;
@@ -2421,14 +2431,139 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
     selectAppropriateSplitLevels();
     
     if (getDistributedBuildSplitLevel()==0) return false;
+    
+    int bottomDistributedBuildLevel = getDistributedBuildSecondarySplitLevel()==0 ? 
+                                        getDistributedBuildSplitLevel() :
+                                        getDistributedBuildSecondarySplitLevel();
 
-    log(osg::NOTICE,"Then generate the root task");
-    log(osg::NOTICE,"Then generate the intermediate tasks if any");
-    log(osg::NOTICE,"Then generate the leaf tasks if any");
+    computeDestinationGraphFromSources(bottomDistributedBuildLevel+1);
 
-    if (getBuildLog())
+    if (!_destinationGraph.valid()) return false;
+
+
+    // initialize various tasks related settings
+    std::string sourceFile = taskManager->getSourceFileName();
+    std::string basename = taskManager->getBuildName();
+    std::string taskDirectory = getTaskDirectory();
+    if (!taskDirectory.empty()) taskDirectory += "/";
+
+    std::string fileCacheName;
+    if (System::instance()->getFileCache()) fileCacheName = System::instance()->getFileCache()->getFileName(); 
+
+    bool logging = getNotifyLevel() > ALWAYS;
+
+    
+    // create root task
     {
-        popOperationLog();
+        std::ostringstream taskfile;
+        taskfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.task";
+
+        std::ostringstream app;
+        app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSplitLevel()<<" --task "<<taskfile.str();
+
+        if (!fileCacheName.empty())
+        {
+            app<<" --cache "<<fileCacheName;
+        }
+
+        if (logging)
+        {
+            std::ostringstream logfile;
+            logfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.log";
+            app<<" --log "<<logfile.str();
+        }
+#if 0            
+        else
+        {
+            app<<" > /dev/null";
+        }
+#endif            
+
+        taskManager->addTask(taskfile.str(), app.str(), sourceFile);
+    }
+    
+    
+    // need to create an intermediate level if required.
+    if (getDistributedBuildSecondarySplitLevel()!=0)
+    {
+        CollectSubtiles cs(getDistributedBuildSplitLevel()-1);
+        _destinationGraph->accept(cs);
+
+        for(CollectSubtiles::SubtileList::iterator itr = cs._subtileList.begin();
+            itr != cs._subtileList.end();
+            ++itr)
+        {
+            CompositeDestination* cd = itr->get();
+
+            std::ostringstream taskfile;
+            taskfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".task";
+
+
+            std::ostringstream app;
+            app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSecondarySplitLevel()<<" --subtile "<<cd->_level<<" "<<cd->_tileX<<" "<<cd->_tileY<<" --task "<<taskfile.str();
+
+
+            if (!fileCacheName.empty())
+            {
+                app<<" --cache "<<fileCacheName;
+            }
+
+            if (logging)
+            {
+                std::ostringstream logfile;
+
+                logfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
+                app<<" --log "<<logfile.str();
+            }
+    #if 0
+            else
+            {
+                app<<" > /dev/null";
+            }
+    #endif
+            taskManager->addTask(taskfile.str(), app.str(), sourceFile);
+        }
+    }
+    
+    // create the bottom level split
+    {    
+        // bottom set of tasks
+        CollectSubtiles cs(bottomDistributedBuildLevel-1);
+        _destinationGraph->accept(cs);
+
+        for(CollectSubtiles::SubtileList::iterator itr = cs._subtileList.begin();
+            itr != cs._subtileList.end();
+            ++itr)
+        {
+            CompositeDestination* cd = itr->get();
+
+            std::ostringstream taskfile;
+            taskfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".task";
+
+
+            std::ostringstream app;
+            app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --subtile "<<cd->_level<<" "<<cd->_tileX<<" "<<cd->_tileY<<" --task "<<taskfile.str();
+
+            if (!fileCacheName.empty())
+            {
+                app<<" --cache "<<fileCacheName;
+            }
+
+            if (logging)
+            {
+                std::ostringstream logfile;
+
+                logfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
+                app<<" --log "<<logfile.str();
+            }
+    #if 0
+            else
+            {
+                app<<" > /dev/null";
+            }
+    #endif
+            taskManager->addTask(taskfile.str(), app.str(), sourceFile);
+        }
     }
 
     return false;
@@ -2436,18 +2571,6 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
 
 bool DataSet::generateTasks_old(TaskManager* taskManager)
 {
-    if (!getLogFileName().empty())
-    {
-        if (!getBuildLog()) setBuildLog(new BuildLog());
-    
-        getBuildLog()->openLogFile(getLogFileName());
-    }
-
-    if (getBuildLog())
-    {
-        pushOperationLog(getBuildLog());
-    }
-    
     loadSources();
 
     if (!prepareForDestinationGraphCreation()) return false;
@@ -2541,11 +2664,6 @@ bool DataSet::generateTasks_old(TaskManager* taskManager)
             taskManager->addTask(taskfile.str(), app.str(), sourceFile);
         }
 
-    }
-
-    if (getBuildLog())
-    {
-        popOperationLog();
     }
     
     return true;
