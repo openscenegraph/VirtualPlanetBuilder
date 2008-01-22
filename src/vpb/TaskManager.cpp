@@ -102,24 +102,6 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     
     while (arguments.read("--build-name",_buildName)) {}
     
-
-    DatabaseBuilder* db = dynamic_cast<DatabaseBuilder*>(_terrain->getTerrainTechnique());
-    BuildOptions* bo = db->getBuildOptions();
-    if (bo)
-    {
-        if (bo->getDistributedBuildSplitLevel()==0)
-        {
-            unsigned int maxLevel = bo->getMaximumNumOfLevels();
-            unsigned int halfLevel = (maxLevel / 2);
-            if (halfLevel>=1)
-            {
-                bo->setDistributedBuildSplitLevel(osg::minimum(halfLevel,4u));
-            }
-        }
-    }
-    
-    log(osg::NOTICE,"setDistributedBuildSplitLevel=%d",bo->getDistributedBuildSplitLevel());
-
     if (!terrainOutputName.empty())
     {
         if (_terrain.valid())

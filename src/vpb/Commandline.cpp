@@ -472,6 +472,7 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--subtile <LOD> <X> <Y>","Set the subtile to begin the build from.");
     usage.addCommandLineOption("--record-subtile-on-leaf-tiles","Enable the setting of the subtile file name of the leaf tiles.");
     usage.addCommandLineOption("--split","Set the distributed build split level.");
+    usage.addCommandLineOption("--splits","Set the distributed build primary and secondary split levels.");
     usage.addCommandLineOption("--run-path","Set the path that the build should be run from.");
     usage.addCommandLineOption("--notify-level","Set the notify level when logging messages.");
     usage.addCommandLineOption("--type-attribute","Set the type name which specify how the shapes should be interpreted in shapefile/dbase files.");
@@ -535,6 +536,13 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     while(arguments.read("--split",splitLevel))
     {
         buildOptions->setDistributedBuildSplitLevel(splitLevel);
+    }
+
+    unsigned int secondarySplitLevel;
+    while(arguments.read("--splits",splitLevel, secondarySplitLevel))
+    {
+        buildOptions->setDistributedBuildSplitLevel(splitLevel);
+        buildOptions->setDistributedBuildSecondarySplitLevel(secondarySplitLevel);
     }
 
     while(arguments.read("--record-subtile-on-leaf-tiles"))

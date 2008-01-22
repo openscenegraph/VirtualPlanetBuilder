@@ -56,6 +56,7 @@ BuildOptions::BuildOptions():
     _writeNodeBeforeSimplification = false;
     
     _distributedBuildSplitLevel = 0;
+    _distributedBuildSecondarySplitLevel = 0;
     _recordSubtileFileNamesOnLeafTile = false;
     _generateSubtile = false;
     _subtileLevel = 0;
@@ -122,6 +123,7 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _verticalScale = rhs._verticalScale;
     _writeNodeBeforeSimplification = rhs._writeNodeBeforeSimplification;
     _distributedBuildSplitLevel = rhs._distributedBuildSplitLevel;
+    _distributedBuildSecondarySplitLevel = rhs._distributedBuildSecondarySplitLevel;
     _recordSubtileFileNamesOnLeafTile = rhs._recordSubtileFileNamesOnLeafTile;
     _generateSubtile = rhs._generateSubtile;
     _subtileLevel = rhs._subtileLevel;

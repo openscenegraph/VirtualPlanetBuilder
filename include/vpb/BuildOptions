@@ -197,6 +197,9 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setDistributedBuildSplitLevel(unsigned int level) { _distributedBuildSplitLevel = level; }
         unsigned int getDistributedBuildSplitLevel() const { return _distributedBuildSplitLevel; }
 
+        void setDistributedBuildSecondarySplitLevel(unsigned int level) { _distributedBuildSecondarySplitLevel = level; }
+        unsigned int getDistributedBuildSecondarySplitLevel() const { return _distributedBuildSecondarySplitLevel; }
+
         void setRecordSubtileFileNamesOnLeafTile(bool recordSubtileFileNamesOnLeafTile) { _recordSubtileFileNamesOnLeafTile = recordSubtileFileNamesOnLeafTile; }
         bool getRecordSubtileFileNamesOnLeafTile() const { return _recordSubtileFileNamesOnLeafTile; }
 
@@ -276,6 +279,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
         unsigned int                                _maximumTileTerrainSize;
         
         unsigned int                                _distributedBuildSplitLevel;
+        unsigned int                                _distributedBuildSecondarySplitLevel;
+
         bool                                        _recordSubtileFileNamesOnLeafTile;
         bool                                        _generateSubtile;
         unsigned int                                _subtileLevel;

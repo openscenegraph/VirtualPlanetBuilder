@@ -198,6 +198,7 @@ public:
         ADD_UINT_PROPERTY(MaximumNumOfLevels);
         
         ADD_UINT_PROPERTY(DistributedBuildSplitLevel);
+        ADD_UINT_PROPERTY(DistributedBuildSecondarySplitLevel);
         ADD_BOOL_PROPERTY(RecordSubtileFileNamesOnLeafTile);
         ADD_BOOL_PROPERTY(GenerateSubtile);
         ADD_UINT_PROPERTY(SubtileLevel);

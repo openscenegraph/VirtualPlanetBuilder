@@ -214,10 +214,11 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         bool computeOptimumLevel(Source* source, int maxLevel, int& level);
         bool computeOptimumTileSystemDimensions(int& C1, int& R1);
         CompositeDestination* createDestinationTile(int level, int tileX, int tileY);
+        int computeMaximumLevel(int maxNumLevels);
         
-        bool prepareForDestinationGraphCreation();
-     
-        int computeMaximumLevel();
+        bool prepareForDestinationGraphCreation(); 
+        
+        void selectAppropriateSplitLevels();
 
         osg::ref_ptr<CompositeSource>               _sourceGraph;
         
