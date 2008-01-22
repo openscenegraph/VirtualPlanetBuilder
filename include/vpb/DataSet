@@ -164,6 +164,10 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         
         bool generateTasks(TaskManager* taskManager);
 
+        bool generateTasks_new(TaskManager* taskManager);
+        bool generateTasks_old(TaskManager* taskManager);
+
+
         int run();
 
         // helper functions for handling optional archive
@@ -210,6 +214,10 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         bool computeOptimumLevel(Source* source, int maxLevel, int& level);
         bool computeOptimumTileSystemDimensions(int& C1, int& R1);
         CompositeDestination* createDestinationTile(int level, int tileX, int tileY);
+        
+        bool prepareForDestinationGraphCreation();
+     
+        int computeMaximumLevel();
 
         osg::ref_ptr<CompositeSource>               _sourceGraph;
         

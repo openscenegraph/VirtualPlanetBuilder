@@ -426,10 +426,6 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
             continue;
         }
 
-        double source_xRange = sp._extents.xMax()-sp._extents.xMin();
-        double source_yRange = sp._extents.yMax()-sp._extents.yMin();
-        
-        int level = 0;
         
         if (source->getType()!=Source::IMAGE && source->getType()!=Source::HEIGHT_FIELD)
         {
@@ -1008,8 +1004,133 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
     return destinationGraph;
 }
 
+bool DataSet::prepareForDestinationGraphCreation()
+{
+    if (!_sourceGraph) return false;
+
+    // ensure we have a valid coordinate system
+    if (_destinationCoordinateSystemString.empty()&& !getConvertFromGeographicToGeocentric())
+    {
+        for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
+        {
+            SourceData* sd = (*itr)->getSourceData();
+            if (sd)
+            {
+                if (sd->_cs.valid())
+                {
+                    _destinationCoordinateSystem = sd->_cs;
+                    log(osg::INFO,"Setting coordinate system to %s",_destinationCoordinateSystem->getCoordinateSystem().c_str());
+                    break;
+                }
+            }
+        }
+    }
+    
+    
+    assignIntermediateCoordinateSystem();
+
+    CoordinateSystemType destinateCoordSytemType = getCoordinateSystemType(_destinationCoordinateSystem.get());
+    if (destinateCoordSytemType==GEOGRAPHIC && !getConvertFromGeographicToGeocentric())
+    {
+        // convert elevation into degrees.
+        setVerticalScale(1.0f/111319.0f);
+    }
+
+    // get the extents of the sources and
+    _destinationExtents = _extents;
+    _destinationExtents._isGeographic = destinateCoordSytemType==GEOGRAPHIC;
+
+    // sort the sources so that the lowest res tiles are drawn first.
+    {
+    
+#if 0    
+        for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
+        {
+            Source* source = itr->get();
+            if (source)
+            {
+                source->setSortValueFromSourceDataResolution(_intermediateCoordinateSystem.get());
+                log(osg::INFO, "sort %s value %f",source->getFileName().c_str(),source->getSortValue());
+            }
+            
+        }
+        
+        // sort them so highest sortValue is first.
+#endif
+        _sourceGraph->setSortValueFromSourceDataResolution(_intermediateCoordinateSystem.get());
+        _sourceGraph->sort();
+    }
+
+    if (!_destinationExtents.valid()) 
+    {
+        for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
+        {
+            SourceData* sd = (*itr)->getSourceData();
+            if (sd)
+            {
+                GeospatialExtents local_extents(sd->getExtents(_intermediateCoordinateSystem.get()));
+                log(osg::INFO, "local_extents = xMin() %f %f",local_extents.xMin(),local_extents.xMax());
+                log(osg::INFO, "                yMin() %f %f",local_extents.yMin(),local_extents.yMax());
+                
+                if (destinateCoordSytemType==GEOGRAPHIC)
+                {
+                    // need to clamp within -180 and 180 range.
+                    if (local_extents.xMin()>180.0) 
+                    {
+                        // shift back to -180 to 180 range
+                        local_extents.xMin() -= 360.0;
+                        local_extents.xMax() -= 360.0;
+                    }
+                    else if (local_extents.xMin()<-180.0) 
+                    {
+                        // shift back to -180 to 180 range
+                        local_extents.xMin() += 360.0;
+                        local_extents.xMax() += 360.0;
+                    }
+                }
+
+                _destinationExtents.expandBy(local_extents);
+            }
+        }
+    }
+    
+
+    if (destinateCoordSytemType==GEOGRAPHIC)
+    {
+        double xRange = _destinationExtents.xMax() - _destinationExtents.xMin();
+        if (xRange>360.0) 
+        {
+            // clamp to proper 360 range.
+            _destinationExtents.xMin() = -180.0;
+            _destinationExtents.xMax() = 180.0;
+        }
+    }
+    
+
+    // compute the number of texture layers required.
+    unsigned int maxTextureUnit = 0;
+    for(CompositeSource::source_iterator sitr(_sourceGraph.get());sitr.valid();++sitr)
+    {
+        Source* source = sitr->get();
+        if (source) 
+        {
+            if (maxTextureUnit<source->getLayer()) maxTextureUnit = source->getLayer();
+        }
+    }
+    _numTextureLevels = maxTextureUnit+1;
+
+
+    log(osg::INFO, "extents = xMin() %f %f",_destinationExtents.xMin(),_destinationExtents.xMax());
+    log(osg::INFO, "          yMin() %f %f",_destinationExtents.yMin(),_destinationExtents.yMax());
+
+    return true;
+}
+
 void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
 {
+    if (!prepareForDestinationGraphCreation()) return;
+
+#if 0
     if (!_sourceGraph) return;
 
     // ensure we have a valid coordinate system
@@ -1127,11 +1248,20 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     log(osg::INFO, "extents = xMin() %f %f",_destinationExtents.xMin(),_destinationExtents.xMax());
     log(osg::INFO, "          yMin() %f %f",_destinationExtents.yMin(),_destinationExtents.yMax());
 
+#endif
 
     osg::Timer_t before = osg::Timer::instance()->tick();
 
     // then create the destination graph accordingly.
-    if (getBuildOptionsString() != "new")
+    if (getBuildOptionsString().find("new")!=std::string::npos)
+    {
+        createNewDestinationGraph(_intermediateCoordinateSystem.get(),
+                                  _destinationExtents,
+                                  _maximumTileImageSize,
+                                  _maximumTileTerrainSize,
+                                  numLevels);
+    }
+    else
     {
         _destinationGraph = createDestinationGraph(0,
                                                    _intermediateCoordinateSystem.get(),
@@ -1142,14 +1272,6 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
                                                    0,
                                                    0,
                                                    numLevels);
-    }
-    else
-    {
-        createNewDestinationGraph(_intermediateCoordinateSystem.get(),
-                                  _destinationExtents,
-                                  _maximumTileImageSize,
-                                  _maximumTileTerrainSize,
-                                  numLevels);
     }
                                                                
     osg::Timer_t after = osg::Timer::instance()->tick();
@@ -2275,6 +2397,58 @@ public:
 };
 
 bool DataSet::generateTasks(TaskManager* taskManager)
+{
+    if (getBuildOptionsString().find("tm")!=std::string::npos)
+    {
+        return generateTasks_new(taskManager);
+    }
+    else
+    {
+        return generateTasks_old(taskManager);
+    }
+}
+
+bool DataSet::generateTasks_new(TaskManager* taskManager)
+{
+    log(osg::NOTICE,"DataSet::generateTasks_new");
+    if (!getLogFileName().empty())
+    {
+        if (!getBuildLog()) setBuildLog(new BuildLog());
+    
+        getBuildLog()->openLogFile(getLogFileName());
+    }
+
+    if (getBuildLog())
+    {
+        pushOperationLog(getBuildLog());
+    }
+    
+    loadSources();
+
+    if (!prepareForDestinationGraphCreation()) return false;
+
+    computeOptimumTileSystemDimensions(_C1,_R1);
+    log(osg::NOTICE,"      C1=%i R1=%i",_C1,_R1);
+
+
+
+    log(osg::NOTICE,"OK, OK I now need something to do...");
+    
+    log(osg::NOTICE,"First compute the maximum level required");
+    log(osg::NOTICE,"Then compute the appropriate split levels");
+    log(osg::NOTICE,"Then generate the root task");
+    log(osg::NOTICE,"Then generate the intermediate tasks if any");
+    log(osg::NOTICE,"Then generate the leaf tasks if any");
+
+    if (getBuildLog())
+    {
+        popOperationLog();
+    }
+
+    return false;
+}
+
+bool DataSet::generateTasks_old(TaskManager* taskManager)
 {
     if (getDistributedBuildSplitLevel()==0) return false;
 
