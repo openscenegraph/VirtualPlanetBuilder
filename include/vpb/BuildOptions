@@ -101,6 +101,12 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setDefaultColor(const osg::Vec4& defaultColor) { _defaultColor = defaultColor; }
         const osg::Vec4& getDefaultColor() const { return _defaultColor; }
 
+        void setUseInterpolatedImagerySampling(bool flag) { _useInterpolatedImagerySampling = flag; }
+        bool getUseInterpolatedImagerySampling() const { return _useInterpolatedImagerySampling; }
+
+        void setUseInterpolatedTerrainSampling(bool flag) { _useInterpolatedTerrainSampling = flag; }
+        bool getUseInterpolatedTerrainSampling() const { return _useInterpolatedTerrainSampling; }
+
         void setBuildOverlays(bool flag) { _buildOverlays = flag; }
         bool getBuildOverlays() const { return _buildOverlays; }
 
@@ -262,7 +268,11 @@ class VPB_EXPORT BuildOptions : public osg::Object
         GeospatialExtents                           _extents;
         MipMappingMode                              _mipMappingMode;
         osg::ref_ptr<osg::CoordinateSystemNode>     _destinationCoordinateSystem;
+
         osg::Vec4                                   _defaultColor;
+        bool                                        _useInterpolatedImagerySampling;
+        bool                                        _useInterpolatedTerrainSampling;
+
         std::string                                 _archiveName;
         std::string                                 _comment;
         std::string                                 _destinationCoordinateSystemString;
@@ -277,6 +287,7 @@ class VPB_EXPORT BuildOptions : public osg::Object
         unsigned int                                _maximumNumOfLevels;
         unsigned int                                _maximumTileImageSize;
         unsigned int                                _maximumTileTerrainSize;
+        
         
         unsigned int                                _distributedBuildSplitLevel;
         unsigned int                                _distributedBuildSecondarySplitLevel;

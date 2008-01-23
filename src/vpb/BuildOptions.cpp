@@ -30,6 +30,8 @@ BuildOptions::BuildOptions():
     _decorateWithCoordinateSystemNode = true;
     _decorateWithMultiTextureControl = true;
     _defaultColor.set(0.5f,0.5f,1.0f,1.0f);
+    _useInterpolatedImagerySampling = false;
+    _useInterpolatedTerrainSampling = false;
     _destinationCoordinateSystemString = "";
     _destinationCoordinateSystem = new osg::CoordinateSystemNode; 
     _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
@@ -98,6 +100,8 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _decorateWithCoordinateSystemNode = rhs._decorateWithCoordinateSystemNode;
     _decorateWithMultiTextureControl = rhs._decorateWithMultiTextureControl;
     _defaultColor = rhs._defaultColor;
+    _useInterpolatedImagerySampling = rhs._useInterpolatedImagerySampling;
+    _useInterpolatedTerrainSampling = rhs._useInterpolatedTerrainSampling;
     _destinationCoordinateSystemString = rhs._destinationCoordinateSystemString;
     _destinationCoordinateSystem = rhs._destinationCoordinateSystem;
     _directory = rhs._directory;

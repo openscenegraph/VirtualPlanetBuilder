@@ -26,6 +26,46 @@
 
 using namespace vpb;
 
+
+struct ValidValueOperator
+{
+    ValidValueOperator(GDALRasterBand *band):
+        defaultValue(0.0f),
+        noDataValue(-32767.0f),
+        minValue(-32000.0f),
+        maxValue(FLT_MAX)
+    {
+        if (band)
+        {
+            int success = 0;
+            float value = band->GetNoDataValue(&success);
+            if (success)
+            {
+                noDataValue = value;
+            }
+        }
+    }
+
+    inline bool isNoDataValue(float value)
+    {
+        if (noDataValue==value) return true;
+        if (value<minValue) return true;
+        return (value>maxValue);
+    }
+    
+    inline float getValidValue(float value)
+    {
+        if (isNoDataValue(value)) return value;
+        else return defaultValue;
+    }
+    
+    float defaultValue;
+    float noDataValue;
+    float minValue;
+    float maxValue;
+};
+
+
 SourceData::~SourceData()
 {
 }
@@ -101,15 +141,12 @@ float SourceData::getInterpolatedValue(GDALRasterBand *band, double x, double y)
     band->RasterIO(GF_Read, colMax, rowMin, 1, 1, &lrHeight, 1, 1, GDT_Float32, 0, 0);
     band->RasterIO(GF_Read, colMax, rowMax, 1, 1, &urHeight, 1, 1, GDT_Float32, 0, 0);
 
-    int success = 0;
-    float noDataValue = band->GetNoDataValue(&success);
-    if (success)
-    {
-      if (llHeight == noDataValue) llHeight = 0.0f;
-      if (ulHeight == noDataValue) ulHeight = 0.0f;
-      if (lrHeight == noDataValue) lrHeight = 0.0f;
-      if (urHeight == noDataValue) urHeight = 0.0f;
-    }
+    ValidValueOperator validValueOperator(band);
+
+    if (validValueOperator.isNoDataValue(llHeight)) llHeight = 0.0f;
+    if (validValueOperator.isNoDataValue(ulHeight)) ulHeight = 0.0f;
+    if (validValueOperator.isNoDataValue(lrHeight)) lrHeight = 0.0f;
+    if (validValueOperator.isNoDataValue(urHeight)) urHeight = 0.0f;
 
     double x_rem = c - (int)c;
     double y_rem = r - (int)r;
@@ -464,7 +501,9 @@ void SourceData::readImage(DestinationData& destination)
             float destWindowHeightRatio = (float)destHeight/(float)windowHeight;
             const float resizeTolerance = 1.1;
 
-            bool interpolateSourceImagery = true;
+            bool interpolateSourceImagery = destination._dataSet->getUseInterpolatedImagerySampling();
+
+            
             if (interpolateSourceImagery && 
                 (destWindowWidthRatio>resizeTolerance || destWindowHeightRatio>resizeTolerance) &&
                 windowWidth>=2 && windowHeight>=2)
@@ -766,6 +805,8 @@ void SourceData::readImage(DestinationData& destination)
     }
 }
 
+
+
 void SourceData::readHeightField(DestinationData& destination)
 {
     log(osg::INFO,"In SourceData::readHeightField");
@@ -871,18 +912,9 @@ void SourceData::readHeightField(DestinationData& destination)
                 else log(osg::INFO, "bandSelected->GetUnitType()= null" );
 
 
-                int success = 0;
-                float noDataValue = bandSelected->GetNoDataValue(&success);
-                if (success)
-                {
-                    log(osg::INFO,"We have NoDataValue = %f",noDataValue);
-                }
-                else
-                {
-                    log(osg::INFO,"We have no NoDataValue");
-                    noDataValue = 0.0f;
-                }
+                ValidValueOperator validValueOperator(bandSelected);
 
+                int success = 0;
                 float offset = bandSelected->GetOffset(&success);
                 if (success)
                 {
@@ -914,7 +946,8 @@ void SourceData::readHeightField(DestinationData& destination)
                 float noDataValueFill = 0.0f;
                 bool ignoreNoDataValue = true;
 
-                bool interpolateTerrain = true;
+
+                bool interpolateTerrain = destination._dataSet->getUseInterpolatedTerrainSampling();
 
                 if (interpolateTerrain)
                 {
@@ -934,7 +967,7 @@ void SourceData::readHeightField(DestinationData& destination)
                         {
                             double geoY = orig_Y + (delta_Y * (double)r);
                             float h = getInterpolatedValue(bandSelected, geoX-xoffset, geoY);
-                            if (h!=noDataValue) hf->setHeight(c,r,offset + h*scale);
+                            if (!validValueOperator.isNoDataValue(h)) hf->setHeight(c,r,offset + h*scale);
                             else if (!ignoreNoDataValue) hf->setHeight(c,r,noDataValueFill);
                         }
                     }
@@ -963,7 +996,7 @@ void SourceData::readHeightField(DestinationData& destination)
                         for(int c=destX;c<destX+destWidth;++c)
                         {
                             float h = *heightPtr++;
-                            if (h!=noDataValue) hf->setHeight(c,r,offset + h*scale);
+                            if (!validValueOperator.isNoDataValue(h)) hf->setHeight(c,r,offset + h*scale);
                             else if (!ignoreNoDataValue) hf->setHeight(c,r,noDataValueFill);
 
                             h = hf->getHeight(c,r);

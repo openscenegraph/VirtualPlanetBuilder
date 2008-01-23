@@ -483,6 +483,10 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--read-threads-ratio <ratio>","Set the ratio number of read threads relative to number of cores to use.");
     usage.addCommandLineOption("--write-threads-ratio <ratio>","Set the ratio number of write threads relative to number of cores to use.");
     usage.addCommandLineOption("--build-options <string>","Set build options string.");
+    usage.addCommandLineOption("--interpolate-terrain","Enable the use of interpolation when sampling data from source DEMs.");
+    usage.addCommandLineOption("--no-interpolate-terrain","Disable the use of interpolation when sampling data from source DEMs.");
+    usage.addCommandLineOption("--interpolate-imagery","Enable the use of interpolation when sampling data from source imagery.");
+    usage.addCommandLineOption("--no-interpolate-imagery","Disable the use of interpolation when sampling data from source imagery.");
 }
 
 int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrainInput)
@@ -559,6 +563,26 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     while(arguments.read("--disable-writes"))
     {
         buildOptions->setDisableWrites(true);
+    }
+
+    while(arguments.read("--interpolate-terrain"))
+    {
+        buildOptions->setUseInterpolatedTerrainSampling(true);
+    }
+
+    while(arguments.read("--interpolate-imagery"))
+    {
+        buildOptions->setUseInterpolatedImagerySampling(true);
+    }
+
+    while(arguments.read("--no-interpolate-terrain"))
+    {
+        buildOptions->setUseInterpolatedTerrainSampling(false);
+    }
+
+    while(arguments.read("--no-interpolate-imagery"))
+    {
+        buildOptions->setUseInterpolatedImagerySampling(false);
     }
 
     std::string buildname;    

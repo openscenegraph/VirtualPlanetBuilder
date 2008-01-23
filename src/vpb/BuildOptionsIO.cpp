@@ -186,6 +186,9 @@ public:
 
         ADD_VEC4_PROPERTY(DefaultColor);
         
+        ADD_BOOL_PROPERTY(UseInterpolatedImagerySampling);
+        ADD_BOOL_PROPERTY(UseInterpolatedTerrainSampling);
+        
         ADD_STRING_PROPERTY(DestinationCoordinateSystem);
 
 
