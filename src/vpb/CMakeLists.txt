@@ -7,6 +7,7 @@ SET(LIB_NAME vpb)
 
 SET(HEADER_PATH ${VIRTUALPLANETBUILDER_SOURCE_DIR}/include/${LIB_NAME})
 SET(LIB_PUBLIC_HEADERS
+    ${HEADER_PATH}/BlockOperation
     ${HEADER_PATH}/BuildLog
     ${HEADER_PATH}/BuildOperation
     ${HEADER_PATH}/BuildOptions
@@ -16,10 +17,12 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/Date
     ${HEADER_PATH}/Destination
     ${HEADER_PATH}/Export
+    ${HEADER_PATH}/ExtrudeVisitor
     ${HEADER_PATH}/FileCache
     ${HEADER_PATH}/FileDetails
     ${HEADER_PATH}/FileUtils
     ${HEADER_PATH}/GeospatialDataset
+    ${HEADER_PATH}/HeightFieldMapper
     ${HEADER_PATH}/MachinePool
     ${HEADER_PATH}/ObjectPlacer
     ${HEADER_PATH}/PropertyFile
