@@ -36,6 +36,7 @@
     // See http://cvsweb.xfree86.org/cvsweb/xc/include/Xpoll.h?rev=3.11 
     // variable XFD_SETSIZE for precedent
     int     vpb::getdtablesize()                                  { return 256; }
+    int     vpb::mkdir(const char *path, int mode)               { return ::mkdir(path,mode); }
 
 #else // WIN32
 
@@ -57,5 +58,6 @@
     int     vpb::getpid()                                         { return ::getpid(); }
     int     vpb::gethostname(char *name, size_t namelen)          { return ::gethostname(name, namelen); }
     int     vpb::getdtablesize()                                  { return ::getdtablesize(); }
+    int     vpb::mkdir(const char *path, int mode)                { return ::mkdir(path,mode); }
 
 #endif  // WIN32
