@@ -2708,9 +2708,38 @@ bool CompositeDestination::areSubTilesComplete()
 
 std::string CompositeDestination::getSubTileName()
 {
-    return _name+"_subtile"+_dataSet->getDestinationTileExtension();
+    std::string filename = _name+"_subtile"+_dataSet->getDestinationTileExtension();
+    log(osg::NOTICE,"CompositeDestination::getSubTileName()=%s",filename.c_str());
+    return filename;
 }
 
+
+std::string CompositeDestination::getExternalSubTileName()
+{
+    std::string filename;
+    
+    bool externalFile = _dataSet->getOutputTaskDirectories() && _dataSet->getRecordSubtileFileNamesOnLeafTile();
+    bool isLeaf = (_level == (_dataSet->getMaximumNumOfLevels()-1));
+    bool isRoot = (_level == 0);
+
+    if (externalFile && isRoot)
+    { 
+        filename = _dataSet->getTaskName(_level,_tileX,_tileY) + std::string("/") + _name+"_subtile"+_dataSet->getDestinationTileExtension();
+        log(osg::NOTICE,"CompositeDestination::getExternalSubTileName()=%s ROOT!!",filename.c_str());
+    }
+    else if (externalFile && isLeaf)
+    { 
+        filename = std::string("../") + _dataSet->getTaskName(_level,_tileX,_tileY) + std::string("/") + _name+"_subtile"+_dataSet->getDestinationTileExtension();
+        log(osg::NOTICE,"CompositeDestination::getExternalSubTileName()=%s LEAF!!",filename.c_str());
+    }
+    else
+    {
+        filename = _name+"_subtile"+_dataSet->getDestinationTileExtension();
+        log(osg::NOTICE,"CompositeDestination::getExternalSubTileName()=%s",filename.c_str());
+    }
+    
+    return filename;
+}
 
 osg::Node* CompositeDestination::createPagedLODScene()
 {
@@ -2821,7 +2850,7 @@ osg::Node* CompositeDestination::createPagedLODScene()
     
     pagedLOD->setRange(0,cutOffDistance,farDistance);
     
-    pagedLOD->setFileName(1,getSubTileName());
+    pagedLOD->setFileName(1,getExternalSubTileName());
     pagedLOD->setRange(1,0,cutOffDistance);
     
     if (pagedLOD->getNumChildren()>0)

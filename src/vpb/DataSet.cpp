@@ -146,16 +146,16 @@ bool DataSet::computeCoverage(const GeospatialExtents& extents, int level, int& 
     double destination_xRange = _destinationExtents.xMax()-_destinationExtents.xMin();
     double destination_yRange = _destinationExtents.yMax()-_destinationExtents.yMin();
 
-    int Ck = pow(2.0, double(level-1)) * _C1;
-    int Rk = pow(2.0, double(level-1)) * _R1;
+    int Ck = int(pow(2.0, double(level-1))) * _C1;
+    int Rk = int(pow(2.0, double(level-1))) * _R1;
 
-    int i_min( floor( ((extents.xMin() - _destinationExtents.xMin()) / destination_xRange) * double(Ck) ) );
-    int j_min( floor( ((extents.yMin() - _destinationExtents.yMin()) / destination_yRange) * double(Rk) ) );
+    int i_min = int( floor( ((extents.xMin() - _destinationExtents.xMin()) / destination_xRange) * double(Ck) ) );
+    int j_min = int( floor( ((extents.yMin() - _destinationExtents.yMin()) / destination_yRange) * double(Rk) ) );
 
     // note i_max and j_max are one beyond the extents required so that the below for loop can use <
     // and the clamping to the 0..Ck-1 and 0..Rk-1 extents will work fine.
-    int i_max( ceil( ((extents.xMax() - _destinationExtents.xMin()) / destination_xRange) * double(Ck) ) );
-    int j_max( ceil( ((extents.yMax() - _destinationExtents.yMin()) / destination_yRange) * double(Rk) ) );
+    int i_max = int( ceil( ((extents.xMax() - _destinationExtents.xMin()) / destination_xRange) * double(Ck) ) );
+    int j_max = int( ceil( ((extents.yMax() - _destinationExtents.yMin()) / destination_yRange) * double(Rk) ) );
 
     // clamp j range to 0 to Ck range
     if (i_min<0) i_min = 0;
@@ -202,8 +202,8 @@ bool DataSet::computeOptimumLevel(Source* source, int maxLevel, int& level)
 
     double tileSize = source->getType()==Source::IMAGE ? _maximumTileImageSize-2 : _maximumTileTerrainSize-1;
 
-    int k_cols( ceil( 1.0 + ::log( destination_xRange / (_C1 * sourceResolutionX * tileSize ) ) / ::log(2.0) ) );
-    int k_rows( ceil( 1.0 + ::log( destination_yRange / (_R1 * sourceResolutionY * tileSize ) ) / ::log(2.0) ) );
+    int k_cols = int( ceil( 1.0 + ::log( destination_xRange / (_C1 * sourceResolutionX * tileSize ) ) / ::log(2.0) ) );
+    int k_rows = int( ceil( 1.0 + ::log( destination_yRange / (_R1 * sourceResolutionY * tileSize ) ) / ::log(2.0) ) );
     level = std::max(k_cols, k_rows);
     level = std::min(level, int(source->getMaxLevel()));
     level = std::min(level, maxLevel);
@@ -300,8 +300,8 @@ CompositeDestination* DataSet::createDestinationTile(int currentLevel, int curre
         double destination_xRange = _destinationExtents.xMax()-_destinationExtents.xMin();
         double destination_yRange = _destinationExtents.yMax()-_destinationExtents.yMin();
 
-        int Ck = pow(2.0, double(currentLevel-1)) * _C1;
-        int Rk = pow(2.0, double(currentLevel-1)) * _R1;
+        int Ck = int(pow(2.0, double(currentLevel-1))) * _C1;
+        int Rk = int(pow(2.0, double(currentLevel-1))) * _R1;
         
         extents.xMin() = _destinationExtents.xMin() + (double(currentX)/double(Ck)) * destination_xRange;
         extents.xMax() = _destinationExtents.xMin() + (double(currentX+1)/double(Ck)) * destination_xRange;
@@ -1664,7 +1664,7 @@ void DataSet::_writeRow(Row& row)
                 else
                 {
                     osg::ref_ptr<osg::Node> node = parent->createSubTileScene();
-                    std::string filename = _directory+parent->getSubTileName();
+                    std::string filename = _taskOutputDirectory+parent->getSubTileName();
                     if (node.valid())
                     {
                         log(osg::NOTICE, "   writeSubTile filename= %s",filename.c_str());
@@ -1691,8 +1691,11 @@ void DataSet::_writeRow(Row& row)
         {
             osg::ref_ptr<osg::Node> node = cd->createPagedLODScene();
             
+            std::string filename;
             if (cd->_level==0)
             {
+                filename = getDirectory() + _tileBasename + _tileExtension;    
+
                 if (_decorateWithCoordinateSystemNode)
                 {
                     node = decorateWithCoordinateSystemNode(node.get());
@@ -1708,8 +1711,10 @@ void DataSet::_writeRow(Row& row)
                     node->addDescription(_comment);
                 }
             }
-
-            std::string filename = _directory+_tileBasename+_tileExtension;
+            else
+            {
+                filename = _taskOutputDirectory + _tileBasename + _tileExtension;    
+            }
 
             if (node.valid())
             {
@@ -2417,6 +2422,28 @@ void DataSet::selectAppropriateSplitLevels()
     
 }
 
+std::string DataSet::getTaskName(unsigned int level, unsigned int X, unsigned int Y) const
+{
+    if (level==0 && X==0 && Y==0)
+    {
+        std::ostringstream taskfile;
+        taskfile<<_tileBasename<<"_root_L0_X0_Y0";
+        return taskfile.str();
+    }
+    else
+    {
+        std::ostringstream taskfile;
+        taskfile<<_tileBasename<<"_subtile_L"<<level<<"_X"<<X<<"_Y"<<Y;
+        return taskfile.str();
+    }
+}
+
+std::string DataSet::getSubtileName(unsigned int level, unsigned int X, unsigned int Y) const
+{
+    std::ostringstream os;
+    os << _tileBasename << "_L"<<level<<"_X"<<X<<"_Y"<<Y<<"_subtile"<<getDestinationTileExtension();
+    return os.str();
+}
 
 bool DataSet::generateTasks_new(TaskManager* taskManager)
 {
@@ -2426,8 +2453,6 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
 
     if (!prepareForDestinationGraphCreation()) return false;
 
-    log(osg::NOTICE,"OK, OK I now need something to do...");
-    
     selectAppropriateSplitLevels();
     
     if (getDistributedBuildSplitLevel()==0) return false;
@@ -2682,6 +2707,20 @@ int DataSet::run()
     {
         pushOperationLog(getBuildLog());
     }
+
+    int result = _run();
+    
+    if (getBuildLog())
+    {
+        popOperationLog();
+    }
+
+    
+    return result;
+}
+
+int DataSet::_run()
+{
     
     bool requiresGraphicsContextInMainThread = true;
     
@@ -2750,14 +2789,52 @@ int DataSet::run()
                 return 1;
             }
         }
+        
+        if (getOutputTaskDirectories())
+        {
+            _taskOutputDirectory = getDirectory() + getTaskName(getSubtileLevel(), getSubtileX(), getSubtileY());
+            log(osg::NOTICE,"Need to create output task directory = %s", _taskOutputDirectory.c_str());
+            int result = 0;
+            osgDB::FileType type = osgDB::fileType(_taskOutputDirectory);
+            if (type==osgDB::DIRECTORY)
+            {
+                log(osg::NOTICE,"   Directory already created");
+            } 
+            else if (type==osgDB::REGULAR_FILE)
+            {
+                log(osg::NOTICE,"   Error cannot create directory as a conventional file already exists with that name");
+                result = 1;
+            }
+            else // FILE_NOT_FOUND
+            {
+                // need to create directory.
+                result = mkdir(_taskOutputDirectory.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+            }
+            
+            if (result)
+            {
+                log(osg::NOTICE,"Error: could not create directory %i",errno);
+                return 1;
+            }
+            
+#ifdef WIN32    
+            _taskOutputDirectory.push_back('\\');
+#else
+            _taskOutputDirectory.push_back('/');
+#endif
+        
+            if (getGenerateSubtile()) log(osg::NOTICE,"We are a subtile");
+            if (getRecordSubtileFileNamesOnLeafTile()) log(osg::NOTICE,"We have to record ../task/name");
+        }
+        else
+        {
+            _taskOutputDirectory = getDirectory();
+        }
+        
+        log(osg::NOTICE,"Task output directory = %s", _taskOutputDirectory.c_str());
 
         writeDestination();
     }
 
-    if (getBuildLog())
-    {
-        popOperationLog();
-    }
-
-    return true;
+    return 0;
 }

@@ -150,6 +150,7 @@ public:
         BuildOptions prototype;
 
         ADD_STRING_PROPERTY(Directory);
+        ADD_BOOL_PROPERTY(OutputTaskDirectories);
         ADD_STRING_PROPERTY(DestinationTileBaseName);
         ADD_STRING_PROPERTY(DestinationTileExtension);
         ADD_STRING_PROPERTY(DestinationImageExtension);

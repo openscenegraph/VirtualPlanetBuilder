@@ -190,6 +190,10 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         
         void setShapeFilePlacer(ObjectPlacer* placer) { _shapeFilePlacer = placer; }
         ObjectPlacer* getShapeFilePlacer() { return _shapeFilePlacer.get(); }
+        
+        
+        std::string getTaskName(unsigned int level, unsigned int X, unsigned int Y) const;
+        std::string getSubtileName(unsigned int level, unsigned int X, unsigned int Y) const;
 
     protected:
 
@@ -204,6 +208,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         void _equalizeRow(Row& row);
         void _writeRow(Row& row);
         void _buildDestination(bool writeToDisk);
+        int _run();
         
         void init();
 
@@ -244,6 +249,8 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         int                                         _R1;
         
         bool                                        _newDestinationGraph;
+        
+        std::string                                 _taskOutputDirectory;
         
 };
 

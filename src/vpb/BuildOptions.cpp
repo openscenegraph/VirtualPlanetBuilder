@@ -36,6 +36,7 @@ BuildOptions::BuildOptions():
     _destinationCoordinateSystem = new osg::CoordinateSystemNode; 
     _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
     _directory = "";
+    _outputTaskDirectories = false;
     _geometryType = POLYGONAL;
     _imageExtension = ".dds";
     _intermediateBuildName = "";
@@ -105,6 +106,7 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _destinationCoordinateSystemString = rhs._destinationCoordinateSystemString;
     _destinationCoordinateSystem = rhs._destinationCoordinateSystem;
     _directory = rhs._directory;
+    _outputTaskDirectories = rhs._outputTaskDirectories;
     _extents = rhs._extents;
     _geometryType = rhs._geometryType;
     _imageExtension = rhs._imageExtension;

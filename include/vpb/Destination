@@ -275,6 +275,7 @@ public:
 
     bool areSubTilesComplete();
     std::string getSubTileName();
+    std::string getExternalSubTileName();
     osg::Node* createPagedLODScene();
     osg::Node* createSubTileScene();
 

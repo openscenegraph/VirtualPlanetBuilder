@@ -655,6 +655,14 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     unsigned int numLevels = 10;
     while (arguments.read("-l",numLevels)) { buildOptions->setMaximumNumOfLevels(numLevels); }
 
+    while (arguments.read("--otd") || 
+           arguments.read("--output-task-directories") ||
+           arguments.read("--subtile-directories"))
+    {
+        buildOptions->setOutputTaskDirectories(true);
+    }
+
+
     float verticalScale;
     while (arguments.read("-v",verticalScale))
     {
