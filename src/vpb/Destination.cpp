@@ -2709,7 +2709,7 @@ bool CompositeDestination::areSubTilesComplete()
 std::string CompositeDestination::getSubTileName()
 {
     std::string filename = _name+"_subtile"+_dataSet->getDestinationTileExtension();
-    log(osg::NOTICE,"CompositeDestination::getSubTileName()=%s",filename.c_str());
+    log(osg::INFO,"CompositeDestination::getSubTileName()=%s",filename.c_str());
     return filename;
 }
 
@@ -2725,17 +2725,17 @@ std::string CompositeDestination::getExternalSubTileName()
     if (externalFile && isRoot)
     { 
         filename = _dataSet->getTaskName(_level,_tileX,_tileY) + std::string("/") + _name+"_subtile"+_dataSet->getDestinationTileExtension();
-        log(osg::NOTICE,"CompositeDestination::getExternalSubTileName()=%s ROOT!!",filename.c_str());
+        log(osg::INFO,"CompositeDestination::getExternalSubTileName()=%s ROOT!!",filename.c_str());
     }
     else if (externalFile && isLeaf)
     { 
         filename = std::string("../") + _dataSet->getTaskName(_level,_tileX,_tileY) + std::string("/") + _name+"_subtile"+_dataSet->getDestinationTileExtension();
-        log(osg::NOTICE,"CompositeDestination::getExternalSubTileName()=%s LEAF!!",filename.c_str());
+        log(osg::INFO,"CompositeDestination::getExternalSubTileName()=%s LEAF!!",filename.c_str());
     }
     else
     {
         filename = _name+"_subtile"+_dataSet->getDestinationTileExtension();
-        log(osg::NOTICE,"CompositeDestination::getExternalSubTileName()=%s",filename.c_str());
+        log(osg::INFO,"CompositeDestination::getExternalSubTileName()=%s",filename.c_str());
     }
     
     return filename;

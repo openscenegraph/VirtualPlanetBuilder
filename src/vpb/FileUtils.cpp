@@ -69,6 +69,9 @@ int vpb::mkpath(const char *path, int mode)
 {
     if (path==0) return 0;
     
+    vpb::log(osg::NOTICE,"mkpath(%s)",path);
+
+    // first create a list of paths that needs to be checked/created.
     std::string fullpath(path);
     typedef std::list<std::string> Directories;
     Directories directories;
@@ -91,28 +94,26 @@ int vpb::mkpath(const char *path, int mode)
         directories.push_back(fullpath);
     }
     
-    vpb::log(osg::NOTICE,"mkpath(%s)",path);
+    // now check the diretories and create the onces that are required in turn.
     for(Directories::iterator itr = directories.begin();
         itr != directories.end();
         ++itr)
     {
-        vpb::log(osg::NOTICE,"  directory %s",(*itr).c_str());
-
+        std::string& path = (*itr);
         int result = 0;
-        osgDB::FileType type = osgDB::fileType((*itr));
-        if (type==osgDB::DIRECTORY)
+        osgDB::FileType type = osgDB::fileType(path);
+        if (type==osgDB::REGULAR_FILE)
         {
-            log(osg::NOTICE,"      Base Directory already created");
-        } 
-        else if (type==osgDB::REGULAR_FILE)
-        {
-            log(osg::NOTICE,"      Error cannot create directory as a conventional file already exists with that name");
+            log(osg::NOTICE,"Error cannot create directory %s as a conventional file already exists with that name",path.c_str());
             return 1;
         }
-        else // FILE_NOT_FOUND
+        else if (type==osgDB::FILE_NOT_FOUND)
         {
             // need to create directory.
-            result = vpb::mkdir((*itr).c_str(), mode);
+            result = vpb::mkdir(path.c_str(), mode);
+            if (result) log(osg::NOTICE,"Error could not create directory %s",path.c_str());
+            else log(osg::NOTICE,"  created directory %s",path.c_str());
+            
             if (result) return result;
         }
     }
