@@ -1606,22 +1606,22 @@ class WriteOperation : public BuildOperation
 {
     public:
 
-        WriteOperation(ThreadPool* threadPool, DataSet* dataset,CompositeDestination* cd):
+        WriteOperation(ThreadPool* threadPool, DataSet* dataset,CompositeDestination* cd, const std::string& filename):
             BuildOperation(threadPool, dataset->getBuildLog(), "WriteOperation", false),
             _dataset(dataset),
-            _cd(cd) {}
+            _cd(cd),
+            _filename(filename) {}
 
         virtual void build()
         {
             //notify(osg::NOTICE)<<"   WriteOperation"<<std::endl;
 
             osg::ref_ptr<osg::Node> node = _cd->createSubTileScene();
-            std::string filename = _dataset->getDirectory() + _cd->getSubTileName();
             if (node.valid())
             {
-                if (_buildLog.valid()) _buildLog->log(osg::NOTICE, "   writeSubTile filename= %s",filename.c_str());
+                if (_buildLog.valid()) _buildLog->log(osg::NOTICE, "   writeSubTile filename= %s",_filename.c_str());
                 
-                _dataset->_writeNodeFile(*node,filename);
+                _dataset->_writeNodeFile(*node,_filename);
 
                 if (_dataset->getDestinationTileExtension()==".osg")
                 {
@@ -1634,12 +1634,13 @@ class WriteOperation : public BuildOperation
             }
             else
             {
-                log(osg::WARN, "   failed to writeSubTile node for tile, filename=%s",filename.c_str());
+                log(osg::WARN, "   failed to writeSubTile node for tile, filename=%s",_filename.c_str());
             }
         }
       
-        DataSet* _dataset;
-        osg::ref_ptr<CompositeDestination> _cd;
+        DataSet*                            _dataset;
+        osg::ref_ptr<CompositeDestination>  _cd;
+        std::string                         _filename;
 };
 
 void DataSet::_writeRow(Row& row)
@@ -1658,14 +1659,15 @@ void DataSet::_writeRow(Row& row)
             {
                 parent->setSubTilesGenerated(true);
                 
+                std::string filename = _taskOutputDirectory+parent->getSubTileName();
+
                 if (_writeThreadPool.valid())
                 {
-                    _writeThreadPool->run(new WriteOperation(_writeThreadPool.get(), this, parent));
+                    _writeThreadPool->run(new WriteOperation(_writeThreadPool.get(), this, parent, filename));
                 }
                 else
                 {
                     osg::ref_ptr<osg::Node> node = parent->createSubTileScene();
-                    std::string filename = _taskOutputDirectory+parent->getSubTileName();
                     if (node.valid())
                     {
                         log(osg::NOTICE, "   writeSubTile filename= %s",filename.c_str());
