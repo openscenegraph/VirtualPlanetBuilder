@@ -34,6 +34,7 @@
 #include <vpb/DatabaseBuilder>
 #include <vpb/TaskManager>
 #include <vpb/System>
+#include <vpb/FileUtils>
 
 #include <vpb/ShapeFilePlacer>
 
@@ -2789,13 +2790,37 @@ int DataSet::_run()
                 return 1;
             }
         }
-        
+
+        int result = 0;
+        osgDB::FileType type = osgDB::fileType(getDirectory());
+        if (type==osgDB::DIRECTORY)
+        {
+            log(osg::NOTICE,"   Base Directory already created");
+        } 
+        else if (type==osgDB::REGULAR_FILE)
+        {
+            log(osg::NOTICE,"   Error cannot create directory as a conventional file already exists with that name");
+            return 1;
+        }
+        else // FILE_NOT_FOUND
+        {
+            // need to create directory.
+            result = vpb::mkpath(getDirectory().c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+        }
+
+        if (result)
+        {
+            log(osg::NOTICE,"Error: could not create directory %i",errno);
+            return 1;
+        }
+
+
         if (getOutputTaskDirectories())
         {
             _taskOutputDirectory = getDirectory() + getTaskName(getSubtileLevel(), getSubtileX(), getSubtileY());
             log(osg::NOTICE,"Need to create output task directory = %s", _taskOutputDirectory.c_str());
-            int result = 0;
-            osgDB::FileType type = osgDB::fileType(_taskOutputDirectory);
+            result = 0;
+            type = osgDB::fileType(_taskOutputDirectory);
             if (type==osgDB::DIRECTORY)
             {
                 log(osg::NOTICE,"   Directory already created");
@@ -2803,12 +2828,12 @@ int DataSet::_run()
             else if (type==osgDB::REGULAR_FILE)
             {
                 log(osg::NOTICE,"   Error cannot create directory as a conventional file already exists with that name");
-                result = 1;
+                return 1;
             }
             else // FILE_NOT_FOUND
             {
                 // need to create directory.
-                result = mkdir(_taskOutputDirectory.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+                result = vpb::mkpath(_taskOutputDirectory.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
             }
             
             if (result)

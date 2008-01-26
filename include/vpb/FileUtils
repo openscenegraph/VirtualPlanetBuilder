@@ -64,6 +64,8 @@ extern VPB_EXPORT int fsync(int fd = 0);
 extern VPB_EXPORT int getpid();
 extern VPB_EXPORT int gethostname(char *name, size_t namelen);
 extern VPB_EXPORT int getdtablesize();
-extern VPB_EXPORT int mkdir(const char *__path, int mode);
+extern VPB_EXPORT int mkdir(const char *path, int mode);
+
+extern VPB_EXPORT int mkpath(const char *path, int mode);
 
 };

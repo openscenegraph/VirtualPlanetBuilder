@@ -1,4 +1,6 @@
 #include <vpb/FileUtils>
+#include <vpb/BuildLog>
+#include <osgDB/FileUtils>
 
 #ifdef WIN32
 
@@ -61,3 +63,60 @@
     int     vpb::mkdir(const char *path, int mode)                { return ::mkdir(path,mode); }
 
 #endif  // WIN32
+
+
+int vpb::mkpath(const char *path, int mode)
+{
+    if (path==0) return 0;
+    
+    std::string fullpath(path);
+    typedef std::list<std::string> Directories;
+    Directories directories;
+    int pos_start = 0;
+    for(int pos_current = 0; pos_current<fullpath.size(); ++pos_current)
+    {
+        if (fullpath[pos_current]=='\\' || fullpath[pos_current]=='/')
+        {
+            int size = pos_current-pos_start;
+            if (size>1)
+            {
+                directories.push_back(std::string(fullpath,0, pos_current));
+            }
+            pos_start = pos_current+1;
+        }
+    }
+    int size = fullpath.size()-pos_start;
+    if (size>1)
+    {
+        directories.push_back(fullpath);
+    }
+    
+    vpb::log(osg::NOTICE,"mkpath(%s)",path);
+    for(Directories::iterator itr = directories.begin();
+        itr != directories.end();
+        ++itr)
+    {
+        vpb::log(osg::NOTICE,"  directory %s",(*itr).c_str());
+
+        int result = 0;
+        osgDB::FileType type = osgDB::fileType((*itr));
+        if (type==osgDB::DIRECTORY)
+        {
+            log(osg::NOTICE,"      Base Directory already created");
+        } 
+        else if (type==osgDB::REGULAR_FILE)
+        {
+            log(osg::NOTICE,"      Error cannot create directory as a conventional file already exists with that name");
+            return 1;
+        }
+        else // FILE_NOT_FOUND
+        {
+            // need to create directory.
+            result = vpb::mkdir((*itr).c_str(), mode);
+            if (result) return result;
+        }
+    }
+    
+    return 0;
+    
+}
