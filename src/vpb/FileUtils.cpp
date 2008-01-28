@@ -4,6 +4,7 @@
 
 #ifdef WIN32
 
+    #define WIN32_LEAN_AND_MEAN 1
     #include <windows.h>
     #include <stdarg.h>
     #include <varargs.h>
@@ -11,6 +12,7 @@
     #include <process.h>
     #include <direct.h>
     #include <fcntl.h>
+    #include <winsock.h>
     #include <sys/types.h>
 
     #define ssize_t int     // return type of read() is int on Win32
@@ -28,9 +30,7 @@
     off_t   vpb::lseek(int fildes, off_t offset, int whence)      { return ::_lseek(fildes, offset, whence); }
     int     vpb::lockf(int fildes, int function, off_t size)      { return 0; }
     int     vpb::ftruncate(int fildes, off_t length)              { return ::_chsize(fildes, length); }
-
-    // No equivalent to sync() on Win32, could use fsync(fd) on each file.
-    void    vpb::sync()                                           { (void) _flushall(); }
+    void    vpb::sync()                                           { (void) ::_flushall(); }
     int     vpb::fsync(int fd)                                    { if (fd) return ::_commit(fd); return 0; }
     int     vpb::getpid()                                         { return ::_getpid(); }
     int     vpb::gethostname(char *name, size_t namelen)          { return ::gethostname(name, namelen); }

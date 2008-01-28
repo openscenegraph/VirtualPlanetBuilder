@@ -40,7 +40,7 @@ struct FileProxy
         {
             _requiresSync = true;
 
-            FILE* file = vpb::fopen(filename.c_str(), "wr");
+            FILE* file = vpb::fopen(filename.c_str(), "w+");
 
             vpb::fclose(file);
 

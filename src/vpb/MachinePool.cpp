@@ -158,7 +158,7 @@ Machine::~Machine()
 
 int Machine::exec(const std::string& application)
 {
-    bool runningRemotely = getHostName()!=getLocalHostName();
+    bool runningRemotely = getHostName()!=getLocalHostName() && getHostName()!="localhost";
 
     std::string executionString;
 
