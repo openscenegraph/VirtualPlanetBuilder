@@ -13,6 +13,7 @@
 #include <osgUtil/Optimizer>
 #include <osg/CoordinateSystemNode>
 #include <osg/Material>
+#include <osg/PolygonOffset>
 
 #include <osg/Vec4>
 #include <osg/Switch>
@@ -96,6 +97,8 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->addCommandLineOption("--CullDrawThreadPerContext","Select CullDrawThreadPerContext threading model for viewer.");
     arguments.getApplicationUsage()->addCommandLineOption("--DrawThreadPerContext","Select DrawThreadPerContext threading model for viewer.");
     arguments.getApplicationUsage()->addCommandLineOption("--CullThreadPerCameraDrawThreadPerContext","Select CullThreadPerCameraDrawThreadPerContext threading model for viewer.");
+    arguments.getApplicationUsage()->addCommandLineOption("-hf or --HeightField <height field>","Load the height field.");
+    arguments.getApplicationUsage()->addCommandLineOption("-shp <shape file>","The geometry to reproject.");
 
     // if user request help write it out to cout.
     bool helpAll = arguments.read("--help-all");
@@ -170,16 +173,36 @@ int main(int argc, char** argv)
     // load the data
 //    osg::ref_ptr<osg::Node> loadedModel = osgDB::readNodeFiles(arguments);
     std::string modelFile("/home/ledocc/Work/VPB/data/lines.shp");
-    osg::ref_ptr<osg::Node> loadedModel = osgDB::readNodeFile(modelFile);
-    if (!loadedModel) 
+    osg::ref_ptr<osg::Group> loadedModel;
+    while (arguments.read("-shp",modelFile)) {
+       osg::ref_ptr<osg::Node> shp = osgDB::readNodeFile(modelFile);
+       if (shp.valid()) {
+          if (!loadedModel.valid()) {
+             loadedModel = new osg::Group;
+             osg::StateSet *sset = loadedModel->getOrCreateStateSet();
+             sset->setRenderBinDetails(sset->getBinNumber()+1, sset->getBinName());
+             sset->setAttributeAndModes(new osg::PolygonOffset(-1.0, -2.0));
+          }
+          loadedModel->addChild(shp.get());
+       }
+    }
+    if (!loadedModel->getNumChildren()) 
     {
         std::cout << arguments.getApplicationName() <<": No data loaded" << std::endl;
         return 1;
     }
     
     std::string heightFieldFile("/home/ledocc/Work/VPB/data/dtm_200m.tif.gdal");
+    if (!arguments.read("-hf", heightFieldFile))
+       arguments.read("--HeightField", heightFieldFile);
+
     osg::ref_ptr<osg::HeightField> hf = osgDB::readHeightFieldFile(heightFieldFile);
-    
+    if (!hf.valid()) {
+       osg::notify(osg::FATAL)<<"Unable to load the height field <"<<heightFieldFile<<">"<<std::endl
+          <<"NB: The .gdal pseudo loader might be useful..."<<std::endl;
+       return -1;
+    }
+   
     // ** map loaded model on HeightField
     vpb::HeightFieldMapper hfm(*hf.get());
     vpb::HeightFieldMapperVisitor hfmv(hfm);
@@ -198,6 +221,10 @@ int main(int argc, char** argv)
     // ** make scene graph
     osg::ref_ptr<osg::Geode> geode = new osg::Geode;
     geode->addDrawable(new osg::ShapeDrawable(hf.get()));
+    osg::StateSet *sset = geode->getOrCreateStateSet();
+    sset->setRenderBinDetails(sset->getBinNumber()-1, sset->getBinName());
+    sset->setAttributeAndModes(new osg::PolygonOffset(1.0, 2.0));
+
     
     osg::ref_ptr<osg::Group> group(new osg::Group); 
     group->addChild(loadedModel.get());
