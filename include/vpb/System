@@ -33,6 +33,7 @@ extern VPB_EXPORT std::string& getIntermediateDirectory();
 extern VPB_EXPORT std::string& getLogDirectory();
 extern VPB_EXPORT std::string& getTaskDirectory();
 extern VPB_EXPORT std::string& getMachineFileName();
+extern VPB_EXPORT std::string& getCacheFileName();
 
 inline bool getAttributeValue(const std::string& field, const std::string& name, std::string& value)
 {

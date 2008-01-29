@@ -183,6 +183,8 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
 
         Machine* getMachine(const std::string& hostname);
         
+        unsigned int getNumMachines() const { return _machines.size(); }
+        
         void startThreads();
 
         void cancelThreads();
@@ -206,6 +208,8 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
         bool read(const std::string& filename);
 
         bool write(const std::string& filename) const;
+        
+        bool setUpOnLocalHost();
 
         /** Send a signal to the all running tasks. */
         void signal(int signal);

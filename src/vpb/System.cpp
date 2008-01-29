@@ -47,6 +47,7 @@ std::string& vpb::getIntermediateDirectory() { return System::instance()->getInt
 std::string& vpb::getLogDirectory() { return System::instance()->getLogDirectory(); }
 std::string& vpb::getTaskDirectory() { return System::instance()->getTaskDirectory(); }
 std::string& vpb::getMachineFileName() { return System::instance()->getMachineFileName(); }
+std::string& vpb::getCacheFileName() { return System::instance()->getCacheFileName(); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -169,10 +170,19 @@ FileCache* System::getFileCache()
 
 MachinePool* System::getMachinePool()
 {
-    if (!_machinePool && !_machineFileName.empty())
+    if (!_machinePool)
     {
         _machinePool = new MachinePool;
-        _machinePool->read(_machineFileName);
+        
+        if (!_machineFileName.empty())
+        {
+            _machinePool->read(_machineFileName);
+        }
+        
+        if (_machinePool->getNumMachines()==0)
+        {
+            _machinePool->setUpOnLocalHost();
+        }
     }
     
     return _machinePool.get();

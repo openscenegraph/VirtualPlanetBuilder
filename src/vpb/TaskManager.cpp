@@ -125,7 +125,6 @@ int TaskManager::read(osg::ArgumentParser& arguments)
         readTasks(taskSetFileName);
     }
     
-
     while (arguments.read("--modified"))
     {
         setOutOfDateTasksToPending();
