@@ -90,7 +90,7 @@ struct FileProxy
         return vpb::write(_fileID, __buf, __n);
     }
     
-    int ftruncate (__off_t __length)
+    int ftruncate (offset_t __length)
     {
         // osg::notify(osg::NOTICE)<<"ftruncate("<<_fileID<<", "<<__length<<")"<<std::endl;
         _requiresSync = true;
