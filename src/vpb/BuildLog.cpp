@@ -115,15 +115,15 @@ LogFile::LogFile(const std::string& filename)
 {
     _fout.open(filename.c_str());
     
+    _fout.setf(std::ios::left, std::ios::adjustfield);
     _fout.setf(std::ios::fixed, std::ios::floatfield);
-    _fout.setf(std::ios::showpoint);
     _fout.precision(3);
 }
 
 void LogFile::write(Message* message)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
-    _fout<<message->time<<"\t: "<<message->message<<std::endl;
+    _fout<<std::setw(12)<<message->time<<" : "<<message->message<<std::endl;
     
     if (_taskFile.valid())
     {
