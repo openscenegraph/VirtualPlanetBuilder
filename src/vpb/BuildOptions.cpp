@@ -30,13 +30,13 @@ BuildOptions::BuildOptions():
     _decorateWithCoordinateSystemNode = true;
     _decorateWithMultiTextureControl = true;
     _defaultColor.set(0.5f,0.5f,1.0f,1.0f);
-    _useInterpolatedImagerySampling = false;
-    _useInterpolatedTerrainSampling = false;
+    _useInterpolatedImagerySampling = true;
+    _useInterpolatedTerrainSampling = true;
     _destinationCoordinateSystemString = "";
     _destinationCoordinateSystem = new osg::CoordinateSystemNode; 
     _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
     _directory = "";
-    _outputTaskDirectories = false;
+    _outputTaskDirectories = true;
     _geometryType = POLYGONAL;
     _imageExtension = ".dds";
     _intermediateBuildName = "";

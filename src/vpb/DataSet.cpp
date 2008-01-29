@@ -421,11 +421,10 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
     log(osg::NOTICE,"createNewDestinationGraph");
     
     _newDestinationGraph = true;
-   
-    typedef std::list< osg::ref_ptr<Source> > SourceList;
-    SourceList modelSources;
-    
 
+    int highestLevelFound = 0;
+
+    // first populate the destination graph from imagery and DEM sources extents/resolution
     for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
     {
         Source* source = (*itr).get();
@@ -461,17 +460,15 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         
         if (source->getType()!=Source::IMAGE && source->getType()!=Source::HEIGHT_FIELD)
         {
-            // place models and shapefiles into a separate temporary source list and then process these after
-            // the main handling of terrain/imagery sources.
-            modelSources.push_back(source);
-            
             continue;
-            
         }
         
         int k = 0;
         if (!computeOptimumLevel(source, maxNumLevels-1, k)) continue;
         
+
+        if (k>highestLevelFound) highestLevelFound = k;
+
         // log(osg::NOTICE,"     opt level = %i",k);
 
         int startLevel = 0; // getGenerateSubtile() ? getSubtileLevel() : 0;
@@ -521,24 +518,13 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                         {                        
                             cd = createDestinationTile(l,i,j);
                         }
-#if 0                        
-                        if (!cd) continue;
-                        
-                        for(CompositeDestination::TileList::iterator titr = cd->_tiles.begin();
-                            titr != cd->_tiles.end();
-                            ++titr)
-                        {
-                            DestinationTile* tile = titr->get();
-                            tile->_sources.push_back(source);
-                        }
-#endif
                     }
                 }
             }
         }
     }
     
-
+    // now extend the sources upwards where required.
     for(QuadMap::iterator qitr = _quadMap.begin();
         qitr != _quadMap.end();
         ++qitr)
@@ -622,6 +608,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         }
     }
 
+    // now insert the sources into the destination graph
     for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
     {
         Source* source = (*itr).get();
@@ -658,19 +645,17 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         double source_yRange = sp._extents.yMax()-sp._extents.yMin();
         
         int level = 0;
+        int k = 0;
         
-        if (source->getType()!=Source::IMAGE && source->getType()!=Source::HEIGHT_FIELD)
+        if (source->getType()==Source::IMAGE || source->getType()==Source::HEIGHT_FIELD)
+        {        
+            if (!computeOptimumLevel(source, maxNumLevels-1, k)) continue;
+        }
+        else
         {
-            // place models and shapefiles into a separate temporary source list and then process these after
-            // the main handling of terrain/imagery sources.
-            modelSources.push_back(source);
-            
-            continue;
-            
+            k = highestLevelFound;
         }
         
-        int k = 0;
-        if (!computeOptimumLevel(source, maxNumLevels-1, k)) continue;
         
         // log(osg::NOTICE,"     opt level = %i",k);
 
@@ -740,22 +725,6 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         }
     }
 
-
-    for(SourceList::iterator ml_itr = modelSources.begin();
-        ml_itr != modelSources.end();
-        ++ml_itr)
-    {
-        Source* source = (*ml_itr).get();
-        SourceData* sd = (*ml_itr)->getSourceData();
-
-        const SpatialProperties& sp = sd->computeSpatialProperties(cs);
-        double source_xRange = sp._extents.xMax()-sp._extents.xMin();
-        double source_yRange = sp._extents.yMax()-sp._extents.yMin();
-
-
-        log(osg::NOTICE,"Need to handle shapefile/model source %s.",source->getFileName().c_str());
-    }
-    
     osg::Timer_t before_computeMax = osg::Timer::instance()->tick();
 
     _destinationGraph->computeMaximumSourceResolution();
@@ -1166,15 +1135,7 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     osg::Timer_t before = osg::Timer::instance()->tick();
 
     // then create the destination graph accordingly.
-    if (getBuildOptionsString().find("new")!=std::string::npos)
-    {
-        createNewDestinationGraph(_intermediateCoordinateSystem.get(),
-                                  _destinationExtents,
-                                  _maximumTileImageSize,
-                                  _maximumTileTerrainSize,
-                                  numLevels);
-    }
-    else
+    if (getBuildOptionsString().find("old_dg")!=std::string::npos)
     {
         _destinationGraph = createDestinationGraph(0,
                                                    _intermediateCoordinateSystem.get(),
@@ -1185,6 +1146,15 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
                                                    0,
                                                    0,
                                                    numLevels);
+    }
+    else
+    {
+        // new default scheme.
+        createNewDestinationGraph(_intermediateCoordinateSystem.get(),
+                                  _destinationExtents,
+                                  _maximumTileImageSize,
+                                  _maximumTileTerrainSize,
+                                  numLevels);
     }
                                                                
     osg::Timer_t after = osg::Timer::instance()->tick();
@@ -1699,14 +1669,14 @@ void DataSet::_writeRow(Row& row)
             {
                 filename = getDirectory() + _tileBasename + _tileExtension;    
 
-                if (_decorateWithCoordinateSystemNode)
-                {
-                    node = decorateWithCoordinateSystemNode(node.get());
-                }
-
                 if (_decorateWithMultiTextureControl)
                 {
                     node = decorateWithMultiTextureControl(node.get());
+                }
+
+                if (_decorateWithCoordinateSystemNode)
+                {
+                    node = decorateWithCoordinateSystemNode(node.get());
                 }
 
                 if (!_comment.empty())
@@ -1840,14 +1810,14 @@ void DataSet::_buildDestination(bool writeToDisk)
             populateDestinationGraphFromSources();
             _rootNode = _destinationGraph->createScene();
 
-            if (_decorateWithCoordinateSystemNode)
-            {
-                _rootNode = decorateWithCoordinateSystemNode(_rootNode.get());
-            }
-
             if (_decorateWithMultiTextureControl)
             {
                 _rootNode = decorateWithMultiTextureControl(_rootNode.get());
+            }
+
+            if (_decorateWithCoordinateSystemNode)
+            {
+                _rootNode = decorateWithCoordinateSystemNode(_rootNode.get());
             }
 
             if (!_comment.empty())
@@ -2332,13 +2302,13 @@ bool DataSet::generateTasks(TaskManager* taskManager)
     }
 
     bool result = false;
-    if (getBuildOptionsString().find("tm")!=std::string::npos)
+    if (getBuildOptionsString().find("old_tm")!=std::string::npos)
     {
-        result = generateTasks_new(taskManager);
+        result = generateTasks_old(taskManager);
     }
     else
     {
-        result = generateTasks_old(taskManager);
+        result = generateTasks_new(taskManager);
     }
 
     if (getBuildLog())
