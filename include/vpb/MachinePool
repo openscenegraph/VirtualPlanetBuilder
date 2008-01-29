@@ -129,6 +129,8 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
         
         void taskFailed(Task* task, int result);
         
+        OpenThreads::Mutex& getRunningTasksMutex() const { return _runningTasksMutex; }
+        
         RunningTasks& getRunningTasks() { return _runningTasks; }
         
         TaskStatsMap& getTaskStatsMap() { return _taskStatsMap; }
@@ -237,6 +239,9 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
         
         /** Let current tasks complete then re-read the machine pool file.*/
         void updateMachinePool();
+
+        /** Generate a report of the task timing status, i.e. how long do we expect before completion.*/
+        void reportTimingStatus();
 
         /** Generate a report of the task timing stats.*/
         void reportTimingStats();

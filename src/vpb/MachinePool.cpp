@@ -56,6 +56,8 @@ void MachineOperation::operator () (osg::Object* object)
             _task->setWithCurrentDate("date");
             _task->write();
             
+            // machine->log(osg::NOTICE,"machine=%s running task=%s",machine->getHostName().c_str(),_task->getFileName().c_str());
+
             machine->startedTask(_task.get());
 
             int result = machine->exec(application);
@@ -87,7 +89,7 @@ void MachineOperation::operator () (osg::Object* object)
                 machine->taskFailed(_task.get(), result);
             }
             
-            machine->log(osg::NOTICE,"%s  : completed in %f  seconds : %s result=%d",machine->getHostName().c_str(),duration,application.c_str(),result);
+            // machine->log(osg::NOTICE,"machine=%s completed task=%s in %f seconds, result=%d",machine->getHostName().c_str(),_task->getFileName().c_str(),duration,result);
         }
 
     }
@@ -184,7 +186,7 @@ int Machine::exec(const std::string& application)
         executionString += std::string(" ") + getCommandPostfix();
     }
 
-    log(osg::NOTICE,"%s : running %s",getHostName().c_str(),executionString.c_str());
+    log(osg::INFO,"%s : running %s",getHostName().c_str(),executionString.c_str());
 
     return system(executionString.c_str());
 }
@@ -300,24 +302,35 @@ void Machine::startedTask(Task* task)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_runningTasksMutex);
     _runningTasks[task] = osg::Timer::instance()->time_s();
+
+    log(osg::NOTICE,"machine=%s running task=%s",getHostName().c_str(),task->getFileName().c_str());
 }
 
 void Machine::endedTask(Task* task)
 {
-    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_runningTasksMutex);
-    
-    RunningTasks::iterator itr = _runningTasks.find(task);
-    if (itr != _runningTasks.end())
     {
-        double runningTime = osg::Timer::instance()->time_s() - itr->second;
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_runningTasksMutex);
 
-        _runningTasks.erase(itr);
+        double duration = 0.0;
 
-        std::string taskType;
-        task->getProperty("type",taskType);
+        RunningTasks::iterator itr = _runningTasks.find(task);
+        if (itr != _runningTasks.end())
+        {
+            duration = osg::Timer::instance()->time_s() - itr->second;
 
-        _taskStatsMap[taskType].logTime(runningTime);
+            _runningTasks.erase(itr);
+
+            std::string taskType;
+            task->getProperty("type",taskType);
+
+            _taskStatsMap[taskType].logTime(duration);
+        }
+
+        log(osg::NOTICE,"machine=%s completed task=%s in %f seconds",getHostName().c_str(),task->getFileName().c_str(),duration);
     }
+    
+    if (_machinePool) _machinePool->reportTimingStatus();
+    
 }
 
 void Machine::taskFailed(Task* task, int result)
@@ -787,6 +800,67 @@ void MachinePool::updateMachinePool()
 
     // restart any stopped threads.
     startThreads();
+}
+
+void MachinePool::reportTimingStatus()
+{
+    unsigned int numTasksPending = _operationQueue->getNumOperationsInQueue();
+
+    unsigned int numTasksCompleted = 0;
+    double totalComputeTime = 0.0;
+    unsigned int numCores = 0;
+    
+    for(Machines::iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        Machine* machine = itr->get();
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(machine->getRunningTasksMutex());
+
+        TaskStatsMap& taskStatsMap = machine->getTaskStatsMap();
+        for(TaskStatsMap::iterator titr = taskStatsMap.begin();
+            titr != taskStatsMap.end();
+            ++titr)
+        {
+            TaskStats& stats = titr->second;
+            
+            numTasksCompleted += stats.numTasks();
+            totalComputeTime += stats.totalTime();
+        }
+        numCores += getNumThreads();
+    }
+        
+    double averageTaskTime = (numTasksCompleted!=0) ? (totalComputeTime/ double(numTasksCompleted)) : 0;
+
+    double currentTime = osg::Timer::instance()->time_s();
+    double estimatedTimeOfLastCompletion = currentTime;
+    unsigned int numTasksRunning = 0;
+    for(Machines::iterator itr = _machines.begin();
+        itr != _machines.end();
+        ++itr)
+    {
+        Machine* machine = itr->get();
+        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(machine->getRunningTasksMutex());
+        
+        Machine::RunningTasks& runningTasks = machine->getRunningTasks();
+        numTasksRunning = runningTasks.size();
+        for(Machine::RunningTasks::iterator ritr = runningTasks.begin();
+            ritr != runningTasks.end();
+            ++ritr)
+        {
+            double startTime = ritr->second;
+            double elapsedTime = currentTime - startTime;
+            double estimatedEndTime = (elapsedTime < averageTaskTime) ? startTime + averageTaskTime : currentTime+1.0;
+            if (estimatedTimeOfLastCompletion < estimatedEndTime) estimatedTimeOfLastCompletion = estimatedEndTime;
+        }
+    }
+    
+    double numTaskPendingAcrossAllCores = (numTasksPending>0) ? ceil(double(numTasksPending) / double(numCores)) : 0;
+    estimatedTimeOfLastCompletion += numTaskPendingAcrossAllCores*averageTaskTime;
+    double estimateTimeToCompletion = estimatedTimeOfLastCompletion-currentTime;
+    
+    log(osg::NOTICE,"Number of tasks completed %i, running %i, pending %i. Estimated time to completion %.1f seconds, %2.1f%% done.",numTasksCompleted, numTasksRunning, numTasksPending, estimateTimeToCompletion, 100.0*currentTime/estimatedTimeOfLastCompletion);
+
 }
 
 void MachinePool::reportTimingStats()
