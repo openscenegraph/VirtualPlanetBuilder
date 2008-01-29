@@ -132,10 +132,10 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
 
     if (!currentCS.empty() || geoTransformSet)
     {
-        osg::ref_ptr<osg::Object> loadedObject = osgDB::readObjectFile(filename+".gdal");
-        osgTerrain::Layer* loadedLayer = dynamic_cast<osgTerrain::Layer*>(loadedObject.get());
+        osg::ref_ptr<osgTerrain::ProxyLayer> loadedLayer = new osgTerrain::ProxyLayer;
+        loadedLayer->setFileName(filename);
 
-        if (loadedLayer)
+        if (loadedLayer.valid())
         {
             osgTerrain::Locator* locator = loadedLayer->getLocator();
 
@@ -165,8 +165,14 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
             if (min_level!=0) loadedLayer->setMinLevel(min_level);
             if (max_level!=maximumPossibleLevel) loadedLayer->setMaxLevel(max_level);
 
-            compositeLayer->addLayer(loadedLayer);
-        }                    
+            log(osg::NOTICE,"loaded layer %s",filename.c_str());
+
+            compositeLayer->addLayer(loadedLayer.get());
+        }
+        else
+        {
+            log(osg::NOTICE,"Error: unable to load %s",filename.c_str());
+        } 
     }
     else
     {

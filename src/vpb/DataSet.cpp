@@ -2083,6 +2083,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
     }
 
     osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(layer);
+    if (compositeLayer)
     {
         for(unsigned int i=0; i<compositeLayer->getNumLayers();++i)
         {
