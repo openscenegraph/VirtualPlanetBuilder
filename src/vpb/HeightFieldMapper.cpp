@@ -718,18 +718,35 @@ double HeightFieldMapper::getZfromXY(double x, double y) const
     double rx = cx-fx;
     double ry = cy-fy;
     
-    double h00 = _hf.getHeight(c,r);
-    double h01 = ((r+1) < (int) _hf.getNumRows()) ? _hf.getHeight(c,r+1) : h00;
-    double h10 = ((c) < (int) _hf.getNumColumns()) ? _hf.getHeight(c+1,r) : h00;
-    double h11 = ((c+1) < (int) _hf.getNumColumns() && (r+1) < (int) _hf.getNumRows()) ? _hf.getHeight(c+1,r+1) : h00;
-
-    double z = _hf.getOrigin().z() + 
-                h00*(1.0-rx)*(1.0-ry) + 
-                h01*(1.0-rx)*(ry) + 
-                h10*(rx)*(1.0-ry) + 
-                h11*(rx)*(ry);
+    double total_ratio = 0.0;
+    double total_height = 0.0;
     
-    return z;
+    if ((c>=0 && c<_hf.getNumColumns()) && (r>=0 && r<_hf.getNumRows())) 
+    {  
+        total_ratio = (1.0-rx)*(1.0-ry);
+        total_height = _hf.getHeight(c,r);
+    }
+    
+    if (((c+1)>=0 && (c+1)<_hf.getNumColumns()) && (r>=0 && r<_hf.getNumRows()))
+    {  
+        total_ratio = rx*(1.0-ry);
+        total_height = _hf.getHeight(c+1,r);
+    }
+
+    if ((c>=0 && c<_hf.getNumColumns()) && ((r+1)>=0 && (r+1)<_hf.getNumRows()))
+    {  
+        total_ratio = (1.0-rx)*ry;
+        total_height = _hf.getHeight(c,r+1);
+    }
+
+    if (((c+1)>=0 && (c+1)<_hf.getNumColumns()) && ((r+1)>=0 && (r+1)<_hf.getNumRows()))
+    {  
+        total_ratio = rx*ry;
+        total_height = _hf.getHeight(c+1,r+1);
+    }
+
+    if (total_ratio>0.0) return _hf.getOrigin().z() + total_height/total_ratio;
+    else return _hf.getOrigin().z();
 }
 
 
