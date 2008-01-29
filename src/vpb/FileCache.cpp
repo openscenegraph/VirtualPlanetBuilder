@@ -262,12 +262,12 @@ void FileCache::addFileDetails(FileDetails* fd)
     {
         if (*(*vitr) == *fd)
         {
-            log(osg::NOTICE,"FileCache::addFileDetails(%s) FileDetails already in cache",fd->getFileName().c_str());
+            log(osg::INFO,"FileCache::addFileDetails(%s) FileDetails already in cache",fd->getFileName().c_str());
             return;
         }
     }
     
-    log(osg::NOTICE,"FileCache::addFileDetails(%s) added",fd->getFileName().c_str());
+    log(osg::INFO,"FileCache::addFileDetails(%s) added",fd->getFileName().c_str());
 
     variants.push_back(fd);
 }
