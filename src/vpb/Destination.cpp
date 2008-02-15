@@ -2718,7 +2718,7 @@ std::string CompositeDestination::getExternalSubTileName()
 {
     std::string filename;
     
-    bool externalFile = _dataSet->getOutputTaskDirectories() && _dataSet->getRecordSubtileFileNamesOnLeafTile();
+    bool externalFile = _dataSet->getOutputTaskDirectories();
     bool isLeaf = (_level == (_dataSet->getMaximumNumOfLevels()-1));
     bool isRoot = (_level == 0);
 
