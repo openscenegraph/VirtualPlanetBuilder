@@ -1495,7 +1495,7 @@ osg::Node* DestinationTile::createPolygonal()
     }
     else
     {
-        unsigned int minimumSize = 8;
+        unsigned int minimumSize = 4;
         unsigned int numColumns = minimumSize;
         unsigned int numRows = minimumSize;
         
@@ -1519,8 +1519,8 @@ osg::Node* DestinationTile::createPolygonal()
         grid = new osg::HeightField;
         grid->allocate(numColumns,numRows);
         grid->setOrigin(osg::Vec3(_extents.xMin(),_extents.yMin(),0.0f));
-        grid->setXInterval((_extents.xMax()-_extents.xMin())/(float)(numColumns-1));
-        grid->setYInterval((_extents.yMax()-_extents.yMin())/(float)(numRows-1)); 
+        grid->setXInterval(double(_extents.xMax()-_extents.xMin())/double(numColumns-1));
+        grid->setYInterval(double(_extents.yMax()-_extents.yMin())/double(numRows-1)); 
         
         if (!_terrain) _terrain = new DestinationData(_dataSet);
         
@@ -1635,12 +1635,12 @@ osg::Node* DestinationTile::createPolygonal()
     unsigned int r,c;
     
     // populate the vertex/normal/texcoord arrays from the grid.
-    double orig_X = grid->getOrigin().x();
-    double delta_X = grid->getXInterval();
-    double orig_Y = grid->getOrigin().y();
-    double delta_Y = grid->getYInterval();
-    double orig_Z = grid->getOrigin().z();
+    double orig_X = _extents.xMin();
+    double orig_Y = _extents.yMin();
+    double orig_Z = 0.0;
 
+    double delta_X = double(_extents.xMax()-_extents.xMin())/double(numColumns-1);
+    double delta_Y = double(_extents.yMax()-_extents.yMin())/double(numRows-1);
 
     float min_dot_product = 1.0f;
     float max_cluster_culling_height = 0.0f;
