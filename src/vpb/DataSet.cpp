@@ -2278,7 +2278,13 @@ public:
     virtual void apply(CompositeDestination& cd)
     {
         if (cd._level<_level) traverse(cd);
-        else if (cd._level==_level) _subtileList.push_back(&cd);
+        else if (cd._level==_level) 
+        {
+            if (!cd._children.empty())
+            {
+                _subtileList.push_back(&cd);
+            }
+        }
     }
 
     typedef std::list< osg::ref_ptr<CompositeDestination> > SubtileList;

@@ -1212,7 +1212,7 @@ osg::Node* DestinationTile::createHeightField()
         log(osg::INFO,"**** No terrain to build tile from use flat terrain fallback ****");
         // create a dummy height field to file in the gap
         _terrain->_heightField = new osg::HeightField;
-        _terrain->_heightField->allocate(2,2);
+        _terrain->_heightField->allocate(8,8);
         _terrain->_heightField->setOrigin(osg::Vec3(_extents.xMin(),_extents.yMin(),0.0f));
         _terrain->_heightField->setXInterval(_extents.xMax()-_extents.xMin());
         _terrain->_heightField->setYInterval(_extents.yMax()-_extents.yMin());
@@ -1425,6 +1425,8 @@ osg::Node* DestinationTile::createTerrainTile()
         terrain->setElevationLayer(hfLayer);
     }
     
+
+    osgTerrain::ImageLayer* baseLayer = 0;
     
     // assign the imagery
     for(unsigned int layerNum=0;
@@ -1432,15 +1434,36 @@ osg::Node* DestinationTile::createTerrainTile()
         ++layerNum)
     {
         ImageData& imageData = _imagery[layerNum];
-        if (!imageData._imagery.valid() || !imageData._imagery->_image.valid()) continue;
-        
-        osg::Image* image = imageData._imagery->_image.get();
+        if (imageData._imagery.valid() && imageData._imagery->_image.valid())
+        {        
+            osg::Image* image = imageData._imagery->_image.get();
 
-        osgTerrain::ImageLayer* imageLayer = new osgTerrain::ImageLayer;
-        imageLayer->setImage(image);
-        imageLayer->setLocator(locator);
-        
-        terrain->setColorLayer(layerNum, imageLayer);
+            osgTerrain::ImageLayer* imageLayer = new osgTerrain::ImageLayer;
+            imageLayer->setImage(image);
+            imageLayer->setLocator(locator);
+
+            terrain->setColorLayer(layerNum, imageLayer);
+
+            if (!baseLayer)
+            {
+                log(osg::NOTICE,"Recording base layer for layer %i",layerNum);
+                baseLayer = imageLayer;
+            }
+        }
+    }
+
+    // copy layer into any blanks
+    if (baseLayer)
+    {
+        for(unsigned int layerNum=0;
+            layerNum<_dataSet->getNumOfTextureLevels();
+            ++layerNum)
+        {
+            if (terrain->getColorLayer(layerNum)==0)
+            {
+                terrain->setColorLayer(layerNum, baseLayer);
+            }
+        }    
     }
     
     // assign the terrain technique that will be used to render the terrain tile.
