@@ -1446,7 +1446,6 @@ osg::Node* DestinationTile::createTerrainTile()
 
             if (!baseLayer)
             {
-                log(osg::NOTICE,"Recording base layer for layer %i",layerNum);
                 baseLayer = imageLayer;
             }
         }

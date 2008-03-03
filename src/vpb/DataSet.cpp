@@ -2339,18 +2339,18 @@ void DataSet::selectAppropriateSplitLevels()
             if (maxLevel<10)
             {
                 // just use primary split level
-                setDistributedBuildSplitLevel((maxLevel * 2) / 5);
+                setDistributedBuildSplitLevel( maxLevel / 2 );
             }
             else
             {
-                setDistributedBuildSplitLevel(maxLevel / 4);
-                setDistributedBuildSecondarySplitLevel((maxLevel * 5) / 9);
+                setDistributedBuildSplitLevel( maxLevel / 3 );
+                setDistributedBuildSecondarySplitLevel( (maxLevel * 2) / 3 );
             }
         }
         else
         {
             // need to compute the primary split level only
-            setDistributedBuildSplitLevel(getDistributedBuildSecondarySplitLevel()/2);
+            setDistributedBuildSplitLevel( getDistributedBuildSecondarySplitLevel()/2 );
         }
     }
     else
