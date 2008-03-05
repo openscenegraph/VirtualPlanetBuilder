@@ -55,7 +55,6 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
 {
     public:
 
-
         typedef std::map<unsigned int,CompositeDestination*> Row;
         typedef std::map<unsigned int,Row> Level;
         typedef std::map<unsigned int,Level> QuadMap;
@@ -162,6 +161,12 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         
         osg::Node* getDestinationRootNode() { return _rootNode.get(); }
         
+
+        typedef std::pair<unsigned int, unsigned int> TilePair;
+        typedef std::map<TilePair, unsigned int> TilePairMap;
+        
+        bool createTileMap(unsigned int level, TilePairMap& tilepairMap);
+
         bool generateTasks(TaskManager* taskManager);
 
         bool generateTasks_new(TaskManager* taskManager);

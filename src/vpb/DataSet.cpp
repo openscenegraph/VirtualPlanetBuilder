@@ -384,26 +384,6 @@ CompositeDestination* DataSet::createDestinationTile(int currentLevel, int curre
     {
         parent->_type = LOD;
         parent->addChild(destinationGraph);
-        
-#if 0
-        unsigned int numParentTiles = parent->_tiles.size();       
-        if (numParentTiles==0)
-        {
-            log(osg::NOTICE,"Parent in DestinationGraph has no tiles");
-        }
-        else if (numParentTiles==1)
-        {
-            DestinationTile::Sources& sources = parent->_tiles.front()->_sources;
-            tile->_sources = sources;
-        }
-        else
-        {
-            log(osg::NOTICE,"Parent in DestinationGraph has %i tiles", numParentTiles);
-            DestinationTile::Sources& sources = parent->_tiles.front()->_sources;
-            tile->_sources = sources;
-        }
-#endif
-
     }
 
 
@@ -468,8 +448,6 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         
 
         if (k>highestLevelFound) highestLevelFound = k;
-
-        // log(osg::NOTICE,"     opt level = %i",k);
 
         int startLevel = 0; // getGenerateSubtile() ? getSubtileLevel() : 0;
 
@@ -2293,6 +2271,85 @@ public:
 
 };
 
+bool DataSet::createTileMap(unsigned int level, TilePairMap& tilepairMap)
+{
+    osg::CoordinateSystemNode* cs = _intermediateCoordinateSystem.get();
+    const GeospatialExtents& extents = _destinationExtents;
+    unsigned int maxImageSize = _maximumTileImageSize;
+    unsigned int maxTerrainSize = _maximumTileTerrainSize;
+    unsigned int maxNumLevels = getMaximumNumOfLevels();
+                                  
+    // first populate the destination graph from imagery and DEM sources extents/resolution
+    for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
+    {
+        Source* source = (*itr).get();
+
+        if (source->getMinLevel()>maxNumLevels)
+        {
+            log(osg::NOTICE,"Skipping source %s as its min level excees destination max level.",source->getFileName().c_str());
+            continue;
+        }
+
+        SourceData* sd = (*itr)->getSourceData();
+        if (!sd)
+        {
+            log(osg::NOTICE,"Skipping source %s as no data loaded from it.",source->getFileName().c_str());
+            continue;
+        }
+        
+        const SpatialProperties& sp = sd->computeSpatialProperties(cs);
+
+        if (!sp._extents.intersects(extents))
+        {
+            // skip this source since it doesn't overlap this tile.
+            log(osg::NOTICE,"Skipping source %s as its extents don't overlap destination extents.",source->getFileName().c_str());
+            continue;
+        }
+
+        if (source->getType()!=Source::IMAGE && source->getType()!=Source::HEIGHT_FIELD)
+        {
+            continue;
+        }
+        
+        int k = 0;
+        if (!computeOptimumLevel(source, maxNumLevels-1, k)) continue;
+
+        // skip if the tiles won't contribute to the tasks with high level number.
+        if (k<=level) continue;
+        
+        int i_min, i_max, j_min, j_max;
+        if (computeCoverage(sp._extents, level, i_min, j_min, i_max, j_max)) 
+        {
+            for(int j=j_min; j<j_max;++j)
+            {
+                for(int i=i_min; i<i_max;++i)
+                {
+                    TilePair tileID(i,j);
+                    TilePairMap::iterator itr = tilepairMap.find(tileID);
+                    if (itr != tilepairMap.end())
+                    {
+                        if (k > itr->second) itr->second = k;
+                    }
+                    else
+                    {
+                        tilepairMap[TilePair(i,j)] = k;
+                    }
+                }
+            }
+        }
+    }
+
+#if 0    
+    for(TilePairMap::iterator itr = tilepairMap.begin();
+        itr != tilepairMap.end();
+        ++itr)
+    {
+        log(osg::NOTICE,"Level %d TilePair (%d, %d) %d",level, itr->first.first, itr->first.second, itr->second);
+    }
+#endif
+    
+}
+
 bool DataSet::generateTasks(TaskManager* taskManager)
 {
     if (!getLogFileName().empty())
@@ -2441,10 +2498,9 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
                                         getDistributedBuildSplitLevel() :
                                         getDistributedBuildSecondarySplitLevel();
 
-    computeDestinationGraphFromSources(bottomDistributedBuildLevel+1);
 
-    if (!_destinationGraph.valid()) return false;
-
+#if 1
+    if (!prepareForDestinationGraphCreation()) return false;
 
     // initialize various tasks related settings
     std::string sourceFile = taskManager->getSourceFileName();
@@ -2477,12 +2533,6 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
             logfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.log";
             app<<" --log "<<logfile.str();
         }
-#if 0            
-        else
-        {
-            app<<" > /dev/null";
-        }
-#endif            
 
         taskManager->addTask(taskfile.str(), app.str(), sourceFile);
     }
@@ -2491,6 +2541,127 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
     // need to create an intermediate level if required.
     if (getDistributedBuildSecondarySplitLevel()!=0)
     {
+        unsigned int level = getDistributedBuildSplitLevel()-1;
+
+        TilePairMap tilepairMap;
+        createTileMap(level, tilepairMap);
+
+        for(TilePairMap::iterator itr = tilepairMap.begin();
+            itr != tilepairMap.end();
+            ++itr)
+        {
+            unsigned int tileX = itr->first.first;
+            unsigned int tileY = itr->first.second;
+
+            std::ostringstream taskfile;
+            taskfile<<taskDirectory<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".task";
+
+
+            std::ostringstream app;
+            app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSecondarySplitLevel()<<" --subtile "<<level<<" "<<tileX<<" "<<tileY<<" --task "<<taskfile.str();
+
+
+            if (!fileCacheName.empty())
+            {
+                app<<" --cache "<<fileCacheName;
+            }
+
+            if (logging)
+            {
+                std::ostringstream logfile;
+
+                logfile<<taskDirectory<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".log";
+                app<<" --log "<<logfile.str();
+            }
+
+            taskManager->addTask(taskfile.str(), app.str(), sourceFile);
+        }
+    }
+    
+    // create the bottom level split
+    {    
+        unsigned int level = bottomDistributedBuildLevel-1;
+
+        TilePairMap tilepairMap;
+        createTileMap(level, tilepairMap);
+
+        for(TilePairMap::iterator itr = tilepairMap.begin();
+            itr != tilepairMap.end();
+            ++itr)
+        {
+            unsigned int tileX = itr->first.first;
+            unsigned int tileY = itr->first.second;
+
+            std::ostringstream taskfile;
+            taskfile<<taskDirectory<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".task";
+
+
+            std::ostringstream app;
+            app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --subtile "<<level<<" "<<tileX<<" "<<tileY<<" --task "<<taskfile.str();
+
+            if (!fileCacheName.empty())
+            {
+                app<<" --cache "<<fileCacheName;
+            }
+
+            if (logging)
+            {
+                std::ostringstream logfile;
+
+                logfile<<taskDirectory<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".log";
+                app<<" --log "<<logfile.str();
+            }
+
+            taskManager->addTask(taskfile.str(), app.str(), sourceFile);
+        }
+    }
+
+#else
+
+    computeDestinationGraphFromSources(bottomDistributedBuildLevel+1);
+
+    if (!_destinationGraph.valid()) return false;
+
+    // initialize various tasks related settings
+    std::string sourceFile = taskManager->getSourceFileName();
+    std::string basename = taskManager->getBuildName();
+    std::string taskDirectory = getTaskDirectory();
+    if (!taskDirectory.empty()) taskDirectory += "/";
+
+    std::string fileCacheName;
+    if (System::instance()->getFileCache()) fileCacheName = System::instance()->getFileCache()->getFileName(); 
+
+    bool logging = getNotifyLevel() > ALWAYS;
+
+    
+    // create root task
+    {
+        std::ostringstream taskfile;
+        taskfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.task";
+
+        std::ostringstream app;
+        app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSplitLevel()<<" --task "<<taskfile.str();
+
+        if (!fileCacheName.empty())
+        {
+            app<<" --cache "<<fileCacheName;
+        }
+
+        if (logging)
+        {
+            std::ostringstream logfile;
+            logfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.log";
+            app<<" --log "<<logfile.str();
+        }
+
+        taskManager->addTask(taskfile.str(), app.str(), sourceFile);
+    }
+    
+    
+    // need to create an intermediate level if required.
+    if (getDistributedBuildSecondarySplitLevel()!=0)
+    {
+
         CollectSubtiles cs(getDistributedBuildSplitLevel()-1);
         _destinationGraph->accept(cs);
 
@@ -2520,18 +2691,14 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
                 logfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
                 app<<" --log "<<logfile.str();
             }
-    #if 0
-            else
-            {
-                app<<" > /dev/null";
-            }
-    #endif
+
             taskManager->addTask(taskfile.str(), app.str(), sourceFile);
         }
     }
     
     // create the bottom level split
     {    
+
         // bottom set of tasks
         CollectSubtiles cs(bottomDistributedBuildLevel-1);
         _destinationGraph->accept(cs);
@@ -2561,15 +2728,11 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
                 logfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
                 app<<" --log "<<logfile.str();
             }
-    #if 0
-            else
-            {
-                app<<" > /dev/null";
-            }
-    #endif
+
             taskManager->addTask(taskfile.str(), app.str(), sourceFile);
         }
     }
+#endif
 
     return false;
 }
