@@ -859,7 +859,7 @@ void MachinePool::reportTimingStatus()
     estimatedTimeOfLastCompletion += numTaskPendingAcrossAllCores*averageTaskTime;
     double estimateTimeToCompletion = estimatedTimeOfLastCompletion-currentTime;
     
-    log(osg::NOTICE,"Number of tasks completed %i, running %i, pending %i. Estimated time to completion %.1f seconds, %2.1f done.",numTasksCompleted, numTasksRunning, numTasksPending, estimateTimeToCompletion, 100.0*currentTime/estimatedTimeOfLastCompletion);
+    log(osg::NOTICE,"Number of tasks completed %i, running %i, pending %i. Estimated time to completion %.1f seconds, %2.1f%% done.",numTasksCompleted, numTasksRunning, numTasksPending, estimateTimeToCompletion, 100.0*currentTime/estimatedTimeOfLastCompletion);
 
 }
 
