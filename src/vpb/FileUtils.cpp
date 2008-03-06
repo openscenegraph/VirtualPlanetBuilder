@@ -115,7 +115,7 @@ int vpb::mkpath(const char *path, int mode)
             // need to create directory.
             result = vpb::mkdir(path.c_str(), mode);
             if (result) log(osg::NOTICE,"Error could not create directory %s",path.c_str());
-            else log(osg::NOTICE,"  created directory %s",path.c_str());
+            else log(osg::NOTICE,"   created directory %s",path.c_str());
             
             if (result) return result;
         }

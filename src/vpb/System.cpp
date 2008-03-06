@@ -65,6 +65,9 @@ System::System()
     _numUnusedDatasetsToTrimFromCache = 10;
     _maxNumDatasets = (unsigned int)(double(vpb::getdtablesize()) * 0.8);
     
+    _logDirectory = "logs";
+    _taskDirectory = "tasks";
+    
     readEnvironmentVariables();
     
     // preload the .osg plugin so its available in case we need to output source files containing core osg nodes

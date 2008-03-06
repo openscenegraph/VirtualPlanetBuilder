@@ -2505,9 +2505,61 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
     // initialize various tasks related settings
     std::string sourceFile = taskManager->getSourceFileName();
     std::string basename = taskManager->getBuildName();
-    std::string taskDirectory = getTaskDirectory();
-    if (!taskDirectory.empty()) taskDirectory += "/";
 
+    std::string taskDirectory = getTaskDirectory();
+    if (!taskDirectory.empty())
+    {
+        int result = 0;
+        osgDB::FileType type = osgDB::fileType(taskDirectory);
+        if (type==osgDB::DIRECTORY)
+        {
+            log(osg::NOTICE,"   Task directory already created");
+        } 
+        else if (type==osgDB::REGULAR_FILE)
+        {
+            log(osg::NOTICE,"   Error cannot create Task directory as a conventional file already exists with that name");
+            taskDirectory = "";
+        }
+        else // FILE_NOT_FOUND
+        {
+            // need to create directory.
+            result = vpb::mkpath(taskDirectory.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+            if (result)
+            {
+                taskDirectory = "";
+            }
+        }
+
+        if (!taskDirectory.empty()) taskDirectory += "/";
+    }
+
+    std::string logDirectory = getLogDirectory();
+    if (!logDirectory.empty())
+    {
+        int result = 0;
+        osgDB::FileType type = osgDB::fileType(logDirectory);
+        if (type==osgDB::DIRECTORY)
+        {
+            log(osg::NOTICE,"   Log directory already created");
+        } 
+        else if (type==osgDB::REGULAR_FILE)
+        {
+            log(osg::NOTICE,"   Error cannot create Log directory as a conventional file already exists with that name");
+            logDirectory = "";
+        }
+        else // FILE_NOT_FOUND
+        {
+            // need to create directory.
+            result = vpb::mkpath(logDirectory.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+            if (result)
+            {
+                logDirectory = "";
+            }
+        }
+
+        if (!logDirectory.empty()) logDirectory += "/";
+    }
+    
     std::string fileCacheName;
     if (System::instance()->getFileCache()) fileCacheName = System::instance()->getFileCache()->getFileName(); 
 
@@ -2530,7 +2582,7 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
         if (logging)
         {
             std::ostringstream logfile;
-            logfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.log";
+            logfile<<logDirectory<<basename<<"_root_L0_X0_Y0.log";
             app<<" --log "<<logfile.str();
         }
 
@@ -2570,7 +2622,7 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
             {
                 std::ostringstream logfile;
 
-                logfile<<taskDirectory<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".log";
+                logfile<<logDirectory<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".log";
                 app<<" --log "<<logfile.str();
             }
 
@@ -2608,7 +2660,7 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
             {
                 std::ostringstream logfile;
 
-                logfile<<taskDirectory<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".log";
+                logfile<<logDirectory<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".log";
                 app<<" --log "<<logfile.str();
             }
 
@@ -2625,8 +2677,12 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
     // initialize various tasks related settings
     std::string sourceFile = taskManager->getSourceFileName();
     std::string basename = taskManager->getBuildName();
+
     std::string taskDirectory = getTaskDirectory();
     if (!taskDirectory.empty()) taskDirectory += "/";
+
+    std::string logDirectory = getLogDirectory();
+    if (!logDirectory.empty()) logDirectory += "/";
 
     std::string fileCacheName;
     if (System::instance()->getFileCache()) fileCacheName = System::instance()->getFileCache()->getFileName(); 
@@ -2650,7 +2706,7 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
         if (logging)
         {
             std::ostringstream logfile;
-            logfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.log";
+            logfile<<logDirectory<<basename<<"_root_L0_X0_Y0.log";
             app<<" --log "<<logfile.str();
         }
 
@@ -2688,7 +2744,7 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
             {
                 std::ostringstream logfile;
 
-                logfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
+                logfile<<logDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
                 app<<" --log "<<logfile.str();
             }
 
@@ -2725,7 +2781,7 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
             {
                 std::ostringstream logfile;
 
-                logfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
+                logfile<<logDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
                 app<<" --log "<<logfile.str();
             }
 
@@ -2762,6 +2818,9 @@ bool DataSet::generateTasks_old(TaskManager* taskManager)
         std::string taskDirectory = getTaskDirectory();
         if (!taskDirectory.empty()) taskDirectory += "/";
         
+        std::string logDirectory = getLogDirectory();
+        if (!logDirectory.empty()) logDirectory += "/";
+
         std::string fileCacheName;
         if (System::instance()->getFileCache()) fileCacheName = System::instance()->getFileCache()->getFileName(); 
         
@@ -2783,7 +2842,7 @@ bool DataSet::generateTasks_old(TaskManager* taskManager)
             if (logging)
             {
                 std::ostringstream logfile;
-                logfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.log";
+                logfile<<logDirectory<<basename<<"_root_L0_X0_Y0.log";
                 app<<" --log "<<logfile.str();
             }
 #if 0            
@@ -2820,7 +2879,7 @@ bool DataSet::generateTasks_old(TaskManager* taskManager)
             {
                 std::ostringstream logfile;
 
-                logfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
+                logfile<<logDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
                 app<<" --log "<<logfile.str();
             }
 #if 0
