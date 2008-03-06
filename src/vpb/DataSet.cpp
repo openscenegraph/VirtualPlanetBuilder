@@ -1702,6 +1702,7 @@ void DataSet::createDestination(unsigned int numLevels)
     computeDestinationGraphFromSources(numLevels);
     
     updateSourcesForDestinationGraphNeeds();
+    
 
     log(osg::NOTICE, "completed DataSet::createDestination(%u)",numLevels);
 
@@ -2364,15 +2365,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
         pushOperationLog(getBuildLog());
     }
 
-    bool result = false;
-    if (getBuildOptionsString().find("old_tm")!=std::string::npos)
-    {
-        result = generateTasks_old(taskManager);
-    }
-    else
-    {
-        result = generateTasks_new(taskManager);
-    }
+    bool result = generateTasksImplementation(taskManager);
 
     if (getBuildLog())
     {
@@ -2482,7 +2475,7 @@ std::string DataSet::getSubtileName(unsigned int level, unsigned int X, unsigned
     return os.str();
 }
 
-bool DataSet::generateTasks_new(TaskManager* taskManager)
+bool DataSet::generateTasksImplementation(TaskManager* taskManager)
 {
     log(osg::NOTICE,"DataSet::generateTasks_new");
 
@@ -2499,7 +2492,6 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
                                         getDistributedBuildSecondarySplitLevel();
 
 
-#if 1
     if (!prepareForDestinationGraphCreation()) return false;
 
     // initialize various tasks related settings
@@ -2668,232 +2660,8 @@ bool DataSet::generateTasks_new(TaskManager* taskManager)
         }
     }
 
-#else
-
-    computeDestinationGraphFromSources(bottomDistributedBuildLevel+1);
-
-    if (!_destinationGraph.valid()) return false;
-
-    // initialize various tasks related settings
-    std::string sourceFile = taskManager->getSourceFileName();
-    std::string basename = taskManager->getBuildName();
-
-    std::string taskDirectory = getTaskDirectory();
-    if (!taskDirectory.empty()) taskDirectory += "/";
-
-    std::string logDirectory = getLogDirectory();
-    if (!logDirectory.empty()) logDirectory += "/";
-
-    std::string fileCacheName;
-    if (System::instance()->getFileCache()) fileCacheName = System::instance()->getFileCache()->getFileName(); 
-
-    bool logging = getNotifyLevel() > ALWAYS;
-
-    
-    // create root task
-    {
-        std::ostringstream taskfile;
-        taskfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.task";
-
-        std::ostringstream app;
-        app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSplitLevel()<<" --task "<<taskfile.str();
-
-        if (!fileCacheName.empty())
-        {
-            app<<" --cache "<<fileCacheName;
-        }
-
-        if (logging)
-        {
-            std::ostringstream logfile;
-            logfile<<logDirectory<<basename<<"_root_L0_X0_Y0.log";
-            app<<" --log "<<logfile.str();
-        }
-
-        taskManager->addTask(taskfile.str(), app.str(), sourceFile);
-    }
-    
-    
-    // need to create an intermediate level if required.
-    if (getDistributedBuildSecondarySplitLevel()!=0)
-    {
-
-        CollectSubtiles cs(getDistributedBuildSplitLevel()-1);
-        _destinationGraph->accept(cs);
-
-        for(CollectSubtiles::SubtileList::iterator itr = cs._subtileList.begin();
-            itr != cs._subtileList.end();
-            ++itr)
-        {
-            CompositeDestination* cd = itr->get();
-
-            std::ostringstream taskfile;
-            taskfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".task";
-
-
-            std::ostringstream app;
-            app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSecondarySplitLevel()<<" --subtile "<<cd->_level<<" "<<cd->_tileX<<" "<<cd->_tileY<<" --task "<<taskfile.str();
-
-
-            if (!fileCacheName.empty())
-            {
-                app<<" --cache "<<fileCacheName;
-            }
-
-            if (logging)
-            {
-                std::ostringstream logfile;
-
-                logfile<<logDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
-                app<<" --log "<<logfile.str();
-            }
-
-            taskManager->addTask(taskfile.str(), app.str(), sourceFile);
-        }
-    }
-    
-    // create the bottom level split
-    {    
-
-        // bottom set of tasks
-        CollectSubtiles cs(bottomDistributedBuildLevel-1);
-        _destinationGraph->accept(cs);
-
-        for(CollectSubtiles::SubtileList::iterator itr = cs._subtileList.begin();
-            itr != cs._subtileList.end();
-            ++itr)
-        {
-            CompositeDestination* cd = itr->get();
-
-            std::ostringstream taskfile;
-            taskfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".task";
-
-
-            std::ostringstream app;
-            app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --subtile "<<cd->_level<<" "<<cd->_tileX<<" "<<cd->_tileY<<" --task "<<taskfile.str();
-
-            if (!fileCacheName.empty())
-            {
-                app<<" --cache "<<fileCacheName;
-            }
-
-            if (logging)
-            {
-                std::ostringstream logfile;
-
-                logfile<<logDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
-                app<<" --log "<<logfile.str();
-            }
-
-            taskManager->addTask(taskfile.str(), app.str(), sourceFile);
-        }
-    }
-#endif
 
     return false;
-}
-
-bool DataSet::generateTasks_old(TaskManager* taskManager)
-{
-    loadSources();
-
-    if (!prepareForDestinationGraphCreation()) return false;
-
-    selectAppropriateSplitLevels();
-
-    if (getDistributedBuildSplitLevel()==0) return false;
-
-
-    computeDestinationGraphFromSources(getDistributedBuildSplitLevel()+1);
-
-    if (_destinationGraph.valid())
-    {
-        CollectSubtiles cs(getDistributedBuildSplitLevel()-1);
-        
-        _destinationGraph->accept(cs);
-        
-        std::string sourceFile = taskManager->getSourceFileName();
-        
-        std::string basename = taskManager->getBuildName();
-        std::string taskDirectory = getTaskDirectory();
-        if (!taskDirectory.empty()) taskDirectory += "/";
-        
-        std::string logDirectory = getLogDirectory();
-        if (!logDirectory.empty()) logDirectory += "/";
-
-        std::string fileCacheName;
-        if (System::instance()->getFileCache()) fileCacheName = System::instance()->getFileCache()->getFileName(); 
-        
-        bool logging = getNotifyLevel() > ALWAYS;
-        
-        // create root task
-        {
-            std::ostringstream taskfile;
-            taskfile<<taskDirectory<<basename<<"_root_L0_X0_Y0.task";
-
-            std::ostringstream app;
-            app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --record-subtile-on-leaf-tiles -l "<<getDistributedBuildSplitLevel()<<" --task "<<taskfile.str();
-
-            if (!fileCacheName.empty())
-            {
-                app<<" --cache "<<fileCacheName;
-            }
-
-            if (logging)
-            {
-                std::ostringstream logfile;
-                logfile<<logDirectory<<basename<<"_root_L0_X0_Y0.log";
-                app<<" --log "<<logfile.str();
-            }
-#if 0            
-            else
-            {
-                app<<" > /dev/null";
-            }
-#endif            
-
-            taskManager->addTask(taskfile.str(), app.str(), sourceFile);
-        }
-        
-        // taskManager->nextTaskSet();
-        
-        for(CollectSubtiles::SubtileList::iterator itr = cs._subtileList.begin();
-            itr != cs._subtileList.end();
-            ++itr)
-        {
-            CompositeDestination* cd = itr->get();
-            
-            std::ostringstream taskfile;
-            taskfile<<taskDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".task";
-
-
-            std::ostringstream app;
-            app<<"osgdem --run-path "<<taskManager->getRunPath()<<" -s "<<sourceFile<<" --subtile "<<cd->_level<<" "<<cd->_tileX<<" "<<cd->_tileY<<" --task "<<taskfile.str();
-
-            if (!fileCacheName.empty())
-            {
-                app<<" --cache "<<fileCacheName;
-            }
-
-            if (logging)
-            {
-                std::ostringstream logfile;
-
-                logfile<<logDirectory<<basename<<"_subtile_L"<<cd->_level<<"_X"<<cd->_tileX<<"_Y"<<cd->_tileY<<".log";
-                app<<" --log "<<logfile.str();
-            }
-#if 0
-            else
-            {
-                app<<" > /dev/null";
-            }
-#endif
-            taskManager->addTask(taskfile.str(), app.str(), sourceFile);
-        }
-
-    }
-    
-    return true;
 }
 
 int DataSet::run()
@@ -2972,6 +2740,27 @@ int DataSet::_run()
             }
             osgDB::writeNodeFile(*terrain,getIntermediateBuildName());
             requiresGenerationOfTiles = false;
+        }
+    }
+    
+    
+    bool printOutContributingSources = true;
+    if (printOutContributingSources)
+    {
+        CompositeDestination* startPoint = _destinationGraph.get();
+        if (getGenerateSubtile())
+        {
+            startPoint = getComposite(getSubtileLevel(), getSubtileX(), getSubtileY());
+        }
+    
+        DestinationTile::Sources sources = startPoint->getAllContributingSources();
+        log(osg::NOTICE,"There are %d contributing source files:",sources.size());
+
+        for(DestinationTile::Sources::iterator itr = sources.begin();
+            itr != sources.end();
+            ++itr)
+        {
+            log(osg::NOTICE,"    %s",(*itr)->getFileName().c_str());
         }
     }
 

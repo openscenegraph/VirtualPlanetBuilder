@@ -2940,3 +2940,24 @@ void CompositeDestination::unrefLocalData()
         tile->unrefData();
     }
 }
+
+DestinationTile::Sources CompositeDestination::getAllContributingSources()
+{
+    typedef std::set<Source*> SourceSet;
+    SourceSet sourceSet;
+    
+    for(TileList::iterator titr=_tiles.begin();
+        titr!=_tiles.end();
+        ++titr)
+    {
+        DestinationTile* dt = titr->get();
+        for(DestinationTile::Sources::iterator itr = dt->_sources.begin();
+             itr != dt->_sources.end();
+             ++itr)
+        {
+            sourceSet.insert(itr->get());
+        }
+    }    
+    
+    return DestinationTile::Sources(sourceSet.begin(), sourceSet.end());
+}

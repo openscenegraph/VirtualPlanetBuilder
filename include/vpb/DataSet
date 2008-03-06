@@ -169,8 +169,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
 
         bool generateTasks(TaskManager* taskManager);
 
-        bool generateTasks_new(TaskManager* taskManager);
-        bool generateTasks_old(TaskManager* taskManager);
+        bool generateTasksImplementation(TaskManager* taskManager);
 
 
         int run();

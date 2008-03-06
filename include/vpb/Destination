@@ -285,6 +285,7 @@ public:
     void setSubTilesGenerated(bool generated) { _subTileGenerated=generated; }
     bool getSubTilesGenerated() const { return _subTileGenerated; }
 
+    DestinationTile::Sources getAllContributingSources();
 
     typedef std::vector< osg::ref_ptr<DestinationTile> > TileList;
     typedef std::vector< osg::ref_ptr<CompositeDestination> > ChildList;
