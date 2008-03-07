@@ -1053,6 +1053,7 @@ osg::StateSet* DestinationTile::createStateSet()
 
     _stateset = new osg::StateSet;
 
+    bool updateBaseTextureToCurrentValidImage = true;
     osg::Texture* baseTexture = 0;
     for(layerNum=0;
         layerNum<_imagery.size();
@@ -1077,7 +1078,7 @@ osg::StateSet* DestinationTile::createStateSet()
 
         osg::Texture2D* texture = new osg::Texture2D;
         
-        if (baseTexture==0) baseTexture=texture;
+        if (updateBaseTextureToCurrentValidImage || baseTexture==0) baseTexture=texture;
         
         texture->setImage(image);
         texture->setWrap(osg::Texture::WRAP_S,osg::Texture::CLAMP_TO_EDGE);
@@ -1179,7 +1180,7 @@ osg::StateSet* DestinationTile::createStateSet()
     
     // now fill in any blank texture units.
     bool fillInAllTextureUnits = true;
-    if (fillInAllTextureUnits && baseTexture)
+    if (fillInAllTextureUnits)
     {
         for(layerNum=0;
             layerNum<_dataSet->getNumOfTextureLevels();
@@ -1190,8 +1191,10 @@ osg::StateSet* DestinationTile::createStateSet()
             else 
             {
                 ImageData& imageData = _imagery[layerNum];
-                if (!imageData._imagery.valid() || 
-                    !imageData._imagery->_image.valid()) applyBaseTexture=true;
+                if (!imageData._imagery.valid() || !imageData._imagery->_image.valid()) 
+                {
+                    applyBaseTexture=true;
+                }
             }
             if (applyBaseTexture)        
                 _stateset->setTextureAttributeAndModes(layerNum,baseTexture,osg::StateAttribute::ON);
@@ -1427,6 +1430,7 @@ osg::Node* DestinationTile::createTerrainTile()
     
 
     osgTerrain::ImageLayer* baseLayer = 0;
+    bool updateLayerTextureToCurrentValidLayer = true;
     
     // assign the imagery
     for(unsigned int layerNum=0;
@@ -1444,7 +1448,7 @@ osg::Node* DestinationTile::createTerrainTile()
 
             terrain->setColorLayer(layerNum, imageLayer);
 
-            if (!baseLayer)
+            if (updateLayerTextureToCurrentValidLayer || baseLayer==0)
             {
                 baseLayer = imageLayer;
             }
