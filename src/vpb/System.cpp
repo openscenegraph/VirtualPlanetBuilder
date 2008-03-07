@@ -48,6 +48,7 @@ std::string& vpb::getLogDirectory() { return System::instance()->getLogDirectory
 std::string& vpb::getTaskDirectory() { return System::instance()->getTaskDirectory(); }
 std::string& vpb::getMachineFileName() { return System::instance()->getMachineFileName(); }
 std::string& vpb::getCacheFileName() { return System::instance()->getCacheFileName(); }
+unsigned int vpb::getMaxNumberOfFilesPerDirectory() { return System::instance()->getMaxNumberOfFilesPerDirectory(); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -67,6 +68,8 @@ System::System()
     
     _logDirectory = "logs";
     _taskDirectory = "tasks";
+    
+    _maxNumberOfFilesPerDirectory = 1000;
     
     readEnvironmentVariables();
     
@@ -151,6 +154,12 @@ void System::readEnvironmentVariables()
         _cacheFileName = str;
     }
     
+
+    str = getenv("VPB_MAXIMUM_OF_FILES_PER_DIRECTORY");
+    if (str) 
+    {
+        _maxNumberOfFilesPerDirectory = atoi(str);
+    }
 }
 
 void System::readArguments(osg::ArgumentParser& arguments)

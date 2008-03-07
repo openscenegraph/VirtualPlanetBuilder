@@ -184,7 +184,7 @@ class Logger
         BuildLog* getBuildLog() { return _buildLog.get(); }
         const BuildLog* getBuildLog() const { return _buildLog.get(); }
 
-        void log(osg::NotifySeverity level, const char* format, ...)
+        void log(osg::NotifySeverity level, const char* format, ...) const
         {
             if (level>osg::getNotifyLevel()) return;
         

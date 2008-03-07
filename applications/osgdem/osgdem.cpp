@@ -224,7 +224,7 @@ int main(int argc, char** argv)
 
             if (bo && !(bo->getLogFileName().empty()))
             {
-                dataset->setBuildLog(new vpb::BuildLog);
+                dataset->setBuildLog(new vpb::BuildLog(bo->getLogFileName()));
             }
 
             if (taskFile.valid())

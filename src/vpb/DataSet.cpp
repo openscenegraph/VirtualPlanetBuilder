@@ -2353,11 +2353,9 @@ bool DataSet::createTileMap(unsigned int level, TilePairMap& tilepairMap)
 
 bool DataSet::generateTasks(TaskManager* taskManager)
 {
-    if (!getLogFileName().empty())
+    if (!getLogFileName().empty() && !getBuildLog())
     {
-        if (!getBuildLog()) setBuildLog(new BuildLog());
-    
-        getBuildLog()->openLogFile(getLogFileName());
+        setBuildLog(new BuildLog(getLogFileName()));
     }
 
     if (getBuildLog())
@@ -2462,9 +2460,28 @@ std::string DataSet::getTaskName(unsigned int level, unsigned int X, unsigned in
     }
     else
     {
-        std::ostringstream taskfile;
-        taskfile<<_tileBasename<<"_subtile_L"<<level<<"_X"<<X<<"_Y"<<Y;
-        return taskfile.str();
+        if (getDistributedBuildSecondarySplitLevel()!=0 && level>=getDistributedBuildSecondarySplitLevel()-1)
+        {
+            unsigned int deltaLevels =  getDistributedBuildSecondarySplitLevel()-getDistributedBuildSplitLevel();
+            unsigned int divisor = 1 << deltaLevels;
+            unsigned int nestedX = X / divisor;
+            unsigned int nestedY = Y / divisor;
+            unsigned int nestedLevel = getDistributedBuildSplitLevel()-1; 
+            log(osg::NOTICE,"getTaskName(%i,%i,%i) requires nesting, divisor = %i (%i,%i,%i)",level,X,Y,divisor,nestedLevel, nestedX,nestedY);
+
+            std::ostringstream taskfile;
+            taskfile<<_tileBasename<<"_subtile_L"<<nestedLevel<<"_X"<<nestedX<<"_Y"<<nestedY<<"/";
+            taskfile<<_tileBasename<<"_subtile_L"<<level<<"_X"<<X<<"_Y"<<Y;
+            return taskfile.str();
+        }
+        else
+        {
+            log(osg::NOTICE,"getTaskName(%i,%i,%i) no nest, %i %i",level,X,Y,getDistributedBuildSplitLevel(),getDistributedBuildSecondarySplitLevel());
+
+            std::ostringstream taskfile;
+            taskfile<<_tileBasename<<"_subtile_L"<<level<<"_X"<<X<<"_Y"<<Y;
+            return taskfile.str();
+        }
     }
 }
 
@@ -2580,25 +2597,47 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
 
         taskManager->addTask(taskfile.str(), app.str(), sourceFile);
     }
+
+    // create the tilemaps for the required split levels
+    TilePairMap intermediateTileMap;
+    if (getDistributedBuildSecondarySplitLevel()!=0)
+    {
+        createTileMap(getDistributedBuildSplitLevel()-1, intermediateTileMap);
+    }
+
+    TilePairMap bottomTileMap;
+    createTileMap(bottomDistributedBuildLevel-1, bottomTileMap);
+
+    unsigned int totalNumOfTasksSansRoot = intermediateTileMap.size() + bottomTileMap.size(); 
+    unsigned int taskCount = 0;
+    unsigned int numTasksPerDirectory = getMaxNumberOfFilesPerDirectory();
+
+    bool tooManyTasksForOneDirectory = totalNumOfTasksSansRoot > numTasksPerDirectory;
     
-    
+    log(osg::NOTICE,"totalNumOfTasksSansRoot = %d", totalNumOfTasksSansRoot);
+
+    // initialize the variables used for nested secondary tasks within primary tasks
+    unsigned int deltaLevels = 0;
+    unsigned int divisor = 1;
+    unsigned int nestedLevel = getDistributedBuildSplitLevel()-1;
+
     // need to create an intermediate level if required.
     if (getDistributedBuildSecondarySplitLevel()!=0)
     {
         unsigned int level = getDistributedBuildSplitLevel()-1;
 
-        TilePairMap tilepairMap;
-        createTileMap(level, tilepairMap);
-
-        for(TilePairMap::iterator itr = tilepairMap.begin();
-            itr != tilepairMap.end();
+        for(TilePairMap::iterator itr = intermediateTileMap.begin();
+            itr != intermediateTileMap.end();
             ++itr)
         {
             unsigned int tileX = itr->first.first;
             unsigned int tileY = itr->first.second;
 
+            unsigned int taskSet = taskCount / numTasksPerDirectory;
+
             std::ostringstream taskfile;
-            taskfile<<taskDirectory<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".task";
+            taskfile<<taskDirectory;
+            taskfile<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".task";
 
 
             std::ostringstream app;
@@ -2614,30 +2653,48 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
             {
                 std::ostringstream logfile;
 
-                logfile<<logDirectory<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".log";
+                logfile<<logDirectory;
+                logfile<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".log";
                 app<<" --log "<<logfile.str();
             }
 
             taskManager->addTask(taskfile.str(), app.str(), sourceFile);
+            
+            ++taskCount;
         }
+        
+        // we have an intermediated level so the bottom level will need to be nested, so initiliaze
+        // the deltaLevels and divisor for use in below.
+        deltaLevels = getDistributedBuildSecondarySplitLevel()-getDistributedBuildSplitLevel();
+        divisor = 1 << deltaLevels;        
     }
+    
     
     // create the bottom level split
     {    
         unsigned int level = bottomDistributedBuildLevel-1;
 
-        TilePairMap tilepairMap;
-        createTileMap(level, tilepairMap);
-
-        for(TilePairMap::iterator itr = tilepairMap.begin();
-            itr != tilepairMap.end();
+        for(TilePairMap::iterator itr = bottomTileMap.begin();
+            itr != bottomTileMap.end();
             ++itr)
         {
             unsigned int tileX = itr->first.first;
             unsigned int tileY = itr->first.second;
 
+            unsigned int taskSet = taskCount / numTasksPerDirectory;
+
             std::ostringstream taskfile;
-            taskfile<<taskDirectory<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".task";
+            taskfile<<taskDirectory;
+            if (deltaLevels)
+            {
+                unsigned int nestedX = tileX / divisor;
+                unsigned int nestedY = tileY / divisor;
+                taskfile<<basename<<"_subtile_L"<<nestedLevel<<"_X"<<nestedX<<"_Y"<<nestedY<<"/";
+                
+                std::string path = taskfile.str();
+                vpb::mkpath(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+            }
+            taskfile<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".task";
 
 
             std::ostringstream app;
@@ -2652,11 +2709,23 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
             {
                 std::ostringstream logfile;
 
-                logfile<<logDirectory<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".log";
+                logfile<<logDirectory;
+                if (deltaLevels)
+                {
+                    unsigned int nestedX = tileX / divisor;
+                    unsigned int nestedY = tileY / divisor;
+                    logfile<<basename<<"_subtile_L"<<nestedLevel<<"_X"<<nestedX<<"_Y"<<nestedY<<"/";
+
+                    std::string path = logfile.str();
+                    vpb::mkpath(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+                }
+                logfile<<basename<<"_subtile_L"<<level<<"_X"<<tileX<<"_Y"<<tileY<<".log";
                 app<<" --log "<<logfile.str();
             }
 
             taskManager->addTask(taskfile.str(), app.str(), sourceFile);
+
+            ++taskCount;
         }
     }
 
@@ -2666,11 +2735,9 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
 
 int DataSet::run()
 {
-    if (!getLogFileName().empty())
+    if (!getLogFileName().empty() && !getBuildLog())
     {
-        if (!getBuildLog()) setBuildLog(new BuildLog());
-        
-        getBuildLog()->openLogFile(getLogFileName());
+        setBuildLog(new BuildLog(getLogFileName()));
     }
 
     if (getBuildLog())
@@ -2692,6 +2759,8 @@ int DataSet::run()
 int DataSet::_run()
 {
     
+    log(osg::NOTICE,"DataSet::_run() %i %i",getDistributedBuildSplitLevel(),getDistributedBuildSecondarySplitLevel());
+
     bool requiresGraphicsContextInMainThread = true;
     
     int numProcessors = OpenThreads::GetNumberOfProcessors();

@@ -85,9 +85,10 @@ int main(int argc, char** argv)
     if (!tasksOutputFileName.empty())
     {
         std::string sourceFileName = taskManager->getBuildName() + std::string("_master.source");
-        taskManager->writeSource(tasksOutputFileName);
-
+        taskManager->setSourceFileName(sourceFileName);
         taskManager->generateTasksFromSource();
+
+        taskManager->writeSource(tasksOutputFileName);
         taskManager->writeTasks(tasksOutputFileName, true);
         return 1;
     }
@@ -103,9 +104,10 @@ int main(int argc, char** argv)
             std::string sourceFileName = taskManager->getBuildName() + std::string("_master.source");
             tasksOutputFileName = taskManager->getBuildName() + std::string("_master.tasks");
 
-            taskManager->writeSource(sourceFileName);
-
+            taskManager->setSourceFileName(sourceFileName);
             taskManager->generateTasksFromSource();
+
+            taskManager->writeSource(sourceFileName);
             taskManager->writeTasks(tasksOutputFileName, true);
             
             taskManager->log(osg::NOTICE,"Generated tasks file = %s",tasksOutputFileName.c_str());

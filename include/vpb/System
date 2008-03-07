@@ -34,6 +34,7 @@ extern VPB_EXPORT std::string& getLogDirectory();
 extern VPB_EXPORT std::string& getTaskDirectory();
 extern VPB_EXPORT std::string& getMachineFileName();
 extern VPB_EXPORT std::string& getCacheFileName();
+extern VPB_EXPORT unsigned int getMaxNumberOfFilesPerDirectory();
 
 inline bool getAttributeValue(const std::string& field, const std::string& name, std::string& value)
 {
@@ -109,6 +110,8 @@ class VPB_EXPORT System : public osg::Referenced
         /** Return the size of a file in bytes.*/
         unsigned long getFileSize(const std::string& filename);
 
+        unsigned int getMaxNumberOfFilesPerDirectory() const { return _maxNumberOfFilesPerDirectory; } 
+
     protected:
     
         System();
@@ -121,7 +124,7 @@ class VPB_EXPORT System : public osg::Referenced
         std::string                 _taskDirectory;
         std::string                 _machineFileName;
         std::string                 _cacheFileName;
-        
+        unsigned int                _maxNumberOfFilesPerDirectory;        
         
         bool                        _trimOldestTiles;
         unsigned int                _numUnusedDatasetsToTrimFromCache;
