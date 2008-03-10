@@ -843,7 +843,7 @@ void MachinePool::reportTimingStatus()
         OpenThreads::ScopedLock<OpenThreads::Mutex> lock(machine->getRunningTasksMutex());
         
         Machine::RunningTasks& runningTasks = machine->getRunningTasks();
-        numTasksRunning = runningTasks.size();
+        numTasksRunning += runningTasks.size();
         for(Machine::RunningTasks::iterator ritr = runningTasks.begin();
             ritr != runningTasks.end();
             ++ritr)
