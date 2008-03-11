@@ -1638,6 +1638,9 @@ osg::Node* DestinationTile::createPolygonal()
     }
 
     bool createSkirt = true;
+    float skirtRatio = _dataSet->getSkirtRatio();
+    if (skirtRatio == 0.0f)
+        createSkirt = false;
 
     // compute sizes.
     unsigned int numColumns = grid->getNumColumns();
@@ -1658,7 +1661,7 @@ osg::Node* DestinationTile::createPolygonal()
 
     osg::ref_ptr<osg::Vec3Array> n = new osg::Vec3Array(numVertices); // must use ref_ptr so the array isn't removed when smooothvisitor is used    
     
-    float skirtRatio = _dataSet->getSkirtRatio();
+
     _localToWorld.makeIdentity();
     _worldToLocal.makeIdentity();
     osg::Vec3 skirtVector(0.0f,0.0f,0.0f);
