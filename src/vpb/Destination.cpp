@@ -1053,8 +1053,6 @@ osg::StateSet* DestinationTile::createStateSet()
 
     _stateset = new osg::StateSet;
 
-    bool updateBaseTextureToCurrentValidImage = true;
-    osg::Texture* baseTexture = 0;
     for(layerNum=0;
         layerNum<_imagery.size();
         ++layerNum)
@@ -1077,8 +1075,6 @@ osg::StateSet* DestinationTile::createStateSet()
         image->setFileName(imageName.c_str());
 
         osg::Texture2D* texture = new osg::Texture2D;
-        
-        if (updateBaseTextureToCurrentValidImage || baseTexture==0) baseTexture=texture;
         
         texture->setImage(image);
         texture->setWrap(osg::Texture::WRAP_S,osg::Texture::CLAMP_TO_EDGE);
@@ -1178,29 +1174,68 @@ osg::StateSet* DestinationTile::createStateSet()
         }
     }
     
-    // now fill in any blank texture units.
-    bool fillInAllTextureUnits = true;
-    if (fillInAllTextureUnits)
+    switch(_dataSet->getLayerInheritance())
     {
-        for(layerNum=0;
-            layerNum<_dataSet->getNumOfTextureLevels();
-            ++layerNum)
+        case(BuildOptions::INHERIT_LOWEST_AVAILABLE):
         {
-            bool applyBaseTexture = false;
-            if (layerNum>=_imagery.size()) applyBaseTexture=true;
-            else 
+            osg::StateAttribute* texture = 0;
+            // first look for an available texture 
+            for(layerNum=0;
+                layerNum<_dataSet->getNumOfTextureLevels() && texture==0;
+                ++layerNum)
             {
-                ImageData& imageData = _imagery[layerNum];
-                if (!imageData._imagery.valid() || !imageData._imagery->_image.valid()) 
+                texture = _stateset->getTextureAttribute(layerNum,osg::StateAttribute::TEXTURE);
+            }
+
+            if (texture)
+            {            
+                // now fill in any blanks
+                for(layerNum=0;
+                    layerNum<_dataSet->getNumOfTextureLevels();
+                    ++layerNum)
                 {
-                    applyBaseTexture=true;
+                    if (!_stateset->getTextureAttribute(layerNum,osg::StateAttribute::TEXTURE))
+                    {
+                        _stateset->setTextureAttributeAndModes(layerNum,texture,osg::StateAttribute::ON);
+                    }
                 }
             }
-            if (applyBaseTexture)        
-                _stateset->setTextureAttributeAndModes(layerNum,baseTexture,osg::StateAttribute::ON);
+            break;
+        }
+        case(BuildOptions::INHERIT_NEAREST_AVAILABLE):
+        {
+            osg::StateAttribute* texture = 0;
+            unsigned int noBlanks = 0;
+            for(int layerNum=0;
+                layerNum<_dataSet->getNumOfTextureLevels();
+                ++layerNum)
+            {
+                osg::StateAttribute* localTexture = _stateset->getTextureAttribute(layerNum,osg::StateAttribute::TEXTURE);
+                if (localTexture) texture = localTexture;
+                else if (texture) _stateset->setTextureAttributeAndModes(layerNum,texture,osg::StateAttribute::ON);
+                else ++noBlanks;
+            }
+        
+            if (noBlanks>0 && noBlanks != _dataSet->getNumOfTextureLevels())
+            {
+                // inherit downards to fill in any blanks
+                for(int layerNum=_dataSet->getNumOfTextureLevels()-1;
+                    layerNum>=0;
+                    --layerNum)
+                {
+                    osg::StateAttribute* localTexture = _stateset->getTextureAttribute(layerNum,osg::StateAttribute::TEXTURE);
+                    if (localTexture) texture = localTexture;
+                    else if (texture) _stateset->setTextureAttributeAndModes(layerNum,texture,osg::StateAttribute::ON);
+                }
+            }
+            break;
+        }
+        case(BuildOptions::NO_INHERITANCE):
+        {
+            // do nothing..
+            break;
         }
     }
-        
     return _stateset.get();
 }
 
@@ -1429,9 +1464,6 @@ osg::Node* DestinationTile::createTerrainTile()
     }
     
 
-    osgTerrain::ImageLayer* baseLayer = 0;
-    bool updateLayerTextureToCurrentValidLayer = true;
-    
     // assign the imagery
     for(unsigned int layerNum=0;
         layerNum<_imagery.size();
@@ -1447,27 +1479,72 @@ osg::Node* DestinationTile::createTerrainTile()
             imageLayer->setLocator(locator);
 
             terrain->setColorLayer(layerNum, imageLayer);
-
-            if (updateLayerTextureToCurrentValidLayer || baseLayer==0)
-            {
-                baseLayer = imageLayer;
-            }
         }
     }
 
-    // copy layer into any blanks
-    if (baseLayer)
+    switch(_dataSet->getLayerInheritance())
     {
-        for(unsigned int layerNum=0;
-            layerNum<_dataSet->getNumOfTextureLevels();
-            ++layerNum)
+        case(BuildOptions::INHERIT_LOWEST_AVAILABLE):
         {
-            if (terrain->getColorLayer(layerNum)==0)
+            osgTerrain::Layer* layer = 0;
+            // first look for an available Layer
+            for(unsigned int layerNum=0;
+                layerNum<_dataSet->getNumOfTextureLevels() && layer==0;
+                ++layerNum)
             {
-                terrain->setColorLayer(layerNum, baseLayer);
+                layer = terrain->getColorLayer(layerNum);
             }
-        }    
+
+            if (layer)
+            {            
+                // now fill in any blanks
+                for(unsigned int layerNum=0;
+                    layerNum<_dataSet->getNumOfTextureLevels();
+                    ++layerNum)
+                {
+                    if (!terrain->getColorLayer(layerNum))
+                    {
+                        terrain->setColorLayer(layerNum,layer);
+                    }
+                }
+            }
+            break;
+        }
+        case(BuildOptions::INHERIT_NEAREST_AVAILABLE):
+        {
+            osgTerrain::Layer* layer = 0;
+            unsigned int noBlanks = 0;
+            for(int layerNum=0;
+                layerNum<_dataSet->getNumOfTextureLevels();
+                ++layerNum)
+            {
+                osgTerrain::Layer* localLayer = terrain->getColorLayer(layerNum);
+                if (localLayer) layer = localLayer;
+                else if (layer) terrain->setColorLayer(layerNum, layer);
+                else ++noBlanks;
+            }
+        
+            if (noBlanks>0 && noBlanks != _dataSet->getNumOfTextureLevels())
+            {
+                // inherit downards to fill in any blanks
+                for(int layerNum=_dataSet->getNumOfTextureLevels()-1;
+                    layerNum>=0;
+                    --layerNum)
+                {
+                    osgTerrain::Layer* localLayer = terrain->getColorLayer(layerNum);
+                    if (localLayer) layer = localLayer;
+                    else if (layer) terrain->setColorLayer(layerNum, layer);
+                }
+            }
+            break;
+        }
+        case(BuildOptions::NO_INHERITANCE):
+        {
+            // do nothing..
+            break;
+        }
     }
+
     
     // assign the terrain technique that will be used to render the terrain tile.
     osgTerrain::GeometryTechnique* gt = new osgTerrain::GeometryTechnique;
@@ -2161,26 +2238,52 @@ void DestinationTile::readFrom(Source* source)
             case(Source::IMAGE):
             {
                 unsigned int layerNum = source->getLayer();
-
-                if (layerNum==0)
+                switch(_dataSet->getLayerInheritance())
                 {
-                    // copy the base layer 0 into layer 0 and all subsequent layers to provide a backdrop.
-                    for(unsigned int i=0;i<_imagery.size();++i)
+                    case(BuildOptions::INHERIT_LOWEST_AVAILABLE):
                     {
-                        if (_imagery[i]._imagery.valid())
+                        if (layerNum==0)
                         {
-                            data->read(*(_imagery[i]._imagery));
+                            // copy the base layer 0 into layer 0 and all subsequent layers to provide a backdrop.
+                            for(unsigned int i=0;i<_imagery.size();++i)
+                            {
+                                if (_imagery[i]._imagery.valid())
+                                {
+                                    data->read(*(_imagery[i]._imagery));
+                                }
+                            }
                         }
+                        else
+                        {
+                            // copy specific layer.
+                            if (layerNum<_imagery.size() && _imagery[layerNum]._imagery.valid())
+                            {
+                                data->read(*(_imagery[layerNum]._imagery));
+                            }
+                        }
+                        break;
                     }
-                }
-                else
-                {
-                    // copy specific layer.
-                    if (layerNum<_imagery.size() && _imagery[layerNum]._imagery.valid())
+                    case(BuildOptions::INHERIT_NEAREST_AVAILABLE):
                     {
-                        data->read(*(_imagery[layerNum]._imagery));
+                        // copy the current layer into this and all subsequent layers to provide a backdrop.
+                        for(unsigned int i=layerNum;i<_imagery.size();++i)
+                        {
+                            if (_imagery[i]._imagery.valid())
+                            {
+                                data->read(*(_imagery[i]._imagery));
+                            }
+                        }
+                        break;
                     }
-                }
+                    case(BuildOptions::NO_INHERITANCE):
+                    {
+                        if (layerNum<_imagery.size() && _imagery[layerNum]._imagery.valid())
+                        {
+                            data->read(*(_imagery[layerNum]._imagery));
+                        }
+                        break;
+                    }
+                }                    
                 break;
             }
             case(Source::HEIGHT_FIELD):

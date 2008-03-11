@@ -217,6 +217,9 @@ public:
         ADD_FLOAT_PROPERTY(NumWriteThreadsToCoresRatio);
 
         ADD_STRING_PROPERTY(BuildOptionsString);
+
+        { AEP(LayerInheritance); AEV(INHERIT_LOWEST_AVAILABLE); AEV(INHERIT_NEAREST_AVAILABLE); AEV(NO_INHERITANCE); }
+
     }
     
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)

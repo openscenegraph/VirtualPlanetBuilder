@@ -71,6 +71,8 @@ BuildOptions::BuildOptions():
     
     _numReadThreadsToCoresRatio = 0.0f;
     _numWriteThreadsToCoresRatio = 0.0f;
+    
+    _layerInheritance = INHERIT_NEAREST_AVAILABLE;
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop):
@@ -143,6 +145,8 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _numWriteThreadsToCoresRatio = rhs._numWriteThreadsToCoresRatio;
     
     _buildOptionsString = rhs._buildOptionsString;
+    
+    _layerInheritance = rhs._layerInheritance;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)

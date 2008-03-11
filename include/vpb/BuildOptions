@@ -249,6 +249,17 @@ class VPB_EXPORT BuildOptions : public osg::Object
         
         void setBuildOptionsString(const std::string& str) { _buildOptionsString = str; }
         const std::string& getBuildOptionsString() const { return _buildOptionsString; }
+
+        enum LayerInheritance
+        {
+            INHERIT_LOWEST_AVAILABLE,
+            INHERIT_NEAREST_AVAILABLE,
+            NO_INHERITANCE
+        };
+        
+        void setLayerInheritance(LayerInheritance inheritance) { _layerInheritance = inheritance; }
+        LayerInheritance getLayerInheritance() const { return _layerInheritance; }
+
         
     protected:
 
@@ -309,6 +320,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
         float                                       _numWriteThreadsToCoresRatio;
         
         std::string                                 _buildOptionsString;
+
+        LayerInheritance                            _layerInheritance;
 };
 
 }
