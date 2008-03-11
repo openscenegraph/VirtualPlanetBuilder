@@ -2340,7 +2340,7 @@ bool DataSet::createTileMap(unsigned int level, TilePairMap& tilepairMap)
         }
     }
 
-#if 0    
+#if 0
     for(TilePairMap::iterator itr = tilepairMap.begin();
         itr != tilepairMap.end();
         ++itr)
@@ -2348,7 +2348,7 @@ bool DataSet::createTileMap(unsigned int level, TilePairMap& tilepairMap)
         log(osg::NOTICE,"Level %d TilePair (%d, %d) %d",level, itr->first.first, itr->first.second, itr->second);
     }
 #endif
-    
+    return true;
 }
 
 bool DataSet::generateTasks(TaskManager* taskManager)
