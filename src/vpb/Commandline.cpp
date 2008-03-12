@@ -178,11 +178,14 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
     {
         if (min_level!=0 || max_level!=maximumPossibleLevel)
         {
-            osgTerrain::ImageLayer* layer = new osgTerrain::ImageLayer;
+            osgTerrain::ProxyLayer* layer = new osgTerrain::ProxyLayer;
             layer->setFileName(filename);
-            
+
             if (min_level!=0) layer->setMinLevel(min_level);
             if (max_level!=maximumPossibleLevel) layer->setMaxLevel(max_level);
+            
+            osg::notify(osg::NOTICE)<<"  layer->setMinLevel="<<layer->getMinLevel()<<std::endl;
+            osg::notify(osg::NOTICE)<<"  layer->setMaxLevel="<<layer->getMaxLevel()<<std::endl;
 
             compositeLayer->addLayer(layer);
         }
