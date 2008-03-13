@@ -326,7 +326,7 @@ void Machine::endedTask(Task* task)
             _taskStatsMap[taskType].logTime(duration);
         }
 
-        log(osg::NOTICE,"machine=%s completed task=%s in %f seconds",getHostName().c_str(),task->getFileName().c_str(),duration);
+        log(osg::NOTICE,"machine=%s completed task=%s in %.1f seconds",getHostName().c_str(),task->getFileName().c_str(),duration);
     }
     
     if (_machinePool) _machinePool->reportTimingStatus();
@@ -858,8 +858,43 @@ void MachinePool::reportTimingStatus()
     double numTaskPendingAcrossAllCores = (numTasksPending>0) ? ceil(double(numTasksPending) / double(numCores)) : 0;
     estimatedTimeOfLastCompletion += numTaskPendingAcrossAllCores*averageTaskTime;
     double estimateTimeToCompletion = estimatedTimeOfLastCompletion-currentTime;
+
+    double daysToCompletion = floor(estimateTimeToCompletion / (24.0*60.0*60.0) );
+    double secondsRemainder = estimateTimeToCompletion - daysToCompletion*24.0*60.0*60.0;
+    double hoursToCompletion = floor(secondsRemainder / (60.0*60.0));
+    secondsRemainder = secondsRemainder - hoursToCompletion*60.0*60.0;
     
-    log(osg::NOTICE,"Number of tasks completed %i, running %i, pending %i. Estimated time to completion %.1f seconds, %2.1f percent done.",numTasksCompleted, numTasksRunning, numTasksPending, estimateTimeToCompletion, 100.0*currentTime/estimatedTimeOfLastCompletion);
+    double minutesToCompletion = floor(secondsRemainder / 60.0);
+    secondsRemainder = secondsRemainder - minutesToCompletion*60.0;
+
+    if (daysToCompletion>0.0)
+    {
+        log(osg::NOTICE,"Number of tasks completed %i, running %i, pending %i. Estimated time to completion %d days, %d hours, %d minutes, %2.1f percent done.",
+            numTasksCompleted, numTasksRunning, numTasksPending, 
+            int(daysToCompletion), int(hoursToCompletion), int(minutesToCompletion),
+            100.0*currentTime/estimatedTimeOfLastCompletion);
+    }
+    else if (hoursToCompletion>0.0)
+    {
+        log(osg::NOTICE,"Number of tasks completed %i, running %i, pending %i. Estimated time to completion %d hours, %d minutes, %2.1f percent done.",
+            numTasksCompleted, numTasksRunning, numTasksPending, 
+            int(hoursToCompletion), int(minutesToCompletion),
+            100.0*currentTime/estimatedTimeOfLastCompletion);
+    }
+    else if (minutesToCompletion>0.0)
+    {
+        log(osg::NOTICE,"Number of tasks completed %i, running %i, pending %i. Estimated time to completion %d minutes, %d seconds, %2.1f percent done.",
+            numTasksCompleted, numTasksRunning, numTasksPending, 
+            int(minutesToCompletion),int(secondsRemainder),
+            100.0*currentTime/estimatedTimeOfLastCompletion);
+    }    
+    else
+    {
+        log(osg::NOTICE,"Number of tasks completed %i, running %i, pending %i. Estimated time to completion %d seconds, %2.1f percent done.",
+            numTasksCompleted, numTasksRunning, numTasksPending, 
+            int(secondsRemainder),
+            100.0*currentTime/estimatedTimeOfLastCompletion);
+    }
 
 }
 
