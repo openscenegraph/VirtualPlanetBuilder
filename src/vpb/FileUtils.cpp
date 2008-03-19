@@ -43,7 +43,7 @@
                                                                     return status;
                                                                   }
     int     vpb::chdir(const char *path)                          { return ::_chdir(path); }
-    char *  vpb::getcwd(char *path, int nbyte)                    { return ::_getcwd(path, nbyte); }
+    char *  vpb::getCurrentWorkingDirectory(char *path, int nbyte){ return ::_getcwd(path, nbyte); }
 
 #else // WIN32
 
@@ -67,7 +67,7 @@
     int     vpb::getdtablesize()                                  { return ::getdtablesize(); }
     int     vpb::mkdir(const char *path, int mode)                { return ::mkdir(path,mode); }
     int     vpb::chdir(const char *path)                          { return ::chdir(path); }
-    char *  vpb::getcwd(char *path, int nbyte)                    { return ::getcwd(path, nbyte); }
+    char *  vpb::getCurrentWorkingDirectory(char *path, int nbyte){ return ::getcwd(path, nbyte); }
 
 #endif  // WIN32
 

@@ -99,7 +99,7 @@ int main(int argc, char** argv)
 
             osg::notify(osg::NOTICE)<<"Error: osgdem running on \""<<vpb::getLocalHostName()<<"\", could not find source file \""<<sourceName<<"\""<<std::endl;
             char str[2048]; 
-            if (vpb::getcwd( str, sizeof(str) ))
+            if (vpb::getCurrentWorkingDirectory( str, sizeof(str) ))
             {
                 osg::notify(osg::NOTICE)<<"       current working directory at time of error = "<<str<<std::endl;
             }
