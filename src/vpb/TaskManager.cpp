@@ -37,7 +37,7 @@ TaskManager::TaskManager()
     _buildName = "build";
 
     char str[2048]; 
-    _runPath = getcwd ( str, sizeof(str));
+    _runPath = vpb::getcwd ( str, sizeof(str));
     
     _defaultSignalAction = COMPLETE_RUNNING_TASKS_THEN_EXIT;
 }
