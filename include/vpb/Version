@@ -20,7 +20,7 @@ extern "C" {
 
 #define VPB_VERSION_MAJOR       0
 #define VPB_VERSION_MINOR       9
-#define VPB_VERSION_PATCH       6
+#define VPB_VERSION_PATCH       7
 #define VPB_VERSION_SOVERSION   6
 
 /**
