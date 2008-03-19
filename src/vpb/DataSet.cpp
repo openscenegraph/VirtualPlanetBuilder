@@ -1115,6 +1115,8 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     // then create the destination graph accordingly.
     if (getBuildOptionsString().find("old_dg")!=std::string::npos)
     {
+        log(osg::NOTICE,"Old DataSet::createDestinationGraph() selected"); 
+    
         _destinationGraph = createDestinationGraph(0,
                                                    _intermediateCoordinateSystem.get(),
                                                    _destinationExtents,
