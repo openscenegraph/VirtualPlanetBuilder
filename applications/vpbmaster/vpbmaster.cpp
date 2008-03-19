@@ -52,7 +52,7 @@ int main(int argc, char** argv)
     std::string runPath;
     if (arguments.read("--run-path",runPath))
     {
-        chdir(runPath.c_str());
+        vpb::chdir(runPath.c_str());
     }
 
     // if user request help write it out to cout.

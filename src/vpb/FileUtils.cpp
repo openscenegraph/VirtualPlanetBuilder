@@ -42,6 +42,8 @@
                                                                     if (status == 0) status = ::chmod(path, mode);
                                                                     return status;
                                                                   }
+    int     vpb::chdir(const char *path)                          { return ::_chdir(path); }
+    char *  vpb::getcwd(char *path, int nbyte)                    { return ::_getcwd(path, nbyte); }
 
 #else // WIN32
 
@@ -64,6 +66,8 @@
     int     vpb::gethostname(char *name, size_t namelen)          { return ::gethostname(name, namelen); }
     int     vpb::getdtablesize()                                  { return ::getdtablesize(); }
     int     vpb::mkdir(const char *path, int mode)                { return ::mkdir(path,mode); }
+    int     vpb::chdir(const char *path)                          { return ::chdir(path); }
+    char *  vpb::getcwd(char *path, int nbyte)                    { return ::getcwd(path, nbyte); }
 
 #endif  // WIN32
 
