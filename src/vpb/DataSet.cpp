@@ -705,7 +705,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
 
     osg::Timer_t before_computeMax = osg::Timer::instance()->tick();
 
-    _destinationGraph->computeMaximumSourceResolution();
+    if (_destinationGraph.valid()) _destinationGraph->computeMaximumSourceResolution();
 
     osg::Timer_t after_computeMax = osg::Timer::instance()->tick();
 
@@ -1141,7 +1141,7 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
 
 
     // now traverse the destination graph to build neighbours.        
-    _destinationGraph->computeNeighboursFromQuadMap();
+    if (_destinationGraph.valid()) _destinationGraph->computeNeighboursFromQuadMap();
 
     osg::Timer_t after_computeNeighbours = osg::Timer::instance()->tick();
 
@@ -2795,6 +2795,13 @@ int DataSet::_run()
 
     createDestination(numLevels);
     
+    if (!_destinationGraph)
+    {
+        log(osg::WARN, "Error: no destination graph built, cannot proceed with build.");
+        return 1;
+    }
+
+
     bool requiresGenerationOfTiles = getGenerateTiles();
     
     if (!getIntermediateBuildName().empty())
