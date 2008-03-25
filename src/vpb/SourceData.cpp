@@ -929,14 +929,15 @@ void SourceData::readHeightField(DestinationData& destination)
                 float scale = bandSelected->GetScale(&success);
                 if (success)
                 {
-                    log(osg::INFO,"We have Scale = %f",scale);
+                    log(osg::INFO,"We have Scale from GDALRasterBand = %f",scale);
                 }
-                else
-                {
-                    scale = destination._dataSet->getVerticalScale();
-                    log(osg::INFO,"We have no Scale from file so use DataSet vertical scale of %f",scale);
 
-                }
+                float datasetScale = destination._dataSet->getVerticalScale();
+                log(osg::INFO,"We have Scale from DataSet = %f",datasetScale);
+
+                scale *= datasetScale;
+                log(osg::INFO,"We have total scale = %f",scale);
+
 
                 log(osg::INFO,"********* getLinearUnits = %f",getLinearUnits(_cs.get()));
 
