@@ -60,6 +60,9 @@ IF(UNIX)
     FIND_LIBRARY(MATH_LIBRARY m)
 ENDIF(UNIX)
     
+FIND_PACKAGE(CURL)
+
+
 # Make the headers visible to everything
 INCLUDE_DIRECTORIES(
     ${VIRTUALPLANETBUILDER_SOURCE_DIR}/include
@@ -220,7 +223,7 @@ ENDIF(APPLE)
 # This needs to be run very last so other parts of the scripts can take
 # advantage of this.
 IF(NOT VPB_CONFIG_HAS_BEEN_RUN_BEFORE)
-    SET(VOB_CONFIG_HAS_BEEN_RUN_BEFORE 1 CACHE INTERNAL "Flag to track whether this is the first time running CMake or if CMake has been configured before")
+    SET(VPB_CONFIG_HAS_BEEN_RUN_BEFORE 1 CACHE INTERNAL "Flag to track whether this is the first time running CMake or if CMake has been configured before")
 ENDIF(NOT VPB_CONFIG_HAS_BEEN_RUN_BEFORE)
 
 

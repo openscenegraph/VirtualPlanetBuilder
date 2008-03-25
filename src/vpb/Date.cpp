@@ -17,6 +17,10 @@
 
 #include <time.h>
 
+// for struct stat
+#include <sys/types.h>
+#include <sys/stat.h> 
+
 using namespace vpb;
 
 bool Date::setWithDateOfLastModification(const std::string& filename)
