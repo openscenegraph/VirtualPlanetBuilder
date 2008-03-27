@@ -48,7 +48,7 @@ int main(int argc, char** argv)
     }
 
     // read any source input definitions
-    osg::ref_ptr<osgTerrain::Terrain> terrain = new osgTerrain::Terrain;
+    osg::ref_ptr<osgTerrain::TerrainTile> terrain = new osgTerrain::TerrainTile;
 
     std::string filename;
     if (arguments.read("-s",filename))
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
         osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(filename);
         if (node.valid())
         {
-            osgTerrain::Terrain* loaded_terrain = dynamic_cast<osgTerrain::Terrain*>(node.get());
+            osgTerrain::TerrainTile* loaded_terrain = dynamic_cast<osgTerrain::TerrainTile*>(node.get());
             if (loaded_terrain) 
             {
                 terrain = loaded_terrain;

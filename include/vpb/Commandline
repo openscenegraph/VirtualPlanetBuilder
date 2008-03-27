@@ -12,7 +12,7 @@
 */
 
 #include <osg/ArgumentParser>
-#include <osgTerrain/Terrain>
+#include <osgTerrain/TerrainTile>
 
 #include <vpb/Source>
 #include <vpb/BuildOptions>
@@ -42,20 +42,20 @@ class VPB_EXPORT Commandline
 
         void getUsage(osg::ApplicationUsage& usage);
             
-        int read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrainInput);
+        int read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::TerrainTile* terrainInput);
 
     protected:
     
         unsigned int readMask(const std::string& maskstring);
     
-        osg::ref_ptr<osgTerrain::Terrain> terrain;
-        osg::ref_ptr<BuildOptions>        buildOptions; 
+        osg::ref_ptr<osgTerrain::TerrainTile>   terrainTile;
+        osg::ref_ptr<BuildOptions>              buildOptions; 
     
-        vpb::SpatialProperties::DataType dataType;
-        std::string currentCS;
-        osg::Matrixd geoTransform;
-        bool geoTransformSet;
-        bool geoTransformScale;
+        vpb::SpatialProperties::DataType        dataType;
+        std::string                             currentCS;
+        osg::Matrixd                            geoTransform;
+        bool                                    geoTransformSet;
+        bool                                    geoTransformScale;
 
         bool minmaxLevelSet;
         unsigned int maximumPossibleLevel;

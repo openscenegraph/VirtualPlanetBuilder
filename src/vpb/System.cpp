@@ -338,7 +338,7 @@ GeospatialDataset* System::openOptimumGeospatialDataset(const std::string& filen
     }
 }
 
-bool System::getDateOfLastModification(osgTerrain::Terrain* source, Date& date)
+bool System::getDateOfLastModification(osgTerrain::TerrainTile* source, Date& date)
 {
     typedef std::list<osgTerrain::Layer*> Layers;
     Layers layers;

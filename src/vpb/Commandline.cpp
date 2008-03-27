@@ -105,7 +105,7 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
 
     if (type==vpb::Source::IMAGE)
     {
-        existingLayer = (layerNum < terrain->getNumColorLayers()) ? terrain->getColorLayer(layerNum) : 0;
+        existingLayer = (layerNum < terrainTile->getNumColorLayers()) ? terrainTile->getColorLayer(layerNum) : 0;
         compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
 
         if (!compositeLayer)
@@ -113,12 +113,12 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
             compositeLayer = new osgTerrain::CompositeLayer;
             if (existingLayer) compositeLayer->addLayer(existingLayer);
 
-            terrain->setColorLayer(layerNum, compositeLayer);
+            terrainTile->setColorLayer(layerNum, compositeLayer);
         }
     }
     else if (type==vpb::Source::HEIGHT_FIELD)
     {
-        existingLayer = terrain->getElevationLayer();
+        existingLayer = terrainTile->getElevationLayer();
         compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
 
         if (!compositeLayer)
@@ -126,7 +126,7 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
             compositeLayer = new osgTerrain::CompositeLayer;
             if (existingLayer) compositeLayer->addLayer(existingLayer);
 
-            terrain->setElevationLayer(compositeLayer);
+            terrainTile->setElevationLayer(compositeLayer);
         }
     }
 
@@ -346,7 +346,7 @@ void Commandline::processShapeFile(vpb::Source::Type type, const std::string& fi
         }
 
 
-        terrain->addChild(model.get());
+        terrainTile->addChild(model.get());
     }
     else
     {
@@ -384,7 +384,7 @@ void Commandline::processModel(const std::string& filename)
         model->setName(filename);
         model->addDescription("MODEL");
 
-        terrain->addChild(model.get());
+        terrainTile->addChild(model.get());
     }
     else
     {
@@ -498,15 +498,15 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--no-interpolate-imagery","Disable the use of interpolation when sampling data from source imagery.");
 }
 
-int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::Terrain* terrainInput)
+int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::TerrainTile* terrainInput)
 {
-    terrain = terrainInput;
+    terrainTile = terrainInput;
 
-    vpb::DatabaseBuilder* databaseBuilder = dynamic_cast<vpb::DatabaseBuilder*>(terrain->getTerrainTechnique());
+    vpb::DatabaseBuilder* databaseBuilder = dynamic_cast<vpb::DatabaseBuilder*>(terrainTile->getTerrainTechnique());
     if (!databaseBuilder) 
     {
         databaseBuilder = new vpb::DatabaseBuilder;
-        terrain->setTerrainTechnique(databaseBuilder);
+        terrainTile->setTerrainTechnique(databaseBuilder);
     }
     
     buildOptions = databaseBuilder->getBuildOptions();

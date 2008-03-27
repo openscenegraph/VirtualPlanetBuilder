@@ -27,7 +27,7 @@
 
 #include <osg/CoordinateSystemNode>
 
-#include <osgTerrain/Terrain>
+#include <osgTerrain/TerrainTile>
 
 #include <osgDB/Archive>
 
@@ -108,9 +108,9 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         
         bool addModel(Source::Type type, osg::Node* node);
         bool addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum);
-        bool addTerrain(osgTerrain::Terrain* terrain);
+        bool addTerrain(osgTerrain::TerrainTile* terrain);
         
-        osgTerrain::Terrain* createTerrainRepresentation();
+        osgTerrain::TerrainTile* createTerrainRepresentation();
         
         void loadSources();
         

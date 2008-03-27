@@ -230,7 +230,7 @@ int DataSet::computeMaximumLevel(int maxNumLevels)
         if (source->getType()!=Source::IMAGE && source->getType()!=Source::HEIGHT_FIELD)
         {
             // place models and shapefiles into a separate temporary source list and then process these after
-            // the main handling of terrain/imagery sources.
+            // the main handling of terrainTile/imagery sources.
             continue;
             
         }
@@ -1506,10 +1506,10 @@ public:
 
     virtual void apply(osg::Group& group)
     {
-        osgTerrain::Terrain* terrain = dynamic_cast<osgTerrain::Terrain*>(&group);
-        if (terrain)
+        osgTerrain::TerrainTile* terrainTile = dynamic_cast<osgTerrain::TerrainTile*>(&group);
+        if (terrainTile)
         {
-            applyTerrain(*terrain);
+            applyTerrain(*terrainTile);
         }
         else
         {
@@ -1517,9 +1517,9 @@ public:
         }
     }
 
-    void applyTerrain(osgTerrain::Terrain& terrain)
+    void applyTerrain(osgTerrain::TerrainTile& terrainTile)
     {
-        if (terrain.getStateSet()) apply(*(terrain.getStateSet()));
+        if (terrainTile.getStateSet()) apply(*(terrainTile.getStateSet()));
         
         // need to iterator through images stored in layers
     }
@@ -2056,38 +2056,38 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
     return false;
 }
 
-bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
+bool DataSet::addTerrain(osgTerrain::TerrainTile* terrainTile)
 {
-    log(osg::NOTICE,"Adding terrain %s",terrain->getName().c_str());
+    log(osg::NOTICE,"Adding terrainTile %s",terrainTile->getName().c_str());
 
-    if (terrain->getLocator())
+    if (terrainTile->getLocator())
     {
     }
  
-    vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(terrain->getTerrainTechnique());
+    vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(terrainTile->getTerrainTechnique());
     if (db && db->getBuildOptions())
     {
         setBuildOptions(*(db->getBuildOptions()));
     }
 
-    if (terrain->getElevationLayer())
+    if (terrainTile->getElevationLayer())
     {
-        addLayer(vpb::Source::HEIGHT_FIELD, terrain->getElevationLayer(), 0);
+        addLayer(vpb::Source::HEIGHT_FIELD, terrainTile->getElevationLayer(), 0);
     }
 
-    for(unsigned int i=0; i<terrain->getNumColorLayers();++i)
+    for(unsigned int i=0; i<terrainTile->getNumColorLayers();++i)
     {
-        osgTerrain::Layer* layer = terrain->getColorLayer(i);
+        osgTerrain::Layer* layer = terrainTile->getColorLayer(i);
         if (layer) 
         {
             addLayer(vpb::Source::IMAGE, layer, i);
         }
     }
     
-    for(unsigned int ci=0; ci<terrain->getNumChildren(); ++ci)
+    for(unsigned int ci=0; ci<terrainTile->getNumChildren(); ++ci)
     {
     
-        osg::Node* model = terrain->getChild(ci);
+        osg::Node* model = terrainTile->getChild(ci);
     
         osg::notify(osg::NOTICE)<<"Adding model"<<model->getName()<<std::endl;
 
@@ -2104,9 +2104,9 @@ bool DataSet::addTerrain(osgTerrain::Terrain* terrain)
     return true;
 }
 
-osgTerrain::Terrain* DataSet::createTerrainRepresentation()
+osgTerrain::TerrainTile* DataSet::createTerrainRepresentation()
 {
-    osg::ref_ptr<osgTerrain::Terrain> terrain = new osgTerrain::Terrain;
+    osg::ref_ptr<osgTerrain::TerrainTile> terrainTile = new osgTerrain::TerrainTile;
 
     for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
     {
@@ -2154,7 +2154,7 @@ osgTerrain::Terrain* DataSet::createTerrainRepresentation()
         
             if (source->getType()==Source::IMAGE)
             {
-                osgTerrain::Layer* existingLayer = (layerNum < terrain->getNumColorLayers()) ? terrain->getColorLayer(layerNum) : 0;
+                osgTerrain::Layer* existingLayer = (layerNum < terrainTile->getNumColorLayers()) ? terrainTile->getColorLayer(layerNum) : 0;
                 osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
 
                 if (compositeLayer)
@@ -2167,16 +2167,16 @@ osgTerrain::Terrain* DataSet::createTerrainRepresentation()
                     compositeLayer->addLayer( existingLayer );
                     compositeLayer->addLayer( loadedLayer );
 
-                    terrain->setColorLayer(layerNum, compositeLayer);
+                    terrainTile->setColorLayer(layerNum, compositeLayer);
                 }
                 else
                 {
-                    terrain->setColorLayer(layerNum, loadedLayer);
+                    terrainTile->setColorLayer(layerNum, loadedLayer);
                 }
             }
             else if (source->getType()==Source::HEIGHT_FIELD)
             {
-                osgTerrain::Layer* existingLayer = terrain->getElevationLayer();
+                osgTerrain::Layer* existingLayer = terrainTile->getElevationLayer();
                 osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
 
                 if (compositeLayer)
@@ -2189,11 +2189,11 @@ osgTerrain::Terrain* DataSet::createTerrainRepresentation()
                     compositeLayer->addLayer( existingLayer );
                     compositeLayer->addLayer( loadedLayer );
 
-                    terrain->setElevationLayer(compositeLayer);
+                    terrainTile->setElevationLayer(compositeLayer);
                 }
                 else
                 {
-                    terrain->setElevationLayer(loadedLayer);
+                    terrainTile->setElevationLayer(loadedLayer);
                 }
             }
         }
@@ -2202,9 +2202,9 @@ osgTerrain::Terrain* DataSet::createTerrainRepresentation()
     osg::ref_ptr<DatabaseBuilder> builder = new DatabaseBuilder;
     builder->setBuildOptions(new BuildOptions(*this));
     builder->setBuildLog(getBuildLog());
-    terrain->setTerrainTechnique(builder.get());
+    terrainTile->setTerrainTechnique(builder.get());
 
-    return terrain.release();
+    return terrainTile.release();
 }
 
 class MyGraphicsContext : public osg::Referenced {
@@ -2808,15 +2808,15 @@ int DataSet::_run()
     
     if (!getIntermediateBuildName().empty())
     {
-        osg::ref_ptr<osgTerrain::Terrain> terrain = createTerrainRepresentation();
-        if (terrain.valid())
+        osg::ref_ptr<osgTerrain::TerrainTile> terrainTile = createTerrainRepresentation();
+        if (terrainTile.valid())
         {
-            DatabaseBuilder* db = dynamic_cast<DatabaseBuilder*>(terrain->getTerrainTechnique());
+            DatabaseBuilder* db = dynamic_cast<DatabaseBuilder*>(terrainTile->getTerrainTechnique());
             if (db && db->getBuildOptions()) 
             {
                 db->getBuildOptions()->setIntermediateBuildName("");
             }
-            osgDB::writeNodeFile(*terrain,getIntermediateBuildName());
+            osgDB::writeNodeFile(*terrainTile,getIntermediateBuildName());
             requiresGenerationOfTiles = false;
         }
     }

@@ -88,7 +88,7 @@ int TaskManager::read(osg::ArgumentParser& arguments)
         readSource(sourceName);
     }
     
-    if (!_terrain) _terrain = new osgTerrain::Terrain;
+    if (!_terrainTile) _terrainTile = new osgTerrain::TerrainTile;
 
     std::string terrainOutputName;
     while (arguments.read("--so",terrainOutputName)) {}
@@ -97,16 +97,16 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     Commandline commandlineParser;
     
 
-    int result = commandlineParser.read(std::cout, arguments, _terrain.get());
+    int result = commandlineParser.read(std::cout, arguments, _terrainTile.get());
     if (result) return result;
     
     while (arguments.read("--build-name",_buildName)) {}
     
     if (!terrainOutputName.empty())
     {
-        if (_terrain.valid())
+        if (_terrainTile.valid())
         {
-            osgDB::writeNodeFile(*_terrain, terrainOutputName);
+            osgDB::writeNodeFile(*_terrainTile, terrainOutputName);
             
             // make sure the changes are written to disk.
             vpb::sync();
@@ -133,14 +133,14 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     return 0;
 }
 
-void TaskManager::setSource(osgTerrain::Terrain* terrain)
+void TaskManager::setSource(osgTerrain::TerrainTile* terrainTile)
 {
-    _terrain = terrain;
+    _terrainTile = terrainTile;
 }
 
-osgTerrain::Terrain* TaskManager::getSource()
+osgTerrain::TerrainTile* TaskManager::getSource()
 {
-    return _terrain.get();
+    return _terrainTile.get();
 }
 
 void TaskManager::nextTaskSet()
@@ -183,13 +183,13 @@ std::string TaskManager::createUniqueTaskFileName(const std::string application)
 void TaskManager::buildWithoutSlaves()
 {
 
-    if (_terrain.valid())
+    if (_terrainTile.valid())
     {
         try 
         {
             osg::ref_ptr<vpb::DataSet> dataset = new vpb::DataSet;
 
-            vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrain->getTerrainTechnique());
+            vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrainTile->getTerrainTechnique());
             vpb::BuildOptions* bo = db ? db->getBuildOptions() : 0;
 
             if (bo && !(bo->getLogFileName().empty()))
@@ -202,7 +202,7 @@ void TaskManager::buildWithoutSlaves()
                 dataset->setTask(_taskFile.get());
             }
 
-            dataset->addTerrain(_terrain.get());
+            dataset->addTerrain(_terrainTile.get());
 
             int result = dataset->run();
 
@@ -224,13 +224,13 @@ bool TaskManager::generateTasksFromSource()
 {
     bool result = false;
     
-    if (_terrain.valid())
+    if (_terrainTile.valid())
     {
         try 
         {
             osg::ref_ptr<vpb::DataSet> dataset = new vpb::DataSet;
 
-            vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrain->getTerrainTechnique());
+            vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrainTile->getTerrainTechnique());
             vpb::BuildOptions* bo = db ? db->getBuildOptions() : 0;
 
             if (bo && !(bo->getLogFileName().empty()))
@@ -243,7 +243,7 @@ bool TaskManager::generateTasksFromSource()
                 dataset->setTask(_taskFile.get());
             }
 
-            dataset->addTerrain(_terrain.get());
+            dataset->addTerrain(_terrainTile.get());
             
             if (dataset->requiresReprojection())
             {
@@ -438,11 +438,11 @@ bool TaskManager::run()
 
 bool TaskManager::writeSource(const std::string& filename)
 {
-    if (_terrain.valid())
+    if (_terrainTile.valid())
     {
         _sourceFileName = filename;
     
-        osgDB::writeNodeFile(*_terrain, _sourceFileName);
+        osgDB::writeNodeFile(*_terrainTile, _sourceFileName);
 
         // make sure the OS writes the file to disk
         vpb::sync();
@@ -460,11 +460,11 @@ bool TaskManager::readSource(const std::string& filename)
     osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(filename);
     if (node.valid())
     {
-        osgTerrain::Terrain* loaded_terrain = dynamic_cast<osgTerrain::Terrain*>(node.get());
+        osgTerrain::TerrainTile* loaded_terrain = dynamic_cast<osgTerrain::TerrainTile*>(node.get());
         if (loaded_terrain) 
         {
             _sourceFileName = filename;
-            _terrain = loaded_terrain;
+            _terrainTile = loaded_terrain;
             return true;
         }
         else
@@ -676,7 +676,7 @@ bool TaskManager::writeTasks(const std::string& filename, bool asFileNames)
 
 BuildOptions* TaskManager::getBuildOptions()
 {
-    vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrain->getTerrainTechnique());
+    vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrainTile->getTerrainTechnique());
     return db ? db->getBuildOptions() : 0;
 }
 
@@ -718,10 +718,10 @@ void TaskManager::setOutOfDateTasksToPending()
                             if (sourceFileLastModified < buildDate)
                             {
                                 osg::ref_ptr<osg::Node> loadedModel = osgDB::readNodeFile(sourceFile);
-                                osgTerrain::Terrain* terrain = dynamic_cast<osgTerrain::Terrain*>(loadedModel.get());
-                                if (terrain)
+                                osgTerrain::TerrainTile* terrainTile = dynamic_cast<osgTerrain::TerrainTile*>(loadedModel.get());
+                                if (terrainTile)
                                 {
-                                    System::instance()->getDateOfLastModification(terrain, sourceFileLastModified);
+                                    System::instance()->getDateOfLastModification(terrainTile, sourceFileLastModified);
                                 }
                             }
                         

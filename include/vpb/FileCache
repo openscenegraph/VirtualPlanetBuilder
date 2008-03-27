@@ -15,7 +15,7 @@
 #define FILECACHE_H 1
 
 #include <osgDB/FileUtils>
-#include <osgTerrain/Terrain>
+#include <osgTerrain/TerrainTile>
 
 #include <OpenThreads/Mutex>
 
@@ -73,16 +73,16 @@ class VPB_EXPORT FileCache : public osg::Object
         void clear();
         
         /** add FileDetails for each source file in specified source.*/
-        void addSource(osgTerrain::Terrain* source);
+        void addSource(osgTerrain::TerrainTile* source);
         
         /** reproject any source files to the coordinate system required to build the specified source.*/
-        void buildRequiredReprojections(osgTerrain::Terrain* source);
+        void buildRequiredReprojections(osgTerrain::TerrainTile* source);
 
         /** build overview levels for each source file.*/
-        void buildOverviews(osgTerrain::Terrain* source);
+        void buildOverviews(osgTerrain::TerrainTile* source);
         
         /** copy files from the master to the specified machine's cache directory.*/
-        void mirror(Machine* machine, osgTerrain::Terrain* source);
+        void mirror(Machine* machine, osgTerrain::TerrainTile* source);
         
         /** copy and individual file to specificed machines local cache.*/
         bool copyFileToMachine(FileDetails* fd, Machine* machine);

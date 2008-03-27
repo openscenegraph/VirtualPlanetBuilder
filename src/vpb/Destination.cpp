@@ -1450,8 +1450,8 @@ osg::Node* DestinationTile::createTerrainTile()
     hf->setSkirtHeight(radius*_dataSet->getSkirtRatio());
 
     // create the terrain node that we'll hang the height field off
-    osgTerrain::Terrain* terrain = new osgTerrain::Terrain;
-    terrain->setLocator(locator);    
+    osgTerrain::TerrainTile* terrainTile = new osgTerrain::TerrainTile;
+    terrainTile->setLocator(locator);    
 
 
     // assign height field
@@ -1460,7 +1460,7 @@ osg::Node* DestinationTile::createTerrainTile()
         hfLayer->setHeightField(hf);
         hfLayer->setLocator(locator);
         
-        terrain->setElevationLayer(hfLayer);
+        terrainTile->setElevationLayer(hfLayer);
     }
     
 
@@ -1478,7 +1478,7 @@ osg::Node* DestinationTile::createTerrainTile()
             imageLayer->setImage(image);
             imageLayer->setLocator(locator);
 
-            terrain->setColorLayer(layerNum, imageLayer);
+            terrainTile->setColorLayer(layerNum, imageLayer);
         }
     }
 
@@ -1492,7 +1492,7 @@ osg::Node* DestinationTile::createTerrainTile()
                 layerNum<_dataSet->getNumOfTextureLevels() && layer==0;
                 ++layerNum)
             {
-                layer = terrain->getColorLayer(layerNum);
+                layer = terrainTile->getColorLayer(layerNum);
             }
 
             if (layer)
@@ -1502,9 +1502,9 @@ osg::Node* DestinationTile::createTerrainTile()
                     layerNum<_dataSet->getNumOfTextureLevels();
                     ++layerNum)
                 {
-                    if (!terrain->getColorLayer(layerNum))
+                    if (!terrainTile->getColorLayer(layerNum))
                     {
-                        terrain->setColorLayer(layerNum,layer);
+                        terrainTile->setColorLayer(layerNum,layer);
                     }
                 }
             }
@@ -1518,9 +1518,9 @@ osg::Node* DestinationTile::createTerrainTile()
                 layerNum<_dataSet->getNumOfTextureLevels();
                 ++layerNum)
             {
-                osgTerrain::Layer* localLayer = terrain->getColorLayer(layerNum);
+                osgTerrain::Layer* localLayer = terrainTile->getColorLayer(layerNum);
                 if (localLayer) layer = localLayer;
-                else if (layer) terrain->setColorLayer(layerNum, layer);
+                else if (layer) terrainTile->setColorLayer(layerNum, layer);
                 else ++noBlanks;
             }
         
@@ -1531,9 +1531,9 @@ osg::Node* DestinationTile::createTerrainTile()
                     layerNum>=0;
                     --layerNum)
                 {
-                    osgTerrain::Layer* localLayer = terrain->getColorLayer(layerNum);
+                    osgTerrain::Layer* localLayer = terrainTile->getColorLayer(layerNum);
                     if (localLayer) layer = localLayer;
-                    else if (layer) terrain->setColorLayer(layerNum, layer);
+                    else if (layer) terrainTile->setColorLayer(layerNum, layer);
                 }
             }
             break;
@@ -1548,12 +1548,12 @@ osg::Node* DestinationTile::createTerrainTile()
     
     // assign the terrain technique that will be used to render the terrain tile.
     osgTerrain::GeometryTechnique* gt = new osgTerrain::GeometryTechnique;
-    terrain->setTerrainTechnique(gt);
+    terrainTile->setTerrainTechnique(gt);
     
     // assign cluster culling callback to terrain
-    terrain->setCullCallback(createClusterCullingCallback());
+    terrainTile->setCullCallback(createClusterCullingCallback());
     
-    return terrain;
+    return terrainTile;
 }
 
 

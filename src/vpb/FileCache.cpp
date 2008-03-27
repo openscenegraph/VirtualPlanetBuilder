@@ -461,7 +461,7 @@ void FileCache::clear()
     log(osg::NOTICE,"FileCache::clear()");
 }
 
-void FileCache::addSource(osgTerrain::Terrain* source)
+void FileCache::addSource(osgTerrain::TerrainTile* source)
 {
     if (!source) return;
 
@@ -486,7 +486,7 @@ void FileCache::addSource(osgTerrain::Terrain* source)
     log(osg::NOTICE,"FileCache::addSource()");
 }
 
-void FileCache::buildRequiredReprojections(osgTerrain::Terrain* source)
+void FileCache::buildRequiredReprojections(osgTerrain::TerrainTile* source)
 {
     if (!source) return;
 
@@ -552,7 +552,7 @@ void FileCache::buildRequiredReprojections(osgTerrain::Terrain* source)
 }
 
 
-void FileCache::buildOverviews(osgTerrain::Terrain* source)
+void FileCache::buildOverviews(osgTerrain::TerrainTile* source)
 {
 
     log(osg::NOTICE,"FileCache::buildOverviews()");
@@ -639,7 +639,7 @@ void FileCache::buildOverviews(osgTerrain::Terrain* source)
 
 }
 
-void FileCache::mirror(Machine* machine, osgTerrain::Terrain* source)
+void FileCache::mirror(Machine* machine, osgTerrain::TerrainTile* source)
 {
     log(osg::NOTICE,"FileCache::mirror(%s)",machine->getHostName().c_str());
 

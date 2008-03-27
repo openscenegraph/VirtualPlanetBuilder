@@ -37,8 +37,8 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         /** initialize the TaskManager from application arguments and get process, host details.*/
         int read(osg::ArgumentParser& arguments);
 
-        void setSource(osgTerrain::Terrain* terrain);
-        osgTerrain::Terrain* getSource();
+        void setSource(osgTerrain::TerrainTile* terrain);
+        osgTerrain::TerrainTile* getSource();
 
         /** start a new set of tasks.*/
         void nextTaskSet();
@@ -143,13 +143,13 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         
         static void signalHandler(int sig);
         
-        std::string                         _runPath;
-        std::string                         _buildName;
+        std::string                             _runPath;
+        std::string                             _buildName;
 
-        osg::ref_ptr<Task>                  _taskFile;
+        osg::ref_ptr<Task>                      _taskFile;
         
-        std::string                         _sourceFileName;
-        osg::ref_ptr<osgTerrain::Terrain>   _terrain;
+        std::string                             _sourceFileName;
+        osg::ref_ptr<osgTerrain::TerrainTile>   _terrainTile;
         
         std::string                         _tasksFileName;
         TaskSetList                         _taskSetList;

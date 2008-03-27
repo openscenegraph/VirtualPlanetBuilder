@@ -85,7 +85,7 @@ int main(int argc, char** argv)
     }
 
 
-    osg::ref_ptr<osgTerrain::Terrain> terrain = 0;
+    osg::ref_ptr<osgTerrain::TerrainTile> terrain = 0;
 
 
     //std::cout<<"PID="<<getpid()<<std::endl;
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
         osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(fileName);
         if (node.valid())
         {
-            osgTerrain::Terrain* loaded_terrain = dynamic_cast<osgTerrain::Terrain*>(node.get());
+            osgTerrain::TerrainTile* loaded_terrain = dynamic_cast<osgTerrain::TerrainTile*>(node.get());
             if (loaded_terrain) 
             {
                 terrain = loaded_terrain;
@@ -163,7 +163,7 @@ int main(int argc, char** argv)
         }
     }
     
-    if (!terrain) terrain = new osgTerrain::Terrain;
+    if (!terrain) terrain = new osgTerrain::TerrainTile;
 
     std::string terrainOutputName;
     while (arguments.read("--so",terrainOutputName)) {}
