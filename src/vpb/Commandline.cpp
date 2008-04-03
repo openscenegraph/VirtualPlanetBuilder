@@ -659,7 +659,12 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
 
 
     std::string archiveName;
-    while (arguments.read("-a",archiveName)) { buildOptions->setArchiveName(archiveName); }
+    while (arguments.read("-a",archiveName))
+    {
+        osg::notify(osg::NOTICE)<<"Warning: archive option -a is temporarily disabled, building with archive."<<std::endl;
+        
+        // buildOptions->setArchiveName(archiveName);
+    }
 
     unsigned int numLevels = 10;
     while (arguments.read("-l",numLevels)) { buildOptions->setMaximumNumOfLevels(numLevels); }
