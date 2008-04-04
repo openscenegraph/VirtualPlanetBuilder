@@ -24,6 +24,7 @@
 #include <osgDB/ReadFile>
 #include <osgDB/FileNameUtils>
 
+#include <cpl_string.h>
 #include <gdal_priv.h>
 #include <gdalwarper.h>
 #include <ogr_spatialref.h>
