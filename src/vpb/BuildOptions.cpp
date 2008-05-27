@@ -196,13 +196,16 @@ void BuildOptions::setDestinationCoordinateSystem(const std::string& wellKnownTe
 
 void BuildOptions::setDestinationCoordinateSystemNode(osg::CoordinateSystemNode* cs)
 {
+    // Keep any settings from the already configured ellipsoid model
+    osg::ref_ptr<osg::EllipsoidModel> configuredEllipsoid = _destinationCoordinateSystem->getEllipsoidModel();
+
     _destinationCoordinateSystem = cs;
     
     if (_destinationCoordinateSystem.valid())
     {
         if (_destinationCoordinateSystem->getEllipsoidModel()==0)
         {
-            _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
+            _destinationCoordinateSystem->setEllipsoidModel( configuredEllipsoid.get() ? configuredEllipsoid.get() : new osg::EllipsoidModel);
         }
         
         _destinationCoordinateSystemString = _destinationCoordinateSystem->getCoordinateSystem();

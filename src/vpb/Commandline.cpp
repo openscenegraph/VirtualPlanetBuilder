@@ -459,8 +459,8 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--bluemarble-west","Set the coordinates system for next texture or dem to represent the western hemisphere of the earth.");     
     usage.addCommandLineOption("--whole-globe","Set the coordinates system for next texture or dem to represent the whole hemisphere of the earth.");
     usage.addCommandLineOption("--geocentric","Build a database in geocentric (i.e. whole earth) database.");
-    usage.addCommandLineOption("--radius-polar","Set the polar radius of the ellipsoid model when building a geocentric database.");
-    usage.addCommandLineOption("--radius-equator","Set the polar radius of the ellipsoid model when building a geocentric database.");
+    usage.addCommandLineOption("--radius-polar","Set the polar radius of the ellipsoid model when building a geocentric database.", "6356752.3142");
+    usage.addCommandLineOption("--radius-equator","Set the polar radius of the ellipsoid model when building a geocentric database.", "6378137");
     usage.addCommandLineOption("--spherical","Set the polar and equator radius both to the average of the two.");
     usage.addCommandLineOption("--range","");     
     usage.addCommandLineOption("--xx","");     
