@@ -5,7 +5,7 @@
 #  NAME of the variables, so the macro gets as arguments the target name and the following list of parameters
 #  is intended as a list of variable names each one containing  the path of the libraries to link to
 #  The existance of a varibale name with _DEBUG appended is tested and, in case it' s value is used
-#  for linking to when in debug mode 
+#  for linking to when in debug mode
 #  the content of this library for linking when in debugging
 #######################################################################################################
 
@@ -21,9 +21,13 @@ MACRO(LINK_WITH_VARIABLES TRGTNAME)
 ENDMACRO(LINK_WITH_VARIABLES TRGTNAME)
 
 MACRO(LINK_INTERNAL TRGTNAME)
-    FOREACH(LINKLIB ${ARGN})
-        TARGET_LINK_LIBRARIES(${TRGTNAME} optimized "${LINKLIB}" debug "${LINKLIB}${CMAKE_DEBUG_POSTFIX}")
-    ENDFOREACH(LINKLIB)
+    IF(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} GREATER 4)
+        TARGET_LINK_LIBRARIES(${TRGTNAME} ${ARGN})
+    ELSE(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} GREATER 4)
+        FOREACH(LINKLIB ${ARGN})
+            TARGET_LINK_LIBRARIES(${TRGTNAME} optimized "${LINKLIB}" debug "${LINKLIB}${CMAKE_DEBUG_POSTFIX}")
+        ENDFOREACH(LINKLIB)
+    ENDIF(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} GREATER 4)
 ENDMACRO(LINK_INTERNAL TRGTNAME)
 
 MACRO(LINK_EXTERNAL TRGTNAME)
@@ -38,7 +42,7 @@ ENDMACRO(LINK_EXTERNAL TRGTNAME)
 #######################################################################################################
 
 MACRO(LINK_CORELIB_DEFAULT CORELIB_NAME)
-    LINK_EXTERNAL(${CORELIB_NAME} ${OPENGL_LIBRARIES}) 
+    LINK_EXTERNAL(${CORELIB_NAME} ${OPENGL_LIBRARIES})
     LINK_WITH_VARIABLES(${CORELIB_NAME} OPENTHREADS_LIBRARY)
     IF(VIRTUALPLANETBUILDER_SONAMES)
       SET_TARGET_PROPERTIES(${CORELIB_NAME} PROPERTIES VERSION ${VIRTUALPLANETBUILDER_VERSION} SOVERSION ${VIRTUALPLANETBUILDER_SOVERSION})
@@ -62,11 +66,11 @@ MACRO(SETUP_LINK_LIBRARIES)
     ######################################################################
     #
     # This set up the libraries to link to, it assumes there are two variable: one common for a group of examples or plagins
-    # kept in the variable TARGET_COMMON_LIBRARIES and an example or plugin specific kept in TARGET_ADDED_LIBRARIES 
-    # they are combined in a single list checked for unicity 
+    # kept in the variable TARGET_COMMON_LIBRARIES and an example or plugin specific kept in TARGET_ADDED_LIBRARIES
+    # they are combined in a single list checked for unicity
     # the suffix ${CMAKE_DEBUG_POSTFIX} is used for differentiating optimized and debug
     #
-    # a second variable TARGET_EXTERNAL_LIBRARIES hold the list of  libraries not differentiated between debug and optimized 
+    # a second variable TARGET_EXTERNAL_LIBRARIES hold the list of  libraries not differentiated between debug and optimized
     ##################################################################################
     SET(TARGET_LIBRARIES ${TARGET_COMMON_LIBRARIES})
 
@@ -82,9 +86,10 @@ MACRO(SETUP_LINK_LIBRARIES)
       ENDIF(TO_INSERT)
     ENDFOREACH(LINKLIB)
 
-    FOREACH(LINKLIB ${TARGET_LIBRARIES})
-            TARGET_LINK_LIBRARIES(${TARGET_TARGETNAME} optimized ${LINKLIB} debug "${LINKLIB}${CMAKE_DEBUG_POSTFIX}")
-    ENDFOREACH(LINKLIB)
+#    FOREACH(LINKLIB ${TARGET_LIBRARIES})
+#            TARGET_LINK_LIBRARIES(${TARGET_TARGETNAME} optimized ${LINKLIB} debug "${LINKLIB}${CMAKE_DEBUG_POSTFIX}")
+#    ENDFOREACH(LINKLIB)
+    LINK_INTERNAL(${TARGET_TARGETNAME} ${TARGET_LIBRARIES})
 
     FOREACH(LINKLIB ${TARGET_EXTERNAL_LIBRARIES})
             TARGET_LINK_LIBRARIES(${TARGET_TARGETNAME} ${LINKLIB})
@@ -112,21 +117,21 @@ MACRO(SETUP_PLUGIN PLUGIN_NAME)
     IF(NOT TARGET_LABEL)
             SET(TARGET_LABEL "${TARGET_DEFAULT_LABEL_PREFIX} ${TARGET_NAME}")
     ENDIF(NOT TARGET_LABEL)
-    
-# here we use the command to generate the library    
+
+# here we use the command to generate the library
 
     IF   (DYNAMIC_VIRTUALPLANETBUILDER)
         ADD_LIBRARY(${TARGET_TARGETNAME} MODULE ${TARGET_SRC} ${TARGET_H})
     ELSE (DYNAMIC_VIRTUALPLANETBUILDER)
         ADD_LIBRARY(${TARGET_TARGETNAME} STATIC ${TARGET_SRC} ${TARGET_H})
     ENDIF(DYNAMIC_VIRTUALPLANETBUILDER)
-    
+
     #not sure if needed, but for plugins only msvc need the d suffix
     IF(NOT MSVC)
         SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES DEBUG_POSTFIX "")
     ENDIF(NOT MSVC)
     SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PROJECT_LABEL "${TARGET_LABEL}")
- 
+
     SETUP_LINK_LIBRARIES()
 
 #the installation path are differentiated for win32 that install in bib versus other architecture that install in lib${LIB_POSTFIX}/${VPB_PLUGINS}
@@ -152,11 +157,11 @@ MACRO(SETUP_EXE IS_COMMANDLINE_APP)
     ENDIF(NOT TARGET_LABEL)
 
     IF(${IS_COMMANDLINE_APP})
-    
+
         ADD_EXECUTABLE(${TARGET_TARGETNAME} ${TARGET_SRC} ${TARGET_H})
-        
+
     ELSE(${IS_COMMANDLINE_APP})
-    
+
         IF(APPLE)
             # SET(MACOSX_BUNDLE_LONG_VERSION_STRING "${VIRTUALPLANETBUILDER_MAJOR_VERSION}.${VIRTUALPLANETBUILDER_MINOR_VERSION}.${VIRTUALPLANETBUILDER_PATCH_VERSION}")
             # Short Version is the "marketing version". It is the version
@@ -184,13 +189,13 @@ MACRO(SETUP_EXE IS_COMMANDLINE_APP)
         ENDIF(APPLE)
 
         ADD_EXECUTABLE(${TARGET_TARGETNAME} ${PLATFORM_SPECIFIC_CONTROL} ${TARGET_SRC} ${TARGET_H})
-        
+
     ENDIF(${IS_COMMANDLINE_APP})
     SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES PROJECT_LABEL "${TARGET_LABEL}")
     SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
     SET_TARGET_PROPERTIES(${TARGET_TARGETNAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})
-    
-    SETUP_LINK_LIBRARIES()    
+
+    SETUP_LINK_LIBRARIES()
 
 ENDMACRO(SETUP_EXE)
 
@@ -204,9 +209,9 @@ MACRO(SETUP_APPLICATION APPLICATION_NAME)
         ELSE(${ARGC} GREATER 1)
             SET(IS_COMMANDLINE_APP 0)
         ENDIF(${ARGC} GREATER 1)
-            
+
         SETUP_EXE(${IS_COMMANDLINE_APP})
-        
+
     INSTALL(TARGETS ${TARGET_TARGETNAME} RUNTIME DESTINATION bin  )
 
 ENDMACRO(SETUP_APPLICATION)
@@ -227,10 +232,10 @@ MACRO(SETUP_EXAMPLE EXAMPLE_NAME)
         ELSE(${ARGC} GREATER 1)
             SET(IS_COMMANDLINE_APP 0)
         ENDIF(${ARGC} GREATER 1)
-            
+
         SETUP_EXE(${IS_COMMANDLINE_APP})
-        
-    INSTALL(TARGETS ${TARGET_TARGETNAME} RUNTIME DESTINATION share/OpenSceneGraph/bin  )            
+
+    INSTALL(TARGETS ${TARGET_TARGETNAME} RUNTIME DESTINATION share/OpenSceneGraph/bin  )
 
 ENDMACRO(SETUP_EXAMPLE)
 

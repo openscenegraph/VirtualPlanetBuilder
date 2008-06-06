@@ -11,6 +11,15 @@ ELSE(WIN32)
     ENDIF(APPLE)
 ENDIF(WIN32)
 
+if(COMMAND cmake_policy)
+    # Works around warnings libraries linked against that don't
+    # have absolute paths (e.g. -lpthreads)
+    cmake_policy(SET CMP0003 NEW)
+
+    # Works around warnings about escaped quotes in ADD_DEFINITIONS
+    # statements.
+    cmake_policy(SET CMP0005 OLD)
+endif(COMMAND cmake_policy)
 
 PROJECT(VIRTUALPLANETBUILDER)
 
@@ -33,20 +42,20 @@ SET(CMAKE_MODULE_PATH "${VIRTUALPLANETBUILDER_SOURCE_DIR}/CMakeModules;${CMAKE_M
 
 
 # Okay, here's the problem: On some platforms, linking against OpenThreads
-# is not enough and explicit linking to the underlying thread library 
+# is not enough and explicit linking to the underlying thread library
 # is also required (e.g. FreeBSD). But OpenThreads may be built with different
-# backends (Pthreads, Sproc, Windows) so we don't know what the underlying 
-# thread library is because some platforms support multiple backends (e.g. 
-# IRIX supports Sproc and Pthreads). Linking all libraries won't work 
+# backends (Pthreads, Sproc, Windows) so we don't know what the underlying
+# thread library is because some platforms support multiple backends (e.g.
+# IRIX supports Sproc and Pthreads). Linking all libraries won't work
 # because the libraries may be incompatible.
-# So the current solution is to attempt best guess linking and exempt certain 
+# So the current solution is to attempt best guess linking and exempt certain
 # cases. With IRIX, we're going to hope explicit linking to the underlying
 # library is not necessary. We currently don't case for pthreads on Windows
 # which might be an issue on things like Cygwin. This may need to be fixed.
 FIND_PACKAGE(Threads)
 IF(CMAKE_SYSTEM MATCHES IRIX)
     # Erase CMAKE_THREAD_LIBS_INIT and hope it works
-    SET(CMAKE_THREAD_LIBS_INIT "" CACHE INTERNAL "")    
+    SET(CMAKE_THREAD_LIBS_INIT "" CACHE INTERNAL "")
 ENDIF(CMAKE_SYSTEM MATCHES IRIX)
 
 # Find OpenGL
@@ -59,7 +68,7 @@ IF(UNIX)
     # Some Unicies need explicit linkage to the Math library or the build fails.
     FIND_LIBRARY(MATH_LIBRARY m)
 ENDIF(UNIX)
-    
+
 FIND_PACKAGE(CURL)
 
 
@@ -68,7 +77,7 @@ INCLUDE_DIRECTORIES(
     ${VIRTUALPLANETBUILDER_SOURCE_DIR}/include
     ${OPENGL_INCLUDE_DIR}
 )
-    
+
 # Common global definitions
 #ADD_DEFINITIONS(-D)
 # Platform specific definitions
@@ -122,7 +131,7 @@ ENDIF(UNIX AND NOT WIN32 AND NOT APPLE)
 IF(NOT DEFINED LIB_POSTFIX)
     SET(LIB_POSTFIX "")
 ENDIF(NOT DEFINED LIB_POSTFIX)
-    
+
 #SET(OUTPUT_BINDIR ${PROJECT_BINARY_DIR}/bin/${CMAKE_SYSTEM_NAME})
 SET(OUTPUT_BINDIR ${PROJECT_BINARY_DIR}/bin)
 MAKE_DIRECTORY(${OUTPUT_BINDIR})
@@ -167,24 +176,24 @@ SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} CACHE STRING "(EXPERIMENTAL) You may 
 
 # Automatically detected build options
 EXEC_PROGRAM(osgversion ARGS Matrix::value_type OUTPUT_VARIABLE OSG_USE_FLOAT_MATRIX)
-IF(OSG_USE_FLOAT_MATRIX MATCHES "float")        
+IF(OSG_USE_FLOAT_MATRIX MATCHES "float")
     ADD_DEFINITIONS(-DOSG_USE_FLOAT_MATRIX)
-ENDIF(OSG_USE_FLOAT_MATRIX MATCHES "float")        
+ENDIF(OSG_USE_FLOAT_MATRIX MATCHES "float")
 
 EXEC_PROGRAM(osgversion ARGS Plane::value_type OUTPUT_VARIABLE OSG_USE_FLOAT_PLANE)
-IF(OSG_USE_FLOAT_PLANE MATCHES "float")        
+IF(OSG_USE_FLOAT_PLANE MATCHES "float")
     ADD_DEFINITIONS(-DOSG_USE_FLOAT_PLANE)
-ENDIF(OSG_USE_FLOAT_PLANE MATCHES "float")        
+ENDIF(OSG_USE_FLOAT_PLANE MATCHES "float")
 
 EXEC_PROGRAM(osgversion ARGS BoundingSphere::value_type  OUTPUT_VARIABLE OSG_USE_FLOAT_BOUNDINGSPHERE)
-IF(OSG_USE_FLOAT_BOUNDINGSPHERE MATCHES "double")        
+IF(OSG_USE_FLOAT_BOUNDINGSPHERE MATCHES "double")
     ADD_DEFINITIONS(-DOSG_USE_DOUBLE_BOUNDINGSPHERE)
-ENDIF(OSG_USE_FLOAT_BOUNDINGSPHERE MATCHES "double")        
+ENDIF(OSG_USE_FLOAT_BOUNDINGSPHERE MATCHES "double")
 
 EXEC_PROGRAM(osgversion ARGS BoundingBox::value_type OUTPUT_VARIABLE OSG_USE_FLOAT_BOUNDINGBOX)
-IF(OSG_USE_FLOAT_BOUNDINGBOX MATCHES "double")        
+IF(OSG_USE_FLOAT_BOUNDINGBOX MATCHES "double")
     ADD_DEFINITIONS(-DOSG_USE_DOUBLE_BOUNDINGBOX)
-ENDIF(OSG_USE_FLOAT_BOUNDINGBOX MATCHES "double")        
+ENDIF(OSG_USE_FLOAT_BOUNDINGBOX MATCHES "double")
 
 
 # Dynamic vs Static Linking
@@ -208,18 +217,18 @@ ENDIF(BUILD_APPLICATIONS)
 
 
 
-# Set defaults for Universal Binaries. We want 32-bit Intel/PPC on 10.4 
+# Set defaults for Universal Binaries. We want 32-bit Intel/PPC on 10.4
 # and 32/64-bit Intel/PPC on >= 10.5. Anything <= 10.3 doesn't support.
 IF(APPLE)
     # These are just defaults/recommendations, but how we want to build
     # out of the box. But the user needs to be able to change these options.
-    # So we must only set the values the first time CMake is run, or we 
+    # So we must only set the values the first time CMake is run, or we
     # will overwrite any changes the user sets.
     # FORCE is used because the options are not reflected in the UI otherwise.
     # Seems like a good place to add version specific compiler flags too.
     IF(NOT VPB_CONFIG_HAS_BEEN_RUN_BEFORE)
-        # This is really fragile, but CMake doesn't provide the OS system 
-        # version information we need. (Darwin versions can be changed 
+        # This is really fragile, but CMake doesn't provide the OS system
+        # version information we need. (Darwin versions can be changed
         # independently of OS X versions.)
         # It does look like CMake handles the CMAKE_OSX_SYSROOT automatically.
         IF(EXISTS /Developer/SDKs/10.5.sdk)
@@ -236,9 +245,9 @@ IF(APPLE)
             ENDIF(EXISTS /Developer/SDKs/MacOSX10.4u.sdk)
         ENDIF(EXISTS /Developer/SDKs/10.5.sdk)
     ENDIF(NOT VPB_CONFIG_HAS_BEEN_RUN_BEFORE)
-    
+
     OPTION(VPB_BUILD_APPLICATION_BUNDLES "Enable the building of applications and examples as OSX Bundles" OFF)
-    
+
 ENDIF(APPLE)
 
 
