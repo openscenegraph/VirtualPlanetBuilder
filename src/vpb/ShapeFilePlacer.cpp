@@ -463,10 +463,14 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                     osgSim::ShapeAttributeList* sal = dynamic_cast<osgSim::ShapeAttributeList*>(geom->getUserData());
                     for(osgSim::ShapeAttributeList::iterator sitr = sal->begin(); sitr != sal->end(); ++sitr)
                     {
-                        if ((sitr->getName() == getTypeAttributeName()) && (sitr->getType() == osgSim::ShapeAttribute::STRING))
+                        if ((sitr->getName() == getTypeAttributeName()) &&
+                            (sitr->getType() == osgSim::ShapeAttribute::STRING))
                         {
-                            if (strncmp(sitr->getString(), "Building", 8) == 0) shapeType = Building;
-                            else if (strncmp(sitr->getString(), "Forest", 6) == 0) shapeType = Forest;                                    
+                            if (sitr->getString())
+                            {
+                                if (strncmp(sitr->getString(), "Building", 8) == 0) shapeType = Building;
+                                else if (strncmp(sitr->getString(), "Forest", 6) == 0) shapeType = Forest;
+                            }
                         }
                         
                         else if (sitr->getName() == getHeightAttributeName())
