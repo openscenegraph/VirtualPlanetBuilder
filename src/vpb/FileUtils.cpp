@@ -90,10 +90,16 @@ int vpb::mkpath(const char *path, int mode)
             int size = pos_current-pos_start;
             if (size>1)
             {
+#if 0
+                // proposed new code path to eliminate the need for outputting the c:/
+                if (pos_current!=2 || fullpath[1]!=':')
+                    directories.push_back(std::string(fullpath,0, pos_current));
+#else
                 if (pos_current == 2 && fullpath[1]==':')
                     directories.push_back(std::string(fullpath,0, pos_current+1));
                 else
                     directories.push_back(std::string(fullpath,0, pos_current));
+#endif
                 pos_start = pos_current+1;
             }
         }

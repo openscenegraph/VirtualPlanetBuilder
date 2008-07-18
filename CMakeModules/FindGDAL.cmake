@@ -53,11 +53,13 @@ FIND_PATH(GDAL_INCLUDE_DIR gdal.h
   /opt/include/gdal
   /opt/include/GDAL
   /opt/include
+  c:/Program Files/FWTools2.1.0/include
 )
 
 FIND_LIBRARY(GDAL_LIBRARY 
   NAMES gdal gdal_i gdal1.5.0 gdal1.4.0 gdal1.3.2 GDAL
   PATHS
+  c:/Program Files/FWTools2.1.0/lib
   $ENV{GDAL_DIR}
   NO_DEFAULT_PATH
   PATH_SUFFIXES lib64 lib
@@ -65,6 +67,7 @@ FIND_LIBRARY(GDAL_LIBRARY
 FIND_LIBRARY(GDAL_LIBRARY 
   NAMES gdal gdal_i gdal1.5.0 gdal1.4.0 gdal1.3.2 GDAL
   PATHS ${CMAKE_PREFIX_PATH} # Unofficial: We are proposing this.
+   c:/Program Files/FWTools2.1.0/lib
     NO_DEFAULT_PATH
     PATH_SUFFIXES lib64 lib
 )
