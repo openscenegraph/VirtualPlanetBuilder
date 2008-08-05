@@ -89,6 +89,13 @@ bool DatabaseBuilder_writeLocalData(const osg::Object& obj, osgDB::Output& fw)
 class VPBReaderWriter : public osgDB::ReaderWriter
 {
     public:
+    
+        VPBReaderWriter()
+        {
+            supportsExtension("vpb","VirtualPlanetBuilder source format");
+            supportsExtension("source","VirtualPlanetBuilder source format");
+        }
+        
         virtual const char* className() const { return "VPB Reader/Writer"; }
 
         virtual bool acceptsExtension(const std::string& extension) const

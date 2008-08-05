@@ -1,6 +1,7 @@
 #include <vpb/FileUtils>
 #include <vpb/BuildLog>
 #include <osgDB/FileUtils>
+#include <osgDB/FileNameUtils>
 
 #ifdef WIN32
 
@@ -137,3 +138,18 @@ int vpb::mkpath(const char *path, int mode)
     return 0;
     
 }
+
+bool vpb::hasWritePermission(const std::string& filename)
+{
+    log(osg::NOTICE,"vpb::access(%s, W_OK)=%i",filename.c_str(), vpb::access(filename.c_str(), W_OK));
+
+    if (vpb::access(filename.c_str(), W_OK)==0) return true;
+
+    std::string path = osgDB::getFilePath(filename);
+    if (path.empty()) path = ".";
+    
+    log(osg::NOTICE,"vpb::access(%s, W_OK)=%i",path.c_str(), vpb::access(path.c_str(), W_OK));
+
+    return (vpb::access(path.c_str(), W_OK)==0);
+}
+

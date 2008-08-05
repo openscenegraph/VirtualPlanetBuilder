@@ -49,6 +49,8 @@
     #include <unistd.h>
 #endif
 
+#include <string>
+
 namespace vpb
 {
 
@@ -73,5 +75,7 @@ extern VPB_EXPORT int chdir(const char *path);
 extern VPB_EXPORT char *getCurrentWorkingDirectory(char *path, int len);
 
 extern VPB_EXPORT int mkpath(const char *path, int mode);
+
+extern VPB_EXPORT bool hasWritePermission(const std::string& filename);
 
 };

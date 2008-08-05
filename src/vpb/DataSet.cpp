@@ -1475,7 +1475,23 @@ void DataSet::_writeNodeFile(const osg::Node& node,const std::string& filename)
     if (getDisableWrites()) return;
 
     if (_archive.valid()) _archive->writeNode(node,filename);
-    else osgDB::writeNodeFile(node, filename);
+    else 
+    {
+        if (vpb::hasWritePermission(filename))
+        {
+            osgDB::ReaderWriter::WriteResult result = 
+                osgDB::Registry::instance()->writeNode(node, filename,osgDB::Registry::instance()->getOptions());
+                
+            if (!result.success())
+            {
+                log(osg::WARN, "Error: error occurred when writing out file %s",filename.c_str());
+            }
+        }
+        else
+        {
+            log(osg::WARN, "Error: do not have write permission to write out file %s",filename.c_str());
+        }
+    }
 }
 
 void DataSet::_writeImageFile(const osg::Image& image,const std::string& filename)
@@ -1483,7 +1499,23 @@ void DataSet::_writeImageFile(const osg::Image& image,const std::string& filenam
     if (getDisableWrites()) return;
 
     if (_archive.valid()) _archive->writeImage(image,filename);
-    else osgDB::writeImageFile(image, filename);
+    else 
+    {
+        if (vpb::hasWritePermission(filename))
+        {
+            osgDB::ReaderWriter::WriteResult result = 
+                osgDB::Registry::instance()->writeImage(image, filename,osgDB::Registry::instance()->getOptions());
+                
+            if (!result.success())
+            {
+                log(osg::WARN, "Error: error occurred when writing out file %s",filename.c_str());
+            }
+        }
+        else
+        {
+            log(osg::WARN, "Error: do not have write permission to write out file %s",filename.c_str());
+        }
+    }
 }
 
 
@@ -2878,7 +2910,7 @@ int DataSet::_run()
 
         if (result)
         {
-            log(osg::NOTICE,"Error: could not create directory %i",errno);
+            log(osg::NOTICE,"Error: could not create directory, errorno=%i",errno);
             return 1;
         }
 
@@ -2906,7 +2938,7 @@ int DataSet::_run()
             
             if (result)
             {
-                log(osg::NOTICE,"Error: could not create directory %i",errno);
+                log(osg::NOTICE,"Error: could not create directory, errorno=%i",errno);
                 return 1;
             }
             
