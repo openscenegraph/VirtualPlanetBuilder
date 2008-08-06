@@ -220,6 +220,8 @@ public:
 
         { AEP(LayerInheritance); AEV(INHERIT_LOWEST_AVAILABLE); AEV(INHERIT_NEAREST_AVAILABLE); AEV(NO_INHERITANCE); }
 
+        ADD_BOOL_PROPERTY(AbortTaskOnError);
+        ADD_BOOL_PROPERTY(AbortRunOnError);
     }
     
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)

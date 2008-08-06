@@ -1484,12 +1484,14 @@ void DataSet::_writeNodeFile(const osg::Node& node,const std::string& filename)
                 
             if (!result.success())
             {
-                log(osg::WARN, "Error: error occurred when writing out file %s",filename.c_str());
+                osg::NotifySeverity level = getAbortTaskOnError() ? osg::FATAL : osg::WARN;
+                log(level, "Error: do not have write permission to write out file %s",filename.c_str());
             }
         }
         else
         {
-            log(osg::WARN, "Error: do not have write permission to write out file %s",filename.c_str());
+            osg::NotifySeverity level = getAbortTaskOnError() ? osg::FATAL : osg::WARN;
+            log(level, "Error: do not have write permission to write out file %s",filename.c_str());
         }
     }
 }

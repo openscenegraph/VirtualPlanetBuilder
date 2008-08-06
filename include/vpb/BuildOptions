@@ -260,6 +260,11 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setLayerInheritance(LayerInheritance inheritance) { _layerInheritance = inheritance; }
         LayerInheritance getLayerInheritance() const { return _layerInheritance; }
 
+        void setAbortTaskOnError(bool flag) { _abortTaskOnError = flag; }
+        bool getAbortTaskOnError() const { return _abortTaskOnError; }
+
+        void setAbortRunOnError(bool flag) { _abortRunOnError = flag; }
+        bool getAbortRunOnError() const { return _abortRunOnError; }
         
     protected:
 
@@ -322,6 +327,9 @@ class VPB_EXPORT BuildOptions : public osg::Object
         std::string                                 _buildOptionsString;
 
         LayerInheritance                            _layerInheritance;
+        
+        bool                                        _abortTaskOnError;
+        bool                                        _abortRunOnError;
 };
 
 }

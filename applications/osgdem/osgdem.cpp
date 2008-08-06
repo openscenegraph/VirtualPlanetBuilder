@@ -203,7 +203,6 @@ int main(int argc, char** argv)
         return 1;
     }
 
-
     double duration = 0.0;
 
     // generate the database
@@ -237,7 +236,7 @@ int main(int argc, char** argv)
             // make sure the OS writes changes to disk
             vpb::sync();
 
-            int result = dataset->run();
+            result = dataset->run();
 
             if (dataset->getBuildLog() && report)
             {
@@ -248,10 +247,28 @@ int main(int argc, char** argv)
             
             dataset->log(osg::NOTICE,"Elapsed time = %f",duration);
             
+            if (taskFile.valid())
+            {
+                taskFile->setStatus(vpb::Task::COMPLETED);
+            }
+
+        }
+        catch(std::string str)
+        {
+            printf("Caught exception : %s\n",str.c_str());
+            
+            taskFile->setStatus(vpb::Task::FAILED);
+
+            result = 1;
+
         }
         catch(...)
         {
             printf("Caught exception.\n");
+            
+            taskFile->setStatus(vpb::Task::FAILED);
+
+            result = 1;
         }
 
     }
@@ -260,7 +277,6 @@ int main(int argc, char** argv)
 
     if (taskFile.valid())
     {
-        taskFile->setStatus(vpb::Task::COMPLETED);
         taskFile->setProperty("duration",duration);
         taskFile->write();
     }
@@ -268,6 +284,6 @@ int main(int argc, char** argv)
     // make sure the OS writes changes to disk
     vpb::sync();
     
-    return 0;
+    return result;
 }
 

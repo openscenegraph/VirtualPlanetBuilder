@@ -73,6 +73,9 @@ BuildOptions::BuildOptions():
     _numWriteThreadsToCoresRatio = 0.0f;
     
     _layerInheritance = INHERIT_NEAREST_AVAILABLE;
+    
+    _abortTaskOnError = true;
+    _abortRunOnError = false;
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop):
@@ -147,6 +150,9 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _buildOptionsString = rhs._buildOptionsString;
     
     _layerInheritance = rhs._layerInheritance;
+    
+    _abortTaskOnError = rhs._abortTaskOnError;
+    _abortRunOnError = rhs._abortRunOnError;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)

@@ -496,6 +496,10 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--no-interpolate-terrain","Disable the use of interpolation when sampling data from source DEMs.");
     usage.addCommandLineOption("--interpolate-imagery","Enable the use of interpolation when sampling data from source imagery.");
     usage.addCommandLineOption("--no-interpolate-imagery","Disable the use of interpolation when sampling data from source imagery.");
+    usage.addCommandLineOption("--abort-task-on-error","Hint to osgdem to abort the build when any errors occur.");
+    usage.addCommandLineOption("--no-abort-task-on-error","Hint to osgdem to abort the build when any errors occur.");
+    usage.addCommandLineOption("--abort-run-on-error","Hint to vpbmaster to abort the run when any errors occur.");
+    usage.addCommandLineOption("--no-abort-run-on-error","Hint to vpbmaster to abort the run when any errors occur.");
 }
 
 int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::TerrainTile* terrainInput)
@@ -774,6 +778,12 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     while (arguments.read("--height-attribute",heightAttributeName)) {}
 
     while (arguments.read("--type-attribute",typeAttributeName)) {}
+
+    while (arguments.read("--abort-task-on-error")) { buildOptions->setAbortTaskOnError(true); }
+    while (arguments.read("--no-abort-task-on-error")) { buildOptions->setAbortTaskOnError(false); }
+
+    while (arguments.read("--abort-run-on-error")) { buildOptions->setAbortRunOnError(true); }
+    while (arguments.read("--no-abort-run-on-error")) { buildOptions->setAbortRunOnError(false); }
 
     float ratio=0.0f;
     while(arguments.read("--read-threads-ratio",ratio)) { buildOptions->setNumReadThreadsToCoresRatio(ratio); }

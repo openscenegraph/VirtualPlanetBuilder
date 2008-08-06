@@ -35,6 +35,7 @@
 #include <list>
 #include <sstream>
 #include <fstream>
+#include <iostream>
 
 
 namespace vpb
@@ -97,6 +98,8 @@ class VPB_EXPORT OperationLog : public osg::Object
 
         void log(osg::NotifySeverity level, const char* message, ...);
         
+        void log(osg::NotifySeverity level, const std::string& message);
+
         void setStartPendingTime(double t) { _startPendingTime = t; }
         double getStartPendingTime() const { return _startPendingTime; }
         
@@ -191,6 +194,22 @@ class Logger
         BuildLog* getBuildLog() { return _buildLog.get(); }
         const BuildLog* getBuildLog() const { return _buildLog.get(); }
 
+        void log(osg::NotifySeverity level, const std::string& message) const
+        {
+            if (level>osg::getNotifyLevel()) return;
+        
+            if (_buildLog.valid())
+            {
+                _buildLog->log(level, message);
+            }
+            else 
+            {
+                std::cout<<message<<std::endl;
+            }
+            
+            if (level==osg::FATAL) throw message;
+        }
+        
         void log(osg::NotifySeverity level, const char* format, ...) const
         {
             if (level>osg::getNotifyLevel()) return;
@@ -201,13 +220,23 @@ class Logger
                 char str[1024];
                 vsnprintf(str, sizeof(str), format, args);
                 _buildLog->log(level, str);
+
+                if (level==osg::FATAL) throw std::string(str);
             }
             else 
             {
                 vprintf(format, args); printf("\n");
+
+                if (level==osg::FATAL) 
+                {
+                    char str[1024];
+                    vsnprintf(str, sizeof(str), format, args);
+                    throw std::string(str);
+                }
             }
             va_end(args);
-        }
+
+    }
 
     protected:
     
