@@ -273,6 +273,11 @@ bool TaskManager::run()
 {
     log(osg::NOTICE,"Begining run");
     
+    if (getBuildOptions() && getBuildOptions()->getAbortRunOnError())
+    {
+        getMachinePool()->setTaskFailureOperation(MachinePool::COMPLETE_RUNNING_TASKS_THEN_EXIT);
+    }
+
     for(TaskSetList::iterator tsItr = _taskSetList.begin();
         tsItr != _taskSetList.end() && !done();
         )
@@ -358,6 +363,13 @@ bool TaskManager::run()
     
         // if (tasksFailed != 0) break;
         
+        if (getBuildOptions() && getBuildOptions()->getAbortRunOnError() && tasksFailed>0)
+        {
+            log(osg::NOTICE,"Task failed aborting.");
+            break;
+        }
+        
+
         if (getMachinePool()->getNumThreadsNotDone()==0)
         {
             while(getMachinePool()->getNumThreadsRunning()>0)
@@ -676,7 +688,7 @@ bool TaskManager::writeTasks(const std::string& filename, bool asFileNames)
 
 BuildOptions* TaskManager::getBuildOptions()
 {
-    vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrainTile->getTerrainTechnique());
+    vpb::DatabaseBuilder* db = _terrainTile.valid() ? dynamic_cast<vpb::DatabaseBuilder*>(_terrainTile->getTerrainTechnique()) : 0;
     return db ? db->getBuildOptions() : 0;
 }
 

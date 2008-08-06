@@ -347,7 +347,7 @@ void Machine::taskFailed(Task* task, int result)
             }
             case(MachinePool::BLACKLIST_MACHINE_AND_RESUBMIT_TASK):
             {
-                log(osg::NOTICE,"Task %s has failed, blacklisting machine %s and resubmitting task",task->getFileName().c_str(),getHostName().c_str());
+                log(osg::NOTICE,"\nWarning: Task %s has failed, blacklisting machine %s and resubmitting task.\n",task->getFileName().c_str(),getHostName().c_str());
                 setDone(true);
                 //setOperationQueue(0);
                 _machinePool->run(task);
@@ -356,7 +356,7 @@ void Machine::taskFailed(Task* task, int result)
             }
             case(MachinePool::COMPLETE_RUNNING_TASKS_THEN_EXIT):
             {
-                log(osg::NOTICE,"   COMPLETE_RUNNING_TASKS_THEN_EXIT");
+                log(osg::NOTICE,"\nWarning: Task %s on machine %s has failed, completing running tasks then exiting.\n",task->getFileName().c_str(),getHostName().c_str());
                 _machinePool->setTaskFailureOperation(MachinePool::IGNORE_FAILED_TASK);
                 System::instance()->getTaskManager()->setDone(true);
                 _machinePool->removeAllOperations();
@@ -365,7 +365,7 @@ void Machine::taskFailed(Task* task, int result)
             }
             case(MachinePool::TERMINATE_RUNNING_TASKS_THEN_EXIT):
             {
-                log(osg::NOTICE,"   TERMINATE_RUNNING_TASKS_THEN_EXIT");
+                log(osg::NOTICE,"\nWarning: Task %s on machine %s has failed, terminating running tasks then exiting.\n",task->getFileName().c_str(),getHostName().c_str());
                 _machinePool->setTaskFailureOperation(MachinePool::IGNORE_FAILED_TASK);
                 System::instance()->getTaskManager()->setDone(true);
                 _machinePool->removeAllOperations();
