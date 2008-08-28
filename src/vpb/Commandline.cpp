@@ -44,6 +44,8 @@ void Commandline::init()
 
 void Commandline::reset()
 {
+    setname = "";
+
     dataType = vpb::SpatialProperties::RASTER;
 
     minmaxLevelSet = false;
@@ -110,7 +112,7 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
 
         if (!compositeLayer)
         {
-            compositeLayer = new osgTerrain::CompositeLayer;
+            compositeLayer = new osgTerrain::CompositeLayer;            
             if (existingLayer) compositeLayer->addLayer(existingLayer);
 
             terrainTile->setColorLayer(layerNum, compositeLayer);
@@ -133,6 +135,7 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
     if (!currentCS.empty() || geoTransformSet)
     {
         osg::ref_ptr<osgTerrain::ProxyLayer> loadedLayer = new osgTerrain::ProxyLayer;
+        loadedLayer->setName(setname);
         loadedLayer->setFileName(filename);
 
         if (loadedLayer.valid())
@@ -179,6 +182,7 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
         if (min_level!=0 || max_level!=maximumPossibleLevel)
         {
             osgTerrain::ProxyLayer* layer = new osgTerrain::ProxyLayer;
+            layer->setName(setname);
             layer->setFileName(filename);
 
             if (min_level!=0) layer->setMinLevel(min_level);
@@ -191,7 +195,7 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
         }
         else
         {
-            compositeLayer->addLayer(filename);
+            compositeLayer->addLayer(setname, filename);
         }
     }
 }
@@ -500,6 +504,7 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--no-abort-task-on-error","Hint to osgdem to disable abort of the build when any errors occur.");
     usage.addCommandLineOption("--abort-run-on-error","Hint to vpbmaster to abort the run when any errors occur/tasks fail.");
     usage.addCommandLineOption("--no-abort-run-on-error","Hint to vpbmaster to disable abort of the run when any errors occur (default.)");
+    usage.addCommandLineOption("--set <setname>","Assign the set name of imagery/dem data.");
 }
 
 int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::TerrainTile* terrainInput)
@@ -983,6 +988,11 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         {
             dataType = vpb::SpatialProperties::RASTER;
             fout<<"--raster input data"<<std::endl;
+        }
+
+        else if (arguments.read(pos, "--set",setname))
+        {
+            fout<<"--set "<<setname<<std::endl;
         }
 
         else if (arguments.read(pos, "-d",filename))

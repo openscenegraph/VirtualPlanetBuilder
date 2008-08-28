@@ -51,6 +51,8 @@ class VPB_EXPORT Commandline
         osg::ref_ptr<osgTerrain::TerrainTile>   terrainTile;
         osg::ref_ptr<BuildOptions>              buildOptions; 
     
+        std::string                             setname;
+    
         vpb::SpatialProperties::DataType        dataType;
         std::string                             currentCS;
         osg::Matrixd                            geoTransform;
