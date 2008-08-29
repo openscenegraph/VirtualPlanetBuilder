@@ -103,6 +103,7 @@ public:
     bool write(osgDB::Output& fw, const osg::Object& obj)
     {
         const C& object = static_cast<const C&>(obj);
+
         if (fw.getWriteOutDefaultValues() ||
             _default != (object.*_getter)())
         {

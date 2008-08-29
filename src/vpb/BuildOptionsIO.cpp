@@ -17,6 +17,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <set>
 
 #include <osg/Vec3>
 #include <osg/Vec4>
@@ -76,6 +77,79 @@ public:
 };
 
 
+template<typename C, typename T, typename Itr>
+class SetSerializer : public osgDB::Serializer
+{
+public:
+
+     typedef const T& (C::*GetterFunctionType)() const;
+     typedef void (C::*SetterFunctionType)(const T&);
+
+     SetSerializer(const char* fieldName, const T& defaultValue, GetterFunctionType getter, SetterFunctionType setter):
+        _fieldName(fieldName),
+        _default(defaultValue),
+        _getter(getter),
+        _setter(setter) {}
+     
+     bool write(osgDB::Output& fw, const osg::Object& obj)
+     {
+        const C& object = static_cast<const C&>(obj);
+        if (fw.getWriteOutDefaultValues() ||
+            _default != (object.*_getter)())
+        {
+            const T& value = (object.*_getter)();
+            if (!value.empty())
+            {
+                fw.indent()<<_fieldName<<" {"<<std::endl;
+                fw.moveIn();
+
+                for(Itr itr = value.begin();
+                    itr != value.end();
+                    ++itr)
+                {
+                    fw.indent()<<*itr<<std::endl;
+                }
+                fw.moveOut();
+                fw.indent()<<"}"<<std::endl;
+            }
+        }
+        
+        return true;
+     }
+
+    bool read(osgDB::Input& fr, osg::Object& obj, bool& itrAdvanced)
+    {
+        C& object = static_cast<C&>(obj);
+        if (fr[0].matchWord(_fieldName.c_str()) && fr[1].isOpenBracket())
+        {
+            T value;
+
+            int entry = fr[0].getNoNestedBrackets();
+
+            fr += 2;
+
+            while (!fr.eof() && fr[0].getNoNestedBrackets()>entry)
+            {
+                if (fr[0].isWord()) value.insert(fr[0].getStr());
+                ++fr;
+            }
+
+            ++fr;
+            
+            (object.*_setter)(value);
+            itrAdvanced = true;
+        }
+        
+        return true;
+     }
+     
+     std::string        _fieldName;
+     T                  _default;
+     GetterFunctionType _getter;
+     SetterFunctionType _setter;
+};
+
+
 #define CREATE_ENUM_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
     typedef osgDB::EnumSerializer<CLASS, CLASS::PROPERTY> MySerializer;\
     osg::ref_ptr<MySerializer> serializer = new MySerializer(\
@@ -85,9 +159,23 @@ public:
         &CLASS::set##PROPERTY\
     )
 
+
+#define CREATE_ENUM_SERIALIZER2(CLASS,NAME, PROPERTY,PROTOTYPE) \
+    typedef osgDB::EnumSerializer<CLASS, CLASS::PROPERTY> MySerializer;\
+    osg::ref_ptr<MySerializer> serializer = new MySerializer(\
+        #NAME,\
+        PROTOTYPE.get##NAME(),\
+        &CLASS::get##NAME,\
+        &CLASS::set##NAME\
+    )
+
     
 #define ADD_ENUM_PROPERTY(PROPERTY) \
     CREATE_ENUM_SERIALIZER(BuildOptions, PROPERTY, prototype); \
+    _serializerList.push_back(serializer.get())
+
+#define ADD_ENUM_PROPERTY2(NAME, PROPERTY) \
+    CREATE_ENUM_SERIALIZER2(BuildOptions, NAME, PROPERTY, prototype); \
     _serializerList.push_back(serializer.get())
 
 #define ADD_STRING_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_STRING_SERIALIZER(BuildOptions,PROPERTY,prototype))
@@ -137,6 +225,8 @@ public:
 
 #define AEV ADD_ENUM_VALUE
 #define AEP ADD_ENUM_PROPERTY
+#define AEP2 ADD_ENUM_PROPERTY2
+
 
 class BuildOptionsLookUps
 {
@@ -222,6 +312,19 @@ public:
 
         ADD_BOOL_PROPERTY(AbortTaskOnError);
         ADD_BOOL_PROPERTY(AbortRunOnError);
+        
+        { AEP2(DefaultImageLayerOutputPolicy, LayerOutputPolicy); AEV(INLINE); AEV(EXTERNAL_LOCAL_DIRECTORY); AEV(EXTERNAL_SET_DIRECTORY); }
+        { AEP2(DefaultElevationLayerOutputPolicy, LayerOutputPolicy); AEV(INLINE); AEV(EXTERNAL_LOCAL_DIRECTORY); AEV(EXTERNAL_SET_DIRECTORY); }
+        
+        { AEP2(OptionalImageLayerOutputPolicy, LayerOutputPolicy); AEV(INLINE); AEV(EXTERNAL_LOCAL_DIRECTORY); AEV(EXTERNAL_SET_DIRECTORY); }
+        { AEP2(OptionalElevationLayerOutputPolicy, LayerOutputPolicy); AEV(INLINE); AEV(EXTERNAL_LOCAL_DIRECTORY); AEV(EXTERNAL_SET_DIRECTORY); }
+
+        _serializerList.push_back(new SetSerializer<BuildOptions, BuildOptions::OptionalLayerSet, BuildOptions::OptionalLayerSet::const_iterator>(
+                "OptionalLayerSet", 
+                prototype.getOptionalLayerSet(), 
+                &BuildOptions::getOptionalLayerSet,
+                &BuildOptions::setOptionalLayerSet));
+
     }
     
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)
@@ -232,6 +335,8 @@ public:
         {
             (*itr)->read(fr,db, itrAdvanced);
         }
+        
+        
         return true;
     }
 

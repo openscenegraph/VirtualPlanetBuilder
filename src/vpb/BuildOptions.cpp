@@ -76,6 +76,11 @@ BuildOptions::BuildOptions():
     
     _abortTaskOnError = true;
     _abortRunOnError = false;
+    
+    _defaultImageLayerOutputPolicy = INLINE;
+    _defaultElevationLayerOutputPolicy = INLINE;
+    _optionalImageLayerOutputPolicy = EXTERNAL_SET_DIRECTORY;
+    _optionalElevationLayerOutputPolicy = EXTERNAL_SET_DIRECTORY;
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop):
@@ -153,6 +158,13 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     
     _abortTaskOnError = rhs._abortTaskOnError;
     _abortRunOnError = rhs._abortRunOnError;
+    
+    _defaultImageLayerOutputPolicy = rhs._defaultImageLayerOutputPolicy;
+    _defaultElevationLayerOutputPolicy = rhs._defaultElevationLayerOutputPolicy;
+    _optionalImageLayerOutputPolicy = rhs._optionalImageLayerOutputPolicy;
+    _optionalElevationLayerOutputPolicy = rhs._optionalElevationLayerOutputPolicy;
+    
+    _optionalLayerSet = rhs._optionalLayerSet;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)

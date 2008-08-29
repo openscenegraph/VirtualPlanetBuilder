@@ -505,6 +505,8 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--abort-run-on-error","Hint to vpbmaster to abort the run when any errors occur/tasks fail.");
     usage.addCommandLineOption("--no-abort-run-on-error","Hint to vpbmaster to disable abort of the run when any errors occur (default.)");
     usage.addCommandLineOption("--set <setname>","Assign the set name of imagery/dem data.");
+    usage.addCommandLineOption("--optional-set <setname>","Add setname to the list of optional layers.");
+    usage.addCommandLineOption("--remove-optional-set <setname>","Remove setname to the list of optional layers.");
 }
 
 int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::TerrainTile* terrainInput)
@@ -812,6 +814,11 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     std::string filename;
     double xMin, xMax, yMin, yMax;
     
+    std::string optionalsetname;
+    while(arguments.read("--optional-set",optionalsetname)) { buildOptions->addOptionalLayerSet(optionalsetname); }
+    while(arguments.read("--remove-optional-set",optionalsetname)) { buildOptions->removeOptionalLayerSet(optionalsetname); }
+
+
     int pos = 1;
     while(pos<arguments.argc())
     {
@@ -1052,5 +1059,6 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
             ++pos;
         }
     }
+
     return 0;    
 }

@@ -266,6 +266,35 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setAbortRunOnError(bool flag) { _abortRunOnError = flag; }
         bool getAbortRunOnError() const { return _abortRunOnError; }
         
+        enum LayerOutputPolicy
+        {
+            INLINE,
+            EXTERNAL_LOCAL_DIRECTORY,
+            EXTERNAL_SET_DIRECTORY
+        };
+        
+        void setDefaultImageLayerOutputPolicy(LayerOutputPolicy policy) { _defaultImageLayerOutputPolicy = policy; }
+        LayerOutputPolicy getDefaultImageLayerOutputPolicy() const { return _defaultImageLayerOutputPolicy; }
+        
+        void setDefaultElevationLayerOutputPolicy(LayerOutputPolicy policy) { _defaultElevationLayerOutputPolicy = policy; }
+        LayerOutputPolicy getDefaultElevationLayerOutputPolicy() const { return _defaultElevationLayerOutputPolicy; }
+        
+        void setOptionalImageLayerOutputPolicy(LayerOutputPolicy policy) { _optionalImageLayerOutputPolicy = policy; }
+        LayerOutputPolicy getOptionalImageLayerOutputPolicy() const { return _optionalImageLayerOutputPolicy; }
+        
+        void setOptionalElevationLayerOutputPolicy(LayerOutputPolicy policy) { _optionalElevationLayerOutputPolicy = policy; }
+        LayerOutputPolicy getOptionalElevationLayerOutputPolicy() const { return _optionalElevationLayerOutputPolicy; }
+
+        void clearOptionalLayerSet() { _optionalLayerSet.clear(); }
+        void addOptionalLayerSet(const std::string& setname) { _optionalLayerSet.insert(setname); }
+        void removeOptionalLayerSet(const std::string& setname) { _optionalLayerSet.erase(setname); }
+        
+        bool isOptionalLayerSet(const std::string& setname) const { return _optionalLayerSet.count(setname)!=0; }
+        
+        typedef std::set<std::string> OptionalLayerSet;
+        void setOptionalLayerSet(const OptionalLayerSet& ols) { _optionalLayerSet = ols; }
+        const OptionalLayerSet& getOptionalLayerSet() const { return _optionalLayerSet; }
+
     protected:
 
         bool                                        _buildOverlays;
@@ -330,6 +359,13 @@ class VPB_EXPORT BuildOptions : public osg::Object
         
         bool                                        _abortTaskOnError;
         bool                                        _abortRunOnError;
+        
+        LayerOutputPolicy                           _defaultImageLayerOutputPolicy;
+        LayerOutputPolicy                           _defaultElevationLayerOutputPolicy;        
+        LayerOutputPolicy                           _optionalImageLayerOutputPolicy;        
+        LayerOutputPolicy                           _optionalElevationLayerOutputPolicy;
+        
+        OptionalLayerSet                            _optionalLayerSet;
 };
 
 }
