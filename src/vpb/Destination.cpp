@@ -97,6 +97,35 @@ DestinationTile::DestinationTile():
 }
 
 
+void DestinationTile::requiresDivision(float resolutionSensitivityScale, bool& needToDivideX, bool& needToDivideY)
+{
+    for(unsigned int layerNum=0;
+        layerNum<_imagery.size();
+        ++layerNum)
+    {
+        unsigned int texture_numColumns;
+        unsigned int texture_numRows;
+        double texture_dx;
+        double texture_dy;
+        if (computeImageResolution(layerNum,texture_numColumns,texture_numRows,texture_dx,texture_dy))
+        {
+            if (texture_dx*resolutionSensitivityScale > _imagery[layerNum]._image_maxSourceResolutionX) needToDivideX = true;
+            if (texture_dy*resolutionSensitivityScale > _imagery[layerNum]._image_maxSourceResolutionY) needToDivideY = true;
+        }
+    }
+
+    unsigned int dem_numColumns;
+    unsigned int dem_numRows;
+    double dem_dx;
+    double dem_dy;
+    if (computeTerrainResolution(dem_numColumns,dem_numRows,dem_dx,dem_dy))
+    {
+        if (dem_dx*resolutionSensitivityScale > _terrain_maxSourceResolutionX) needToDivideX = true;
+        if (dem_dy*resolutionSensitivityScale > _terrain_maxSourceResolutionY) needToDivideY = true;
+    }
+
+}
+
 void DestinationTile::computeMaximumSourceResolution(Source* source)
 {
     if (!source || source->getMaxLevel()<_level)
@@ -2365,6 +2394,7 @@ void DestinationTile::readFrom()
 void DestinationTile::unrefData()
 {
     _imagery.clear();
+    _imageLayerSet.clear();
     _terrain = 0;
     _models = 0;
     

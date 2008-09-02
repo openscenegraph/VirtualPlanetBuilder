@@ -795,30 +795,8 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
 
         // note, resolutionSensitivityScale should probably be customizable.. will consider this option for later inclusion.
         double resolutionSensitivityScale = 0.9;
-        for(unsigned int layerNum=0;
-            layerNum<tile->_imagery.size();
-            ++layerNum)
-        {
-            unsigned int texture_numColumns;
-            unsigned int texture_numRows;
-            double texture_dx;
-            double texture_dy;
-            if (tile->computeImageResolution(layerNum,texture_numColumns,texture_numRows,texture_dx,texture_dy))
-            {
-                if (texture_dx*resolutionSensitivityScale>tile->_imagery[layerNum]._image_maxSourceResolutionX) needToDivideX = true;
-                if (texture_dy*resolutionSensitivityScale>tile->_imagery[layerNum]._image_maxSourceResolutionY) needToDivideY = true;
-            }
-        }
-                
-        unsigned int dem_numColumns;
-        unsigned int dem_numRows;
-        double dem_dx;
-        double dem_dy;
-        if (tile->computeTerrainResolution(dem_numColumns,dem_numRows,dem_dx,dem_dy))
-        {
-            if (dem_dx*resolutionSensitivityScale>tile->_terrain_maxSourceResolutionX) needToDivideX = true;
-            if (dem_dy*resolutionSensitivityScale>tile->_terrain_maxSourceResolutionY) needToDivideY = true;
-        }
+
+        tile->requiresDivision(resolutionSensitivityScale, needToDivideX, needToDivideY);
         
         float xCenter = (extents.xMin()+extents.xMax())*0.5f;
         float yCenter = (extents.yMin()+extents.yMax())*0.5f;

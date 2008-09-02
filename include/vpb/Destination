@@ -127,6 +127,8 @@ public:
     bool computeImageResolution(unsigned int layer, unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY);
     bool computeTerrainResolution(unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY);
 
+    void requiresDivision(float resolutionSensitivityScale, bool& needToDivideX, bool& needToDivideY);
+
     void allocate();
 
     void addRequiredResolutions(CompositeSource* sourceGraph);
@@ -206,7 +208,7 @@ public:
     };
 
     std::vector<ImageData>                      _imagery;
-    std::vector<ImageSet>                       _imagerySet;
+    std::vector<ImageSet>                       _imageLayerSet;
 
     inline ImageData& getImageData(unsigned int layer)
     {
@@ -216,8 +218,8 @@ public:
 
     inline ImageSet& getImageSet(unsigned int layer)
     {
-        if (layer>=_imagerySet.size()) _imagerySet.resize(layer+1);
-        return _imagerySet[layer];
+        if (layer>=_imageLayerSet.size()) _imageLayerSet.resize(layer+1);
+        return _imageLayerSet[layer];
     }
 
     osg::ref_ptr<DestinationData>               _terrain;
