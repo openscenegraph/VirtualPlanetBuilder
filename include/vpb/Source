@@ -82,6 +82,9 @@ public:
     void setType(Type type) { _type = type; }
     Type getType() const { return _type; }
 
+    void setSetName(const std::string& setname) { _setname = setname; }
+    const std::string& getSetName() const { return _setname; }
+
     void setFileName(const std::string& filename) { _filename = filename; }
     const std::string& getFileName() const { return _filename; }
 
@@ -209,6 +212,7 @@ protected:
 
     double                                      _sortValue;
 
+    std::string                                 _setname;
     std::string                                 _filename;
     bool                                        _temporaryFile;
 

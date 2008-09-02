@@ -805,8 +805,8 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
             double texture_dy;
             if (tile->computeImageResolution(layerNum,texture_numColumns,texture_numRows,texture_dx,texture_dy))
             {
-                if (texture_dx*resolutionSensitivityScale>tile->_imagery[layerNum]._imagery_maxSourceResolutionX) needToDivideX = true;
-                if (texture_dy*resolutionSensitivityScale>tile->_imagery[layerNum]._imagery_maxSourceResolutionY) needToDivideY = true;
+                if (texture_dx*resolutionSensitivityScale>tile->_imagery[layerNum]._image_maxSourceResolutionX) needToDivideX = true;
+                if (texture_dy*resolutionSensitivityScale>tile->_imagery[layerNum]._image_maxSourceResolutionY) needToDivideY = true;
             }
         }
                 
@@ -1992,6 +1992,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
     {
         // need to read locator.
         vpb::Source* source = new vpb::Source(type, hfl->getFileName());
+        source->setSetName(hfl->getSetName());
         source->setLayer(layerNum);
         source->setMinLevel(layer->getMinLevel());
         source->setMaxLevel(layer->getMaxLevel());
@@ -2018,6 +2019,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
     {
         // need to read locator
         vpb::Source* source = new vpb::Source(type, iml->getFileName());
+        source->setSetName(iml->getSetName());
         source->setLayer(layerNum);
         source->setMinLevel(layer->getMinLevel());
         source->setMaxLevel(layer->getMaxLevel());
@@ -2046,6 +2048,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
         pl->setImplementation(0);
 
         vpb::Source* source = new vpb::Source(type, pl->getFileName());
+        source->setSetName(pl->getSetName());
         source->setLayer(layerNum);
         source->setMinLevel(layer->getMinLevel());
         source->setMaxLevel(layer->getMaxLevel());
@@ -2079,6 +2082,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
             else if (!compositeLayer->getFileName(i).empty())
             {
                 vpb::Source* source = new vpb::Source(type, compositeLayer->getFileName(i));
+                source->setSetName(compositeLayer->getSetName(i));
                 source->setMinLevel(layer->getMinLevel());
                 source->setMaxLevel(layer->getMaxLevel());
                 source->setLayer(layerNum);

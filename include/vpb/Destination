@@ -110,8 +110,8 @@ public:
 
     void setMaximumImagerySize(unsigned int maxNumColumns,unsigned int maxNumRows)
     {
-        _imagery_maxNumColumns = maxNumColumns;
-        _imagery_maxNumRows = maxNumRows;
+        _image_maxNumColumns = maxNumColumns;
+        _image_maxNumRows = maxNumRows;
     }
 
     void setMaximumTerrainSize(unsigned int maxNumColumns,unsigned int maxNumRows)
@@ -179,22 +179,45 @@ public:
     struct ImageData
     {
         ImageData():
-            _imagery_maxSourceResolutionX(0.0f),
-            _imagery_maxSourceResolutionY(0.0f) {}
+            _image_maxSourceResolutionX(0.0f),
+            _image_maxSourceResolutionY(0.0f) {}
 
 
-        float                                  _imagery_maxSourceResolutionX;
-        float                                  _imagery_maxSourceResolutionY;
+        float                                  _image_maxSourceResolutionX;
+        float                                  _image_maxSourceResolutionY;
 
-        osg::ref_ptr<DestinationData>          _imagery;
+        osg::ref_ptr<DestinationData>          _imageDestination;
+    };
+
+    struct ImageSet
+    {
+        ImageSet():
+            _optional(false),
+            _image_maxSourceResolutionX(0.0f),
+            _image_maxSourceResolutionY(0.0f) {}
+
+        typedef std::map<std::string, ImageData> LayerSetImageDataMap;
+        LayerSetImageDataMap                    _layerSetImageDataMap;
+        
+        bool                                    _optional;
+
+        float                                   _image_maxSourceResolutionX;
+        float                                   _image_maxSourceResolutionY;
     };
 
     std::vector<ImageData>                      _imagery;
+    std::vector<ImageSet>                       _imagerySet;
 
     inline ImageData& getImageData(unsigned int layer)
     {
         if (layer>=_imagery.size()) _imagery.resize(layer+1);
         return _imagery[layer];
+    }
+
+    inline ImageSet& getImageSet(unsigned int layer)
+    {
+        if (layer>=_imagerySet.size()) _imagerySet.resize(layer+1);
+        return _imagerySet[layer];
     }
 
     osg::ref_ptr<DestinationData>               _terrain;
@@ -206,8 +229,8 @@ public:
 
     unsigned int                                _maxSourceLevel;
 
-    unsigned int                                _imagery_maxNumColumns;
-    unsigned int                                _imagery_maxNumRows;
+    unsigned int                                _image_maxNumColumns;
+    unsigned int                                _image_maxNumRows;
 
     unsigned int                                _terrain_maxNumColumns;
     unsigned int                                _terrain_maxNumRows;

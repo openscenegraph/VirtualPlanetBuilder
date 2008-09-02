@@ -81,8 +81,8 @@ DestinationTile::DestinationTile():
     _tileY(0),
     _pixelFormat(GL_RGB),
     _maxSourceLevel(0),
-    _imagery_maxNumColumns(4096),
-    _imagery_maxNumRows(4096),
+    _image_maxNumColumns(4096),
+    _image_maxNumRows(4096),
     _terrain_maxNumColumns(1024),
     _terrain_maxNumRows(1024),
     _terrain_maxSourceResolutionX(0.0f),
@@ -141,10 +141,10 @@ void DestinationTile::computeMaximumSourceResolution(Source* source)
                 case(Source::IMAGE):
                 {
                     ImageData& imageData = getImageData(source->getLayer());
-                    if (imageData._imagery_maxSourceResolutionX==0.0f) imageData._imagery_maxSourceResolutionX=sourceResolutionX;
-                    else imageData._imagery_maxSourceResolutionX=osg::minimum(imageData._imagery_maxSourceResolutionX,sourceResolutionX);
-                    if (imageData._imagery_maxSourceResolutionY==0.0f) imageData._imagery_maxSourceResolutionY=sourceResolutionY;
-                    else imageData._imagery_maxSourceResolutionY=osg::minimum(imageData._imagery_maxSourceResolutionY,sourceResolutionY);
+                    if (imageData._image_maxSourceResolutionX==0.0f) imageData._image_maxSourceResolutionX=sourceResolutionX;
+                    else imageData._image_maxSourceResolutionX=osg::minimum(imageData._image_maxSourceResolutionX,sourceResolutionX);
+                    if (imageData._image_maxSourceResolutionY==0.0f) imageData._image_maxSourceResolutionY=sourceResolutionY;
+                    else imageData._image_maxSourceResolutionY=osg::minimum(imageData._image_maxSourceResolutionY,sourceResolutionY);
                     break;
                 }
                 case(Source::HEIGHT_FIELD):
@@ -182,8 +182,8 @@ void DestinationTile::computeMaximumSourceResolution()
 bool DestinationTile::computeImageResolution(unsigned int layer, unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY)
 {
     ImageData& imageData = getImageData(layer);
-    if (imageData._imagery_maxSourceResolutionX!=0.0f && imageData._imagery_maxSourceResolutionY!=0.0f &&
-        _imagery_maxNumColumns!=0 && _imagery_maxNumRows!=0)
+    if (imageData._image_maxSourceResolutionX!=0.0f && imageData._image_maxSourceResolutionY!=0.0f &&
+        _image_maxNumColumns!=0 && _image_maxNumRows!=0)
     {
         // set up properly for vector and raster (previously always vector)
         // assume raster if _dataType not set (default for Destination Tile)
@@ -191,17 +191,17 @@ bool DestinationTile::computeImageResolution(unsigned int layer, unsigned int& n
         unsigned int numRowsAtFullRes;
         if (_dataType == SpatialProperties::VECTOR)
         {
-            numColumnsAtFullRes = 1+(unsigned int)ceilf((_extents.xMax()-_extents.xMin())/imageData._imagery_maxSourceResolutionX);
-            numRowsAtFullRes = 1+(unsigned int)ceilf((_extents.yMax()-_extents.yMin())/imageData._imagery_maxSourceResolutionY);
+            numColumnsAtFullRes = 1+(unsigned int)ceilf((_extents.xMax()-_extents.xMin())/imageData._image_maxSourceResolutionX);
+            numRowsAtFullRes = 1+(unsigned int)ceilf((_extents.yMax()-_extents.yMin())/imageData._image_maxSourceResolutionY);
         }
         else    // if (_dataType == SpatialProperties::RASTER)
         {
-            numColumnsAtFullRes = (unsigned int)ceilf((_extents.xMax()-_extents.xMin())/imageData._imagery_maxSourceResolutionX);
-            numRowsAtFullRes = (unsigned int)ceilf((_extents.yMax()-_extents.yMin())/imageData._imagery_maxSourceResolutionY);
+            numColumnsAtFullRes = (unsigned int)ceilf((_extents.xMax()-_extents.xMin())/imageData._image_maxSourceResolutionX);
+            numRowsAtFullRes = (unsigned int)ceilf((_extents.yMax()-_extents.yMin())/imageData._image_maxSourceResolutionY);
         }
 
-        unsigned int numColumnsRequired = osg::minimum(_imagery_maxNumColumns,numColumnsAtFullRes);
-        unsigned int numRowsRequired    = osg::minimum(_imagery_maxNumRows,numRowsAtFullRes);
+        unsigned int numColumnsRequired = osg::minimum(_image_maxNumColumns,numColumnsAtFullRes);
+        unsigned int numRowsRequired    = osg::minimum(_image_maxNumRows,numRowsAtFullRes);
 
         // use a minimum image size of 4x4 to avoid mipmap generation problems in OpenGL at sizes at 2x2. 
         numColumns = 4;
@@ -284,23 +284,23 @@ void DestinationTile::allocate()
 
             ImageData& imageData = getImageData(layerNum);
 
-            imageData._imagery = new DestinationData(_dataSet);
-            imageData._imagery->_cs = _cs;
-            imageData._imagery->_extents = _extents;
-            imageData._imagery->_geoTransform.set(texture_dx,      0.0,               0.0,0.0,
+            imageData._imageDestination = new DestinationData(_dataSet);
+            imageData._imageDestination->_cs = _cs;
+            imageData._imageDestination->_extents = _extents;
+            imageData._imageDestination->_geoTransform.set(texture_dx,      0.0,               0.0,0.0,
                                         0.0,             -texture_dy,       0.0,0.0,
                                         0.0,             0.0,               1.0,1.0,
                                         _extents.xMin(), _extents.yMax(),   0.0,1.0);
 
 
-            imageData._imagery->_image = new osg::Image;
+            imageData._imageDestination->_image = new osg::Image;
 
             std::string imageName(_name+_dataSet->getDestinationImageExtension());
-            imageData._imagery->_image->setFileName(imageName.c_str());
+            imageData._imageDestination->_image->setFileName(imageName.c_str());
 
-            imageData._imagery->_image->allocateImage(texture_numColumns,texture_numRows,1,_pixelFormat,GL_UNSIGNED_BYTE);
-            unsigned char* data = imageData._imagery->_image->data();
-            unsigned int totalSize = imageData._imagery->_image->getTotalSizeInBytesIncludingMipmaps();
+            imageData._imageDestination->_image->allocateImage(texture_numColumns,texture_numRows,1,_pixelFormat,GL_UNSIGNED_BYTE);
+            unsigned char* data = imageData._imageDestination->_image->data();
+            unsigned int totalSize = imageData._imageDestination->_image->getTotalSizeInBytesIncludingMipmaps();
             for(unsigned int i=0;i<totalSize;++i)
             {
                 *(data++) = 0;
@@ -449,9 +449,9 @@ void DestinationTile::equalizeCorner(Position position)
             if (layerNum<tcp.first->_imagery.size())
             {
                 ImageData& imageData = tcp.first->_imagery[layerNum];
-                if (imageData._imagery.valid() && imageData._imagery->_image.valid())
+                if (imageData._imageDestination.valid() && imageData._imageDestination->_image.valid())
                 {
-                    imagesToProcess.push_back(ImageCornerPair(imageData._imagery->_image.get(),tcp.second));
+                    imagesToProcess.push_back(ImageCornerPair(imageData._imageDestination->_image.get(),tcp.second));
                 }
             }
         }
@@ -652,15 +652,15 @@ void DestinationTile::equalizeEdge(Position position)
         ++layerNum)
     {
         // do we have a image to equalize?
-        if (!_imagery[layerNum]._imagery.valid()) continue;
+        if (!_imagery[layerNum]._imageDestination.valid()) continue;
         
         // does the neighbouring tile have an image to equalize?
         if (layerNum>=tile2->_imagery.size()) continue;
-        if (!(tile2->_imagery[layerNum]._imagery.valid())) continue;
+        if (!(tile2->_imagery[layerNum]._imageDestination.valid())) continue;
     
 
-        osg::Image* image1 = _imagery[layerNum]._imagery->_image.get();
-        osg::Image* image2 = tile2->_imagery[layerNum]._imagery->_image.get();
+        osg::Image* image1 = _imagery[layerNum]._imageDestination->_image.get();
+        osg::Image* image2 = tile2->_imagery[layerNum]._imageDestination->_image.get();
 
         //log(osg::INFO,"Equalizing edge "<<edgeString(position)<<" of \t"<<_level<<"\t"<<_tileX<<"\t"<<_tileY
         //         <<"  neighbour "<<tile2->_level<<"\t"<<tile2->_tileX<<"\t"<<tile2->_tileY);
@@ -1042,8 +1042,8 @@ osg::StateSet* DestinationTile::createStateSet()
         layerNum<_imagery.size();
         ++layerNum)
     {
-        if (_imagery[layerNum]._imagery.valid() && 
-            _imagery[layerNum]._imagery->_image.valid())
+        if (_imagery[layerNum]._imageDestination.valid() && 
+            _imagery[layerNum]._imageDestination->_image.valid())
         {
             ++numValidImagerLayers;
         }
@@ -1058,9 +1058,9 @@ osg::StateSet* DestinationTile::createStateSet()
         ++layerNum)
     {
         ImageData& imageData = _imagery[layerNum];
-        if (!imageData._imagery.valid() || !imageData._imagery->_image.valid()) continue;
+        if (!imageData._imageDestination.valid() || !imageData._imageDestination->_image.valid()) continue;
         
-        osg::Image* image = imageData._imagery->_image.get();
+        osg::Image* image = imageData._imageDestination->_image.get();
 
         std::string imageExension(_dataSet->_imageExtension);
         //std::string imageExension(".dds"); // ".rgb"
@@ -1470,9 +1470,9 @@ osg::Node* DestinationTile::createTerrainTile()
         ++layerNum)
     {
         ImageData& imageData = _imagery[layerNum];
-        if (imageData._imagery.valid() && imageData._imagery->_image.valid())
+        if (imageData._imageDestination.valid() && imageData._imageDestination->_image.valid())
         {        
-            osg::Image* image = imageData._imagery->_image.get();
+            osg::Image* image = imageData._imageDestination->_image.get();
 
             osgTerrain::ImageLayer* imageLayer = new osgTerrain::ImageLayer;
             imageLayer->setImage(image);
@@ -1849,7 +1849,7 @@ osg::Node* DestinationTile::createPolygonal()
             ++layerNum)
         {
             ImageData& imageData = _imagery[layerNum];
-            if (imageData._imagery.valid() && imageData._imagery->_image.valid()) 
+            if (imageData._imageDestination.valid() && imageData._imageDestination->_image.valid()) 
             {
                 geometry->setTexCoordArray(layerNum,&t);
             }
@@ -2227,6 +2227,10 @@ osg::Node* DestinationTile::createPolygonal()
 
 void DestinationTile::readFrom(Source* source)
 {
+    bool optionalLayerSet = _dataSet->isOptionalLayerSet(source->getSetName());
+    log(osg::NOTICE,"DestinationTile::readFrom(SetName=%s, FileName=%s)",source->getSetName().c_str(), source->getFileName().c_str());
+    if (optionalLayerSet) log(osg::NOTICE,"  is an optional layer set");
+
     if (source && 
         source->intersects(*this) &&
         _level>=source->getMinLevel() && _level<=source->getMaxLevel() && 
@@ -2250,18 +2254,18 @@ void DestinationTile::readFrom(Source* source)
                             // copy the base layer 0 into layer 0 and all subsequent layers to provide a backdrop.
                             for(unsigned int i=0;i<_imagery.size();++i)
                             {
-                                if (_imagery[i]._imagery.valid())
+                                if (_imagery[i]._imageDestination.valid())
                                 {
-                                    data->read(*(_imagery[i]._imagery));
+                                    data->read(*(_imagery[i]._imageDestination));
                                 }
                             }
                         }
                         else
                         {
                             // copy specific layer.
-                            if (layerNum<_imagery.size() && _imagery[layerNum]._imagery.valid())
+                            if (layerNum<_imagery.size() && _imagery[layerNum]._imageDestination.valid())
                             {
-                                data->read(*(_imagery[layerNum]._imagery));
+                                data->read(*(_imagery[layerNum]._imageDestination));
                             }
                         }
                         break;
@@ -2271,18 +2275,18 @@ void DestinationTile::readFrom(Source* source)
                         // copy the current layer into this and all subsequent layers to provide a backdrop.
                         for(unsigned int i=layerNum;i<_imagery.size();++i)
                         {
-                            if (_imagery[i]._imagery.valid())
+                            if (_imagery[i]._imageDestination.valid())
                             {
-                                data->read(*(_imagery[i]._imagery));
+                                data->read(*(_imagery[i]._imageDestination));
                             }
                         }
                         break;
                     }
                     case(BuildOptions::NO_INHERITANCE):
                     {
-                        if (layerNum<_imagery.size() && _imagery[layerNum]._imagery.valid())
+                        if (layerNum<_imagery.size() && _imagery[layerNum]._imageDestination.valid())
                         {
-                            data->read(*(_imagery[layerNum]._imagery));
+                            data->read(*(_imagery[layerNum]._imageDestination));
                         }
                         break;
                     }
