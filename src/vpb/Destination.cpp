@@ -1537,16 +1537,44 @@ osg::Node* DestinationTile::createTerrainTile()
         ImageSet& imageSet = getImageSet(layerNum);
         if (imageSet._layerSetImageDataMap.empty()) continue;
         
-        ImageData& imageData = imageSet._layerSetImageDataMap.begin()->second;
-        if (imageData._imageDestination.valid() && imageData._imageDestination->_image.valid())
-        {        
-            osg::Image* image = imageData._imageDestination->_image.get();
+        if (imageSet._layerSetImageDataMap.size()>1 || 
+            !(imageSet._layerSetImageDataMap.begin()->first.empty()))
+        {
+            log(osg::NOTICE,"Have optional layers = %i",imageSet._layerSetImageDataMap.size());
+            osgTerrain::SwitchLayer* switchLayer = new osgTerrain::SwitchLayer;
+            for(ImageSet::LayerSetImageDataMap::iterator litr = imageSet._layerSetImageDataMap.begin();
+                litr != imageSet._layerSetImageDataMap.end();
+                ++litr)
+            {
+                ImageData& imageData = litr->second;
+                if (imageData._imageDestination.valid() && imageData._imageDestination->_image.valid())
+                {        
+                    osg::Image* image = imageData._imageDestination->_image.get();
 
-            osgTerrain::ImageLayer* imageLayer = new osgTerrain::ImageLayer;
-            imageLayer->setImage(image);
-            imageLayer->setLocator(locator);
+                    osgTerrain::ImageLayer* imageLayer = new osgTerrain::ImageLayer;
+                    imageLayer->setImage(image);
+                    imageLayer->setSetName(litr->first);
+                    imageLayer->setLocator(locator);
 
-            terrainTile->setColorLayer(layerNum, imageLayer);
+                    switchLayer->addLayer(imageLayer);
+
+                }
+            }
+            terrainTile->setColorLayer(layerNum, switchLayer);
+        }
+        else
+        {
+            ImageData& imageData = imageSet._layerSetImageDataMap.begin()->second;
+            if (imageData._imageDestination.valid() && imageData._imageDestination->_image.valid())
+            {        
+                osg::Image* image = imageData._imageDestination->_image.get();
+
+                osgTerrain::ImageLayer* imageLayer = new osgTerrain::ImageLayer;
+                imageLayer->setImage(image);
+                imageLayer->setLocator(locator);
+
+                terrainTile->setColorLayer(layerNum, imageLayer);
+            }
         }
     }
 
