@@ -1498,7 +1498,6 @@ void DataSet::_writeImageFile(const osg::Image& image,const std::string& filenam
     }
 }
 
-
 class WriteImageFilesVisitor : public osg::NodeVisitor
 {
 public:
@@ -1529,11 +1528,59 @@ public:
         }
     }
 
+
+    void writeLayer(osgTerrain::Layer* layer)
+    {
+        if (!layer) return;
+        
+        osgTerrain::ImageLayer* imageLayer = dynamic_cast<osgTerrain::ImageLayer*>(layer);
+        if (imageLayer)
+        {
+            osg::Image* image = imageLayer->getImage();
+            if (image)
+            {
+                osg::notify(osg::NOTICE)<<"Writing out image layer "<<image->getFileName()<<std::endl;
+                _dataSet->_writeImageFile(*image,(_dataSet->getDirectory()+image->getFileName()).c_str());
+            }
+            return;   
+        }
+        
+        osgTerrain::SwitchLayer* switchLayer = dynamic_cast<osgTerrain::SwitchLayer*>(layer);
+        if (switchLayer)
+        {
+            for(unsigned int i=0; i<switchLayer->getNumLayers(); ++i)
+            {
+                osg::notify(osg::NOTICE)<<"Writing out switch layer child: "<<switchLayer->getSetName(i)<<", "<<switchLayer->getFileName(i)<<std::endl;
+                writeLayer(switchLayer->getLayer(i));
+            }
+            return;
+        }
+
+        osgTerrain::CompositeLayer* compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(layer);
+        if (compositeLayer)
+        {
+            for(unsigned int i=0; i<compositeLayer->getNumLayers(); ++i)
+            {
+                osg::notify(osg::NOTICE)<<"Writing out composite layer child: "<<compositeLayer->getFileName(i)<<std::endl;
+                writeLayer(compositeLayer->getLayer(i));
+            }
+            return;
+        }
+    }
+
     void applyTerrain(osgTerrain::TerrainTile& terrainTile)
     {
-        if (terrainTile.getStateSet()) apply(*(terrainTile.getStateSet()));
-        
-        // need to iterator through images stored in layers
+#if 0    
+        if (terrainTile.getElevationLayer()) writeLayer(terrainTile.getElevationLayer());
+#endif
+
+        for(unsigned int i=0; i<terrainTile.getNumColorLayers(); ++i)
+        {
+            if (terrainTile.getColorLayer(i))
+            {
+                writeLayer(terrainTile.getColorLayer(i));
+            }
+        }
     }
 
     virtual void apply(osg::Geode& geode)
@@ -1564,6 +1611,21 @@ public:
     }
 };
 
+void DataSet::_writeNodeFileAndImages(const osg::Node& node,const std::string& filename)
+{
+    if (getDisableWrites()) return;
+
+    if (getDestinationTileExtension()==".osg")
+    {
+        WriteImageFilesVisitor wifv(this);
+        const_cast<osg::Node&>(node).accept(wifv);
+    }
+
+    _writeNodeFile(node,filename);
+}
+
+
+
 class WriteOperation : public BuildOperation
 {
     public:
@@ -1583,13 +1645,7 @@ class WriteOperation : public BuildOperation
             {
                 if (_buildLog.valid()) _buildLog->log(osg::NOTICE, "   writeSubTile filename= %s",_filename.c_str());
                 
-                _dataset->_writeNodeFile(*node,_filename);
-
-                if (_dataset->getDestinationTileExtension()==".osg")
-                {
-                    WriteImageFilesVisitor wifv(_dataset);
-                    node->accept(wifv);
-                }
+                _dataset->_writeNodeFileAndImages(*node,_filename);
 
                 _cd->setSubTilesGenerated(true);
                 _cd->unrefSubTileData();
@@ -1633,13 +1689,8 @@ void DataSet::_writeRow(Row& row)
                     if (node.valid())
                     {
                         log(osg::NOTICE, "   writeSubTile filename= %s",filename.c_str());
-                        _writeNodeFile(*node,filename);
+                        _writeNodeFileAndImages(*node,filename);
 
-                        if (_tileExtension==".osg")
-                        {
-                            WriteImageFilesVisitor wifv(this);
-                            node->accept(wifv);
-                        }
 
                         parent->setSubTilesGenerated(true);
                         parent->unrefSubTileData();
@@ -1684,13 +1735,7 @@ void DataSet::_writeRow(Row& row)
             if (node.valid())
             {
                 log(osg::NOTICE, "   writeNodeFile = %u X=%u Y=%u filename=%s",cd->_level,cd->_tileX,cd->_tileY,filename.c_str());
-                _writeNodeFile(*node,filename);
-                
-                if (_tileExtension==".osg")
-                {
-                    WriteImageFilesVisitor wifv(this);
-                    node->accept(wifv);
-                }
+                _writeNodeFileAndImages(*node,filename);
             }
             else
             {
@@ -1820,12 +1865,7 @@ void DataSet::_buildDestination(bool writeToDisk)
 
             if (writeToDisk)
             {
-                _writeNodeFile(*_rootNode,filename);
-                if (_tileExtension==".osg")
-                {
-                    WriteImageFilesVisitor wifv(this);
-                    _rootNode->accept(wifv);
-                }
+                _writeNodeFileAndImages(*_rootNode,filename);
             }
         }
         else  // _databaseType==PagedLOD_DATABASE
