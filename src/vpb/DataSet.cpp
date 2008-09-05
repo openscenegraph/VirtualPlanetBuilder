@@ -1970,7 +1970,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
     {
         // need to read locator.
         vpb::Source* source = new vpb::Source(type, hfl->getFileName());
-        source->setSetName(hfl->getSetName());
+        source->setSetName(hfl->getSetName(), this);
         source->setLayer(layerNum);
         source->setMinLevel(layer->getMinLevel());
         source->setMaxLevel(layer->getMaxLevel());
@@ -1997,7 +1997,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
     {
         // need to read locator
         vpb::Source* source = new vpb::Source(type, iml->getFileName());
-        source->setSetName(iml->getSetName());
+        source->setSetName(iml->getSetName(), this);
         source->setLayer(layerNum);
         source->setMinLevel(layer->getMinLevel());
         source->setMaxLevel(layer->getMaxLevel());
@@ -2026,7 +2026,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
         pl->setImplementation(0);
 
         vpb::Source* source = new vpb::Source(type, pl->getFileName());
-        source->setSetName(pl->getSetName());
+        source->setSetName(pl->getSetName(), this);
         source->setLayer(layerNum);
         source->setMinLevel(layer->getMinLevel());
         source->setMaxLevel(layer->getMaxLevel());
@@ -2060,7 +2060,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
             else if (!compositeLayer->getFileName(i).empty())
             {
                 vpb::Source* source = new vpb::Source(type, compositeLayer->getFileName(i));
-                source->setSetName(compositeLayer->getSetName(i));
+                source->setSetName(compositeLayer->getSetName(i), this);
                 source->setMinLevel(layer->getMinLevel());
                 source->setMaxLevel(layer->getMaxLevel());
                 source->setLayer(layerNum);
@@ -2946,4 +2946,15 @@ int DataSet::_run()
     }
 
     return 0;
+}
+
+std::string DataSet::checkBuildValidity()
+{
+    bool isTerrain = getGeometryType()==BuildOptions::TERRAIN;
+    bool containsOptionalLayers = !(getOptionalLayerSet().empty());
+
+    if (containsOptionalLayers && !isTerrain) return std::string("Can not mix optional layers with POLYGONAL and HEIGHTFIELD builds, must use --terrain to enable optional layer support.");
+
+
+    return std::string();
 }

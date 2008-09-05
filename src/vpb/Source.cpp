@@ -16,6 +16,7 @@
 #include <vpb/Destination>
 #include <vpb/DataSet>
 #include <vpb/System>
+#include <vpb/BuildOptions>
 
 #include <osg/Geometry>
 #include <osg/Notify>
@@ -46,6 +47,16 @@ Source::Source(Type type, osg::Node* model):
 {
     _sourceData = new SourceData(this);
     _sourceData->_model = model;
+}
+
+void Source::setSetName(const std::string& setname, BuildOptions* bo)
+{
+    _setname = setname; 
+    if (bo)
+    {
+        if (bo->isOptionalLayerSet(setname)) _switchSetName = setname;
+        else _switchSetName.clear();
+    }
 }
 
 GeospatialDataset* Source::getOptimumGeospatialDataset(const SpatialProperties& sp, AccessMode accessMode) const

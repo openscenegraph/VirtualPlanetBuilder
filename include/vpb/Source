@@ -24,6 +24,10 @@
 
 namespace vpb
 {
+
+// forward declare
+class BuildOptions;
+
 class VPB_EXPORT Source : public osg::Referenced, public SpatialProperties
 {
 public:
@@ -82,8 +86,12 @@ public:
     void setType(Type type) { _type = type; }
     Type getType() const { return _type; }
 
-    void setSetName(const std::string& setname) { _setname = setname; }
+    void setSetName(const std::string& setname, BuildOptions* bo);
+    
     const std::string& getSetName() const { return _setname; }
+
+    void setSwitchSetName(const std::string& setname) { _switchSetName = setname; }
+    const std::string& getSwitchSetName() const { return _switchSetName; }
 
     void setFileName(const std::string& filename) { _filename = filename; }
     const std::string& getFileName() const { return _filename; }
@@ -213,6 +221,7 @@ protected:
     double                                      _sortValue;
 
     std::string                                 _setname;
+    std::string                                 _switchSetName;
     std::string                                 _filename;
     bool                                        _temporaryFile;
 

@@ -134,6 +134,9 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
           * date than the build data of that task, if so change its status from completed to pending.*/
         void setOutOfDateTasksToPending();
 
+        /** Check the build validity, return an empty string if everything is OK, on error return the error string.*/
+        std::string checkBuildValidity();
+
     protected:
 
         virtual ~TaskManager();

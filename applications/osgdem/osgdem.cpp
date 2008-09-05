@@ -204,7 +204,7 @@ int main(int argc, char** argv)
     }
 
     double duration = 0.0;
-
+    
     // generate the database
     if (terrain.valid())
     {
@@ -236,20 +236,33 @@ int main(int argc, char** argv)
             // make sure the OS writes changes to disk
             vpb::sync();
 
-            result = dataset->run();
+            // check to make sure that the build itself is ready to run and confirgured correctly.            
+            std::string buildProblems = dataset->checkBuildValidity();
+            if (buildProblems.empty())
+            {
+                result = dataset->run();
 
-            if (dataset->getBuildLog() && report)
-            {
-                dataset->getBuildLog()->report(std::cout);
+                if (dataset->getBuildLog() && report)
+                {
+                    dataset->getBuildLog()->report(std::cout);
+                }
+
+                duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
+
+                dataset->log(osg::NOTICE,"Elapsed time = %f",duration);
+
+                if (taskFile.valid())
+                {
+                    taskFile->setStatus(vpb::Task::COMPLETED);
+                }
             }
-            
-            duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
-            
-            dataset->log(osg::NOTICE,"Elapsed time = %f",duration);
-            
-            if (taskFile.valid())
+            else
             {
-                taskFile->setStatus(vpb::Task::COMPLETED);
+                dataset->log(osg::NOTICE,"Build configuration invalid : %s",buildProblems.c_str());
+                if (taskFile.valid())
+                {
+                    taskFile->setStatus(vpb::Task::FAILED);
+                }
             }
 
         }
@@ -257,8 +270,11 @@ int main(int argc, char** argv)
         {
             printf("Caught exception : %s\n",str.c_str());
             
-            taskFile->setStatus(vpb::Task::FAILED);
-
+            if (taskFile.valid())
+            {
+                taskFile->setStatus(vpb::Task::FAILED);
+            }
+            
             result = 1;
 
         }
@@ -266,7 +282,10 @@ int main(int argc, char** argv)
         {
             printf("Caught exception.\n");
             
-            taskFile->setStatus(vpb::Task::FAILED);
+            if (taskFile.valid())
+            {
+                taskFile->setStatus(vpb::Task::FAILED);
+            }
 
             result = 1;
         }

@@ -124,7 +124,7 @@ public:
     void computeMaximumSourceResolution(Source* source);
     void computeMaximumSourceResolution(CompositeSource* sourceGraph);
 
-    bool computeImageResolution(unsigned int layer, unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY);
+    bool computeImageResolution(unsigned int layer, const std::string& setname, unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY);
     bool computeTerrainResolution(unsigned int& numColumns, unsigned int& numRows, double& resX, double& resY);
 
     void requiresDivision(float resolutionSensitivityScale, bool& needToDivideX, bool& needToDivideY);
@@ -197,6 +197,18 @@ public:
             _optional(false),
             _image_maxSourceResolutionX(0.0f),
             _image_maxSourceResolutionY(0.0f) {}
+            
+        bool valid()
+        {
+            for(LayerSetImageDataMap::iterator itr =_layerSetImageDataMap.begin();
+                itr != _layerSetImageDataMap.end();
+                ++itr)
+            {
+                if (itr->second._imageDestination.valid() &&
+                    itr->second._imageDestination->_image.valid()) return true;
+            }
+            return false;
+        }
 
         typedef std::map<std::string, ImageData> LayerSetImageDataMap;
         LayerSetImageDataMap                    _layerSetImageDataMap;
@@ -207,13 +219,12 @@ public:
         float                                   _image_maxSourceResolutionY;
     };
 
-    std::vector<ImageData>                      _imagery;
     std::vector<ImageSet>                       _imageLayerSet;
 
-    inline ImageData& getImageData(unsigned int layer)
+    inline ImageData& getImageData(unsigned int layer, const std::string& setname)
     {
-        if (layer>=_imagery.size()) _imagery.resize(layer+1);
-        return _imagery[layer];
+        if (layer>=_imageLayerSet.size()) _imageLayerSet.resize(layer+1);
+        return _imageLayerSet[layer]._layerSetImageDataMap[setname];
     }
 
     inline ImageSet& getImageSet(unsigned int layer)
@@ -221,6 +232,8 @@ public:
         if (layer>=_imageLayerSet.size()) _imageLayerSet.resize(layer+1);
         return _imageLayerSet[layer];
     }
+    
+    inline unsigned int getNumLayers() const { return _imageLayerSet.size(); }
 
     osg::ref_ptr<DestinationData>               _terrain;
     osg::ref_ptr<DestinationData>               _models;

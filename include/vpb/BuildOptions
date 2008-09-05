@@ -28,7 +28,6 @@
 namespace vpb
 {
 
-
 class VPB_EXPORT BuildOptions : public osg::Object
 {
     public:

@@ -222,8 +222,6 @@ void TaskManager::buildWithoutSlaves()
 
 bool TaskManager::generateTasksFromSource()
 {
-    bool result = false;
-    
     if (_terrainTile.valid())
     {
         try 
@@ -248,10 +246,10 @@ bool TaskManager::generateTasksFromSource()
             if (dataset->requiresReprojection())
             {
                 dataset->log(osg::NOTICE,"Error: vpbmaster can not run without all source data being in the correct destination coordinates system, please reproject them.");
-                return 1;
+                return false;
             }
 
-            result = dataset->generateTasks(this);
+            dataset->generateTasks(this);
 
             if (dataset->getBuildLog())
             {
@@ -262,11 +260,12 @@ bool TaskManager::generateTasksFromSource()
         catch(...)
         {
             printf("Caught exception.\n");
+            return false;
         }
 
     }
     
-    return result;
+    return true;
 }
 
 bool TaskManager::run()
@@ -854,3 +853,15 @@ void TaskManager::signalHandler(int sig)
     System::instance()->getTaskManager()->handleSignal(sig);
 }
 
+std::string TaskManager::checkBuildValidity()
+{
+    BuildOptions* buildOptions = getBuildOptions();
+    if (!buildOptions) return std::string("No BuildOptions supplied in source file");
+
+    bool isTerrain = buildOptions->getGeometryType()==BuildOptions::TERRAIN;
+    bool containsOptionalLayers = !(buildOptions->getOptionalLayerSet().empty());
+
+    if (containsOptionalLayers && !isTerrain) return std::string("Can not mix optional layers with POLYGONAL and HEIGHTFIELD builds, must use --terrain to enable optional layer support.");
+
+    return std::string();
+}

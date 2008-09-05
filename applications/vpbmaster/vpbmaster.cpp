@@ -93,39 +93,65 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    if (buildWithoutSlaves)
+
+    int result = 0;    
+    
+    std::string buildProblems = taskManager->checkBuildValidity();
+    if (buildProblems.empty())
     {
-        taskManager->buildWithoutSlaves();
+        try 
+        {
+            if (buildWithoutSlaves)
+            {
+                taskManager->buildWithoutSlaves();
+            }
+            else
+            {
+                if (!taskManager->hasTasks())
+                {
+                    std::string sourceFileName = taskManager->getBuildName() + std::string("_master.source");
+                    tasksOutputFileName = taskManager->getBuildName() + std::string("_master.tasks");
+
+                    taskManager->setSourceFileName(sourceFileName);
+                    taskManager->generateTasksFromSource();
+
+                    taskManager->writeSource(sourceFileName);
+                    taskManager->writeTasks(tasksOutputFileName, true);
+
+                    taskManager->log(osg::NOTICE,"Generated tasks file = %s",tasksOutputFileName.c_str());
+                }
+
+                // make sure the OS writes changes to disk
+                vpb::sync();
+
+                if (taskManager->hasMachines())
+                {
+                    taskManager->run();
+                }
+                else
+                {
+                    taskManager->log(osg::NOTICE,"Cannot run build without machines assigned, please pass in a machines definiation file via --machines <file>.");
+                }
+            }
+        }
+        catch(std::string str)
+        {
+            taskManager->log(osg::NOTICE,"Caught exception : %s",str.c_str());
+            result = 1;
+        }
+        catch(...)
+        {
+            taskManager->log(osg::NOTICE,"Caught exception.");
+            result = 1;
+        }
     }
     else
     {
-        if (!taskManager->hasTasks())
-        {
-            std::string sourceFileName = taskManager->getBuildName() + std::string("_master.source");
-            tasksOutputFileName = taskManager->getBuildName() + std::string("_master.tasks");
-
-            taskManager->setSourceFileName(sourceFileName);
-            taskManager->generateTasksFromSource();
-
-            taskManager->writeSource(sourceFileName);
-            taskManager->writeTasks(tasksOutputFileName, true);
-            
-            taskManager->log(osg::NOTICE,"Generated tasks file = %s",tasksOutputFileName.c_str());
-        }
-    
-        // make sure the OS writes changes to disk
-        vpb::sync();
-
-        if (taskManager->hasMachines())
-        {
-            taskManager->run();
-        }
-        else
-        {
-            taskManager->log(osg::NOTICE,"Cannot run build without machines assigned, please pass in a machines definiation file via --machines <file>.");
-        }
+        taskManager->log(osg::NOTICE,"Build configuration invalid : %s",buildProblems.c_str());
+        result = 1;
     }
-    
+
+            
     double duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
 
     taskManager->log(osg::NOTICE,"Total elapsed time = %f",duration);
@@ -133,6 +159,6 @@ int main(int argc, char** argv)
     // make sure the OS writes changes to disk
     vpb::sync();
 
-    return 0;
+    return result;
 }
 
