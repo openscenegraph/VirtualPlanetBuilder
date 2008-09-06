@@ -175,9 +175,9 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         int run();
 
         // helper functions for handling optional archive
-        void _writeNodeFile(const osg::Node& node,const std::string& filename);
-        void _writeImageFile(const osg::Image& image,const std::string& filename);
-        void _writeNodeFileAndImages(const osg::Node& node,const std::string& filename);
+        void _writeNodeFile(osg::Node& node,const std::string& filename);
+        void _writeImageFile(osg::Image& image,const std::string& filename);
+        void _writeNodeFileAndImages(osg::Node& node,const std::string& filename);
        
         void setState(osg::State* state) { _state = state; }
         osg::State* getState() { return _state.get(); }

@@ -1448,7 +1448,7 @@ void DataSet::_equalizeRow(Row& row)
     }
 }
 
-void DataSet::_writeNodeFile(const osg::Node& node,const std::string& filename)
+void DataSet::_writeNodeFile(osg::Node& node,const std::string& filename)
 {
     if (getDisableWrites()) return;
 
@@ -1474,9 +1474,11 @@ void DataSet::_writeNodeFile(const osg::Node& node,const std::string& filename)
     }
 }
 
-void DataSet::_writeImageFile(const osg::Image& image,const std::string& filename)
+void DataSet::_writeImageFile(osg::Image& image,const std::string& filename)
 {
     if (getDisableWrites()) return;
+
+    //image.setFileName(filename.c_str());
 
     if (_archive.valid()) _archive->writeImage(image,filename);
     else 
@@ -1502,11 +1504,23 @@ class WriteImageFilesVisitor : public osg::NodeVisitor
 {
 public:
 
-    WriteImageFilesVisitor(vpb::DataSet* dataSet):
+    WriteImageFilesVisitor(vpb::DataSet* dataSet, const std::string& directory):
         osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN),
-        _dataSet(dataSet) {}
+        _dataSet(dataSet),
+        _directory(directory)
+    {
+        if (!_directory.empty())
+        {
+            char lastCharacter = _directory[_directory.size()-1];
+            if (lastCharacter != '/' && lastCharacter != '\\')
+            {
+                _directory.push_back('/');
+            }
+        }
+    }
 
-    vpb::DataSet* _dataSet;
+    vpb::DataSet*   _dataSet;
+    std::string     _directory;
     
     virtual void apply(osg::Node& node)
     {
@@ -1539,8 +1553,8 @@ public:
             osg::Image* image = imageLayer->getImage();
             if (image)
             {
-                osg::notify(osg::NOTICE)<<"Writing out image layer "<<image->getFileName()<<std::endl;
-                _dataSet->_writeImageFile(*image,(_dataSet->getDirectory()+image->getFileName()).c_str());
+                osg::notify(osg::NOTICE)<<"Writing out image layer "<<image->getFileName()<<" _directory="<<_directory<<std::endl;
+                _dataSet->_writeImageFile(*image,_directory+image->getFileName());
             }
             return;   
         }
@@ -1605,23 +1619,26 @@ public:
             
             if (image)
             {
-                _dataSet->_writeImageFile(*image,(_dataSet->getDirectory()+image->getFileName()).c_str());
+                _dataSet->_writeImageFile(*image,_directory+image->getFileName());
             }
         }
     }
 };
 
-void DataSet::_writeNodeFileAndImages(const osg::Node& node,const std::string& filename)
+void DataSet::_writeNodeFileAndImages(osg::Node& node,const std::string& filename)
 {
     if (getDisableWrites()) return;
 
+    log(osg::NOTICE,"_writeNodeFile(%s)",filename.c_str());
+
     if (getDestinationTileExtension()==".osg")
     {
-        WriteImageFilesVisitor wifv(this);
+        WriteImageFilesVisitor wifv(this, osgDB::getFilePath(filename));
         const_cast<osg::Node&>(node).accept(wifv);
     }
 
     _writeNodeFile(node,filename);
+
 }
 
 
