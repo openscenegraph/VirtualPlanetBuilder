@@ -35,6 +35,7 @@
 #include <vpb/TaskManager>
 #include <vpb/System>
 #include <vpb/FileUtils>
+#include <vpb/FilePathManager>
 
 #include <vpb/ShapeFilePlacer>
 
@@ -366,6 +367,7 @@ CompositeDestination* DataSet::createDestinationTile(int currentLevel, int curre
     tile->_dataSet = this;
     tile->_cs = destinationGraph->_cs;
     tile->_extents = extents;
+    tile->_parent = destinationGraph;
 
     // set to NONE as the tile is a mix of RASTER and VECTOR
     // that way the default of RASTER for image and VECTOR for height is maintained
@@ -766,6 +768,7 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
     tile->_dataSet = this;
     tile->_cs = cs;
     tile->_extents = extents;
+    tile->_parent = destinationGraph;
 
     // set to NONE as the tile is a mix of RASTER and VECTOR
     // that way the default of RASTER for image and VECTOR for height is maintained
@@ -1479,23 +1482,26 @@ void DataSet::_writeImageFile(osg::Image& image,const std::string& filename)
     if (getDisableWrites()) return;
 
     //image.setFileName(filename.c_str());
+    
+    // remove any ../ from the filename
+    std::string simpliedFileName = vpb::simplifyFileName(filename);
 
-    if (_archive.valid()) _archive->writeImage(image,filename);
+    if (_archive.valid()) _archive->writeImage(image,simpliedFileName);
     else 
     {
-        if (vpb::hasWritePermission(filename))
+        if (FilePathManager::instance()->checkWritePermissionAndEnsurePathAvailability(simpliedFileName))
         {
             osgDB::ReaderWriter::WriteResult result = 
-                osgDB::Registry::instance()->writeImage(image, filename,osgDB::Registry::instance()->getOptions());
+                osgDB::Registry::instance()->writeImage(image, simpliedFileName,osgDB::Registry::instance()->getOptions());
                 
             if (!result.success())
             {
-                log(osg::WARN, "Error: error occurred when writing out file %s",filename.c_str());
+                log(osg::WARN, "Error: error occurred when writing out file %s",simpliedFileName.c_str());
             }
         }
         else
         {
-            log(osg::WARN, "Error: do not have write permission to write out file %s",filename.c_str());
+            log(osg::WARN, "Error: do not have write permission to write out file %s",simpliedFileName.c_str());
         }
     }
 }
@@ -1553,7 +1559,7 @@ public:
             osg::Image* image = imageLayer->getImage();
             if (image)
             {
-                osg::notify(osg::NOTICE)<<"Writing out image layer "<<image->getFileName()<<" _directory="<<_directory<<std::endl;
+                _dataSet->log(osg::NOTICE,"Writing out image layer %s, _directory=%s ",image->getFileName().c_str(),_directory.c_str());
                 _dataSet->_writeImageFile(*image,_directory+image->getFileName());
             }
             return;   
@@ -1564,7 +1570,7 @@ public:
         {
             for(unsigned int i=0; i<switchLayer->getNumLayers(); ++i)
             {
-                osg::notify(osg::NOTICE)<<"Writing out switch layer child: "<<switchLayer->getSetName(i)<<", "<<switchLayer->getFileName(i)<<std::endl;
+                _dataSet->log(osg::NOTICE,"Writing out switch layer child: %s, %s ",switchLayer->getSetName(i).c_str(),switchLayer->getFileName(i).c_str());
                 writeLayer(switchLayer->getLayer(i));
             }
             return;
@@ -1575,7 +1581,7 @@ public:
         {
             for(unsigned int i=0; i<compositeLayer->getNumLayers(); ++i)
             {
-                osg::notify(osg::NOTICE)<<"Writing out composite layer child: "<<compositeLayer->getFileName(i)<<std::endl;
+                _dataSet->log(osg::NOTICE,"Writing out composite layer child: %s",switchLayer->getFileName(i).c_str());
                 writeLayer(compositeLayer->getLayer(i));
             }
             return;
@@ -1678,6 +1684,8 @@ class WriteOperation : public BuildOperation
         std::string                         _filename;
 };
 
+#define NEW_NAMING
+
 void DataSet::_writeRow(Row& row)
 {
     log(osg::NOTICE, "_writeRow %u",row.size());
@@ -1693,8 +1701,13 @@ void DataSet::_writeRow(Row& row)
             if (!parent->getSubTilesGenerated() && parent->areSubTilesComplete())
             {
                 parent->setSubTilesGenerated(true);
-                
+
+#ifdef NEW_NAMING
+                std::string filename = cd->getTileFileName();
+#else                
                 std::string filename = _taskOutputDirectory+parent->getSubTileName();
+#endif                
+                log(osg::NOTICE, "       _taskOutputDirectory= %s",_taskOutputDirectory.c_str());
 
                 if (_writeThreadPool.valid())
                 {
@@ -1724,11 +1737,18 @@ void DataSet::_writeRow(Row& row)
         {
             osg::ref_ptr<osg::Node> node = cd->createPagedLODScene();
             
+#ifdef NEW_NAMING
+            std::string filename = cd->getTileFileName();
+#else
             std::string filename;
+#endif
+
             if (cd->_level==0)
             {
-                filename = getDirectory() + _tileBasename + _tileExtension;    
 
+#ifndef NEW_NAMING
+                filename = getDirectory() + _tileBasename + _tileExtension;    
+#endif
                 if (_decorateWithMultiTextureControl)
                 {
                     node = decorateWithMultiTextureControl(node.get());
@@ -1743,15 +1763,22 @@ void DataSet::_writeRow(Row& row)
                 {
                     node->addDescription(_comment);
                 }
+
+                log(osg::NOTICE, "       getDirectory()= %s",getDirectory().c_str());
             }
             else
             {
+#ifndef NEW_NAMING
                 filename = _taskOutputDirectory + _tileBasename + _tileExtension;    
+#endif
+
+                log(osg::NOTICE, "       _taskOutputDirectory= %s",_taskOutputDirectory.c_str());
             }
 
             if (node.valid())
             {
                 log(osg::NOTICE, "   writeNodeFile = %u X=%u Y=%u filename=%s",cd->_level,cd->_tileX,cd->_tileY,filename.c_str());
+
                 _writeNodeFileAndImages(*node,filename);
             }
             else
@@ -1847,8 +1874,12 @@ void DataSet::_buildDestination(bool writeToDisk)
 
     if (_destinationGraph.valid())
     {
+#ifdef NEW_NAMING
+        std::string filename = _destinationGraph->getTileFileName();
+#else
         std::string filename = _directory+_tileBasename+_tileExtension;
-        
+#endif
+
         if (_archive.valid())
         {
             log(osg::NOTICE, "started DataSet::writeDestination(%s)",_archiveName.c_str());

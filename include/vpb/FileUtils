@@ -11,6 +11,9 @@
  * OpenSceneGraph Public License for more details.
 */
 
+#ifndef VPB_FILEUTILS_H
+#define VPB_FILEUTILS_H
+
 
 // Cross-platform compatibility header.
 // Functions are prefixed by vpb and call their equivalents on Win32.
@@ -78,4 +81,8 @@ extern VPB_EXPORT int mkpath(const char *path, int mode);
 
 extern VPB_EXPORT bool hasWritePermission(const std::string& filename);
 
+extern VPB_EXPORT std::string simplifyFileName(const std::string& filename);
+
 };
+
+#endif

@@ -327,7 +327,8 @@ void DestinationTile::allocate()
             itr != imageSet._layerSetImageDataMap.end();
             ++itr)
         {
-            if (computeImageResolution(layerNum, itr->first, 
+            const std::string& setName = itr->first;
+            if (computeImageResolution(layerNum, setName, 
                                        texture_numColumns,texture_numRows,texture_dx,texture_dy))
             {
 
@@ -343,7 +344,33 @@ void DestinationTile::allocate()
 
                 imageData._imageDestination->_image = new osg::Image;
 
-                std::string imageName(_name+_dataSet->getDestinationImageExtension());
+                std::string imageName = _name;
+                if (layerNum>0)
+                {
+                    imageName += "_l";
+                    imageName += char('0'+layerNum);
+                }
+                
+                if (!setName.empty())
+                {
+                    switch(_dataSet->getOptionalElevationLayerOutputPolicy())
+                    {
+                        case(BuildOptions::INLINE):
+                            imageName += "_";
+                            imageName += setName;    
+                            break;
+                        case(BuildOptions::EXTERNAL_LOCAL_DIRECTORY):
+                            imageName += "_";
+                            imageName += setName;    
+                            break;
+                        case(BuildOptions::EXTERNAL_SET_DIRECTORY):
+                            imageName = _parent->getRelativePathForExternalSet(setName) + imageName;
+                            _dataSet->log(osg::NOTICE,"imageName = %s",imageName.c_str());
+                            break;                        
+                    }
+                }
+                
+                imageName += _dataSet->getDestinationImageExtension();
                 imageData._imageDestination->_image->setFileName(imageName.c_str());
 
                 imageData._imageDestination->_image->allocateImage(texture_numColumns,texture_numRows,1,_pixelFormat,GL_UNSIGNED_BYTE);
@@ -1126,18 +1153,7 @@ osg::StateSet* DestinationTile::createStateSet()
         if (!imageData._imageDestination.valid() || !imageData._imageDestination->_image.valid()) continue;
         
         osg::Image* image = imageData._imageDestination->_image.get();
-
-        std::string imageExension(_dataSet->_imageExtension);
-        //std::string imageExension(".dds"); // ".rgb"
-        //std::string imageExension(".jp2"); // ".rgb"
-        std::string imageName = _name;
-        if (layerNum>0)
-        {
-            imageName += "_l";
-            imageName += char('0'+layerNum);
-        }
-        imageName += imageExension;
-        image->setFileName(imageName.c_str());
+        std::string imageExtension = osgDB::getFileExtension(image->getFileName());
 
         osg::Texture2D* texture = new osg::Texture2D;
         
@@ -1170,7 +1186,7 @@ osg::StateSet* DestinationTile::createStateSet()
         _stateset->setTextureAttributeAndModes(layerNum,texture,osg::StateAttribute::ON);
 
         bool inlineImageFile = _dataSet->getDestinationTileExtension()==".ive";
-        bool compressedImageSupported = inlineImageFile || imageExension==".dds";
+        bool compressedImageSupported = inlineImageFile || imageExtension==".dds";
         bool mipmapImageSupported = compressedImageSupported; // inlineImageFile;
         
         int minumCompressedTextureSize = 64;
@@ -2993,6 +3009,72 @@ std::string CompositeDestination::getExternalSubTileName()
     }
     
     return filename;
+}
+
+
+std::string CompositeDestination::getTileFileName()
+{
+    if (_parent)
+    {
+        return getTilePath() + _parent->getSubTileName();
+    }
+    else
+    {
+        return getTilePath() + _dataSet->getDestinationTileBaseName() + _dataSet->getDestinationTileExtension();
+    }
+}
+
+std::string CompositeDestination::getTilePath()
+{
+    if (_parent)
+    {
+        return _dataSet->getTaskOutputDirectory();
+    }
+    else
+    {
+        if (_level==0)
+        {
+            return _dataSet->getDirectory();
+        }
+        else
+        {
+            return _dataSet->getTaskOutputDirectory();
+        }
+    }
+}
+
+std::string CompositeDestination::getRelativePathForExternalSet(const std::string& setname)
+{
+    // first compute path to root
+    std::string tilePath = getTilePath();
+    std::string root = _dataSet->getDirectory();
+    std::string::size_type pos = tilePath.find(root);
+    if (pos==std::string::npos) 
+    {
+        _dataSet->log(osg::NOTICE,"Error: CompositeDestination::getRelativePathForExternalSet() error in paths, root = %s, getTilePath()=%s",root.c_str(),tilePath.c_str());
+        return setname + std::string("/");
+    }
+    
+    if (pos!=0) 
+    {
+        _dataSet->log(osg::NOTICE,"Error: CompositeDestination::getRelativePathForExternalSet() error in paths, root = %s, getTilePath()=%s",root.c_str(),tilePath.c_str());
+        return setname + std::string("/");
+    }
+    
+    _dataSet->log(osg::NOTICE,"CompositeDestination::getRelativePathForExternalSet() root = %s",root.c_str());
+    _dataSet->log(osg::NOTICE,"CompositeDestination::getRelativePathForExternalSet() tilePath = %s",tilePath.c_str());
+
+    std::string relativePath;
+    for(unsigned int i=root.size(); i<tilePath.size(); ++i)
+    {
+        if (tilePath[i]=='/' || tilePath[i]=='\\') relativePath += "../" ;
+    }
+
+    relativePath += setname;
+    relativePath += std::string("/");
+    relativePath += tilePath.substr(root.size(), std::string::npos);
+    
+    return relativePath;
 }
 
 osg::Node* CompositeDestination::createPagedLODScene()

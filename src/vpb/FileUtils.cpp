@@ -72,7 +72,6 @@
 
 #endif  // WIN32
 
-
 int vpb::mkpath(const char *path, int mode)
 {
     if (path==0) return 0;
@@ -91,16 +90,11 @@ int vpb::mkpath(const char *path, int mode)
             int size = pos_current-pos_start;
             if (size>1)
             {
-#if 0
-                // proposed new code path to eliminate the need for outputting the c:/
-                if (pos_current!=2 || fullpath[1]!=':')
-                    directories.push_back(std::string(fullpath,0, pos_current));
-#else
                 if (pos_current == 2 && fullpath[1]==':')
                     directories.push_back(std::string(fullpath,0, pos_current+1));
                 else
                     directories.push_back(std::string(fullpath,0, pos_current));
-#endif
+
                 pos_start = pos_current+1;
             }
         }
@@ -151,5 +145,39 @@ bool vpb::hasWritePermission(const std::string& filename)
     log(osg::NOTICE,"vpb::access(%s, W_OK)=%i",path.c_str(), vpb::access(path.c_str(), W_OK));
 
     return (vpb::access(path.c_str(), W_OK)==0);
+}
+
+std::string vpb::simplifyFileName(const std::string& filename)
+{
+    typedef std::list<std::string> Directories;
+    Directories directories;
+    int pos_start = 0;
+    for(int pos_current = 0; pos_current<filename.size(); ++pos_current)
+    {
+        if (filename[pos_current]=='\\' || filename[pos_current]=='/')
+        {
+            std::string directory = filename.substr(pos_start, pos_current-pos_start);
+
+            if (directory!="..")
+                directories.push_back(directory);
+            else if (!directories.empty())
+                directories.pop_back();
+
+            pos_start = pos_current+1;
+        }
+    }
+    
+    std::string simplifiedName;
+    for(Directories::iterator itr = directories.begin();
+        itr != directories.end();
+        ++itr)
+    {
+        simplifiedName += *itr;
+        simplifiedName += "/";
+    }
+    
+    simplifiedName += filename.substr(pos_start, std::string::npos);
+    
+    return simplifiedName;
 }
 

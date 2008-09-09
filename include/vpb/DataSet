@@ -199,6 +199,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         
         std::string getTaskName(unsigned int level, unsigned int X, unsigned int Y) const;
         std::string getSubtileName(unsigned int level, unsigned int X, unsigned int Y) const;
+        const std::string getTaskOutputDirectory() const { return _taskOutputDirectory; }
         
         /** Check the build validity, return an empty string if everything is OK, on error return the error string.*/
         std::string checkBuildValidity();

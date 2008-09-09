@@ -21,6 +21,7 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/FileCache
     ${HEADER_PATH}/FileDetails
     ${HEADER_PATH}/FileUtils
+    ${HEADER_PATH}/FilePathManager
     ${HEADER_PATH}/GeospatialDataset
     ${HEADER_PATH}/HeightFieldMapper
     ${HEADER_PATH}/MachinePool
@@ -55,6 +56,7 @@ ADD_LIBRARY(${LIB_NAME}
     FileCache.cpp
     FileDetails.cpp
     FileUtils.cpp
+    FilePathManager.cpp
     GeospatialDataset.cpp
     HeightFieldMapper.cpp
     MachinePool.cpp

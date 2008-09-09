@@ -171,6 +171,7 @@ public:
     void unrefData();
     
 
+    CompositeDestination*                       _parent;
     DataSet*                                    _dataSet;
     std::string                                 _name;
     unsigned int                                _level;
@@ -314,6 +315,11 @@ public:
     bool areSubTilesComplete();
     std::string getSubTileName();
     std::string getExternalSubTileName();
+    
+    std::string getTileFileName();
+    std::string getTilePath();
+    std::string getRelativePathForExternalSet(const std::string& setname);
+    
     osg::Node* createPagedLODScene();
     osg::Node* createSubTileScene();
 
