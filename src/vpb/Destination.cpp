@@ -344,7 +344,7 @@ void DestinationTile::allocate()
 
                 imageData._imageDestination->_image = new osg::Image;
 
-                osg::Image::WriteHint writeHint = osg::Image::STORE_INLINE;                
+                osg::Image::WriteHint writeHint = osg::Image::NO_PREFERENCE;                
                 std::string imageName = _name;
                 
                 if (layerNum>0)

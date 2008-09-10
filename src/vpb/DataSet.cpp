@@ -1525,7 +1525,7 @@ public:
             }
         }
         
-        if (dataSet->getDestinationTileExtension()=="osg") _writeHint = osg::Image::EXTERNAL_FILE;
+        if (dataSet->getDestinationTileExtension()==".osg") _writeHint = osg::Image::EXTERNAL_FILE;
     }
 
     vpb::DataSet*           _dataSet;
