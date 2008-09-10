@@ -1513,7 +1513,8 @@ public:
     WriteImageFilesVisitor(vpb::DataSet* dataSet, const std::string& directory):
         osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN),
         _dataSet(dataSet),
-        _directory(directory)
+        _directory(directory),
+        _writeHint(osg::Image::STORE_INLINE)
     {
         if (!_directory.empty())
         {
@@ -1523,11 +1524,22 @@ public:
                 _directory.push_back('/');
             }
         }
+        
+        if (dataSet->getDestinationTileExtension()=="osg") _writeHint = osg::Image::EXTERNAL_FILE;
     }
 
-    vpb::DataSet*   _dataSet;
-    std::string     _directory;
+    vpb::DataSet*           _dataSet;
+    std::string             _directory;
+    osg::Image::WriteHint   _writeHint;
     
+    bool needToWriteOutImage(const osg::Image* image) const
+    {
+        if (image->getWriteHint()!=osg::Image::NO_PREFERENCE) 
+            return image->getWriteHint()==osg::Image::EXTERNAL_FILE;
+        else
+            return _writeHint==osg::Image::EXTERNAL_FILE;
+    }
+
     virtual void apply(osg::Node& node)
     {
         if (node.getStateSet()) apply(*(node.getStateSet()));
@@ -1560,7 +1572,7 @@ public:
             if (image)
             {
                 _dataSet->log(osg::NOTICE,"Writing out image layer %s, _directory=%s ",image->getFileName().c_str(),_directory.c_str());
-                _dataSet->_writeImageFile(*image,_directory+image->getFileName());
+                if (needToWriteOutImage(image)) _dataSet->_writeImageFile(*image,_directory+image->getFileName());
             }
             return;   
         }
@@ -1623,7 +1635,7 @@ public:
             osg::Texture2D* texture2D = dynamic_cast<osg::Texture2D*>(stateset.getTextureAttribute(i,osg::StateAttribute::TEXTURE));
             if (texture2D) image = texture2D->getImage();
             
-            if (image)
+            if (image && needToWriteOutImage(image))
             {
                 _dataSet->_writeImageFile(*image,_directory+image->getFileName());
             }
@@ -1637,14 +1649,12 @@ void DataSet::_writeNodeFileAndImages(osg::Node& node,const std::string& filenam
 
     log(osg::NOTICE,"_writeNodeFile(%s)",filename.c_str());
 
-    if (getDestinationTileExtension()==".osg")
-    {
-        WriteImageFilesVisitor wifv(this, osgDB::getFilePath(filename));
-        const_cast<osg::Node&>(node).accept(wifv);
-    }
+    // write out any image data that is an external file
+    WriteImageFilesVisitor wifv(this, osgDB::getFilePath(filename));
+    const_cast<osg::Node&>(node).accept(wifv);
 
+    // write out the nodes
     _writeNodeFile(node,filename);
-
 }
 
 
@@ -2849,6 +2859,16 @@ int DataSet::run()
     if (getBuildLog())
     {
         pushOperationLog(getBuildLog());
+    }
+    
+    if (!getWriteOptionsString().empty())
+    {
+        osgDB::ReaderWriter::Options* options = osgDB::Registry::instance()->getOptions();
+        if (osgDB::Registry::instance()->getOptions()==0) 
+        {
+            osgDB::Registry::instance()->setOptions(new osgDB::ReaderWriter::Options);
+        }
+        osgDB::Registry::instance()->getOptions()->setOptionString(getWriteOptionsString());
     }
 
     int result = _run();

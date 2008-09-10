@@ -344,7 +344,9 @@ void DestinationTile::allocate()
 
                 imageData._imageDestination->_image = new osg::Image;
 
+                osg::Image::WriteHint writeHint = osg::Image::STORE_INLINE;                
                 std::string imageName = _name;
+                
                 if (layerNum>0)
                 {
                     imageName += "_l";
@@ -358,20 +360,26 @@ void DestinationTile::allocate()
                         case(BuildOptions::INLINE):
                             imageName += "_";
                             imageName += setName;    
+                            writeHint = osg::Image::EXTERNAL_FILE;
                             break;
                         case(BuildOptions::EXTERNAL_LOCAL_DIRECTORY):
                             imageName += "_";
                             imageName += setName;    
+                            writeHint = osg::Image::EXTERNAL_FILE;
                             break;
                         case(BuildOptions::EXTERNAL_SET_DIRECTORY):
                             imageName = _parent->getRelativePathForExternalSet(setName) + imageName;
-                            _dataSet->log(osg::NOTICE,"imageName = %s",imageName.c_str());
+                            writeHint = osg::Image::EXTERNAL_FILE;
                             break;                        
                     }
                 }
                 
                 imageName += _dataSet->getDestinationImageExtension();
+
+                _dataSet->log(osg::NOTICE,"imageName = %s",imageName.c_str());
+
                 imageData._imageDestination->_image->setFileName(imageName.c_str());
+                imageData._imageDestination->_image->setWriteHint(writeHint);
 
                 imageData._imageDestination->_image->allocateImage(texture_numColumns,texture_numRows,1,_pixelFormat,GL_UNSIGNED_BYTE);
                 unsigned char* data = imageData._imageDestination->_image->data();

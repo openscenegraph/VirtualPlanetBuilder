@@ -307,6 +307,7 @@ public:
         ADD_FLOAT_PROPERTY(NumWriteThreadsToCoresRatio);
 
         ADD_STRING_PROPERTY(BuildOptionsString);
+        ADD_STRING_PROPERTY(WriteOptionsString);
 
         { AEP(LayerInheritance); AEV(INHERIT_LOWEST_AVAILABLE); AEV(INHERIT_NEAREST_AVAILABLE); AEV(NO_INHERITANCE); }
 

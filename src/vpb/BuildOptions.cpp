@@ -153,6 +153,7 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _numWriteThreadsToCoresRatio = rhs._numWriteThreadsToCoresRatio;
     
     _buildOptionsString = rhs._buildOptionsString;
+    _writeOptionsString = rhs._writeOptionsString;
     
     _layerInheritance = rhs._layerInheritance;
     

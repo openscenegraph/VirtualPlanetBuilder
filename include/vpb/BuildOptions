@@ -249,6 +249,9 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setBuildOptionsString(const std::string& str) { _buildOptionsString = str; }
         const std::string& getBuildOptionsString() const { return _buildOptionsString; }
 
+        void setWriteOptionsString(const std::string& str) { _writeOptionsString = str; }
+        const std::string& getWriteOptionsString() const { return _writeOptionsString; }
+
         enum LayerInheritance
         {
             INHERIT_LOWEST_AVAILABLE,
@@ -353,6 +356,7 @@ class VPB_EXPORT BuildOptions : public osg::Object
         float                                       _numWriteThreadsToCoresRatio;
         
         std::string                                 _buildOptionsString;
+        std::string                                 _writeOptionsString;
 
         LayerInheritance                            _layerInheritance;
         

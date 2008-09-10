@@ -806,6 +806,8 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
 
     if (arguments.read("-O",str))
     {
+        buildOptions->setWriteOptionsString(str);
+
         osgDB::ReaderWriter::Options* options = new osgDB::ReaderWriter::Options;
         options->setOptionString(str);
         osgDB::Registry::instance()->setOptions(options);
