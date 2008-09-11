@@ -190,6 +190,15 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setDestinationCoordinateSystem(const std::string& wellKnownText);
         const std::string& getDestinationCoordinateSystem() const { return _destinationCoordinateSystemString; }
         
+        void setDestinationCoordinateSystemFormat(const std::string& format) { _destinationCoordinateSystem->setFormat(format); }
+        const std::string& getDestinationCoordinateSystemFormat() const { return _destinationCoordinateSystem->getFormat(); }
+        
+        void setRadiusEquator(double radius) { getEllipsoidModel()->setRadiusEquator(radius); }
+        double getRadiusEquator() const { return getEllipsoidModel()->getRadiusEquator(); }
+
+        void setRadiusPolar(double radius) { getEllipsoidModel()->setRadiusPolar(radius); }
+        double getRadiusPolar() const { return getEllipsoidModel()->getRadiusPolar(); }
+
         void setDestinationCoordinateSystemNode(osg::CoordinateSystemNode* cs);
         osg::CoordinateSystemNode* getDestinationCoordinateSystemNode() { return _destinationCoordinateSystem.get(); }
         

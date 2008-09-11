@@ -281,7 +281,9 @@ public:
         ADD_BOOL_PROPERTY(UseInterpolatedTerrainSampling);
         
         ADD_STRING_PROPERTY(DestinationCoordinateSystem);
-
+        ADD_STRING_PROPERTY(DestinationCoordinateSystemFormat);
+        ADD_DOUBLE_PROPERTY(RadiusPolar);
+        ADD_DOUBLE_PROPERTY(RadiusEquator);
 
         _serializerList.push_back(new GeospatialExtentsSerializer<BuildOptions>(
                 "DestinationExtents", 
