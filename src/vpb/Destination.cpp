@@ -1566,6 +1566,7 @@ osg::Node* DestinationTile::createTerrainTile()
         {
             log(osg::NOTICE,"Have optional layers = %i",imageSet._layerSetImageDataMap.size());
             osgTerrain::SwitchLayer* switchLayer = new osgTerrain::SwitchLayer;
+            switchLayer->setLocator(locator);
             for(ImageSet::LayerSetImageDataMap::iterator litr = imageSet._layerSetImageDataMap.begin();
                 litr != imageSet._layerSetImageDataMap.end();
                 ++litr)
