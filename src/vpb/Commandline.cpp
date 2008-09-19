@@ -15,6 +15,7 @@
 #include <vpb/Source>
 #include <vpb/BuildOptions>
 #include <vpb/DatabaseBuilder>
+#include <vpb/System>
 
 #include <osg/Notify>
 #include <osg/io_utils>
@@ -86,6 +87,12 @@ void Commandline::processFile(vpb::Source::Type type, const std::string& filenam
 
     if (osgDB::fileType(filename) == osgDB::REGULAR_FILE)
     {
+        if (!(System::instance()->isFileTypeSupported(filename, type)))
+        {
+            log(osg::NOTICE,"Ignoring %s as it's file extension is not supported", filename.c_str());
+            return;
+        }
+
         switch(type)
         {
             case(vpb::Source::IMAGE):           processImageOrHeightField(type,filename); break;
@@ -102,6 +109,7 @@ void Commandline::processFile(vpb::Source::Type type, const std::string& filenam
 
 void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::string& filename)
 {
+
     osgTerrain::Layer* existingLayer = 0;
     osgTerrain::CompositeLayer* compositeLayer = 0;
 

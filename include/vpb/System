@@ -113,21 +113,28 @@ class VPB_EXPORT System : public osg::Referenced
 
         unsigned int getMaxNumberOfFilesPerDirectory() const { return _maxNumberOfFilesPerDirectory; }
         
-        inline bool isFileTypeSupported(const std::string& filename) const
+        inline bool isFileTypeSupported(const std::string& filename, int acceptedTypeMask) const
         {
-            return isExtensionSupported(osgDB::getFileExtension(filename)); 
+            return isExtensionSupported(osgDB::getFileExtension(filename), acceptedTypeMask); 
         }
 
-        inline bool isExtensionSupported(const std::string& ext) const
+        inline bool isExtensionSupported(const std::string& ext, int acceptedTypeMask) const
         {
-            return _supportedExtensions.count(ext)!=0; 
+            SupportedExtensions::const_iterator itr = _supportedExtensions.find(ext);
+            if (itr != _supportedExtensions.end()) return (itr->second & acceptedTypeMask)!=0;
+            else return false;
         }
 
-        typedef std::set<std::string> SupportedExtensions;
+        typedef std::map<std::string, int> SupportedExtensions;
         SupportedExtensions& getSupportExtensions() { return _supportedExtensions; }
         const SupportedExtensions& getSupportExtensions() const { return _supportedExtensions; }
         
-        void addSupportedExtension(const std::string& ext) { _supportedExtensions.insert(ext); }
+        void addSupportedExtension(const std::string& ext, int acceptedTypeMask)
+        {
+            SupportedExtensions::iterator itr = _supportedExtensions.find(ext);
+            if (itr != _supportedExtensions.end()) itr->second = itr->second | acceptedTypeMask;
+            else _supportedExtensions[ext] = acceptedTypeMask;
+        }
         
         typedef std::pair< std::string,std::string> DescriptionPair;
         typedef std::list< DescriptionPair > DriverDescriptions;

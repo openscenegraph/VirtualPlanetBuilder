@@ -91,11 +91,20 @@ System::System()
                 addDriverDescription( driver->GetDescription(), driver->GetMetadataItem( GDAL_DMD_LONGNAME ) );
                 
                 const char* ext = driver->GetMetadataItem("DMD_EXTENSION");
-                if (ext) addSupportedExtension(ext);
+                if (ext) addSupportedExtension(ext, Source::IMAGE | Source::HEIGHT_FIELD);
             }
         }
     }
+    
+    // add entries that GDAL doesn't list via it's DMD_EXTENSIONS but is known to support
+    addSupportedExtension("jpeg", Source::IMAGE | Source::HEIGHT_FIELD);
+    addSupportedExtension("tiff", Source::IMAGE | Source::HEIGHT_FIELD);
+    addSupportedExtension("pgm", Source::IMAGE | Source::HEIGHT_FIELD);
+    addSupportedExtension("ppm", Source::IMAGE | Source::HEIGHT_FIELD);
 
+    addSupportedExtension("shp", Source::SHAPEFILE);
+    addSupportedExtension("osg", Source::MODEL);
+    addSupportedExtension("ive", Source::MODEL);
 }
 
 System::~System()

@@ -34,10 +34,10 @@ public:
 
     enum Type
     {
-        IMAGE,
-        HEIGHT_FIELD,
-        SHAPEFILE,
-        MODEL
+        IMAGE = 1,
+        HEIGHT_FIELD = 2,
+        SHAPEFILE = 4,
+        MODEL = 8
     };
 
     enum ParameterPolicy
