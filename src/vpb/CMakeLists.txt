@@ -27,7 +27,6 @@ SET(LIB_PUBLIC_HEADERS
     ${HEADER_PATH}/MachinePool
     ${HEADER_PATH}/ObjectPlacer
     ${HEADER_PATH}/PropertyFile
-    ${HEADER_PATH}/Serializer
     ${HEADER_PATH}/ShapeFilePlacer
     ${HEADER_PATH}/Source
     ${HEADER_PATH}/SourceData

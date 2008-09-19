@@ -507,6 +507,7 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--set <setname>","Assign the set name of imagery/dem data.");
     usage.addCommandLineOption("--optional-set <setname>","Add setname to the list of optional layers.");
     usage.addCommandLineOption("--remove-optional-set <setname>","Remove setname to the list of optional layers.");
+    usage.addCommandLineOption("--formts","List the supported source imagery and DEM formats.");
 }
 
 int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::TerrainTile* terrainInput)

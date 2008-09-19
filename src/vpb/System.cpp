@@ -62,6 +62,9 @@ osg::ref_ptr<System>& System::instance()
 
 System::System()
 {
+    // setup GDAL
+    GDALAllRegister();
+
     _trimOldestTiles = true;
     _numUnusedDatasetsToTrimFromCache = 10;
     _maxNumDatasets = (unsigned int)(double(vpb::getdtablesize()) * 0.8);
@@ -75,6 +78,24 @@ System::System()
     
     // preload the .osg plugin so its available in case we need to output source files containing core osg nodes
     osgDB::Registry::instance()->loadLibrary(osgDB::Registry::instance()->createLibraryNameForExtension("osg"));
+
+
+    GDALDriverManager* driverManager = GetGDALDriverManager();
+    if (driverManager)
+    {
+        for(unsigned int i=0; i<driverManager->GetDriverCount(); ++i)
+        {
+            GDALDriver* driver =  driverManager->GetDriver(i);
+            if (driver)
+            {
+                addDriverDescription( driver->GetDescription(), driver->GetMetadataItem( GDAL_DMD_LONGNAME ) );
+                
+                const char* ext = driver->GetMetadataItem("DMD_EXTENSION");
+                if (ext) addSupportedExtension(ext);
+            }
+        }
+    }
+
 }
 
 System::~System()

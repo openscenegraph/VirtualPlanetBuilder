@@ -65,6 +65,24 @@ int main(int argc, char** argv)
         return 1;
     }
     
+
+    // if user request help write it out to cout.
+    if (arguments.read("--formats"))
+    {
+
+        std::cout<<"Supported formats:"<<std::endl;
+        const vpb::System::DriverDescriptions& descriptions = vpb::System::instance()->getDriverDescriptions();
+        for(vpb::System::DriverDescriptions::const_iterator itr = descriptions.begin();
+            itr != descriptions.end();
+            ++itr)
+        {
+            std::cout<<"  "<<itr->first<<" : "<<itr->second<<std::endl;
+        }
+        
+        return 1;
+    }
+
+
     vpb::System::instance()->readArguments(arguments);
     
     std::string taskFileName;

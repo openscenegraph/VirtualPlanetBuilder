@@ -59,12 +59,8 @@ DataSet::DataSet()
 
 void DataSet::init()
 {
-    static bool s_initialized = false;
-    if (!s_initialized)
-    {
-        s_initialized = true;
-        GDALAllRegister();
-    }
+    // make sure GDAL etc. are initialized
+    System::instance();
 
     _C1 = 0;
     _R1 = 0;

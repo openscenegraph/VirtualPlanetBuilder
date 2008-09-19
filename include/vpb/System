@@ -15,6 +15,7 @@
 #define System_H 1
 
 #include <osgDB/FileUtils>
+#include <osgDB/FileNameUtils>
 
 #include <vpb/GeospatialDataset>
 #include <vpb/FileCache>
@@ -110,7 +111,32 @@ class VPB_EXPORT System : public osg::Referenced
         /** Return the size of a file in bytes.*/
         unsigned long getFileSize(const std::string& filename);
 
-        unsigned int getMaxNumberOfFilesPerDirectory() const { return _maxNumberOfFilesPerDirectory; } 
+        unsigned int getMaxNumberOfFilesPerDirectory() const { return _maxNumberOfFilesPerDirectory; }
+        
+        inline bool isFileTypeSupported(const std::string& filename) const
+        {
+            return isExtensionSupported(osgDB::getFileExtension(filename)); 
+        }
+
+        inline bool isExtensionSupported(const std::string& ext) const
+        {
+            return _supportedExtensions.count(ext)!=0; 
+        }
+
+        typedef std::set<std::string> SupportedExtensions;
+        SupportedExtensions& getSupportExtensions() { return _supportedExtensions; }
+        const SupportedExtensions& getSupportExtensions() const { return _supportedExtensions; }
+        
+        void addSupportedExtension(const std::string& ext) { _supportedExtensions.insert(ext); }
+        
+        typedef std::pair< std::string,std::string> DescriptionPair;
+        typedef std::list< DescriptionPair > DriverDescriptions;
+        const DriverDescriptions& getDriverDescriptions() const { return _driverDescriptions; }
+        
+        void addDriverDescription(const std::string& shortDescription, const std::string& longDescription)
+        {
+            _driverDescriptions.push_back(DescriptionPair(shortDescription, longDescription));
+        }
 
     protected:
     
@@ -135,6 +161,8 @@ class VPB_EXPORT System : public osg::Referenced
         osg::ref_ptr<MachinePool>   _machinePool;
         osg::ref_ptr<TaskManager>   _taskManager;
         
+        SupportedExtensions         _supportedExtensions;
+        DriverDescriptions          _driverDescriptions;
         
 };
 

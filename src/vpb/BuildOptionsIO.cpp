@@ -12,7 +12,7 @@
 */
 
 #include <vpb/BuildOptions>
-#include <vpb/Serializer>
+#include <osgDB/Serializer>
 
 #include <iostream>
 #include <string>
