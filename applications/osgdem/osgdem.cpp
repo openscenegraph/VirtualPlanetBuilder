@@ -65,18 +65,44 @@ int main(int argc, char** argv)
         return 1;
     }
     
-
-    // if user request help write it out to cout.
+    // if user request list of supported formats write it out to cout.
     if (arguments.read("--formats"))
     {
 
         std::cout<<"Supported formats:"<<std::endl;
-        const vpb::System::DriverDescriptions& descriptions = vpb::System::instance()->getDriverDescriptions();
-        for(vpb::System::DriverDescriptions::const_iterator itr = descriptions.begin();
-            itr != descriptions.end();
+        const vpb::System::SupportedExtensions& extensions = vpb::System::instance()->getSupportExtensions();
+        for(vpb::System::SupportedExtensions::const_iterator itr = extensions.begin();
+            itr != extensions.end();
             ++itr)
         {
-            std::cout<<"  "<<itr->first<<" : "<<itr->second<<std::endl;
+            std::cout<<"  "<<itr->first<<" :";
+            bool first = true;
+            if (itr->second.acceptedTypeMask & vpb::Source::IMAGE)
+            {
+                std::cout<<" imagery";
+                first = false;
+            }
+            if (itr->second.acceptedTypeMask & vpb::Source::HEIGHT_FIELD)
+            {
+                if (!first) std::cout<<",";
+                std::cout<<" dem";
+                first = false;
+            }
+
+            if (itr->second.acceptedTypeMask & vpb::Source::MODEL)
+            {
+                if (!first) std::cout<<",";
+                std::cout<<" model";
+                first = false;
+            }
+
+            if (itr->second.acceptedTypeMask & vpb::Source::SHAPEFILE)
+            {
+                if (!first) std::cout<<",";
+                std::cout<<" shapefile";
+                first = false;
+            }
+            std::cout<< " : "<<itr->second.description<<std::endl;
         }
         
         return 1;

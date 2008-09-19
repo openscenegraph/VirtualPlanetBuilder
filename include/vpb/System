@@ -121,28 +121,34 @@ class VPB_EXPORT System : public osg::Referenced
         inline bool isExtensionSupported(const std::string& ext, int acceptedTypeMask) const
         {
             SupportedExtensions::const_iterator itr = _supportedExtensions.find(ext);
-            if (itr != _supportedExtensions.end()) return (itr->second & acceptedTypeMask)!=0;
+            if (itr != _supportedExtensions.end()) return (itr->second.acceptedTypeMask & acceptedTypeMask)!=0;
             else return false;
         }
 
-        typedef std::map<std::string, int> SupportedExtensions;
+
+        struct FormatInfo
+        {
+            FormatInfo():
+                acceptedTypeMask(0) {}
+            
+            int         acceptedTypeMask;
+            std::string description;
+        };
+
+
+        typedef std::map<std::string, FormatInfo> SupportedExtensions;
         SupportedExtensions& getSupportExtensions() { return _supportedExtensions; }
         const SupportedExtensions& getSupportExtensions() const { return _supportedExtensions; }
         
-        void addSupportedExtension(const std::string& ext, int acceptedTypeMask)
+        void addSupportedExtension(const std::string& ext, int acceptedTypeMask, const std::string& description)
         {
             SupportedExtensions::iterator itr = _supportedExtensions.find(ext);
-            if (itr != _supportedExtensions.end()) itr->second = itr->second | acceptedTypeMask;
-            else _supportedExtensions[ext] = acceptedTypeMask;
-        }
-        
-        typedef std::pair< std::string,std::string> DescriptionPair;
-        typedef std::list< DescriptionPair > DriverDescriptions;
-        const DriverDescriptions& getDriverDescriptions() const { return _driverDescriptions; }
-        
-        void addDriverDescription(const std::string& shortDescription, const std::string& longDescription)
-        {
-            _driverDescriptions.push_back(DescriptionPair(shortDescription, longDescription));
+            if (itr != _supportedExtensions.end()) itr->second.acceptedTypeMask = itr->second.acceptedTypeMask | acceptedTypeMask;
+            else 
+            {
+                _supportedExtensions[ext].acceptedTypeMask = acceptedTypeMask;
+                _supportedExtensions[ext].description = description;
+            }
         }
 
     protected:
@@ -169,7 +175,6 @@ class VPB_EXPORT System : public osg::Referenced
         osg::ref_ptr<TaskManager>   _taskManager;
         
         SupportedExtensions         _supportedExtensions;
-        DriverDescriptions          _driverDescriptions;
         
 };
 

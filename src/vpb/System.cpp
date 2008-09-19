@@ -88,23 +88,26 @@ System::System()
             GDALDriver* driver =  driverManager->GetDriver(i);
             if (driver)
             {
-                addDriverDescription( driver->GetDescription(), driver->GetMetadataItem( GDAL_DMD_LONGNAME ) );
-                
                 const char* ext = driver->GetMetadataItem("DMD_EXTENSION");
-                if (ext) addSupportedExtension(ext, Source::IMAGE | Source::HEIGHT_FIELD);
+                if (ext && strlen(ext)!=0)
+                {
+                    addSupportedExtension(ext, 
+                        Source::IMAGE | Source::HEIGHT_FIELD, 
+                        driver->GetMetadataItem( GDAL_DMD_LONGNAME ));
+                }
             }
         }
     }
     
     // add entries that GDAL doesn't list via it's DMD_EXTENSIONS but is known to support
-    addSupportedExtension("jpeg", Source::IMAGE | Source::HEIGHT_FIELD);
-    addSupportedExtension("tiff", Source::IMAGE | Source::HEIGHT_FIELD);
-    addSupportedExtension("pgm", Source::IMAGE | Source::HEIGHT_FIELD);
-    addSupportedExtension("ppm", Source::IMAGE | Source::HEIGHT_FIELD);
+    addSupportedExtension("jpeg", Source::IMAGE | Source::HEIGHT_FIELD, "JPEG");
+    addSupportedExtension("tiff", Source::IMAGE | Source::HEIGHT_FIELD, "GeoTiff");
+    addSupportedExtension("pgm", Source::IMAGE | Source::HEIGHT_FIELD, "Netpbm");
+    addSupportedExtension("ppm", Source::IMAGE | Source::HEIGHT_FIELD, "Netpbm");
 
-    addSupportedExtension("shp", Source::SHAPEFILE);
-    addSupportedExtension("osg", Source::MODEL);
-    addSupportedExtension("ive", Source::MODEL);
+    addSupportedExtension("shp", Source::SHAPEFILE, "Shape file loader");
+    addSupportedExtension("osg", Source::MODEL, "OpenSceneGraph .osg ascii format");
+    addSupportedExtension("ive", Source::MODEL, "OpenSceneGraph .ive binary format");
 }
 
 System::~System()
