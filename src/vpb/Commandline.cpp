@@ -515,7 +515,8 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--set <setname>","Assign the set name of imagery/dem data.");
     usage.addCommandLineOption("--optional-set <setname>","Add setname to the list of optional layers.");
     usage.addCommandLineOption("--remove-optional-set <setname>","Remove setname to the list of optional layers.");
-    usage.addCommandLineOption("--formts","List the supported source imagery and DEM formats.");
+    usage.addCommandLineOption("--formats","List the supported source imagery and DEM formats.");
+    usage.addCommandLineOption("--layer-inheritance [Lowest/Nearest/No]","Set the layer inheritance.");
 }
 
 int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::TerrainTile* terrainInput)
@@ -805,6 +806,22 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     while(arguments.read("--read-threads-ratio",ratio)) { buildOptions->setNumReadThreadsToCoresRatio(ratio); }
     while(arguments.read("--write-threads-ratio",ratio)) { buildOptions->setNumWriteThreadsToCoresRatio(ratio); }
 
+    std::string inheritance;
+    while (arguments.read("--layer-inheritance",inheritance) )
+    {
+        if (inheritance == "Lowest" || inheritance == "lowest")
+        {
+            buildOptions->setLayerInheritance(BuildOptions::INHERIT_LOWEST_AVAILABLE);
+        }
+        else if (inheritance == "Nearest" || inheritance == "nearest")
+        {
+            buildOptions->setLayerInheritance(BuildOptions::INHERIT_NEAREST_AVAILABLE);
+        }
+        else if (inheritance == "No" || inheritance == "no")
+        {
+            buildOptions->setLayerInheritance(BuildOptions::NO_INHERITANCE);
+        }
+    }
 
     while (arguments.read("--build-options",str) || arguments.read("--bo",str))
     {
