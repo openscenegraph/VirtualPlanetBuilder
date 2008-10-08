@@ -2871,7 +2871,7 @@ osg::Node* CompositeDestination::createScene()
         }
     }
         
-    cutOffDistance = osg::maximum(cutOffDistance, myLOD->getBound().radius()*_dataSet->getRadiusToMaxVisibleDistanceRatio());
+    cutOffDistance = osg::maximum(cutOffDistance, (float)(myLOD->getBound().radius()*_dataSet->getRadiusToMaxVisibleDistanceRatio()));
     
     myLOD->setRange(0,cutOffDistance,farDistance);
     myLOD->setRange(1,0,cutOffDistance);
@@ -3191,7 +3191,7 @@ osg::Node* CompositeDestination::createPagedLODScene()
         }
     }
         
-    cutOffDistance = osg::maximum(cutOffDistance, pagedLOD->getBound().radius()*_dataSet->getRadiusToMaxVisibleDistanceRatio());
+    cutOffDistance = osg::maximum(cutOffDistance,(float)(pagedLOD->getBound().radius()*_dataSet->getRadiusToMaxVisibleDistanceRatio()));
     
     pagedLOD->setRange(0,cutOffDistance,farDistance);
     

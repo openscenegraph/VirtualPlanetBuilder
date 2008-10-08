@@ -53,6 +53,7 @@ int main(int argc, char** argv)
     if (arguments.read("--run-path",runPath))
     {
         vpb::chdir(runPath.c_str());
+        taskManager->setRunPath(runPath);
     }
 
     // if user request help write it out to cout.
