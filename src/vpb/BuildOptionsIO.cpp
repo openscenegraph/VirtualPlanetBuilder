@@ -244,6 +244,7 @@ public:
         ADD_STRING_PROPERTY(DestinationTileBaseName);
         ADD_STRING_PROPERTY(DestinationTileExtension);
         ADD_STRING_PROPERTY(DestinationImageExtension);
+        ADD_BOOL_PROPERTY(PowerOfTwoImages);
         ADD_STRING_PROPERTY(ArchiveName);
         ADD_STRING_PROPERTY(IntermediateBuildName);
         ADD_STRING_PROPERTY(LogFileName);

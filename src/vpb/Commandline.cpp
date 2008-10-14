@@ -792,6 +792,9 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         }
     }
 
+    while (arguments.read("--npot")) { buildOptions->setPowerOfTwoImages(false); }
+    while (arguments.read("--pot")) { buildOptions->setPowerOfTwoImages(true); }
+
     while (arguments.read("--height-attribute",heightAttributeName)) {}
 
     while (arguments.read("--type-attribute",typeAttributeName)) {}

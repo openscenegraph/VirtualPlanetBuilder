@@ -62,6 +62,9 @@ class VPB_EXPORT BuildOptions : public osg::Object
 
         void setDestinationImageExtension(const std::string& extension) { _imageExtension = extension; }
         const std::string& getDestinationImageExtension() const { return _imageExtension; }
+
+        void setPowerOfTwoImages(bool powerOfTwoImages) { _powerOfTwoImages = powerOfTwoImages; }
+        bool getPowerOfTwoImages() const { return _powerOfTwoImages; }
         
         /** Set the Archive name if one is to be used.*/
         void setArchiveName(const std::string& filename) { _archiveName = filename; }
@@ -338,6 +341,7 @@ class VPB_EXPORT BuildOptions : public osg::Object
         std::string                                 _directory;
         bool                                        _outputTaskDirectories;
         std::string                                 _imageExtension;
+        bool                                        _powerOfTwoImages;
         std::string                                 _intermediateBuildName;
         std::string                                 _logFileName;
         std::string                                 _taskFileName;

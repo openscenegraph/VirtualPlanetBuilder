@@ -39,6 +39,7 @@ BuildOptions::BuildOptions():
     _outputTaskDirectories = true;
     _geometryType = POLYGONAL;
     _imageExtension = ".dds";
+    _powerOfTwoImages = true;
     _intermediateBuildName = "";
     _logFileName = "";
     _taskFileName = "";
@@ -120,6 +121,7 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _extents = rhs._extents;
     _geometryType = rhs._geometryType;
     _imageExtension = rhs._imageExtension;
+    _powerOfTwoImages = rhs._powerOfTwoImages;
     _intermediateBuildName = rhs._intermediateBuildName;
     _logFileName = rhs._logFileName;
     _taskFileName = rhs._taskFileName;

@@ -247,14 +247,33 @@ bool DestinationTile::computeImageResolution(unsigned int layer, const std::stri
         unsigned int numColumnsRequired = osg::minimum(_image_maxNumColumns,numColumnsAtFullRes);
         unsigned int numRowsRequired    = osg::minimum(_image_maxNumRows,numRowsAtFullRes);
 
-        // use a minimum image size of 4x4 to avoid mipmap generation problems in OpenGL at sizes at 2x2. 
-        numColumns = 4;
-        numRows = 4;
 
-        // round to nearest power of two above or equal to the required resolution
-        while (numColumns<numColumnsRequired) numColumns *= 2;
-        while (numRows<numRowsRequired) numRows *= 2;
+        if (_dataSet->getPowerOfTwoImages())
+        {
+            // use a minimum image size of 4x4 to avoid mipmap generation problems in OpenGL at sizes at 2x2. 
+            numColumns = 4;
+            numRows = 4;
 
+            // round to nearest power of two above or equal to the required resolution
+            while (numColumns<numColumnsRequired) numColumns *= 2;
+            while (numRows<numRowsRequired) numRows *= 2;
+        }
+        else
+        {
+            numColumns = osg::maximum(4u, numColumnsRequired);
+            numRows = osg::maximum(4u, numRowsRequired);
+            
+            if (_dataSet->getDestinationImageExtension()==".dds")
+            {
+                // when doing compressed textures make sure that it's an multiple of four
+                if ((numColumns % 4)!=0) numColumns = ((numColumns>>2)<<2)+4;
+                if ((numRows % 4)!=0) numRows = ((numRows>>2)<<2)+4;
+            }
+            
+            osg::notify(osg::NOTICE)<<"numColumnsAtFullRes = "<<numColumnsRequired<<"\tnumColumns = "<< numColumns<<std::endl;
+            osg::notify(osg::NOTICE)<<"numRowsAtFullRes = "<<numRowsRequired<<"\tnumRows = "<< numRows<<std::endl;
+        }
+        
         // set up properly for vector and raster (previously always vector)
         // assume raster if _dataType not set (default for Destination Tile)
         if (_dataType == SpatialProperties::VECTOR)
@@ -1214,6 +1233,10 @@ osg::StateSet* DestinationTile::createStateSet()
             // force the mip mapping off temporay if we intend the graphics hardware to do the mipmapping.
             if (_dataSet->getMipMappingMode()==DataSet::MIP_MAPPING_HARDWARE)
                 texture->setFilter(osg::Texture::MIN_FILTER,osg::Texture::LINEAR);
+
+            // make sure the OSG doesn't rescale images if it doesn't need to.
+            texture->setResizeNonPowerOfTwoHint(_dataSet->getPowerOfTwoImages());
+
 
             // get OpenGL driver to create texture from image.
             texture->apply(*(_dataSet->getState()));
