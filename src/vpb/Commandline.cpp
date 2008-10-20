@@ -454,8 +454,8 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--compressed","Use OpenGL compression on RGB destination imagery");     
     usage.addCommandLineOption("--RGBA-compressed","Use OpenGL compression on RGBA destination imagery");     
     usage.addCommandLineOption("--RGB-16","Use 16bit RGB destination imagery");     
-    usage.addCommandLineOption("--RGBA-24","Use 24bit RGB destination imagery");     
-    usage.addCommandLineOption("--RGB-16","Use 16bit RGBA destination imagery");     
+    usage.addCommandLineOption("--RGB-24","Use 24bit RGB destination imagery");     
+    usage.addCommandLineOption("--RGBA-16","Use 16bit RGBA destination imagery");     
     usage.addCommandLineOption("--RGBA","Use 32bit RGBA destination imagery");     
     usage.addCommandLineOption("--vector","Interpret input as a vector data set");
     usage.addCommandLineOption("--raster","Interpret input as a raster data set (default)");

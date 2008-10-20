@@ -270,8 +270,8 @@ bool DestinationTile::computeImageResolution(unsigned int layer, const std::stri
                 if ((numRows % 4)!=0) numRows = ((numRows>>2)<<2)+4;
             }
             
-            osg::notify(osg::NOTICE)<<"numColumnsAtFullRes = "<<numColumnsRequired<<"\tnumColumns = "<< numColumns<<std::endl;
-            osg::notify(osg::NOTICE)<<"numRowsAtFullRes = "<<numRowsRequired<<"\tnumRows = "<< numRows<<std::endl;
+            log(osg::NOTICE,"numColumnsAtFullRes = %itnumColumns = %i",numColumnsRequired,numColumns);
+            log(osg::NOTICE,"numRowsAtFullRes = %i\tnumRows = ",numRowsRequired,numRows);
         }
         
         // set up properly for vector and raster (previously always vector)
@@ -1191,18 +1191,22 @@ osg::StateSet* DestinationTile::createStateSet()
         {
           case(DataSet::NO_MIP_MAPPING):
             {
+                log(osg::NOTICE,"DestinationTile::createStateSet() - DataSet::NO_MIP_MAPPING");
+            
                 texture->setFilter(osg::Texture::MIN_FILTER,osg::Texture::LINEAR);
                 texture->setFilter(osg::Texture::MAG_FILTER,osg::Texture::LINEAR);
             }
             break;
           case(DataSet::MIP_MAPPING_HARDWARE):
             {
+                log(osg::NOTICE,"DestinationTile::createStateSet() - DataSet::MIP_MAPPING_HARDWARE");
                 texture->setFilter(osg::Texture::MIN_FILTER,osg::Texture::LINEAR_MIPMAP_LINEAR);
                 texture->setFilter(osg::Texture::MAG_FILTER,osg::Texture::LINEAR);
             }
             break;
           case(DataSet::MIP_MAPPING_IMAGERY):
             {
+                log(osg::NOTICE,"DestinationTile::createStateSet() - DataSet::MIP_MAPPING_IMAGERY");
                 texture->setFilter(osg::Texture::MIN_FILTER,osg::Texture::LINEAR_MIPMAP_LINEAR);
                 texture->setFilter(osg::Texture::MAG_FILTER,osg::Texture::LINEAR);
             }
@@ -1213,7 +1217,7 @@ osg::StateSet* DestinationTile::createStateSet()
         _stateset->setTextureAttributeAndModes(layerNum,texture,osg::StateAttribute::ON);
 
         bool inlineImageFile = _dataSet->getDestinationTileExtension()==".ive";
-        bool compressedImageSupported = inlineImageFile || imageExtension==".dds";
+        bool compressedImageSupported = inlineImageFile || imageExtension=="dds";
         bool mipmapImageSupported = compressedImageSupported; // inlineImageFile;
         
         int minumCompressedTextureSize = 64;
@@ -1224,6 +1228,7 @@ osg::StateSet* DestinationTile::createStateSet()
             (_dataSet->getTextureType()==DataSet::COMPRESSED_TEXTURE || _dataSet->getTextureType()==DataSet::COMPRESSED_RGBA_TEXTURE) &&
             (image->getPixelFormat()==GL_RGB || image->getPixelFormat()==GL_RGBA))
         {
+            log(osg::NOTICE,"Compressed image");
         
             if (image->s()>=minumDXT3CompressedTextureSize && image->t()>=minumDXT3CompressedTextureSize)
                 texture->setInternalFormatMode(osg::Texture::USE_S3TC_DXT3_COMPRESSION);
@@ -1232,7 +1237,10 @@ osg::StateSet* DestinationTile::createStateSet()
 
             // force the mip mapping off temporay if we intend the graphics hardware to do the mipmapping.
             if (_dataSet->getMipMappingMode()==DataSet::MIP_MAPPING_HARDWARE)
+            {
+                log(osg::INFO,"   switching off MIP_MAPPING for compile");
                 texture->setFilter(osg::Texture::MIN_FILTER,osg::Texture::LINEAR);
+            }
 
             // make sure the OSG doesn't rescale images if it doesn't need to.
             texture->setResizeNonPowerOfTwoHint(_dataSet->getPowerOfTwoImages());
@@ -1257,6 +1265,8 @@ osg::StateSet* DestinationTile::createStateSet()
         }
         else
         {
+            log(osg::NOTICE,"Non compressed image mipmapImageSupported=%i imageExtension=%s",mipmapImageSupported,imageExtension.c_str());
+
             if (_dataSet->getTextureType()==DataSet::RGB_16 && image->getPixelFormat()==GL_RGB)
             {
                 image->scaleImage(image->s(),image->t(),image->r(),GL_UNSIGNED_SHORT_5_6_5);
@@ -1268,8 +1278,10 @@ osg::StateSet* DestinationTile::createStateSet()
 
             if (mipmapImageSupported && _dataSet->getMipMappingMode()==DataSet::MIP_MAPPING_IMAGERY)
             {
+                log(osg::NOTICE,"Doing mipmapping");
 
-                osg::ref_ptr<osg::State> state = new osg::State;
+                // make sure the OSG doesn't rescale images if it doesn't need to.
+                texture->setResizeNonPowerOfTwoHint(_dataSet->getPowerOfTwoImages());
 
                 // get OpenGL driver to create texture from image.
                 texture->apply(*(_dataSet->getState()));
@@ -1348,6 +1360,9 @@ osg::StateSet* DestinationTile::createStateSet()
             break;
         }
     }
+
+    _dataSet->getState()->checkGLErrors("DestinationTile::createStateSet()");
+
     return _stateset.get();
 }
 
@@ -1364,8 +1379,8 @@ osg::Node* DestinationTile::createHeightField()
         _terrain->_heightField = new osg::HeightField;
         _terrain->_heightField->allocate(8,8);
         _terrain->_heightField->setOrigin(osg::Vec3(_extents.xMin(),_extents.yMin(),0.0f));
-        _terrain->_heightField->setXInterval(_extents.xMax()-_extents.xMin());
-        _terrain->_heightField->setYInterval(_extents.yMax()-_extents.yMin());
+        _terrain->_heightField->setXInterval(_extents.xMax()-_extents.xMin()/7.0);
+        _terrain->_heightField->setYInterval(_extents.yMax()-_extents.yMin()/7.0);
     }
 
     osg::HeightField* hf = _terrain->_heightField.get();
@@ -1575,6 +1590,11 @@ osg::Node* DestinationTile::createTerrainTile()
         terrainTile->setElevationLayer(hfLayer);
     }
     
+    osg::Texture::FilterMode minFilter = _dataSet->getMipMappingMode()==BuildOptions::NO_MIP_MAPPING ? 
+                    osg::Texture::LINEAR :
+                    osg::Texture::LINEAR_MIPMAP_LINEAR;
+
+    osg::Texture::FilterMode magFilter = osg::Texture::LINEAR;
 
     // assign the imagery
     for(unsigned int layerNum=0;
@@ -1590,6 +1610,8 @@ osg::Node* DestinationTile::createTerrainTile()
             log(osg::NOTICE,"Have optional layers = %i",imageSet._layerSetImageDataMap.size());
             osgTerrain::SwitchLayer* switchLayer = new osgTerrain::SwitchLayer;
             switchLayer->setLocator(locator);
+            switchLayer->setMinFilter(minFilter);
+            switchLayer->setMagFilter(magFilter);
             for(ImageSet::LayerSetImageDataMap::iterator litr = imageSet._layerSetImageDataMap.begin();
                 litr != imageSet._layerSetImageDataMap.end();
                 ++litr)
@@ -1600,6 +1622,8 @@ osg::Node* DestinationTile::createTerrainTile()
                     osg::Image* image = imageData._imageDestination->_image.get();
 
                     osgTerrain::ImageLayer* imageLayer = new osgTerrain::ImageLayer;
+                    imageLayer->setMinFilter(minFilter);
+                    imageLayer->setMagFilter(magFilter);
                     imageLayer->setImage(image);
                     imageLayer->setSetName(litr->first);
                     imageLayer->setLocator(locator);
@@ -1620,6 +1644,8 @@ osg::Node* DestinationTile::createTerrainTile()
                 osgTerrain::ImageLayer* imageLayer = new osgTerrain::ImageLayer;
                 imageLayer->setImage(image);
                 imageLayer->setLocator(locator);
+                imageLayer->setMinFilter(minFilter);
+                imageLayer->setMagFilter(magFilter);
 
                 terrainTile->setColorLayer(layerNum, imageLayer);
             }

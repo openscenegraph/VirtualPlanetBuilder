@@ -65,7 +65,7 @@ class VPB_EXPORT BuildOptions : public osg::Object
 
         void setPowerOfTwoImages(bool powerOfTwoImages) { _powerOfTwoImages = powerOfTwoImages; }
         bool getPowerOfTwoImages() const { return _powerOfTwoImages; }
-        
+
         /** Set the Archive name if one is to be used.*/
         void setArchiveName(const std::string& filename) { _archiveName = filename; }
 
