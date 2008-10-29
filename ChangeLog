@@ -1,0 +1,4563 @@
+2008-10-29 14:35 +0000 [r951]  robert:
+
+	* Updated versions for 0.9.9 dev release
+
+2008-10-20 08:43 +0000 [r950]  robert:
+
+	* Added support for compression, and non power of two textures.
+
+2008-10-14 19:21 +0000 [r949]  robert:
+
+	* Added support for control whether imagery is forced to be
+	  PowerOfTwo or not.
+
+2008-10-08 14:34 +0000 [r947]  robert:
+
+	* Added support for make tag-test, tag-run, branch-test and
+	  branch-run and ChangeLog
+
+2008-10-08 14:15 +0000 [r946]  robert:
+
+	* From Christophe Loustaunau, First submission: "But with vpbmaster
+	  I have a little problem : If I use the option --run-path d:\tmp
+	  vpbmaster write in the task files : --run-path
+	  C:\Users\Christophe It seems to use the default path and not the
+	  path I have specified. I have just added the line
+	  taskManager->setRunPath(runPath); when vpbMaster read the
+	  --run-path option and it works. I don't know if it's the better
+	  solution but anyway here is the file modified vpbmaster.cpp"
+	  Second submission: "If osg is compiled with
+	  OSG_USE_FLOAT_BOUNDINGSPHERE = OFF There is compile errors with
+	  VPB : osg::maximum(cutOffDistance,
+	  pagedLOD->getBound().radius()*_dataSet->getRadiusToMaxVisibleDistanceRatio());
+	  cutOffDistance is a float and the other part a double. Here is
+	  the file Destination.cpp modified"
+
+2008-10-07 16:49 +0000 [r945]  robert:
+
+	* Fixed version numbers for 0.9.8 dev release
+
+2008-10-07 16:37 +0000 [r944]  robert:
+
+	* From Christophe Loustaunau, "In the code of vpb there is an
+	  option for layer inheritance, but there isn't any command line. I
+	  have added one : --layer-inheritance [Lowest/Nearest/No]. "
+
+2008-09-19 12:01 +0000 [r943]  robert:
+
+	* Improved the output of --formats
+
+2008-09-19 11:00 +0000 [r942]  robert:
+
+	* Added support for filtering out files with extensions that are
+	  not supported for reading.
+
+2008-09-19 10:18 +0000 [r941]  robert:
+
+	* Moved Serializer into core OpenSceneGraph osgDB library. Moved
+	  GDAL initialization into System constructor, and reading of GDAL
+	  supported file formats, and command line --formats for listing
+	  these into osgdem and vpbmaster
+
+2008-09-11 15:50 +0000 [r940]  robert:
+
+	* Added support for RadiusEquator and RadiousPolar to BuildOptions
+	  serialization
+
+2008-09-11 14:22 +0000 [r939]  robert:
+
+	* Added setting of SwitchLayer's locator
+
+2008-09-10 18:10 +0000 [r938]  robert:
+
+	* Changed the default WriteHint to NO_PREFERNCE
+
+2008-09-10 11:29 +0000 [r937]  robert:
+
+	* Added support for writing out data containing sets.
+
+2008-09-09 16:59 +0000 [r936]  robert:
+
+	* Introduced FilePathManager, and support for set directories off
+	  the root of the output directory.
+
+2008-09-06 09:21 +0000 [r935]  robert:
+
+	* Added localisation of image files to the same directories of the
+	  nodes that reference them.
+
+2008-09-05 16:11 +0000 [r934]  robert:
+
+	* Added support for outputing image files when generated --terrain
+	  databases
+
+2008-09-05 13:05 +0000 [r933]  robert:
+
+	* Added output of SwitchLayer's when optional layers are selected.
+
+2008-09-05 10:48 +0000 [r932]  robert:
+
+	* Added automatic detected of invalid database build
+	  configiurations
+
+2008-09-02 14:02 +0000 [r931]  robert:
+
+	* Introduce DestinationTile::requiresDivision() method to
+	  encapsulate the access to the _imagery member
+
+2008-09-02 12:56 +0000 [r930]  robert:
+
+	* Added setting of Source's new SetName field from
+	  osgTerrain::Layer'sSetName
+
+2008-08-29 14:47 +0000 [r929]  robert:
+
+	* Added support for specifying the optional layer sets that should
+	  be used and the policy of how layers should be output.
+
+2008-08-28 16:57 +0000 [r928]  robert:
+
+	* Added support for Layer setname definition using --set <setname>
+
+2008-08-06 17:53 +0000 [r927]  robert:
+
+	* Updated the command line docs
+
+2008-08-06 17:49 +0000 [r926]  robert:
+
+	* Added support for BuildOption::s/getAbortRunOnError()
+
+2008-08-06 15:17 +0000 [r925]  robert:
+
+	* Added support for aborting the current task when FATAL messages
+	  are logged, with DataSet now generating FATAL log messages when
+	  AbortTaskOnError is set (as it is now by default).
+
+2008-08-05 13:41 +0000 [r924]  robert:
+
+	* Added permission check and error logging
+
+2008-08-04 21:07 +0000 [r923]  robert:
+
+	* Removed messages reporting OSG_* var settings
+
+2008-08-04 20:55 +0000 [r922]  robert:
+
+	* Added #include <string.h> to avoid a gcc 4.3.1 compile error
+
+2008-08-04 17:29 +0000 [r921]  robert:
+
+	* Cleaned up output of OSG_ vars
+
+2008-07-18 09:39 +0000 [r920]  robert:
+
+	* From Bob Kuehne, added support for non installed, out of source
+	  builds of the OpenSceneGraph.
+
+2008-06-20 16:01 +0000 [r919]  robert:
+
+	* Removed OSG type checks
+
+2008-06-18 16:52 +0000 [r918]  robert:
+
+	* Added check against possible num ShapeAttribute::getString()
+
+2008-06-18 10:55 +0000 [r917]  robert:
+
+	* From Luigi Calori, fix to build VisualStudo 7.1 onwards
+
+2008-06-06 15:58 +0000 [r916]  robert:
+
+	* From Jean-Sebastien Guay, changes to support of CMake 2.6.
+
+2008-06-06 10:27 +0000 [r915]  robert:
+
+	* Removed apps used in dev work but no longer required
+
+2008-05-27 20:59 +0000 [r914]  robert:
+
+	* Updated version for dev release
+
+2008-05-27 17:16 +0000 [r913]  robert:
+
+	* From John Vidar Larring, "With this fix the options
+	  --radius-equator and --radius-polar are no longer ignored when
+	  passed to VBP (osgdem), and it is possible to create the world in
+	  many different shapes. Edited on VPB svn revision 911. Files:
+	  src/vpb/BuildOptions.cpp - Actual fix src/vpb/Commandline.cpp -
+	  Display default values for radii when printing usage."
+
+2008-05-27 12:44 +0000 [r912]  robert:
+
+	* From Christophe Loustaunau, "I have test vpbmaster on windows
+	  2000, and I think that I have have an error : If vpb have to
+	  create a directory like : "c:\data\mars" it fails. In fact when
+	  vpb have to do that, it check all the directory possible like
+	  this : "c:" "c:\data" "c:\data\mars" But when vpb want's to know
+	  if "c:" exist with osgDB::FileType type = osgDB::fileType(path)
+	  It fails, It's because "c:" doesn't exist but "c:\" does. So here
+	  is a patch based on the svn, which correct that."
+
+2008-04-04 08:48 +0000 [r911]  robert:
+
+	* Added #include<cpl_string.h> for compatibility with older
+	  versions of GDAL
+
+2008-04-03 18:45 +0000 [r910]  robert:
+
+	* Added check for Matrix types etc. Update version for next dev
+	  version
+
+2008-04-03 10:19 +0000 [r909]  robert:
+
+	* Disabled the setting of archives to avoid bug in archive creation
+
+2008-03-27 11:45 +0000 [r908]  robert:
+
+	* Updated source to reflect osgTerrain::Terrain to
+	  osgTerrain::TerrainTile rename.
+
+2008-03-26 15:30 +0000 [r907]  robert:
+
+	* Removed CMakeList entry for vpbcurl.
+
+2008-03-25 15:58 +0000 [r906]  robert:
+
+	* From Jason Beverage, "Here is a fix for the vertical scale issue
+	  I mentioned on osg-users yesterday. It applies the DataSet
+	  vertical scale to any height value coming from GDAL like you
+	  suggested. I added a few more log messages about the scale as
+	  well, its up to you if you want to keep them or not."
+
+2008-03-25 12:34 +0000 [r905]  robert:
+
+	* From Ulrich Hertlein, build fixes for OSX.
+
+2008-03-19 20:57 +0000 [r903]  robert:
+
+	* Changed getcwd to getCurrentWorkingDirectory to avoid silly
+	  #define problems in CPL headers
+
+2008-03-19 20:34 +0000 [r902]  robert:
+
+	* Added an explict vpb:: infront of the getcwd to make sure the VPB
+	  one is used
+
+2008-03-19 17:52 +0000 [r901]  robert:
+
+	* From Maciej Krol, "On Win XP VS2005 SP1 getcwd and chdir are
+	  deprecated. I have added them to FileUtils (in the attachment)."
+
+2008-03-19 16:44 +0000 [r900]  robert:
+
+	* Updated versions for dev relese
+
+2008-03-19 16:10 +0000 [r899]  robert:
+
+	* Fixed error in intersection with height field code.
+
+2008-03-19 12:44 +0000 [r898]  robert:
+
+	* Added error handling code for when no destination graph is built
+
+2008-03-14 14:37 +0000 [r896]  robert:
+
+	* Updated versions for VPB-0.9.6 release
+
+2008-03-13 18:56 +0000 [r895]  robert:
+
+	* Improved the time reporting so that it now provides the estimated
+	  number of days, hours, minutes and seconds till completion.
+
+2008-03-12 15:28 +0000 [r894]  robert:
+
+	* Changed use of ImageLayer to ProxyLayer to avoid memory issues
+	  when using --levels
+
+2008-03-11 13:21 +0000 [r893]  robert:
+
+	* Updated FindGDAL.cmake from OpenSceneGraph original
+
+2008-03-11 13:04 +0000 [r891-892]  robert:
+
+	* From Christophe Loustaunau, added disabling of tile skirts when
+	  skirt ratio==0.0
+
+	* From Paul Martz, added missing return
+
+2008-03-11 12:48 +0000 [r890]  robert:
+
+	* Added LayerInheritance paramter to BuildOptions and use of this
+	  in the source reading and scene building code in Destination.cpp
+
+2008-03-10 19:51 +0000 [r889]  robert:
+
+	* Fixed bug in counting the number of running tasks
+
+2008-03-07 20:54 +0000 [r888]  robert:
+
+	* Changed the baseLayer/baseTexture setting so that it takes the
+	  highest valid imager/texture as the one to inherit into empty
+	  layers
+
+2008-03-07 19:27 +0000 [r887]  robert:
+
+	* Added nesting of secondary split level task directories, task and
+	  log files
+
+2008-03-06 17:12 +0000 [r886]  robert:
+
+	* Added reporting of the source files that contribute to an osgdem
+	  run.
+
+2008-03-06 11:06 +0000 [r885]  robert:
+
+	* Added default use of ./logs and ./tasks directories
+
+2008-03-05 21:25 +0000 [r884]  robert:
+
+	* Changed % to percent to avoid libc bug in parsing %%
+
+2008-03-05 18:47 +0000 [r883]  robert:
+
+	* Fixed precentage sign
+
+2008-03-05 18:36 +0000 [r882]  robert:
+
+	* Fixed progress stats text formating
+
+2008-03-05 17:49 +0000 [r881]  robert:
+
+	* Introduced new scheme for computing the destination graph used
+	  when building the vpbmaste tasks list
+
+2008-03-03 12:16 +0000 [r880]  robert:
+
+	* Removed debug message
+
+2008-03-02 18:25 +0000 [r879]  robert:
+
+	* Fixed generation of subtile task that are non ops. Added support
+	  for layers.
+
+2008-02-15 16:04 +0000 [r878]  robert:
+
+	* Changed the compute the of the grid origin and xy interval to be
+	  done locally in doubles to fix precision issues when working with
+	  high rest polygonal tiles
+
+2008-02-15 15:31 +0000 [r877]  robert:
+
+	* Fixed bug in CompositeDestination::getExternalSubTileName().
+
+2008-01-29 22:14 +0000 [r875]  robert:
+
+	* Fixed bug in height field access
+
+2008-01-29 20:31 +0000 [r874]  robert:
+
+	* Changed the defaults to use the pathways for creating task sets
+	  and destination graph
+
+2008-01-29 16:36 +0000 [r873]  robert:
+
+	* Added MachinePool::reportTimingStatus() to provide an task
+	  progress estimate.
+
+2008-01-29 14:16 +0000 [r872]  robert:
+
+	* Improved the positioning of time output.
+
+2008-01-29 13:53 +0000 [r871]  robert:
+
+	* From Jean-Christophe Lombardo, "A "return" statement was missing
+	  in MachinePool::setUpOnLocalHost() and prevents from compiling
+	  under windows."
+
+2008-01-29 13:33 +0000 [r870]  robert:
+
+	* Changed the FileCache logging to be INFO rather than NOTICE
+
+2008-01-29 13:13 +0000 [r869]  robert:
+
+	* Fixed the handling of input data which has coordinate system
+	  assigned to it.
+
+2008-01-29 11:48 +0000 [r868]  robert:
+
+	* Added default ability, in vpbmaster, to use all local cores when
+	  no machine pool is otherwise defined.
+
+2008-01-29 10:47 +0000 [r867]  robert:
+
+	* Updated version number for VPB 0.9.5 release
+
+2008-01-29 09:40 +0000 [r866]  robert:
+
+	* From Bob Kuehne, build fix for OSX
+
+2008-01-28 20:49 +0000 [r865]  robert:
+
+	* From Jean-Christophe Lombardo, "Here is a slight modification to
+	  FileUtils / FileUtils.cpp As far as I know, we cannot create a
+	  directory and set its permissions at once on windows side.
+	  Changes are relative to revision 862 and allow vpb to compile
+	  again on windows"
+
+2008-01-28 20:45 +0000 [r864]  robert:
+
+	* From Jean-Sebastien Guay, build fixes for Windows
+
+2008-01-28 17:03 +0000 [r863]  robert:
+
+	* From Jean-Christophe Lombardo, "I've added a -hf (or
+	  --HeightField) and -shp command line options to respectively
+	  specify the height field and shape files to load. Default
+	  behavior is kept (ie loading files from David's computer :) ).
+	  I've also added a polygon offset to force the mapped shapefiles
+	  to be over the terrain."
+
+2008-01-26 21:42 +0000 [r862]  robert:
+
+	* Fixed filename handling when using WriteOperation so that it
+	  shares exactly the same filename being used when running single
+	  threaded.
+
+2008-01-26 12:36 +0000 [r861]  robert:
+
+	* Quietened down the debug messages
+
+2008-01-26 12:25 +0000 [r860]  robert:
+
+	* Added mkpath convinience function
+
+2008-01-25 19:19 +0000 [r859]  robert:
+
+	* Added support for --output-task-directories (also can use --otd)
+	  when generating vpbmaster builds.
+
+2008-01-25 14:29 +0000 [r858]  robert:
+
+	* Added mkdir
+
+2008-01-23 16:56 +0000 [r857]  robert:
+
+	* Introduce ValidValueOperator to help catch no data values on DEMs
+	  that don't assign the non data value. Added commandline and
+	  BuildOption controls for toggle on/off the interpolation of
+	  source imagery and dems.
+
+2008-01-23 11:39 +0000 [r856]  robert:
+
+	* Added missing headers
+
+2008-01-22 18:45 +0000 [r855]  robert:
+
+	* Added support for generating tasks sets based on two split levels
+
+2008-01-22 16:56 +0000 [r854]  robert:
+
+	* Completed work on automatic selection of split levels
+
+2008-01-22 14:15 +0000 [r853]  robert:
+
+	* Introduced optional code paths for new multiple split level
+	  support
+
+2008-01-22 12:54 +0000 [r852]  robert:
+
+	* Updated version number... a bit late though for 0.9.4 release...
+	  arggg...
+
+2008-01-21 20:22 +0000 [r850]  robert:
+
+	* From David Callu, support for handling forests and division of
+	  shapefile that cover tile boundaries.
+
+2008-01-18 12:19 +0000 [r849]  robert:
+
+	* Removed check against compressed texture type for use of graphics
+	  context
+
+2008-01-17 22:26 +0000 [r848]  robert:
+
+	* Added computation of skirt heights for osgTerrain::Terrain code
+	  path
+
+2008-01-17 21:29 +0000 [r847]  robert:
+
+	* Reduced the default number of queued operations in the
+	  ThreadPool's queue to 64 to help keep a lid on memory usage
+
+2008-01-17 19:48 +0000 [r846]  robert:
+
+	* Tweaked the default of the ThreadPool::run() throttling so that
+	  it would allow 128 operations to be queued at any one time, and
+	  to use a 1/2 second sleep to wait for the pool's own threads to
+	  catch up.
+
+2008-01-17 19:20 +0000 [r845]  robert:
+
+	* Added throttling of the calls to ThreadPool::run to limit the
+	  number of operations that the queue will permit.
+
+2008-01-17 18:05 +0000 [r844]  robert:
+
+	* Added support for ClusterCullingCallback in --terrain/osgTerrain
+	  generated databases
+
+2008-01-17 14:00 +0000 [r843]  robert:
+
+	* Introduce new destination graph generation and population,
+	  currently not yet the default but accessible using the --bo new
+	  command line option.
+
+2008-01-15 20:34 +0000 [r842]  robert:
+
+	* From Jean-Sebastien Guay, added missing return
+
+2008-01-15 17:58 +0000 [r841]  robert:
+
+	* Added extra timing codes. Implemented more of the new create
+	  destination graph functionality. #if def'd out the consolidation
+	  of source resolutions as this was slow, and the results are
+	  presently used anywhere.
+
+2008-01-15 15:00 +0000 [r840]  robert:
+
+	* Changed the set up of OperationLog within BuildOperation so that
+	  it no longer automatically create a file associated witht he
+	  operation.
+
+2008-01-15 14:39 +0000 [r839]  robert:
+
+	* Moved the destination tile creation out into its own method
+
+2008-01-15 14:29 +0000 [r838]  robert:
+
+	* Further work on new method for creating the destination graph
+
+2008-01-14 14:56 +0000 [r837]  robert:
+
+	* Futher additions to the new createDestination() code path.
+	  Updated ProxyLayer usage to refect changes in core OSG.
+
+2008-01-11 13:56 +0000 [r836]  robert:
+
+	* Added new BuildOptionsString into vpb::BuildOptions, and
+	  --build-options/--bo <string> entry. This is a first step to
+	  enable/disable new experimental code paths
+
+2008-01-10 16:18 +0000 [r835]  robert:
+
+	* Added _flushall() implement for Windows sync();
+
+2008-01-10 15:34 +0000 [r834]  robert:
+
+	* From Jean-Sebastien Guay, "Here are some further changes to
+	  correct a few things: - fcntl.h needs to be included on Windows
+	  as well - moved out of the #ifdef. - Fixed a few typos in
+	  FileUtils.cpp WIN32 part, and re-aligned everything. :-) -
+	  Additionally, I don't think extern is needed on the declarations
+	  of the functions in include/vpb/FileUtils. At least, everything
+	  compiles and links correctly on Windows when they are removed...
+	  It also compiled well when they where there, so if it causes a
+	  problem on Linux then just leave them. "
+
+2008-01-10 14:20 +0000 [r833]  robert:
+
+	* Futher changes or Windows support.
+
+2008-01-10 14:10 +0000 [r832]  robert:
+
+	* Converted sync() to vpb::sync()
+
+2008-01-10 14:06 +0000 [r831]  robert:
+
+	* Ported posix methods across to use vpb::FileUtils
+
+2008-01-10 12:50 +0000 [r830]  robert:
+
+	* From Jean-Sebastien Guay and Robert Osfield, collection of
+	  wrappers around posix methods for cross platform portability
+
+2008-01-10 11:44 +0000 [r829]  robert:
+
+	* To avoid name clashes under Windows have renamed the
+	  SignalAction::IGNORE to IGNORE_SIGNAL, and
+	  TaskFailureOperation::IGNORE to IGNORE_FAILED_TASK.
+
+2008-01-10 11:36 +0000 [r828]  robert:
+
+	* From Jean-Sebestien Guay, build fixes for Windows
+
+2008-01-09 21:08 +0000 [r827]  robert:
+
+	* Changed the default grid size to 2 for Terrain tiles
+
+2008-01-09 17:52 +0000 [r826]  robert:
+
+	* Changed the Locator extents setting so that the degrees to
+	  radians scale is only done when in geocentric
+
+2008-01-09 17:25 +0000 [r825]  robert:
+
+	* Added setting of Terrain::Locator
+
+2008-01-08 16:46 +0000 [r824]  robert:
+
+	* Added catches for osgTerrain::Terrain node traversal in
+	  NodeVisitor's to avoid the TerrainTechnique from being
+	  initialized - something that is a costly operation.
+
+2008-01-06 18:19 +0000 [r823]  robert:
+
+	* Initial steps towards supporting output to osgTerrain::Terrain
+	  tiles in place of osg::Geometry based tiles
+
+2008-01-04 16:23 +0000 [r821-822]  robert:
+
+	* Updated version
+
+	* Added extra debug messages
+
+2008-01-03 21:41 +0000 [r819]  robert:
+
+	* Added setting of a colour array to shape extruded geometries,
+	  commented out Material setting
+
+2008-01-03 18:04 +0000 [r818]  robert:
+
+	* Added sync() calls in various places in TaskManager, vpbmaster,
+	  vpbcache and osgdem to try and prevent problems with file system
+	  getting out of sync.
+
+2008-01-03 17:51 +0000 [r817]  robert:
+
+	* Added support of --buildings command line option
+
+2008-01-03 17:24 +0000 [r816]  robert:
+
+	* Completed support for min and max levels when processing sources
+
+2008-01-03 14:34 +0000 [r815]  robert:
+
+	* Added debug fallback paths to help trace errors seen when running
+	  over a cluster
+
+2008-01-03 12:31 +0000 [r814]  robert:
+
+	* Added reading of TypeAttributeName and HeightAttributeName fields
+	  from description fields
+
+2008-01-02 13:15 +0000 [r813]  robert:
+
+	* Added shapefile support for handling of projection from lat/longs
+	  to geocentric and use of proper vertical scaling of heights.
+
+2008-01-01 21:33 +0000 [r812]  robert:
+
+	* Various fixes to the HeightFieldMapper and ShapeFilePlacer to
+	  provide better mapping between shapefiles and underlying
+	  heightfields.
+
+2008-01-01 15:28 +0000 [r811]  robert:
+
+	* From David Callu, further improvements to handling of shapefile
+	  insertion and extrusion.
+
+2007-12-26 21:40 +0000 [r810]  robert:
+
+	* From David Callu, further work on shapefile support.
+
+2007-12-22 15:51 +0000 [r809]  robert:
+
+	* Moved waitForCompletion
+
+2007-12-22 15:42 +0000 [r808]  robert:
+
+	* Cleaned up the log output.
+
+2007-12-22 12:58 +0000 [r807]  robert:
+
+	* Added graphics context support for ThreadPool
+
+2007-12-21 18:44 +0000 [r806]  robert:
+
+	* Fixed crash
+
+2007-12-21 13:08 +0000 [r805]  robert:
+
+	* From David Callu, HeightFieldMapp and ExtrudeVisitor
+
+2007-12-21 11:30 +0000 [r804]  robert:
+
+	* Added processer affinity
+
+2007-12-21 11:12 +0000 [r803]  robert:
+
+	* Added ThreadPool class and asociated use of it for driving
+	  multiple read and write threads internally during an osgdem run.
+	  Added support for --read-thread-ratio <ratio> and
+	  --write-thread-ratio <ratio> in osgdem/vpbmaster command line
+	  options
+
+2007-12-19 18:02 +0000 [r802]  robert:
+
+	* Added in assingment of local terrain height field when doing
+	  fallback.
+
+2007-12-19 16:51 +0000 [r801]  robert:
+
+	* Initial cut of functor for implementing merging 3d objects with
+	  terrain.
+
+2007-12-18 20:04 +0000 [r800]  robert:
+
+	* Added support for inserting models into paged nodes
+
+2007-12-18 16:47 +0000 [r799]  robert:
+
+	* Fixed set up of CoordinateSystemNode values and decoration of
+	  geocentric model
+
+2007-12-18 16:08 +0000 [r798]  robert:
+
+	* Added command line support for setting polar and equator radii
+	  via --radius-polar <radius>, --radius-equator <radius>
+	  respectively. Added command line support for --spherical option
+	  that sets the polar and equator radii to the same value, its
+	  value is computed by averaging the original polar and equator
+	  radius.
+
+2007-12-17 17:48 +0000 [r796]  robert:
+
+	* From David Callu, vpbextrusion example that implements extrusion
+	  of shapefile polyygons to create buildings.
+
+2007-12-16 17:00 +0000 [r795]  robert:
+
+	* Fixed crash resulting for OGR not being able to carry out
+	  transformations.
+
+2007-12-14 18:26 +0000 [r794]  robert:
+
+	* Got reprojection of models working.
+
+2007-12-13 20:21 +0000 [r793]  robert:
+
+	* Fixed output of bounding box
+
+2007-12-13 20:08 +0000 [r792]  robert:
+
+	* Added support for preloading of the .osg plugin to allow support
+	  for outputing .osg nodes within the .source files
+
+2007-12-13 17:52 +0000 [r791]  robert:
+
+	* Added support for
+	  Locator::s/getTransformScaledByResolution(bool), fixing the bug
+	  with handling --xx defined coord systems
+
+2007-12-13 11:11 +0000 [r790]  robert:
+
+	* Added support for setting node mask of shapefile data.
+
+2007-12-12 21:35 +0000 [r789]  robert:
+
+	* Added support for merging new values into existing
+	  ShapeAttributeLists.
+
+2007-12-12 19:03 +0000 [r788]  robert:
+
+	* Added suport for defining heights from commandline
+
+2007-12-12 16:54 +0000 [r787]  robert:
+
+	* Refactor the way that command line options are parsed to make it
+	  more flexible
+
+2007-12-10 16:19 +0000 [r786]  robert:
+
+	* Added osgViewerGetVersion usage for force linking of osgViewer
+	  under Windows
+
+2007-12-07 21:01 +0000 [r785]  robert:
+
+	* Added support for disable writing of tiles to disk. This feature
+	  is purely for bechmarking/bottleneck profiling and isn't a
+	  feature one will use when building databases. To enable this
+	  feature use --disable-writes on the vpbmaster/osgdem command
+	  line.
+
+2007-12-07 20:48 +0000 [r783-784]  robert:
+
+	* Re-enable the writing to disk of tiles.
+
+	* Added support for --notify-level command line parameter and
+	  BuildOption to help better control the level of message output
+	  when running osgdem. --notify--level OFF disables messages
+	  completely. The other options are WARN, NOTICE, INFO and DEBUG.
+
+2007-12-06 15:38 +0000 [r782]  robert:
+
+	* Quietened down debug output.
+
+2007-12-06 12:26 +0000 [r781]  robert:
+
+	* Fixed opening of log files
+
+2007-12-06 12:02 +0000 [r780]  robert:
+
+	* Fixed the build log set up.
+
+2007-12-06 11:46 +0000 [r779]  robert:
+
+	* Tweaked the handling of build logs
+
+2007-12-05 21:16 +0000 [r778]  robert:
+
+	* Added logging of FileCache usage.
+
+2007-12-05 18:38 +0000 [r777]  robert:
+
+	* Moved SourceData out into its own separate file. Fixed the
+	  DataSet::assignDestinateionCoordinateSystem()
+
+2007-12-05 14:52 +0000 [r776]  robert:
+
+	* Added fallbacks to handle with coordinte system aren't set up for
+	  a dataset
+
+2007-12-05 13:38 +0000 [r775]  robert:
+
+	* Preliminary support for --building and --forest command line
+	  params
+
+2007-12-05 11:37 +0000 [r774]  robert:
+
+	* Added initial command line support for specificying the building
+	  and forest shapefiles
+
+2007-12-03 12:27 +0000 [r773]  robert:
+
+	* Fixed handling of datasets where destination coordinate system is
+	  not specified.
+
+2007-11-30 20:41 +0000 [r772]  robert:
+
+	* Added support for mirror of masters data onto slave machines
+	  local cache
+
+2007-11-30 15:06 +0000 [r771]  robert:
+
+	* Added support for creating overviews in vpbcache
+
+2007-11-30 11:35 +0000 [r770]  robert:
+
+	* Enable multi-threaded GDAL reprojection
+
+2007-11-29 18:11 +0000 [r769]  robert:
+
+	* Preliminary work on creating mipmap versions of source files in
+	  cache
+
+2007-11-29 16:09 +0000 [r768]  robert:
+
+	* Added support for remapping of source that require reprojection
+	  via FileCache variants
+
+2007-11-29 15:23 +0000 [r767]  robert:
+
+	* Added support for loading SourceData from FileCache, rather than
+	  just via GDAL
+
+2007-11-28 15:44 +0000 [r766]  robert:
+
+	* Reorganised TaskManager/MachinePool/System so that System now
+	  manages all the singleton instances of TaskManager, MachinePool
+	  and FileCache together in one single System singleton. Debugged
+	  thread management/thread exit in MachinePool/TaskManager to fix
+	  crashes and oddities in exit process when vpbmaster is killed in
+	  various ways.
+
+2007-11-27 16:42 +0000 [r765]  robert:
+
+	* Added MachinePool entry into System.
+
+2007-11-27 13:46 +0000 [r764]  robert:
+
+	* Added System::getFileSize method
+
+2007-11-27 11:36 +0000 [r763]  robert:
+
+	* Added support to TaskManger/vpbmaster for automatically detecting
+	  source files have been modified since tasks have been updated.
+
+2007-11-26 17:31 +0000 [r762]  robert:
+
+	* Add setting of completion of build to Task file
+
+2007-11-26 16:09 +0000 [r761]  robert:
+
+	* Implemented Date class to keep track of current time, and file
+	  modification time.
+
+2007-11-26 13:47 +0000 [r760]  robert:
+
+	* Renamed FileSystem to System to reflect its new more general
+	  purpose.
+
+2007-11-26 13:41 +0000 [r758-759]  robert:
+
+	* Added automatic detection of the need for source file
+	  reprojection
+
+	* Added dates convinience methods
+
+2007-11-22 11:42 +0000 [r757]  robert:
+
+	* Commented out debugging, changed the FileCache::getOptimum so
+	  that it returns null is nothing suitable is found
+
+2007-11-21 16:44 +0000 [r756]  robert:
+
+	* Added FileCache reporting, and a fix to use wrapString when
+	  writing out the file cache.
+
+2007-11-21 15:31 +0000 [r755]  robert:
+
+	* Cleaned up file cache reading/writing/opening.
+
+2007-11-21 14:17 +0000 [r754]  robert:
+
+	* Added FileCache::addSource implementation
+
+2007-11-21 12:43 +0000 [r753]  robert:
+
+	* Further work on file cache support
+
+2007-11-20 16:20 +0000 [r752]  robert:
+
+	* Further work on supporting reading and writing of the FileCache
+
+2007-11-20 14:25 +0000 [r751]  robert:
+
+	* Added intial template for new vpbcache application that will be
+	  used to build and maintain local file caches on slaves
+
+2007-11-20 11:49 +0000 [r750]  robert:
+
+	* Cleaned up some of the platform specific calls so they are more
+	  centralised.
+
+2007-11-19 18:13 +0000 [r749]  robert:
+
+	* Further work on wiring up source reading to file cache.
+
+2007-11-19 17:50 +0000 [r748]  robert:
+
+	* Added preliminary FileDetails and FileCache classes
+
+2007-11-19 10:47 +0000 [r747]  robert:
+
+	* Changed the log methods to all use osg::NotifyLevel to filter out
+	  debug messages
+
+2007-11-16 20:48 +0000 [r746]  robert:
+
+	* Addded check against getConvertFromGeographicToGeocentric() in
+	  the destinate Coordinate system callback code
+
+2007-11-16 17:33 +0000 [r745]  robert:
+
+	* Fixed FileProxy return values
+
+2007-11-16 15:55 +0000 [r744]  robert:
+
+	* Changed PropertyFile so that it open and closes the files on each
+	  read/write call, this is done to keep the number of open file
+	  handles down, and thereby allow handling of unlimited number of
+	  tasks on the master, rather than limited by the OS maximum number
+	  of file handles on the master.
+
+2007-11-16 11:35 +0000 [r743]  robert:
+
+	* Fixed height field reading bug introduced in the code changes
+	  associated with large number of source file support
+
+2007-11-15 17:43 +0000 [r742]  robert:
+
+	* Added catch for empty coordinate systems, and removal of
+	  redundent code in CommandLine.cpp
+
+2007-11-15 11:06 +0000 [r741]  robert:
+
+	* Updated TODO list as the handling of thousands of files is now
+	  complete.
+
+2007-11-14 17:22 +0000 [r740]  robert:
+
+	* Fixed typo
+
+2007-11-14 17:03 +0000 [r739]  robert:
+
+	* Added support for large number of input files by using a cache of
+	  user controlled size.
+
+2007-11-14 13:43 +0000 [r738]  robert:
+
+	* Added GeospatialDataset class for handling of caching of
+	  GDALDataset's
+
+2007-11-13 18:07 +0000 [r737]  robert:
+
+	* Changed Command line parsing across to use light weight filename
+	  string references in CompositeLayer by default.
+
+2007-11-13 15:21 +0000 [r736]  robert:
+
+	* Reimplementated use of Block in waitForCompletion.
+
+2007-11-13 14:40 +0000 [r735]  robert:
+
+	* Added TODO.txt to track todo list
+
+2007-11-13 13:08 +0000 [r734]  robert:
+
+	* Added support for incremental build
+
+2007-11-11 21:08 +0000 [r733]  robert:
+
+	* Improved the stats reporting
+
+2007-11-11 20:55 +0000 [r732]  robert:
+
+	* Added TaskStats collection into Machine/MachinePool for a final
+	  reportTimeStats() call generated after the TaskManager run to
+	  report how all the different types of tasks faired on different
+	  machines
+
+2007-11-11 18:03 +0000 [r731]  robert:
+
+	* Changed the TaskManager::run() so it exits if there are no
+	  running threads
+
+2007-11-09 18:00 +0000 [r730]  robert:
+
+	* Added mutex to signal handler
+
+2007-11-09 17:18 +0000 [r729]  robert:
+
+	* Added _machines mutex
+
+2007-11-09 16:27 +0000 [r728]  robert:
+
+	* Perliminary support for UPDATE_MACHINE_POOL
+
+2007-11-09 15:28 +0000 [r727]  robert:
+
+	* Added support for RESET_MACHINE_POOL signal.
+
+2007-11-09 12:12 +0000 [r726]  robert:
+
+	* Added update and resetMachinePool methods
+
+2007-11-09 11:44 +0000 [r725]  robert:
+
+	* Made TaskManager a singleton. Introduce signal handling and
+	  associated actions directly into TaskManager.
+
+2007-11-08 16:29 +0000 [r724]  robert:
+
+	* Fixed logging bug
+
+2007-11-08 16:25 +0000 [r723]  robert:
+
+	* Improved handling of signals for cancelling vpbmaster and slaves
+
+2007-11-08 15:10 +0000 [r722]  robert:
+
+	* Removed redundent end of line output
+
+2007-11-08 15:06 +0000 [r721]  robert:
+
+	* Added support for directing vpbmaster build output to a master
+	  log file.
+
+2007-11-08 13:37 +0000 [r720]  robert:
+
+	* Ported MachinePool/Machine across to use log rather than
+	  std::cout.
+
+2007-11-08 13:13 +0000 [r719]  robert:
+
+	* Created new Logger base class to help out with logging of
+	  progress in DataSet, TaskManager and Machine(Pool)
+
+2007-11-08 12:19 +0000 [r718]  robert:
+
+	* Removed debugging
+
+2007-11-08 12:14 +0000 [r717]  robert:
+
+	* Added thread safe access to Machine::_runnningTasks, and extra
+	  debug code
+
+2007-11-07 17:37 +0000 [r716]  robert:
+
+	* Added support for black listing of machines when errors occur on
+	  them.
+
+2007-11-07 14:33 +0000 [r715]  robert:
+
+	* Changed destructor debug message to INFO
+
+2007-11-07 13:42 +0000 [r714]  robert:
+
+	* Added support for killing remote applications when vpbmaster is
+	  killed
+
+2007-11-07 12:07 +0000 [r713]  robert:
+
+	* Added initial singal handling and process exit support.
+
+2007-11-02 17:10 +0000 [r712]  robert:
+
+	* Fixed subtile generation bug
+
+2007-11-02 12:38 +0000 [r711]  robert:
+
+	* Improved the stats logging
+
+2007-11-02 11:23 +0000 [r710]  robert:
+
+	* Changed YieldCurrentThread for microSleep() to make sure that
+	  vpbmaster thread doesn't consume the a whole cpu core in just
+	  waiting for completion.
+
+2007-11-01 11:27 +0000 [r709]  robert:
+
+	* Refactored the logging code slightly to avoid passing of var args
+
+2007-10-31 17:58 +0000 [r708]  robert:
+
+	* Changed DataSet so the when the intermedita build name is set the
+	  full build is not done, just reprojection and overlay generation.
+
+2007-10-31 15:05 +0000 [r707]  robert:
+
+	* Fixes to distributed build generation
+
+2007-10-30 15:19 +0000 [r706]  robert:
+
+	* Adjusted the tasks generation
+
+2007-10-30 15:15 +0000 [r705]  robert:
+
+	* Updated to reflect new Task/PropertyFile API
+
+2007-10-30 15:07 +0000 [r704]  robert:
+
+	* Removed PropertyFile::Type as its no longer relevant.
+
+2007-10-30 14:58 +0000 [r703]  robert:
+
+	* Removed file no longer used
+
+2007-10-30 14:54 +0000 [r702]  robert:
+
+	* Implementated support for RecordSubtileFileNamesOnLeafTile
+
+2007-10-28 18:05 +0000 [r701]  robert:
+
+	* Added setting of group and others permissions on proporty files
+	  (like tasks file) on creation to help members of the cluster all
+	  read and write task files
+
+2007-10-28 12:39 +0000 [r700]  robert:
+
+	* Added --run-path to osgdem/vpbmaster
+
+2007-10-26 17:20 +0000 [r699]  robert:
+
+	* Futher work on enabling subtile only database generation.
+
+2007-10-26 13:46 +0000 [r698]  robert:
+
+	* Added check in vpbmaster to warn users that no machines have been
+	  defined for the build.
+
+2007-10-26 13:39 +0000 [r697]  robert:
+
+	* Added build name to TaskManager to provide a means for identifier
+	  the build
+
+2007-10-26 12:34 +0000 [r696]  robert:
+
+	* Added passing of task and log files to osgdem dispatched tasks
+
+2007-10-26 11:59 +0000 [r695]  robert:
+
+	* Added automatic writing out of source file and use of source and
+	  tasks filenames in TaskManager.
+
+2007-10-26 10:32 +0000 [r694]  robert:
+
+	* Added support for .vpb and .source extensions for input source
+	  files. Added totally up of successful/unsuccessful tasks.
+
+2007-10-26 08:49 +0000 [r693]  robert:
+
+	* Added automatic generation of the Tasks and associated Task files
+	  when no other tasks are defined.
+
+2007-10-25 17:22 +0000 [r692]  robert:
+
+	* Futher work on tasks file generation.
+
+2007-10-25 16:47 +0000 [r691]  robert:
+
+	* Added DestionVisitor and initial generateTasks methods
+
+2007-10-25 11:06 +0000 [r690]  robert:
+
+	* Added split level setting, reading and writing.
+
+2007-10-24 15:48 +0000 [r689]  robert:
+
+	* Added code into MachinePool to automatically add ssh host ".."
+	  prefix when no prefix has been otherwise specified for a machine.
+
+2007-10-24 14:49 +0000 [r688]  robert:
+
+	* Refactored the Task parameters so that both the application and
+	  its arguments are combined into a single application string.
+	  Added an extra results check to the task manager run so we can
+	  spot failed tasks.
+
+2007-10-24 11:22 +0000 [r687]  robert:
+
+	* Changed the inline function calls to externs to avoid linkage
+	  problems. Added use of machine env var in TaskManager.
+
+2007-10-24 11:10 +0000 [r686]  robert:
+
+	* Added FileSystem signleton to help manage file search paths and
+	  env vars
+
+2007-10-23 20:06 +0000 [r685]  robert:
+
+	* Added Machine::startThreads() and fixed wait code
+
+2007-10-23 19:05 +0000 [r684]  robert:
+
+	* Implmented read/write support for the TaskManager.
+
+2007-10-23 15:19 +0000 [r683]  robert:
+
+	* Implemented file reading and writing support for MachinePool, and
+	  beginings of support for TaskManager IO.
+
+2007-10-23 13:43 +0000 [r682]  robert:
+
+	* Further work on MachinePool, TaskManager, Task and vpbmaster
+	  example
+
+2007-10-22 16:22 +0000 [r681]  robert:
+
+	* Refactored TaskFile so that it inherits from PropertyFile, with
+	  PropertyFile providing all the IO and property querry support.
+	  Added Machine and MachinePool classes for the support for running
+	  tasks on separate machines.
+
+2007-10-19 13:02 +0000 [r680]  robert:
+
+	* Added TaskManager
+
+2007-10-18 19:33 +0000 [r679]  robert:
+
+	* Futher options tweaking
+
+2007-10-18 19:26 +0000 [r678]  robert:
+
+	* Added lib64 versions for search
+
+2007-10-18 16:53 +0000 [r677]  robert:
+
+	* Added support for specifying subtile in build
+
+2007-10-18 16:15 +0000 [r676]  robert:
+
+	* Added BuildOverlays/ReprojectSource/GenerateTiles flags into
+	  BuildOptions, added IO, and commandline support for these, and
+	  usage of these inside DataSet.cpp.
+
+2007-10-18 14:32 +0000 [r675]  robert:
+
+	* Added Commandline helper functions and vpbmaster app
+
+2007-10-17 19:58 +0000 [r674]  robert:
+
+	* Added /usr/local/include/gdal to search path
+
+2007-10-17 19:54 +0000 [r673]  robert:
+
+	* Added extra search paths for GDAL install
+
+2007-10-15 12:02 +0000 [r672]  robert:
+
+	* Improved logging support, and introduced new TaskFile class for
+	  tracking the status of, running and stopping builds.
+
+2007-10-05 19:48 +0000 [r671]  robert:
+
+	* Added output of the next level downs undersampling to help choose
+	  levels that almost fit the desired resolution but have a slight
+	  undersampling.
+
+2007-10-05 16:51 +0000 [r670]  robert:
+
+	* Added vpbsizes app to help analyse optimal tile layouts
+
+2007-09-28 19:10 +0000 [r669]  robert:
+
+	* Fixed time logging.
+
+2007-09-28 18:42 +0000 [r668]  robert:
+
+	* Further work on logging.
+
+2007-09-28 14:38 +0000 [r667]  robert:
+
+	* Further work of thread safe logging.
+
+2007-09-28 11:33 +0000 [r666]  robert:
+
+	* Added intial BuildLog and BuildOperation classes and refactored
+	  BuildOptions so that it now is an osg::Object and has its own IO
+	  support.
+
+2007-09-20 18:02 +0000 [r665]  robert:
+
+	* Added BuildOperation and ProgressTracker files in prep for
+	  providing a framework of doing multi-thread builds and
+	  asyncronous build progress reporting.
+
+2007-09-20 17:04 +0000 [r664]  robert:
+
+	* Fixed the handling of scaling of Source::GeoTransform.
+
+2007-09-19 17:20 +0000 [r663]  robert:
+
+	* Added support for writing out an intermediate build file.
+
+2007-09-19 16:07 +0000 [r662]  robert:
+
+	* Added support for serializing extents.
+
+2007-09-18 15:13 +0000 [r661]  robert:
+
+	* Improvements to BuildOptions
+
+2007-09-18 13:36 +0000 [r660]  robert:
+
+	* Improved the consistentcy of handling BuildOptions
+
+2007-09-17 19:44 +0000 [r659]  robert:
+
+	* Further work on integrating osgTerrain::Layer/Locator into VPB.
+
+2007-09-16 18:00 +0000 [r657-658]  robert:
+
+	* Removed scale matrix
+
+	* Various clean ups to API.
+
+2007-09-15 18:11 +0000 [r656]  robert:
+
+	* Added support for serializing out uint, int, float, double and
+	  bool BuilOptions parameters
+
+2007-09-14 20:30 +0000 [r654-655]  robert:
+
+	* Removed old experimental code
+
+	* Introduced new general serializer helper classes.
+
+2007-09-12 12:24 +0000 [r653]  robert:
+
+	* Moved DataSet build parameter out into its own BuildOptions
+	  object. Add preliminary DatabaseBuilder class to enable IO of
+	  BuildOptions and as a place holder for replacement of DataSet.
+
+2007-09-12 10:46 +0000 [r651-652]  robert:
+
+	* Updated copyright notices
+
+	* Added DatabaseBuilder class which will provide the glue between
+	  osgTerrain and VPB.
+
+2007-09-11 15:02 +0000 [r649-650]  robert:
+
+	* Cleaned up includes
+
+	* Moved Source and Desintation classes out into their own separate
+	  files.
+
+2007-09-11 14:22 +0000 [r648]  robert:
+
+	* Moved SpatialProprerties and associated functions out into their
+	  own seperate file.
+
+2007-09-05 16:36 +0000 [r647]  robert:
+
+	* Added setting of locator coordinates system
+
+2007-09-05 10:40 +0000 [r646]  robert:
+
+	* Added basic DataSet source graph convertion to osgTerrain source
+	  graph.
+
+2007-09-05 10:00 +0000 [r645]  robert:
+
+	* Added support to osgdem for reading the source graph description
+	  from a Terrain .osg file via -s filename, and writing of the
+	  source graph/DataSet configurtion to --so filename to a Terrain
+	  .osg file.
+
+2007-09-04 18:30 +0000 [r644]  robert:
+
+	* Added support for convert from osgTerrain::Terrain source graph
+	  to a DataSet source graph.
+
+2007-08-16 18:50 +0000 [r643]  robert:
+
+	* Added interogation of Terrain nodes and their layers.
+
+2007-08-16 16:12 +0000 [r642]  robert:
+
+	* Added vpbtest example to scope out various elements of new VPB
+	  rewrite.
+
+2007-08-16 10:56 +0000 [r641]  robert:
+
+	* Removed redundent Make directory,
+
+2007-08-16 10:27 +0000 [r639]  robert:
+
+	* Added --version-number support
+
+2007-08-16 10:22 +0000 [r638]  robert:
+
+	* Updated versioning information, and added osgdem --version to
+	  allow one to get the version.
+
+2007-08-07 10:52 +0000 [r637]  robert:
+
+	* Moved the GDAL plugin back into the core OpenSceneGraph to make
+	  it easier to manage the plugin paths, and to keep
+	  VirtualPlanetBuilder purely focused on database building.
+
+2007-08-07 10:12 +0000 [r636]  robert:
+
+	* Updated Version for 1.9.1 release
+
+2007-08-02 16:15 +0000 [r635]  robert:
+
+	* From Christophe Loustaunau, fixed typo.
+
+2007-07-28 09:40 +0000 [r634]  robert:
+
+	* From Peter Gebauer, added gdal1.4.0 to search list.
+
+2007-07-25 11:32 +0000 [r633]  robert:
+
+	* From Luigi Calori, build fixes for Windows
+
+2007-07-12 18:49 +0000 [r632]  robert:
+
+	* Removed old makefile
+
+2007-06-27 12:34 +0000 [r631]  robert:
+
+	* Added OSGVIEWER_LIBRARY depdendency
+
+2007-06-26 18:37 +0000 [r630]  robert:
+
+	* Fixed typo
+
+2007-06-26 17:15 +0000 [r629]  robert:
+
+	* Added CMakeModules.
+
+2007-06-26 15:01 +0000 [r628]  robert:
+
+	* Cleaned up Cmake build
+
+2007-06-26 14:52 +0000 [r626-627]  robert:
+
+	* Removed old VisualStudio build
+
+	* Removed old unix build
+
+2007-06-26 14:48 +0000 [r625]  robert:
+
+	* Added CMake support into VPB
+
+2007-04-05 14:10 +0000 [r621]  robert:
+
+	* Various updates to build properly.
+
+2007-03-14 15:14 +0000 [r620]  robert:
+
+	* Removed all osgTerrain classes, and merged changes: From Colin
+	  McDonald, "I was getting crashes in
+	  DataSet::SourceData::readImage if one of destHeight or destWidth
+	  came out to be one. There was also an error with alpha blending
+	  in that routine. Between osg versions 1.0 and 1.2 last year there
+	  was a large increase in the size of many database files produced
+	  by osgdem, of the order of x2 to x4. Some other people have
+	  commented on it in osg-users, as with databases which were
+	  already large it has caused some problems in transferring them to
+	  customers. I have done some investigation into the Simplifier
+	  changes during that period, and the principal cause appears to be
+	  a change in the logic of
+	  osgUtil::Simplifier::continueSimplificationImplementation.
+	  Previously in osg v1.0 it always carried on simplifying while the
+	  simplification error was less than getMaximumError(). But in osg
+	  v1.2 it stops simplifying whenever the max error is exceeded OR
+	  the target primitive ratio is reached. A simple adjustment to the
+	  targetMaxNumVertices in DataSet::DestinationTile::createPolygonal
+	  reduces the database sizes near to the osg v1.0 sizes."
+
+2007-03-14 13:59 +0000 [r617-619]  robert:
+
+	* Removed osgTerrain
+
+	* Removed old osgTerrain directory.
+
+	* Added use of OSG_INC_DIR and OSG_LIB_DIR to pick on locally built
+	  OSG
+
+2007-02-27 21:04 +0000 [r616]  robert:
+
+	* From Alan Harris, "osgTerrain has been changed to include better
+	  support for vector data sets, which are mainly used for height
+	  data. GDAL is primarily for raster data."
+
+2007-02-27 19:53 +0000 [r615]  robert:
+
+	* Removed HieghtFieldNode/Render. Added gdal plugin from main
+	  OpenSceneGraph repository.
+
+2007-02-27 19:30 +0000 [r614]  robert:
+
+	* Added GNUmakefiles in directories and set up directories in
+	  Make/makedirdefs
+
+2007-02-27 13:16 +0000 [r613]  robert:
+
+	* Moved osgProducer and osgproducerviewer out into their own
+	  repository. Clean up the source for remaining references to
+	  osgProducer/Producer.
+
+2007-02-25 20:05 +0000 [r612]  robert:
+
+	* Further work on add serialization support for osgViewer
+	  configurations
+
+2007-02-20 09:48 +0000 [r610-611]  robert:
+
+	* Added missing \ to end osgGA entry
+
+	* Added osgViewer and osgShadow to the wrapper build directories
+
+2007-02-14 11:24 +0000 [r609]  robert:
+
+	* Added computeDataVariance method into osg::Object and
+	  implementations in Drawable and StateSet, and calling of
+	  osgUtil::StaticObjectDetectionVisitor in osgViewer::Viewer
+
+2007-02-13 15:24 +0000 [r608]  robert:
+
+	* From John Shue, "Modified OpenSceneGraph/Make/makedefs to add
+	  -pipe gcc command line option to FreeBSD build."
+
+2007-02-11 12:23 +0000 [r607]  robert:
+
+	* Updated wrappers
+
+2007-02-11 10:33 +0000 [r606]  robert:
+
+	* From Vivek Rajan, new osgManipulator library, with a few minor
+	  tweaks and rename for osgDragger to osgManipulator for build by
+	  Robert Osfield. Vivek's email to osg-submissions: "I'm happy to
+	  release the osgdragger nodekit to the OSG community. I
+	  implemented the nodekit for my company, Fugro-Jason Inc., and
+	  they have kindly agreed to open source it. The nodekit contains a
+	  few draggers but it should be easy to build new draggers on top
+	  of it. The design of the nodekit is based on a SIGGRAPH 2002
+	  course - "Design and Implementation of Direct Manipulation in
+	  3D". You can find the course notes at
+	  http://www.pauliface.com/Sigg02/index.html. Reading pages 20 - 29
+	  of the course notes should give you a fair understanding of how
+	  the nodekit works. The source code also contains an example of
+	  how to use the draggers."
+
+2007-02-06 17:01 +0000 [r605]  robert:
+
+	* From Stefan Eileman, fixes for OSX gmake build to allow AGL or
+	  X11 implementation of osgViewer
+
+2007-01-24 12:35 +0000 [r604]  robert:
+
+	* From Martin Spott, "To enable osgviewer to link on Solaris added
+	  -lmtsk as SunOS/SunStudio implements some threading stuff in
+	  libmtsk."
+
+2007-01-23 17:29 +0000 [r603]  robert:
+
+	* changed build order so that osgText gets built before osgViewer
+
+2007-01-21 18:24 +0000 [r602]  robert:
+
+	* Initial on screen stats support
+
+2007-01-11 15:48 +0000 [r601]  robert:
+
+	* Removed examples: osgcameragroup osgsimpleviewerProducer
+	  osgsimplepager
+
+2007-01-10 14:56 +0000 [r600]  robert:
+
+	* Ported osgconv and osgdem across to osgViewer
+
+2007-01-09 14:35 +0000 [r599]  robert:
+
+	* From Jan Ciger, Tolga Abaci, Bruno Herbelin : OpenVRML 0.14.3
+	  based .wrl/VRML plugin
+
+2007-01-08 12:04 +0000 [r598]  robert:
+
+	* From Mathias Fröhlich, txf plugin for reading .txf textured
+	  texture files.
+
+2007-01-08 11:23 +0000 [r597]  robert:
+
+	* From Paul Martz and Robert Osfield, renamed
+	  include/osgUtil/Tesselator and associated classes/references to
+	  Tessellator etc.
+
+2006-12-07 10:16 +0000 [r596]  robert:
+
+	* From Luigi Calori, "In order to effectively use --image-ext and
+	  to add -O "plugin options", some fix to osgdem.cpp and
+	  osgTerrain/DataSet.cpp These mods should allow to build terrains
+	  controlling jpeg compressed imagery embedded in ive files, using
+	  something like: osgdemd --image-ext jpeg --RGB_24 -O
+	  "JPEG_QUALITY 20 compressImageData" ......."
+
+2006-11-22 20:52 +0000 [r595]  robert:
+
+	* From Paul de Repentigny, "When calling osgdem with argument
+	  "--image-ext", the application just returns after loading the
+	  proper ReaderWriter for the given extension." Fix was to remove
+	  the erroenous return.
+
+2006-11-14 12:55 +0000 [r594]  robert:
+
+	* From Jason Beverage, "I ran though the sample data that Gert
+	  provided earlier today and tracked down the problem. The xoffset
+	  in readHeightField and readImage were being applied even in
+	  projected coordinate systems. This patch should fix the issue."
+
+2006-11-03 14:07 +0000 [r593]  robert:
+
+	* Added osgViewer library to build list
+
+2006-10-26 16:03 +0000 [r592]  robert:
+
+	* Added beginings of new osgUtil::IntersectionVisitor and
+	  osgintersection class
+
+2006-10-06 14:16 +0000 [r591]  robert:
+
+	* First cut at class interfaces and stubs for implementations for
+	  the new osgShadow NodeKit
+
+2006-10-02 15:38 +0000 [r590]  robert:
+
+	* Added releaseGLObjects to NodeCallbacks, Drawable::DrawCallbacks
+	  and wired up osgProducer to use it when doing cleanup_frame.
+
+2006-10-01 13:26 +0000 [r589]  robert:
+
+	* Added osgsimpleviewerQT4 example
+
+2006-09-30 20:06 +0000 [r588]  robert:
+
+	* Added a based SDL viewer - osgsimpleviewerSDL
+
+2006-09-30 16:26 +0000 [r587]  robert:
+
+	* Added osgsimpleviewerQT3 example
+
+2006-09-18 20:54 +0000 [r586]  robert:
+
+	* Introduced new osg::View, and osg::RenderInfo classes into the
+	  core OSG to help handle scenes with multiple views with elements
+	  that need coordinating on a per view basis. Added beginings of
+	  new osgText::FadeText class (not functionality yet).
+
+2006-09-13 16:38 +0000 [r585]  robert:
+
+	* Returning revion number to 0 to signify CVS version
+
+2006-09-12 19:15 +0000 [r584]  robert:
+
+	* Updated version for 1.2 release
+
+2006-09-07 10:41 +0000 [r583]  robert:
+
+	* From Mike Weiblen, added missing export to fix osgTerrain wrapper
+	  linking under VS
+
+2006-09-05 09:13 +0000 [r582]  robert:
+
+	* Updated to compile against changes to osgTerrain
+
+2006-09-05 08:46 +0000 [r581]  robert:
+
+	* From Paul Martz, warning fixes for Cygwin.
+
+2006-09-04 20:43 +0000 [r580]  robert:
+
+	* Added support for imagery and DEM's that wrap around the
+	  dateline, this required two passes over the copying of imagery
+	  and DEM's to the destination graphs, once for the original
+	  position, and once for the wrap around 360 degrees on or before.
+	  Also fixed the GeospationExtents constructor that was setting the
+	  _max to DBL_MIN rather than -DBL_MAX. This bug causesd the y axis
+	  to be computed incorrectly.
+
+2006-08-31 20:54 +0000 [r579]  robert:
+
+	* Updated version numbers of the up comming 1.2 release
+
+2006-08-24 13:16 +0000 [r578]  robert:
+
+	* Fixed COLLDADA plugin name and remove osgmove example
+
+2006-08-23 13:32 +0000 [r577]  robert:
+
+	* From Andrew Lorino and Mike Weiblen, COLLADA 1.4.1 ReaderWriter,
+	  kindly developed and donated by Sony Computer Entertainment Inc.
+	  US R&D.
+
+2006-08-12 08:29 +0000 [r576]  robert:
+
+	* Updated version number for 1.1.1 release
+
+2006-08-11 09:30 +0000 [r575]  robert:
+
+	* Removed osgfbo and osgpbuffer examples
+
+2006-08-02 10:43 +0000 [r574]  robert:
+
+	* From Daniel Trstenjak, build fixes for Hpux 11.11, Irix 6.5,
+	  Solaris 8 and Aix
+
+2006-07-31 20:56 +0000 [r573]  robert:
+
+	* From Jason Beverage, "I've attached fixes to DataSet that should
+	  fix the problems that Maya was seeing yesterday. The issue was
+	  that the new interpolation code I submitted didn't use the
+	  SourceData's georef, it was assuming that the GDALDataSet had a
+	  proper geo-ref. I've made the getInterpolatedValue method a
+	  member of SourceData and now it uses the georef the SourceData's
+	  georef. I also forward declared the GDALRasterBand class in the
+	  DataSet header."
+
+2006-07-27 16:41 +0000 [r572]  robert:
+
+	* From Jason Beverage, "This patch should fix Gert's problem that
+	  he posted on osg-users. I downloaded the sample he posted,
+	  reproduced the error, and added an additional check to make sure
+	  the GDAL window size was valid. Now his example works fine.
+	  Changes made against current CVS. "
+
+2006-07-19 21:49 +0000 [r571]  robert:
+
+	* Set release number back to 0 after release
+
+2006-07-18 15:21 +0000 [r570]  robert:
+
+	* Updated copyright years.
+
+2006-07-18 13:24 +0000 [r569]  robert:
+
+	* Updated version for the release
+
+2006-07-11 10:34 +0000 [r568]  robert:
+
+	* From Antoine Hue, "There was a typo in "int setNotifyOffset()",
+	  appear to be a getter => "int getNotifyOffset()". Then I have
+	  added a switch to create GDALTermProgress only when the current
+	  notify level + local offset permit message display. In fact, if
+	  the offset is set to 0 and the notify level is at the default,
+	  DataSet is quiet but for the GDALTermProgress. That is quite
+	  disturbing since you think the progress is related to the
+	  complete processing but it is actually only related to the GDAL
+	  Warp."
+
+2006-07-06 10:28 +0000 [r567]  robert:
+
+	* Updated version numbers for 1.1 release
+
+2006-06-12 09:57 +0000 [r566]  robert:
+
+	* From Mathew May, FreeBSD build fixes.
+
+2006-06-08 11:19 +0000 [r565]  robert:
+
+	* Added setting of default colour.
+
+2006-05-26 15:19 +0000 [r564]  robert:
+
+	* From Jason Baverage, support for interpolating DEM data from GDAL
+	  to the positions required for the current tile.
+
+2006-05-15 13:13 +0000 [r562-563]  robert:
+
+	* Replaced BoundingBox with GeospatialExtents.
+
+	* From Jason Baverage, A dded GeospatialExtents bounding box class
+	  which used doubles in place of the original usage of
+	  osg::BoundingBox. Added path for computing interpolation
+	  elevation data being read from GDAL.
+
+2006-05-15 09:46 +0000 [r561]  robert:
+
+	* From Carlos García and Paul Baker, Port of Paul Baker's Quake3
+	  BSP loader to OSG by Carlos García. Added Quake3 BSP plugin.
+
+2006-05-02 09:45 +0000 [r560]  robert:
+
+	* Reorganised the Group::removeChild and Geode::removeDrawable
+	  methods so that removeChild(Node*), removeChild(uint) and
+	  equivilant Geode methods are now inline methods, not designed to
+	  be overriden, and seperated out the multiple remove method to be
+	  called removeChildren(uint, uint) which is now the only virtual
+	  method. There removeChildren is now the method to override in
+	  subclasses. This reorganisation requires some call code to be
+	  rename removeChild usage to removeChildren.
+
+2006-05-01 14:51 +0000 [r559]  robert:
+
+	* From Mathew May, FreeBSD support for AMD64.
+
+2006-04-05 15:13 +0000 [r558]  robert:
+
+	* Added beginings osgprecipitation example.
+
+2006-03-08 21:38 +0000 [r557]  robert:
+
+	* From Brede Johansen, new OpenFlight plugin!!!!! By default the
+	  original flt plugin is still used, to select at runtime the new
+	  plugin set the env OSG_OPEN_FLIGHT_PLUGIN=new
+
+2006-03-02 15:26 +0000 [r556]  robert:
+
+	* From Robert Swain, compile fix for debian unstable.
+
+2006-02-23 16:47 +0000 [r555]  robert:
+
+	* Disabled the running of tristripping and smoothing from within
+	  the Simplifier.
+
+2006-02-20 15:25 +0000 [r554]  robert:
+
+	* From Markus Trenkwalder, "when building debug libs in mingw the
+	  .dll.a files are not copied to the lib/MINGW(32) folder. The
+	  makefiles in the attached zip should fix this."
+
+2006-02-06 19:41 +0000 [r553]  don:
+
+	* Added normals and ESRIshape directories to makedirdefs
+
+2006-01-23 20:16 +0000 [r552]  robert:
+
+	* Added explanation of --no-terrain-simplification
+
+2006-01-17 17:04 +0000 [r551]  robert:
+
+	* From Zbigniew Sroczynski, fix for handling of paths with spaces.
+
+2005-12-15 16:30 +0000 [r550]  robert:
+
+	* From Jason Beverage, added option to control whether
+	  simplification of tiles is done during osgdem builds.
+
+2005-12-15 16:24 +0000 [r549]  robert:
+
+	* From Matthew May, fixes for threading problems under FreeBSD
+	  build.
+
+2005-12-09 22:53 +0000 [r548]  robert:
+
+	* Updated version/revision for 1.0.0 release.
+
+2005-12-09 19:34 +0000 [r547]  robert:
+
+	* From Thom DeCarlo, changed of ?= to = in Cygwin/minw options for
+	  INST_LOCATION.
+
+2005-12-09 19:14 +0000 [r546]  robert:
+
+	* From Simon Julier, library reordering for compiling osgTerrain
+	  under cygwin.
+
+2005-12-09 15:05 +0000 [r545]  robert:
+
+	* From Simon Julier, fix for .exe extension under Mingw/Cygwin.
+
+2005-12-08 11:37 +0000 [r544]  robert:
+
+	* From Simon Julier, build fixes for Cygwin/mingw
+
+2005-12-08 10:03 +0000 [r543]  robert:
+
+	* Changed s/getGdalDataset() methods to use void* to avoid
+	  introspeciton wrapping problems.
+
+2005-12-07 15:26 +0000 [r542]  robert:
+
+	* From Antonoine Hue, a small modification to the
+	  osgTerrain::DataSet to be able to pass an already opened GDAL
+	  Dataset to the osgTerrain::DataSet::Source
+
+2005-12-06 12:07 +0000 [r541]  robert:
+
+	* Removed osgdemeter example from distribution because it no longer
+	  compiles, and Demeter itself nolonger compiles, osgdemeter has
+	  now been moved to the community section of openscenegraph.org.
+
+2005-11-28 09:15 +0000 [r540]  robert:
+
+	* From Gideon May, port to OSX of GLUT examples.
+
+2005-11-25 14:58 +0000 [r539]  robert:
+
+	* Added disable of spurious VS6.0 warning.
+
+2005-11-23 16:24 +0000 [r538]  robert:
+
+	* Updated AUTHORES, ChangeLog, NEWS and version number for 1.0-rc6
+
+2005-11-22 14:35 +0000 [r537]  robert:
+
+	* From Markus Trenkwalder, fixed placment of libs in mingw build.
+
+2005-11-18 09:52 +0000 [r536]  robert:
+
+	* From Rodger James, changed the Win32 static library compilation
+	  support to use OSG_LIBRARY_STATIC to avoid problems with building
+	  libs when not required.
+
+2005-11-17 17:45 +0000 [r534-535]  robert:
+
+	* Updated wrappers.
+
+	* Convert tabs to spaces.
+
+2005-11-17 13:35 +0000 [r533]  robert:
+
+	* Coverted tabs to space in core libraries.
+
+2005-11-17 11:13 +0000 [r532]  robert:
+
+	* From Eric Sokolosky, for Cygwin and Minw sections changed
+	  definition of INST_SHARE so that it is based on INST_LOCATION,
+	  providing the same default as before but also allow it to be
+	  override by env vars when required.
+
+2005-11-17 11:09 +0000 [r531]  robert:
+
+	* From Eric Sokolosky, made spacing more consistent.
+
+2005-11-15 22:07 +0000 [r530]  robert:
+
+	* Added proper descriptions of examples in place of the copy and
+	  paste description.
+
+2005-11-15 21:47 +0000 [r529]  robert:
+
+	* From Eric Wing, compile fixes.
+
+2005-11-15 18:31 +0000 [r528]  robert:
+
+	* From Sean Spicer, compile fixes for Intel compiler.
+
+2005-11-14 11:14 +0000 [r527]  robert:
+
+	* Updated package version to 1.0,0
+
+2005-11-11 08:45 +0000 [r526]  robert:
+
+	* From Markus Trenkwalder, fix for Mingw build
+
+2005-11-10 17:24 +0000 [r525]  robert:
+
+	* Compile fixes for VS6.0.
+
+2005-11-10 16:47 +0000 [r524]  robert:
+
+	* From Markus Trenkwalder, added freetype-config support to Mingw
+	  section.
+
+2005-11-09 20:24 +0000 [r523]  robert:
+
+	* Added a s/getState() to osgTerrain::DataSet to allow better
+	  integration with applications.
+
+2005-11-09 17:20 +0000 [r522]  robert:
+
+	* Added some docs on command line options.
+
+2005-11-09 10:49 +0000 [r521]  robert:
+
+	* Bumped the version numbers up to 1.0 in preparation for 1.0-rc1.
+
+2005-10-28 10:33 +0000 [r520]  robert:
+
+	* Changed debug message from NOTICE to INFO level of notification
+
+2005-10-27 10:48 +0000 [r519]  robert:
+
+	* Added support for tracking the directory of the output file
+	  whilst still maintaining local file references within this
+	  directory.
+
+2005-10-26 20:00 +0000 [r518]  robert:
+
+	* Changed the minimum tile image size to be 4x4 to avoid problems
+	  in mipmap generation that was occuring at sizes of 2x2, seemingly
+	  somewhere in the OpenGL driver.
+
+2005-10-25 13:28 +0000 [r517]  robert:
+
+	* From Geoff Michel, added support for constrain delaunay
+	  triangultion, and osgdelaunay example.
+
+2005-10-13 08:05 +0000 [r516]  robert:
+
+	* Added PRODUCER_INSTALLED=yes make options to the unix build
+	  system, not defining PRODUCER_INSTALLED=yes or setting it to
+	  another value than yes (i.e no) will result in the osgProducer
+	  library, OSG applications and demos not being built.
+	  PRODUCER_INSTALLED=yes is the default.
+
+2005-10-10 10:10 +0000 [r515]  robert:
+
+	* From Ravi Mathur, osgdepthpartition example program.
+
+2005-09-28 14:05 +0000 [r514]  robert:
+
+	* From Chris Hanson, "The following files are drop-in replacements
+	  for the include/*/Export files to permit building statically
+	  linked osg libraries under Win32."
+
+2005-09-15 20:55 +0000 [r513]  robert:
+
+	* Changed destinationRowDelta and destination_pixelSpace to int's,
+	  solving a memory corruption crash under 64 bit build.
+
+2005-09-04 06:36 +0000 [r512]  robert:
+
+	* Added support in osgTerrain/osgdem for setting the image format
+	  to use when writing tiles out to disk
+
+2005-08-16 13:29 +0000 [r511]  robert:
+
+	* Added realize() and isRealized() methods to osg::GraphicsContext.
+	  Added osgcamera example that uses osg::GraphicsContext to create
+	  the required window for rendering too, will eventually use
+	  osg::CameraNode to replace usage of osgUtil::SceneView.
+
+2005-08-15 13:54 +0000 [r510]  robert:
+
+	* Added osgshaderterrain example.
+
+2005-07-15 14:41 +0000 [r509]  robert:
+
+	* Renamed Byte2,3,4 and Short2,3,4 and UByte4 to use the Vec*b,
+	  Vec*s and Vec4ub form
+
+2005-07-08 19:45 +0000 [r508]  robert:
+
+	* From Jason Beverage, fix to setting of grey band.
+
+2005-07-05 15:57 +0000 [r507]  robert:
+
+	* From Pavel Moloshtan, Byte2,3,4 and Short2,3,4 classes and their
+	  Array counterparts. With a few build tweaks and bug fixes by
+	  Robert Osfield.
+
+2005-07-02 08:11 +0000 [r506]  robert:
+
+	* Added support for equalizing the normals along tile boundaries.
+
+2005-06-24 15:39 +0000 [r505]  robert:
+
+	* From Colin McDonald: "Some makedefs fixes for Solaris: For
+	  multithreaded applications the -mt option must be specified on
+	  both the compile and link steps, to ensure correct behaviour.
+	  According to the Sun compiler documentation it sets REENTRANT
+	  flags in the system header files, and links the -lthread library
+	  in the correct order. When compiling shared libraries the -KPIC
+	  option should be specified. Although Solaris will handle shared
+	  libraries without position-independent code there is a
+	  performance penalty. The linker reference manual says: 'If a
+	  shared object is built from code that is not
+	  position-independent, the text segment will usually require a
+	  large number of relocations to be performed at runtime. Although
+	  the runtime linker is equipped to handle this, the system
+	  overhead this creates can cause serious performance
+	  degradation'."
+
+2005-06-24 15:15 +0000 [r504]  robert:
+
+	* Moved the working createPagedLODScene() implemention into
+	  createScene() method replacing the original flaky code.
+
+2005-06-20 21:10 +0000 [r503]  robert:
+
+	* Added very simply osgparametric example which uses an OpenGL
+	  shader program to create an animated parametric surface.
+
+2005-06-15 10:59 +0000 [r502]  robert:
+
+	* Added osgmultiplecameras example and support for pre/post
+	  multiplaction.
+
+2005-06-14 09:12 +0000 [r501]  robert:
+
+	* Removed reference to non existant AVI plugin
+
+2005-06-13 20:03 +0000 [r500]  robert:
+
+	* Fixed with the reprojection so that it doesn't promote all source
+	  data to RGBA, but only does this for RGB data.
+
+2005-06-09 11:08 +0000 [r499]  robert:
+
+	* From Marco Jez, added example that uses FBO extension to do
+	  prerendering.
+
+2005-05-26 14:38 +0000 [r498]  robert:
+
+	* Reverted release number to 0 (development version).
+
+2005-05-25 20:02 +0000 [r497]  robert:
+
+	* Updated Version numbers for release. UPdated wrappers.
+
+2005-05-24 18:57 +0000 [r496]  robert:
+
+	* Added pragma to remove warnings under VS.8.0
+
+2005-05-24 15:34 +0000 [r495]  robert:
+
+	* Updates to clean up wrapper generation, and to update wrappers
+
+2005-05-20 11:35 +0000 [r494]  robert:
+
+	* Removed remaining references to old DX writer.
+
+2005-05-17 09:06 +0000 [r493]  robert:
+
+	* From Thom DeCarlo, build fixes for Cygwin.
+
+2005-05-16 17:17 +0000 [r492]  robert:
+
+	* Bumped version numbers to 0.9.9 in rediness for 0.9.9 release.
+
+2005-05-16 14:09 +0000 [r491]  robert:
+
+	* Workaround for Mipspro compiler bug.
+
+2005-05-16 11:18 +0000 [r490]  robert:
+
+	* Fixed method signatures.
+
+2005-05-16 10:12 +0000 [r489]  robert:
+
+	* Added osgUtil osgDB osgFX osgText osgTerrain osgGA osgProducer to
+	  the list of wrapper libraries.
+
+2005-05-14 18:57 +0000 [r488]  robert:
+
+	* From Marco Jez, added export symbols.
+
+2005-05-11 19:14 +0000 [r487]  robert:
+
+	* From Nathan Monteleone, rewrote the osgpbuffer example so that it
+	  uses Producer xplatform support for pbuffer instead of Win32
+	  specific pathways as support before. (with a few code tweaks to
+	  simplfy the code, by Robert Osfield).
+
+2005-05-10 09:07 +0000 [r486]  robert:
+
+	* Changed -ne to $LINK_ECHO_OPTION to fix cross platform compile
+	  issues
+
+2005-05-09 10:17 +0000 [r485]  robert:
+
+	* Added osgUtil, osgDB, osgFX, osgParticle, osgSim, osgTerrain,
+	  osgGA and osgProducer to osgWrappers directory. Enabled the build
+	  of osgWrappers/osg, osgWrappers/osgPartile and
+	  osgWrappers/osgSim, but not osgUtil, osgDB, osgFX, osgTerrain,
+	  osgGA and osgProducer due to compile errors. I am assuming that
+	  these compilers are fixable so I'm checked all the source code so
+	  that members of the community can help fix them.
+
+2005-05-06 17:43 +0000 [r484]  robert:
+
+	* Added X11 include and lib paths to find freetype under OSX.
+
+2005-05-06 14:07 +0000 [r483]  robert:
+
+	* Made USE_AGL=yes the default under OSX.
+
+2005-05-02 19:42 +0000 [r482]  robert:
+
+	* Improvements to the repojection code so that it can generate RGBA
+	  reprojected data.
+
+2005-05-02 14:16 +0000 [r481]  robert:
+
+	* Added support for generating RGBA, RGBA-16 and RGBA-compressed
+	  texture databases
+
+2005-05-02 13:00 +0000 [r480]  robert:
+
+	* Added support for reading from RGBA source textures
+
+2005-04-28 19:41 +0000 [r479]  robert:
+
+	* Fixed the Mingw settings for GDAL_LIBS (was written as GDAL_LIB
+	  which wasn't being picked up as the GNUmakefiles were looking for
+	  GDAL_LIBS).
+
+2005-04-28 05:15 +0000 [r478]  robert:
+
+	* From Marco Jez, changed = to ?= in COMPILE_INTROSPECTION line
+
+2005-04-28 05:08 +0000 [r477]  robert:
+
+	* From Marco Jez, added -ne option echo usage to fix stdout/stderr
+	  redirection error under Mingw.
+
+2005-04-20 08:51 +0000 [r476]  robert:
+
+	* Commented out support for the -m option for inserting 3d models
+	  in a terrain database, as this feature isn't yet supported by
+	  osgTerrain.
+
+2005-04-18 09:17 +0000 [r475]  robert:
+
+	* Removed mpeg plugin from CVS, now moved to the Community section
+	  of openscenegraph.org as a seperate project.
+
+2005-04-15 20:44 +0000 [r474]  robert:
+
+	* Added dxf to the list of projects
+
+2005-04-15 08:35 +0000 [r473]  robert:
+
+	* Removed osgGL2 from CVS, osgGL2 now can be found on the
+	  Community/NodeKits section on the OSG website.
+
+2005-04-14 21:41 +0000 [r472]  robert:
+
+	* Updated Copyright notices to 1998-2005.
+
+2005-04-14 15:53 +0000 [r471]  robert:
+
+	* Removed setProgram from osg::StateSet as Program works just fine
+	  right now as a standard osg::StateAttribute and set in a StateSet
+	  with setAttribute.
+
+2005-04-14 11:28 +0000 [r470]  robert:
+
+	* Preparation for moving osgGL2 out of the core OSG into its own
+	  seperate distribution.
+
+2005-04-11 15:17 +0000 [r469]  robert:
+
+	* Moved #include <osg/State> from header into .cpp to clean up
+	  build.
+
+2005-04-08 19:40 +0000 [r468]  robert:
+
+	* From Mike Weiblen, osgGLUTsimple and osgGLUTkeyboardmouse
+	  examples
+
+2005-04-08 12:22 +0000 [r467]  robert:
+
+	* Added #include <algorithm>
+
+2005-04-08 09:36 +0000 [r466]  robert:
+
+	* Added #include <osg/io_utils>
+
+2005-04-08 09:14 +0000 [r465]  robert:
+
+	* Added io_utils include
+
+2005-04-07 10:55 +0000 [r464]  robert:
+
+	* Fixed sort of sources so that the layer number is taken into
+	  account.
+
+2005-04-07 10:19 +0000 [r463]  robert:
+
+	* Fixed layer and levels handling in reprojection of source
+	  imagery.
+
+2005-04-06 20:54 +0000 [r462]  robert:
+
+	* Beginnings of litte kiddies game example, written in
+	  collaboration with my 5 year old daughter who is the game
+	  designer and artist on this little task :)
+
+2005-04-05 19:08 +0000 [r461]  don:
+
+	* Rolled in Olaf's changes for HP-UX build
+
+2005-04-04 15:23 +0000 [r460]  robert:
+
+	* Added layer support
+
+2005-04-04 13:49 +0000 [r459]  robert:
+
+	* Made osgIntrospection an optional compile
+
+2005-04-04 08:47 +0000 [r458]  robert:
+
+	* Added osgparticleeffects example
+
+2005-03-23 20:48 +0000 [r457]  robert:
+
+	* From Randall Hopper, with small order tweak from Robert and
+	  addition to GNUmakefile.inst, added $(GDAL_LIBS) to fix build
+	  under FreeBSD.
+
+2005-03-18 10:46 +0000 [r456]  robert:
+
+	* Moved COMPILE_EXAMPLES ?= no to top of Make/dependencies to make
+	  it more clear, and removed the application programs fully from
+	  the examples list
+
+2005-03-13 21:22 +0000 [r455]  robert:
+
+	* Added guard to osgdem build
+
+2005-03-13 01:47 +0000 [r454]  don:
+
+	* Added applications directory. Copied (not moved) osgarchive
+	  osgconv osgdem osgversion osgviewer into applications directory.
+	  Leaving them in the examples directory as well, for now. Made
+	  examples optional via the make COMPILE_EXAMPLES=yes option Added
+	  static lib and static plugin build support.
+
+2005-03-11 09:53 +0000 [r453]  robert:
+
+	* Improvements to handling smoothing
+
+2005-03-10 11:11 +0000 [r452]  robert:
+
+	* Added null pointer check to avoid crash
+
+2005-03-09 22:01 +0000 [r451]  robert:
+
+	* Added support for writing base layer 0 texture into texture layer
+	  1 and above to use as a background.
+
+2005-03-09 20:40 +0000 [r450]  robert:
+
+	* Improvements to MultiTextureControl and texture layer handling in
+	  osgTerrain::DataSet.
+
+2005-03-09 16:54 +0000 [r449]  robert:
+
+	* Added osgFX::MultiTextureControl node for managing blending
+	  between different texture layers.
+
+2005-03-08 16:51 +0000 [r448]  robert:
+
+	* Added basic multiple texture layer support into
+	  osgTerrain::DataSet.
+
+2005-03-07 22:02 +0000 [r447]  robert:
+
+	* First steps to adding support for multiple texture layers.
+
+2005-02-25 11:26 +0000 [r446]  robert:
+
+	* Added reference to avifile based plugin.
+
+2005-02-21 17:02 +0000 [r445]  robert:
+
+	* Added support for interpolating low res source data onto higher
+	  res destination tiles.
+
+2005-02-10 20:38 +0000 [r444]  robert:
+
+	* From Igor Kravtchenko, new HDR plugin.
+
+2005-02-04 19:34 +0000 [r443]  robert:
+
+	* Added prototype xine movie plugin.
+
+2005-02-04 03:58 +0000 [r442]  don:
+
+	* Updated IRIX dist generation file for IRIX binaries
+
+2005-01-12 15:37 +0000 [r441]  robert:
+
+	* From Rainer Oder, with additions from Robert. osgslice example
+	  which generates a 3d volume from a source geometry model.
+
+2005-01-03 16:39 +0000 [r440]  robert:
+
+	* From Fredric Mammond, added new osg::BlendEquation state
+	  attribute wrapping up glBlendEquation.
+
+2004-12-17 22:31 +0000 [r439]  don:
+
+	* Changed INST_LOCATION = to INST_LOCATION ?=
+
+2004-12-15 04:49 +0000 [r438]  robert:
+
+	* Added missing files
+
+2004-12-09 05:29 +0000 [r437]  robert:
+
+	* Added Make support for new osgIntrospecxtion libs
+
+2004-12-09 00:02 +0000 [r436]  don:
+
+	* added 'sh' to command line to ensure that the script runs
+	  regardless of permissions
+
+2004-12-05 00:16 +0000 [r435]  don:
+
+	* Post-tag revision variable change
+
+2004-12-05 00:03 +0000 [r434]  don:
+
+	* CHanged version in makedefs for - 2 revision
+
+2004-12-04 23:38 +0000 [r433]  don:
+
+	* Update version numbers in files
+
+2004-12-02 21:50 +0000 [r431-432]  don:
+
+	* Post release adjustment of revision
+
+	* Added tagrules for 'make tag' convenience Updated makedefs for
+	  release/revision
+
+2004-11-29 03:05 +0000 [r430]  don:
+
+	* Fixes for SOlaris build
+
+2004-11-26 16:01 +0000 [r429]  robert:
+
+	* Addd high level introductory docs for all the libs
+
+2004-11-25 09:51 +0000 [r428]  robert:
+
+	* Added LFS support to gcc linux build
+
+2004-11-24 21:39 +0000 [r427]  robert:
+
+	* cleaned up debug info
+
+2004-11-24 19:41 +0000 [r426]  robert:
+
+	* Clean up of output
+
+2004-11-23 12:57 +0000 [r425]  robert:
+
+	* Tripped out experiemental threadSafe_ methods in ReaderWriter
+
+2004-11-17 19:31 +0000 [r424]  robert:
+
+	* Changed the dependencies file to use ?= instead of = to allow env
+	  vars to override local settings.
+
+2004-11-17 14:56 +0000 [r423]  robert:
+
+	* From Thom DeCarlo, fixes for Cygwin build
+
+2004-11-15 19:53 +0000 [r422]  robert:
+
+	* From Loic Dachary, added pk-config file.
+
+2004-11-15 19:46 +0000 [r420-421]  robert:
+
+	* Added support for serialization of calls to ReaderWriter plugins.
+
+	* Added -pipe to gcc build under Linux
+
+2004-11-14 17:02 +0000 [r419]  robert:
+
+	* Added COMPILE_OSG_OP_OT_WITH_SONAMES is YES guard around soname
+	  settings.
+
+2004-11-14 16:36 +0000 [r418]  robert:
+
+	* Added sonames support under Linux/gcc
+
+2004-11-12 14:49 +0000 [r417]  robert:
+
+	* From Ulrich Heirtlein, added STL plugin
+
+2004-11-12 08:55 +0000 [r416]  robert:
+
+	* Improvements to support for archives
+
+2004-11-11 13:22 +0000 [r415]  robert:
+
+	* Moved the .osga implementation into the src/osgPlugins/osga
+	  plugin and made osgDB::Archive a pure virtual base class.
+
+2004-11-10 21:18 +0000 [r414]  robert:
+
+	* Added check for endianess of .osga archives
+
+2004-11-10 16:40 +0000 [r413]  robert:
+
+	* Added new osga plugin for reading OSG native archives
+
+2004-11-09 16:50 +0000 [r412]  robert:
+
+	* Added explicit setting of the precision to allow .osg files to be
+	  used succsefully.
+
+2004-11-09 14:18 +0000 [r411]  robert:
+
+	* Added support of archiving into osgTerrain::DataSet and osgdem.
+
+2004-11-08 20:44 +0000 [r410]  robert:
+
+	* Fixed the compute of PagedLOD ranges for non geocentric datasets
+
+2004-11-08 19:56 +0000 [r409]  robert:
+
+	* Added resolutionSensitivityScale of 0.9 into the
+	  DataSet::createDestinationGraph() to prevent overly conservative
+	  subdivision of data.
+
+2004-11-02 14:05 +0000 [r408]  robert:
+
+	* Fixed missing write of image tiles.
+
+2004-10-28 22:29 +0000 [r405-407]  don:
+
+	* Test done.
+
+	* Directory write test to new CVS
+
+	* Silly little temporary file to test CVS writes to the new server
+
+2004-10-28 07:00 +0000 [r404]  robert:
+
+	* Removed gdal_priv.h from include/osgTerrain/DataSet to remove the
+	  external dependency on GDAL.
+
+2004-10-25 20:08 +0000 [r402-403]  don:
+
+	* oops. Mistaken check-in of local dependencies file
+
+	* Oops. mistaken check in of overly modified makerules
+
+2004-10-25 20:04 +0000 [r401]  don:
+
+	* Small change by Eric Sokolowsky to change TIFF_LIBS to TIFF_LIB
+	  for Mac build
+
+2004-10-25 19:16 +0000 [r399-400]  robert:
+
+	* From Tree, fixes for Java bindings
+
+	* Added new osgDB::Archive class, and osgarchive example. These are
+	  both very early beginnings so do not function yet.
+
+2004-10-24 06:12 +0000 [r398]  don:
+
+	* don - Comment in makedirdefs was causing Mac build to stop short
+	  of building all plugins
+
+2004-10-24 05:50 +0000 [r397]  don:
+
+	* don - Small changes to support Mac OSX CGL build small unused
+	  variable warning fix.
+
+2004-10-22 16:39 +0000 [r396]  robert:
+
+	* Added Rainer's initial osgplanets example.
+
+2004-10-21 09:36 +0000 [r394-395]  robert:
+
+	* Generalised the osg::ClusterCullingCallback so that it coud be
+	  attached to Node as well as Drawables. Changed the
+	  osgTerrain::DataSet so that it moves the ClusterCullingCallback
+	  up to the Node level. Added support to the .ive plugin for
+	  attaching the ClusterCullingCallback to nodes.
+
+	* Checked in commented out gz plugin, will comment back in later
+	  once it is fully checked in
+
+2004-10-05 15:08 +0000 [r393]  robert:
+
+	* Added ability to alter the verbosity of the notify messages with
+	  the running of osgTerrain::DataSet via a static
+	  s/getNotifyOffset(int) method.
+
+2004-10-01 22:05 +0000 [r392]  robert:
+
+	* From Lewis Harmon, fixes to the Node and NodeCallback
+	  constructors.
+
+2004-10-01 15:49 +0000 [r391]  robert:
+
+	* From Rainer Oder, new osglauncher application.
+
+2004-09-27 12:07 +0000 [r390]  robert:
+
+	* Changed the version strings to use OpenSceneGaph rather than
+	  "Open Scene Graph"
+
+2004-09-14 15:03 +0000 [r389]  robert:
+
+	* Added GDAL check to compile of osgsimulation
+
+2004-09-13 13:53 +0000 [r388]  robert:
+
+	* Improved the handling of building/writing generated databases,
+	  and the fixed transition distances on the lower levels of
+	  geocentric databases.
+
+2004-09-11 03:00 +0000 [r387]  robert:
+
+	* Added a deleteTextureObject after the creation of the compressed
+	  textures
+
+2004-09-10 13:31 +0000 [r386]  robert:
+
+	* Added convinience methods.
+
+2004-09-02 03:52 +0000 [r385]  don:
+
+	* Fixed a mis-definition of INSTBIN and INSTLIB
+
+2004-09-01 09:54 +0000 [r384]  robert:
+
+	* From Marco Jez, added new osgmotionblur example
+
+2004-08-28 23:04 +0000 [r383]  don:
+
+	* Changes for IRIX build and fix to build system
+
+2004-08-24 21:35 +0000 [r382]  don:
+
+	* Robert must've forgotten to set VERSION_REVISION back to 0 after
+	  tagging the release
+
+2004-08-23 08:44 +0000 [r381]  robert:
+
+	* Added protection to prevent crashes on calls when no data is set
+	  up
+
+2004-08-18 10:07 +0000 [r380]  robert:
+
+	* Bumped up the revision number to 2 for the 0.9.7-2 release
+
+2004-08-17 06:15 +0000 [r379]  robert:
+
+	* Removed computeMipMaps call
+
+2004-08-13 14:42 +0000 [r378]  robert:
+
+	* From Corbin Holtz, addition of support for reading imagery with
+	  color tables, including code from Frank Warmerdam on the GDAL
+	  side, and integration/reworking work form Robert Osfield.
+
+2004-08-09 15:12 +0000 [r377]  robert:
+
+	* Set revision number back to 0.
+
+2004-08-09 15:08 +0000 [r376]  robert:
+
+	* Set version to 0.9.7-1
+
+2004-08-06 19:55 +0000 [r375]  robert:
+
+	* From Bob Kuehne, change the FREETYPE_INCLUDE and _LIB to
+	  hardcoded version to avoid reliance on freetype-config.
+
+2004-08-06 09:35 +0000 [r374]  robert:
+
+	* From Bob Kuehne, adding of SDKPATH to OSX build
+
+2004-08-06 05:25 +0000 [r373]  robert:
+
+	* From Bruce Clay, Build fixes for Win32 VS6.0
+
+2004-08-05 08:02 +0000 [r372]  robert:
+
+	* Set version numbers for 0.9.7 release
+
+2004-08-04 10:03 +0000 [r371]  robert:
+
+	* Cleaned up the gdal-config usage to work with gdal-1.1.9
+
+2004-08-04 09:20 +0000 [r370]  robert:
+
+	* Added support for setting custom dependencies
+
+2004-08-04 08:27 +0000 [r369]  robert:
+
+	* From Norman Vine (with small tweaks by Robert Osfield), build
+	  fixes for Cygwin
+
+2004-08-03 11:01 +0000 [r368]  robert:
+
+	* Better macro support for switching on/off use of mutex
+
+2004-08-02 07:23 +0000 [r367]  robert:
+
+	* Added osgtesselate example
+
+2004-08-01 04:06 +0000 [r366]  robert:
+
+	* Added PROFILER support under Linux for gprof and FunctionCheck
+
+2004-07-28 12:29 +0000 [r365]  robert:
+
+	* From Corbin Holtz, addition of GDAL_INCLUDE and GDAL_LIB env vars
+	  for setting a non standard location of GDAL
+
+2004-07-19 09:03 +0000 [r364]  robert:
+
+	* Added support for --tile-image-size <size>, --tile-terrain-size
+	  <size> and --comment <string> command line options into
+	  osgTerrain::DataSet + osgdem.
+
+2004-07-09 20:58 +0000 [r363]  robert:
+
+	* Fixed cluster culling.
+
+2004-07-09 12:14 +0000 [r362]  robert:
+
+	* Clean up of debugging information.
+
+2004-07-07 11:28 +0000 [r361]  robert:
+
+	* Added automatic setting of the verical scale when the destination
+	  coordinate system is geographic (i.e. lats and longs.).
+
+2004-07-07 09:04 +0000 [r360]  robert:
+
+	* Added support for automatically computing the local skirt
+	  orientation
+
+2004-07-06 12:14 +0000 [r359]  robert:
+
+	* Changed the default mipmapping mode to record the mipmaps in the
+	  images in the generated databases.
+
+2004-07-05 21:09 +0000 [r358]  robert:
+
+	* Added suppor for copying mipmaps of compressed textures
+
+2004-07-01 14:29 +0000 [r357]  robert:
+
+	* Added osgvolume
+
+2004-06-30 14:37 +0000 [r356]  robert:
+
+	* Completed support for "--levels min max" option where the levels
+	  that a source imager or DEM contributes to.
+
+2004-06-30 07:26 +0000 [r355]  robert:
+
+	* Changed const int to #define for VS6.0 build
+
+2004-06-17 14:39 +0000 [r354]  robert:
+
+	* Added first stage of support for "--levels min max" in
+	  osgdem/osgTerrain where this option controls which levels that an
+	  associated imager or DEM contributes to the final model.
+
+2004-06-09 20:18 +0000 [r353]  robert:
+
+	* Compile fix w.r.t new CoordinateSystemNode.
+
+2004-06-09 15:06 +0000 [r352]  robert:
+
+	* Added proper mapping of format and coordinate system.
+
+2004-06-09 15:00 +0000 [r351]  robert:
+
+	* Added CoordinateSystem::s/getFormat().
+
+2004-06-08 13:58 +0000 [r350]  robert:
+
+	* Added options for controlling mipmapping and aniso-tropic
+	  filtering.
+
+2004-06-03 20:06 +0000 [r349]  robert:
+
+	* Fixed spelling of Equivalent.
+
+2004-06-02 14:15 +0000 [r348]  robert:
+
+	* Added DataSet::s/getSkirtRatio() method to allow control of how
+	  deep to make the skirts around tiles.
+
+2004-05-12 20:31 +0000 [r347]  robert:
+
+	* Fixes for FreeBSD
+
+2004-05-10 14:53 +0000 [r346]  robert:
+
+	* Made GDAL_INSTALLED default to no
+
+2004-05-08 22:18 +0000 [r345]  robert:
+
+	* From Corbin Holtz, "I have completed my mods to the OpenFlight
+	  loader (modified files are attached): * Light point strings using
+	  the REPLICATE opcode should now be supported (>=15.6?) *
+	  Directional lights should now work as in Performer using a
+	  viewing frustrum defined by a direction vector, horizontal
+	  angular width, vertical angular width, and roll angle about the
+	  direction vector. The current directional light implementation
+	  had some bad assumptions which caused problems with direction
+	  vectors not on the XY plane. * IVE and OSG reader/writers were
+	  updated as appropriate"
+
+2004-05-07 15:18 +0000 [r344]  robert:
+
+	* From Mike Weiblen, added new rot, scale and trans pseudo loaders.
+
+2004-05-06 10:59 +0000 [r343]  robert:
+
+	* Removed Terrain.cpp and header from CVS repository. Added support
+	  for setting the maximum visiable distance of top level to
+	  osgTerrain::DataSet, and debugging code which insert a axes.osg
+	  above each tile.
+
+2004-05-05 14:54 +0000 [r342]  robert:
+
+	* Compile fixes for that pitful excuse for a C++ compiler that is
+	  VS6.0
+
+2004-05-05 05:17 +0000 [r341]  robert:
+
+	* Increased the sampling of upper most tiles when doing a
+	  geocentric projection
+
+2004-05-04 14:02 +0000 [r340]  robert:
+
+	* Improved the cluster culling computation so that it now accounts
+	  for the local elevations.
+
+2004-05-03 20:42 +0000 [r339]  robert:
+
+	* Cleaned up osgTerrain, renaming the Terrain and Renderer class to
+	  HeightFieldNode and HeightFieldRender to better reflect their
+	  function. Removed the GeoMipMapRenderer.cpp stub as the
+	  implemention will be left to a plugin. Added Version functions.
+
+2004-05-03 07:42 +0000 [r338]  robert:
+
+	* Fixed compile error
+
+2004-05-02 21:50 +0000 [r337]  robert:
+
+	* Added support for decoration of the osgTerrain::DataSet generated
+	  databases with a CoordinateSystemNode which reflect the
+	  coordinate system of the database. Added support for reading and
+	  writing CoordianteSystemNode into the .osg and .ive formats.
+
+2004-05-02 15:45 +0000 [r336]  robert:
+
+	* Made the tri stripping of tile default to using a minimum tri
+	  strip length of 3, thereby reducing the number of indivual
+	  primitives, but with the tradeoff of more seperate triangles
+	  being used.
+
+2004-05-02 14:04 +0000 [r335]  robert:
+
+	* Added support for settings scale the elevation of geometry
+
+2004-05-02 13:35 +0000 [r334]  robert:
+
+	* Temporary fix for handling grey scale images as texture source.
+
+2004-04-29 22:22 +0000 [r333]  robert:
+
+	* Added Support for cluster culling. Removed
+	  osgTerrain::CoordinateSystem which is now replaced by
+	  osg::CoordinateSystemNode.
+
+2004-04-23 14:47 +0000 [r332]  robert:
+
+	* Added extra parameter policy enum
+
+2004-04-22 21:51 +0000 [r331]  robert:
+
+	* Added a guard on the simplification of already low res tiles so
+	  that they won't be over simplified.
+
+2004-04-22 13:36 +0000 [r330]  robert:
+
+	* Added support for protecting points from being simplified. Added
+	  back in support for generation of skirts in osgTerrain::DataSet.
+
+2004-04-21 11:06 +0000 [r329]  robert:
+
+	* Added back in tri stripping of tiles
+
+2004-04-19 23:08 +0000 [r328]  robert:
+
+	* Added support for using the error metric to guide the
+	  simplficiation process
+
+2004-04-18 16:15 +0000 [r327]  robert:
+
+	* Added osgsimplifier example.
+
+2004-04-14 11:56 +0000 [r326]  robert:
+
+	* Fixed typo in makefile
+
+2004-04-14 08:58 +0000 [r325]  robert:
+
+	* From Garret Potts, added -losgUtil to libs linked to osgTerrain
+
+2004-04-12 21:30 +0000 [r324]  robert:
+
+	* Commented out call to osgUtil::Simplifier as this utility is not
+	  yet functional
+
+2004-04-12 13:36 +0000 [r323]  robert:
+
+	* Changed the optimization of flat tiles so that it creates a flat
+	  8x8 height field rather than a flat 2x2 height field. This allows
+	  geocentric warping of the tiles without obvious flat regions.
+
+2004-04-08 11:27 +0000 [r322]  robert:
+
+	* Added beginning of new osgUtil::Simplifier
+
+2004-04-06 16:01 +0000 [r321]  robert:
+
+	* Fixes from Per Månsson for Win32 build
+
+2004-04-05 15:58 +0000 [r320]  robert:
+
+	* Re-enabled normal generation on tiles.
+
+2004-04-05 15:46 +0000 [r319]  robert:
+
+	* Commented out scale setting when source DEM is in lat+longs.
+
+2004-04-05 15:39 +0000 [r318]  robert:
+
+	* Added local transform support. Fixed skirt generation to work
+	  during geocentric transformations. Fixed output of image files so
+	  that compressed textures are turned off when external image files
+	  are required.
+
+2004-04-04 15:33 +0000 [r317]  robert:
+
+	* Prelimary work on adding support for local tile transforms
+
+2004-04-02 15:55 +0000 [r316]  robert:
+
+	* Added support for generating compressed textures
+
+2004-04-02 15:23 +0000 [r315]  robert:
+
+	* Fixed computeImageResolution so that the computed num of columns
+	  and rows of the destination image are clamped to the nearest
+	  power of two equal or above the required resolution.
+
+2004-04-01 15:00 +0000 [r314]  robert:
+
+	* Changed default cut of ratio to be smaller, to reduce the
+	  resolution of tiles selected.
+
+2004-04-01 13:09 +0000 [r313]  robert:
+
+	* Added scaling of the PagedLOD range to be relative to the radius
+	  of children.
+
+2004-04-01 11:02 +0000 [r312]  robert:
+
+	* Cleaned up handling of geocentric coords
+
+2004-03-31 22:31 +0000 [r311]  robert:
+
+	* Added preliminary support for converting datasets into geocentric
+	  coords
+
+2004-03-31 15:50 +0000 [r310]  robert:
+
+	* Added osgTerrain::EllipsodeTransform helper class for converting
+	  to and from lat, long, height to geocentric X,Y,Z and back.
+
+2004-03-31 09:20 +0000 [r309]  robert:
+
+	* Clean up freeing of no longer required tiles
+
+2004-03-30 22:06 +0000 [r308]  robert:
+
+	* Added back in tri stripping of geometry tiles
+
+2004-03-30 22:02 +0000 [r307]  robert:
+
+	* Changed the writing out of tile imagery so that it only happens
+	  when the destination file format is not .ive. Added back in
+	  support for freeing un-needed tiles.
+
+2004-03-30 21:13 +0000 [r306]  robert:
+
+	* Fixed the boundary equalization
+
+2004-03-30 19:15 +0000 [r305]  robert:
+
+	* Added debugging for detecting problems in boundary equalization
+
+2004-03-29 22:26 +0000 [r304]  robert:
+
+	* Added normal generation in polygonal tile generation, and add
+	  --wtk option for setting coord systems in osgdem
+
+2004-03-29 14:40 +0000 [r303]  robert:
+
+	* Added support for generating polygonal tiles
+
+2004-03-29 10:45 +0000 [r302]  robert:
+
+	* Groundwork for adding support for polygonal tiles
+
+2004-03-25 18:34 +0000 [r301]  don:
+
+	* Applied Norman Vine's changes for Cygwin/Mingw
+
+2004-03-21 12:17 +0000 [r300]  robert:
+
+	* Added TextureType and GeometryType parameters to DataSet. These
+	  will be used to control what type of database is generated.
+
+2004-03-20 18:32 +0000 [r299]  robert:
+
+	* Implemented support for overriding the coordinate system and geo
+	  transform using in generate of databases.
+
+2004-03-18 21:39 +0000 [r298]  robert:
+
+	* Added defaults for the geotransform when none exists.
+
+2004-03-17 20:04 +0000 [r297]  robert:
+
+	* Added support for writing out to .ive
+
+2004-03-16 16:54 +0000 [r296]  robert:
+
+	* Added support for generation of PagedLOD databases in
+	  osgTerrain::DataSet
+
+2004-03-16 09:40 +0000 [r295]  robert:
+
+	* Set JASPER_INSTALLED to no
+
+2004-03-15 15:47 +0000 [r294]  robert:
+
+	* Added support for controlling the type of destiation database to
+	  create into osgTerrain::DataSet.
+
+2004-03-12 20:23 +0000 [r293]  robert:
+
+	* Cleaned up osgmovie example so it no longer depends upon
+	  LibMpeg3, just using readImageFile instead.
+
+2004-03-12 16:54 +0000 [r292]  robert:
+
+	* Added the setting of the source data type in the reproject
+	  function, and disabled the automatic build of overviews.
+
+2004-03-11 16:14 +0000 [r291]  robert:
+
+	* Moved osgTerrain::DataSet from the osgdem example into
+	  osgTerrain. Added various improvements.
+
+2004-03-09 15:39 +0000 [r290]  robert:
+
+	* Fixed mpeg plugin entry
+
+2004-03-09 15:00 +0000 [r289]  robert:
+
+	* Added MPEG plugin
+
+2004-03-08 11:02 +0000 [r288]  robert:
+
+	* From Bob Kuehne, change on __DARWIN_OSX__ define to __APPLE__
+
+2004-03-02 22:36 +0000 [r287]  robert:
+
+	* From Ruben, addition of osg::PointSprite and osgpointsprite
+	  example.
+
+2004-02-22 11:58 +0000 [r286]  robert:
+
+	* Added scale parameter into PositionAttitudeTransform. Added
+	  pivotPoint parameter into AnimationPathCallack.
+
+2004-02-05 10:10 +0000 [r285]  robert:
+
+	* Removed slideshow3D from list of example apps, and rejigged
+	  makedefs handling of the QUICK_TIME
+
+2004-02-05 09:24 +0000 [r284]  robert:
+
+	* Removed DRAWIN_QUICKTIME definition
+
+2004-02-03 22:46 +0000 [r283]  robert:
+
+	* Changes to help differentiate between OSX using Quicktime vs not
+	  using quicktime, from Eric Sokolosky and Robert Osfield.
+
+2004-01-30 21:17 +0000 [r281-282]  robert:
+
+	* Fixed another typo :)
+
+	* Fixed misspelling of dependencies
+
+2004-01-30 21:11 +0000 [r280]  robert:
+
+	* Added new dependancies file which contains a list of libraries
+	  that various OSG modules depend upon, these can be set as
+	  installed or not. The makedirdefs now uses this to configure
+	  which modules to compile.
+
+2004-01-29 15:47 +0000 [r279]  robert:
+
+	* Attempts to fix compile problems under IRIX due to namespace
+	  problems.
+
+2004-01-27 21:29 +0000 [r278]  robert:
+
+	* Added support for osg::Texture::setBorderWidth().
+
+2004-01-07 12:38 +0000 [r277]  robert:
+
+	* Added osgsimplepager example program
+
+2004-01-05 09:34 +0000 [r276]  robert:
+
+	* From Pavel Moloshtan, osgdepthshadow example
+
+2004-01-03 20:32 +0000 [r275]  robert:
+
+	* From Marco Jez, new Light Wave Scene loader
+
+2003-12-27 22:17 +0000 [r274]  robert:
+
+	* Added osgdistortion demo.
+
+2003-12-17 23:19 +0000 [r273]  robert:
+
+	* From Bob Kuehne, build fixes for OSX.
+
+2003-12-17 10:05 +0000 [r272]  robert:
+
+	* From Jeremy Bell, made SHARED = -dynamic for OSX.
+
+2003-12-15 23:23 +0000 [r271]  robert:
+
+	* Added support for updating the SceneView projection matrix from
+	  the values of near and far computed during the cull traversal.
+
+2003-12-09 12:11 +0000 [r270]  robert:
+
+	* Added new example osgphotoalbum.
+
+2003-12-08 11:24 +0000 [r269]  robert:
+
+	* Moved the responsibility for finding file to load on to the
+	  ReaderWriter plugins, instead of osgDB::Registry where it
+	  original lay. This has been done to allow fileName strings to be
+	  encode data rather than just file names, such as one requires
+	  when using PagedLOD along with plugins for doing dynamic
+	  tesselation.
+
+2003-11-25 19:43 +0000 [r267-268]  robert:
+
+	* Checked in support for osgTerrain in Make/makedirdefs
+
+	* Early development work on osgTerrain.
+
+2003-11-25 19:25 +0000 [r266]  robert:
+
+	* Disabled the build of osgTerrain, until its checked in.
+
+2003-11-25 14:11 +0000 [r265]  robert:
+
+	* Moved osg::DOFTransform to osgSim::DOFTransform. Fixed crash
+	  associated with .osg files which contain empty description
+	  fields. From Sondra Inverson, added support to .ive plugin for
+	  osgSim::DOFTransform.
+
+2003-11-05 04:51 +0000 [r264]  don:
+
+	* Changed versioning for make rpms
+
+2003-10-27 16:07 +0000 [r263]  robert:
+
+	* *** empty log message ***
+
+2003-10-08 13:09 +0000 [r262]  robert:
+
+	* Added new GDAL plugin and osgbluemarble example to demonstrate
+	  how to create PagedLOD'd databases using GDAL.
+
+2003-10-06 08:01 +0000 [r261]  robert:
+
+	* Commented out gdal temporarily from the list of plugins to
+	  compile.
+
+2003-10-05 11:30 +0000 [r260]  robert:
+
+	* From Mike Weiblen, updates to osgGL2 to support Uniform values
+
+2003-10-02 14:46 +0000 [r258-259]  robert:
+
+	* Returned revision number to 0, for main development work
+
+	* Updated the revsion number to 2, for the 0.9.6-2 release.
+
+2003-09-26 16:02 +0000 [r257]  robert:
+
+	* From Michael Gronager, jp2 plugin for reading and writing
+	  JPEG2000 files.
+
+2003-09-25 21:54 +0000 [r256]  robert:
+
+	* Added the beginnings of a new osgforest example. Added support
+	  into osg::TriangleFunctor for specifying whether the vertices
+	  being generates are temporary or not.
+
+2003-09-22 21:22 +0000 [r255]  robert:
+
+	* From Bob Kuehne, added extra include for freetype to find it on
+	  OSX.
+
+2003-09-17 12:04 +0000 [r254]  robert:
+
+	* From Alberto Farre, added support for GL_EXT_blend_color,
+	  GL_ARB_multisample, GL_NV_multisample_filter_hint extension in
+	  the form of osg::BlendColor and osg::Multisample state attribute
+	  classes.
+
+2003-09-16 21:26 +0000 [r253]  robert:
+
+	* Updated Make/makedefs version number to 0.9.6-1.
+
+2003-09-13 16:43 +0000 [r252]  robert:
+
+	* Changed the FREETYPE_LIB under Cygwin from ft freetype2 to
+	  freetype
+
+2003-09-12 21:05 +0000 [r251]  robert:
+
+	* From Norman Vine, fixes for Cygwin and Mingw builds.
+
+2003-09-11 09:44 +0000 [r250]  robert:
+
+	* Clean ups for the release.
+
+2003-09-10 20:24 +0000 [r249]  robert:
+
+	* Added -I/sw/include to Make/makedefs
+
+2003-09-10 19:55 +0000 [r248]  robert:
+
+	* Addeed LIBXML2_INCLUDE defined to Make/makedefs to handle non
+	  standard placement of libxml2 in OSX.
+
+2003-09-10 12:38 +0000 [r247]  robert:
+
+	* Fixes for osgFX.
+
+2003-09-04 08:50 +0000 [r246]  robert:
+
+	* Build Fixes for IRIX.
+
+2003-09-02 21:53 +0000 [r245]  robert:
+
+	* Added Inventor plugin, submitted by Sean Spicer, Written by Vivek
+	  (c) Magic-Earth. To compile in do a setenv/export USE_COIN or
+	  USE_INVENTOR.
+
+2003-09-01 09:36 +0000 [r244]  robert:
+
+	* From Neil Salter, added osgSim::SphereSegment and
+	  osgSim::ScalarBar, and osgspheresegment and osgscalarbar, and
+	  osgsimulation examples.
+
+2003-08-26 21:17 +0000 [r243]  robert:
+
+	* Added osgFX - Marco Jez's special effects nodekit.
+
+2003-08-18 10:58 +0000 [r242]  robert:
+
+	* Added X_INC into the Make/makedefs and changed the *GNUmakefile*
+	  to use it.
+
+2003-08-16 20:42 +0000 [r241]  robert:
+
+	* Fixes to Cygwin/Mingw makedefs. Converted unix line endinges to
+	  dos line endings in various VS project files.
+
+2003-08-12 23:36 +0000 [r240]  robert:
+
+	* Added -lOpenThreads to the IRIX OTHER_LIBS definition.
+
+2003-08-08 14:41 +0000 [r239]  don:
+
+	* updates makedefs and makerules for Mac OSX submitted by Bob
+	  Kuehne
+
+2003-07-26 23:44 +0000 [r238]  robert:
+
+	* Post release revision change.
+
+2003-07-26 22:44 +0000 [r237]  don:
+
+	* Small typo
+
+2003-07-26 01:02 +0000 [r236]  don:
+
+	* Fixes to makedefs/makedirdefs ordering in some makefiles, and
+	  conditional build for osgslideshow on Sun
+
+2003-07-26 00:12 +0000 [r235]  don:
+
+	* Removed command line definitions of OSG_VERSION and OSG_RELEASE
+
+2003-07-25 23:49 +0000 [r234]  don:
+
+	* Removed references to PRODUCER_INCLUDE_DIR and PRODUCER_LIB_DIR
+	  in the local makefiles. Small change in txp loader for sun build
+
+2003-07-23 19:08 +0000 [r233]  don:
+
+	* Added conditionals to find OpenThreads include and library
+	  directories if not installed
+
+2003-07-23 14:06 +0000 [r232]  robert:
+
+	* From Gideon May, added support for osgSim into .osg file format.
+
+2003-07-23 08:54 +0000 [r231]  robert:
+
+	* Bumped up version numbers in preperation for the 0.9.5 release.
+
+2003-07-22 12:39 +0000 [r230]  robert:
+
+	* Added XML support and slideshow constructor to slideshow3D
+	  example, now renamed from the previous osgslideshow.
+
+2003-07-21 10:11 +0000 [r229]  robert:
+
+	* Added -lOpenThreads to the OSX defines.
+
+2003-07-19 17:55 +0000 [r228]  don:
+
+	* Small bug in instrules
+
+2003-07-19 17:46 +0000 [r227]  don:
+
+	* passing $(MAKE) into instexamplesrc script to shut the religious
+	  fanatics on the mailing list up.
+
+2003-07-19 00:18 +0000 [r226]  don:
+
+	* Updated OSG to use OpenThreads. Moved any references to
+	  OpenThread to OpenThreads and removed any dependency on Producer
+	  threads, Mutexes, etc.
+
+2003-07-15 10:45 +0000 [r224]  robert:
+
+	* From Mike Weiblen's osgGL2 node kit which support the latest
+	  OpenGL 2.0 extensions.
+
+2003-07-08 14:44 +0000 [r223]  robert:
+
+	* Added osg::PagedLOD and osgProducer::DatabasePager class, and
+	  linked up osgProducer::Viewer to manage the pager.
+
+2003-06-28 17:35 +0000 [r222]  don:
+
+	* fixed makeinnosetup
+
+2003-06-27 21:41 +0000 [r221]  don:
+
+	* Updates to makeinnosetup to work a bit smoother
+
+2003-06-27 21:01 +0000 [r220]  don:
+
+	* Change some wording in help.sh and added makeinnosetup
+
+2003-06-24 21:57 +0000 [r219]  robert:
+
+	* Additions since the CVS back up was made.
+
+2003-06-24 15:40 +0000 [r218]  don:
+
+	* *** empty log message ***
+
+2003-05-26 10:05 +0000 [r217]  robert:
+
+	* Added 3dc plugin for reading Arias 3D point clouds.
+
+2003-05-23 19:51 +0000 [r216]  robert:
+
+	* Added ive reader/writer - from Rune Schmidt Jensen/Michael
+	  Gronager
+
+2003-05-21 12:15 +0000 [r215]  robert:
+
+	* Removed osg::GeoSet for core osg lib and osgPlugin. Commented out
+	  OpenDX plugin as its still based on GeoSet. Added support for
+	  loading and converting GeoSet into the osgconv example.
+
+2003-05-20 14:05 +0000 [r214]  robert:
+
+	* Added osgtexturerectangle example from Ulrich Hertlein.
+
+2003-05-02 18:24 +0000 [r213]  robert:
+
+	* Fixed build.
+
+2003-05-01 21:06 +0000 [r212]  robert:
+
+	* Addd support for maximum screen text size into osgText when auto
+	  scale to screen is active. Added osgautotransform demo.
+
+2003-04-30 15:40 +0000 [r211]  robert:
+
+	* From Eric Sokolowsky - pnm (ppm, pgm, pbm) plugin
+
+2003-04-24 13:45 +0000 [r210]  robert:
+
+	* Typo fix.
+
+2003-04-14 19:39 +0000 [r209]  robert:
+
+	* Added -I/usr/X11R6/include to osgProducer and all the examples
+	  GNUMakefiles. From Bob, mods to GNUMakefile and Make/makedefs for
+	  the extra includes for freetype.
+
+2003-04-13 13:26 +0000 [r208]  robert:
+
+	* Added Geoff Michel's osgpick and osgUtil::PickVisitor code.
+
+2003-04-11 10:04 +0000 [r207]  robert:
+
+	* Updated the version numbers to 0.9.4
+
+2003-04-11 07:18 +0000 [r206]  robert:
+
+	* Added guards around Geo plugin to prevent it from being built
+	  under OSX, Solaris and IRIX as it breaks the OSX build and
+	  doesn't handle Endian issues.
+
+2003-04-07 10:20 +0000 [r205]  robert:
+
+	* Added osgwindows example which sets up and Producer::CameraConfig
+	  up and uses that to create multiple windows.
+
+2003-04-06 21:32 +0000 [r204]  robert:
+
+	* Added the usage report to the examples for when no arguments are
+	  passed to the examples.
+
+2003-04-04 15:22 +0000 [r203]  robert:
+
+	* Removal of trailing \ from end of couple lines in cygwin path.
+
+2003-04-02 18:26 +0000 [r202]  robert:
+
+	* From Rune Schmidt Jensen - new dds loader.
+
+2003-04-02 14:54 +0000 [r201]  robert:
+
+	* Removed OSX override override of PLUGIN_DIRS.
+
+2003-04-01 15:13 +0000 [r200]  robert:
+
+	* Moved the logo plugins from the osgPlugins/logos directory to
+	  osgPlugins/logo to make it consistent with the naming of the
+	  plugin.
+
+2003-03-27 18:56 +0000 [r199]  robert:
+
+	* Moved demo references acros to being example references.
+
+2003-03-27 18:42 +0000 [r198]  don:
+
+	* Fixed installation of demo source from src/Demos to examples
+
+2003-03-26 12:50 +0000 [r197]  robert:
+
+	* Added help support for display help on screen to
+	  osgProducer::Viewer.
+
+2003-03-24 23:02 +0000 [r196]  don:
+
+	* changes to makedefs to support AMD 64 bit
+
+2003-03-24 21:17 +0000 [r195]  robert:
+
+	* Added new osgkeyboad example.
+
+2003-03-20 22:13 +0000 [r194]  robert:
+
+	* Duplicated the handling of 64 bit linux builds for ia64 and
+	  x86_64 and placed them under the seperate paths for Intel vs GNU
+	  compilers.
+
+2003-03-20 21:26 +0000 [r193]  robert:
+
+	* Added -m64 -DARCH64 option to Linux 64 bit build.
+
+2003-03-19 15:37 +0000 [r192]  don:
+
+	* Adjusted date format for versionrules
+
+2003-03-18 20:02 +0000 [r191]  don:
+
+	* Set VERSION_RELEASE back to 3, replaced guards in
+	  include/osg/Verson to OSG_VERSION_ with trailing underscore
+
+2003-03-18 18:40 +0000 [r190]  don:
+
+	* Added support for versioning to the build system
+
+2003-03-16 21:58 +0000 [r189]  robert:
+
+	* Fixes to osgcluster demo as new Producer based example. Added
+	  extra pragrma remove a warning about float to int cast under
+	  VS.NET.
+
+2003-03-15 20:20 +0000 [r188]  robert:
+
+	* Removed osgGLUT and Demos/*. Integrated Marco's updated
+	  examples/*/*.dsp's.
+
+2003-03-14 20:35 +0000 [r187]  robert:
+
+	* Ported osgGLUT based src/Demos across to being osgProducer based,
+	  and placed them in the new examples/ directory.
+
+2003-03-14 10:49 +0000 [r186]  robert:
+
+	* Ported all glut based demos across to using the new
+	  osg::ArgumentParser.
+
+2003-03-13 06:22 +0000 [r185]  don:
+
+	* Fixes for Mac OS X
+
+2003-03-13 02:53 +0000 [r184]  don:
+
+	* Various changes to the BUILD system: o Object files now go in
+	  subdirectories named $(OS)$(ARCH).Opt and $(OS)$(ARCH).Debug for
+	  OS's that support both architectures. eg. Linux32.Opt and
+	  Linux32.Debug o Libraries links are now placed in
+	  lib/$(OS)$(ARCH) eg. lib/Linux32/ o Binaries are now placed in
+	  bin/$(OS)$(ARCH) eg. bin/Linux32 o 'make install' and 'make
+	  instlinks' now place files/links in
+	  /usr/local/{include,lib,share/OpenSceneGraph} by default on most
+	  systems (Solaris still goes in /opt/OpenSceneGraph). Rather than
+	  having the somwehat confusing INST_SYS_PREFIX and
+	  INST_SHARE_PREFX, you can override these with just INST_LOCATION
+	  For example, make INST_LOCATION=/usr will place files at
+	  /usr/include, /usr/lib, /usr/share/OpenSceneGraph.
+
+2003-03-12 14:01 +0000 [r183]  robert:
+
+	* Moved the platform specific directory defs out of makedefs into
+	  makediredefs, and have standardised onto single instances where
+	  possible.
+
+2003-03-12 10:39 +0000 [r182]  don:
+
+	* 1) Replaced all Makefile* with GNUmakefile*. 2) Changed
+	  Makedepend system to make individual dependency files, which
+	  should save time rebuilding dependencies by limiting the
+	  regeneration of dependency file for only modified source files.
+
+2003-03-10 11:59 +0000 [r181]  robert:
+
+	* Moved the RenderLeaf implementatation across to always applying
+	  matrices before state, which fixes problem that can occur with
+	  state that needs the current model view or projection matrices.
+	  Changes osgreflect so that it uses ClipNode rather than clip
+	  plane, thereby fixing the problems which occur when the above is
+	  applied. Create a new osgProducer version of the original GLUT
+	  based version.
+
+2003-03-05 19:31 +0000 [r180]  don:
+
+	* added directives for intel compilers
+
+2003-03-05 09:56 +0000 [r179]  robert:
+
+	* Added md2 plugin from Vladimir Vukicevic.
+
+2003-03-03 22:47 +0000 [r178]  robert:
+
+	* Added examples/osghud - a osgProducer port of the old osghud
+	  demo.
+
+2003-03-02 21:05 +0000 [r177]  robert:
+
+	* First cut of new osgText implementation.
+
+2003-02-25 12:28 +0000 [r176]  robert:
+
+	* Renamed osgProducer::CameraGroup and SceneHandler to
+	  OsgCameraGroup and OsgSceneHandler to avoid the namespace bug
+	  under VS6. Removed the osgproducer demo (its now been replaced by
+	  examples/osgviewer.)
+
+2003-02-23 17:01 +0000 [r175]  robert:
+
+	* Ported osgstereoimage to use osgProducer, added it to the
+	  examples directory. Added a
+	  osgProducer::CameraGroup::getSceneHanderList() methods.
+
+2003-02-21 14:05 +0000 [r174]  robert:
+
+	* Added examples directory, a place for all new OSG demo code.
+	  Added osgcameragroup, osgviewer, osgtext, osgconv to the new
+	  examples directory.
+
+2003-02-18 16:36 +0000 [r173]  robert:
+
+	* Added new osg::ApplicationUsage and osg::ArgumentParser to help
+	  streamline application/example developement.
+
+2003-02-11 19:23 +0000 [r172]  don:
+
+	* From Tom Jolley: I was converting a pfb file to osg and had
+	  trouble with a missing image library. I added -all in front of
+	  -limage where PFLIBS is defined in Make/makedefs to solve my
+	  problem.
+
+2003-01-27 20:40 +0000 [r171]  don:
+
+	* Fixes to osgProducer for IRIX build.
+
+2003-01-22 23:40 +0000 [r170]  robert:
+
+	* From Ulrich, change to the pflib includes for Performer under
+	  Linux to solve problem loading pf datasets.
+
+2003-01-15 21:54 +0000 [r169]  don:
+
+	* Added gstabs+ to DBGF in Linux in makedefs
+
+2003-01-08 22:52 +0000 [r168]  robert:
+
+	* From Ulrich Hertlein, DirectX .x model loader plugin.
+
+2003-01-04 20:45 +0000 [r167]  robert:
+
+	* Added new ARB vertex program state attribute and demo program,
+	  sent in my Brede Johansen.
+
+2002-12-17 16:07 +0000 [r166]  robert:
+
+	* Moved the include/osgTXP back into src/osgPlugins/txp as a
+	  seperate include directory is no longer required. Removed the
+	  osgtxp demo as it is no longer required.
+
+2002-12-16 13:46 +0000 [r165]  robert:
+
+	* Renamed osgtests.bat to rundemos.bat and moved it into the root
+	  directory.
+
+2002-12-16 13:40 +0000 [r164]  robert:
+
+	* Converted the instance of osgNew and osgDelete back to new and
+	  delete as part of depecating the include/osg/MemoryManager
+
+2002-12-11 16:24 +0000 [r163]  robert:
+
+	* Added the afteresher.geo demo to osgtest.bat and debugtests.bat.
+	  Converted the osgtxp demo to use straight string comparison
+	  instead of case sensitive string comparion to help cross platform
+	  portability.
+
+2002-12-10 21:18 +0000 [r162]  robert:
+
+	* Fixes from IRIX build from Bob Kuehne.
+
+2002-12-10 17:57 +0000 [r161]  don:
+
+	* Fixed endif placement for SunOS build
+
+2002-12-06 19:56 +0000 [r160]  don:
+
+	* Typo png was npg
+
+2002-12-06 09:41 +0000 [r159]  robert:
+
+	* Update from Norman Vine for Cygin gcc3.2 support.
+
+2002-12-05 12:13 +0000 [r158]  robert:
+
+	* Added osglogo to test scripts.
+
+2002-12-05 12:04 +0000 [r157]  robert:
+
+	* Added first pass at a new logo, this time generated by a osglogo
+	  demo.
+
+2002-12-03 10:19 +0000 [r156]  robert:
+
+	* Fixed the ifeq ($(OS),SunOS) so it was correctly on its own
+	  seperate line, and complimented by the required endif
+
+2002-12-02 19:37 +0000 [r155]  don:
+
+	* updated difference between forte compilers and gnu compilers on
+	  Solaris
+
+2002-11-27 05:29 +0000 [r154]  don:
+
+	* Made LIB's dependent on PLUGINS for directories where both are
+	  built
+
+2002-11-24 21:36 +0000 [r153]  don:
+
+	* Added Paging TerraPage loader and osgTXP library.
+
+2002-11-20 07:46 +0000 [r152]  robert:
+
+	* Fixed the texture apply method which was broken yesterday, the
+	  new code wasn't checking for the validity of _image before doing
+	  checks on it. This breaks when render to texture is used as there
+	  is no image to check against... Added osgshadowtexture demo
+	  source. Demos still in development, so don't expect any shadows
+	  yet...
+
+2002-11-19 12:26 +0000 [r150-151]  robert:
+
+	* Updated OSX defs to compile osgSim and osglightpoint
+
+	* Added osglightpoint to the demo list.
+
+2002-11-19 10:57 +0000 [r149]  robert:
+
+	* Added osgSim library which encapulsulates light points. Added
+	  osglightpoint demo.
+
+2002-11-12 10:22 +0000 [r148]  robert:
+
+	* Added LEFT_EYE and RIGHT_EYE stereo to
+	  osg::DisplaySettings/osgUtil::SceneView Renamed LODBias to
+	  LODScale.
+
+2002-11-11 09:06 +0000 [r147]  robert:
+
+	* Added missing demos and libs into the darwin defines.
+
+2002-11-11 08:05 +0000 [r146]  robert:
+
+	* Fixes for MING build
+
+2002-11-07 13:56 +0000 [r145]  robert:
+
+	* Added Geoff Michel's new osggeomdemo program which allows control
+	  of geo models via the mouse.
+
+2002-11-06 23:00 +0000 [r144]  don:
+
+	* Oops... experiment gon awry in makerules. This works for Solaris,
+	  but not Linux, evidently. The goal was to do a dependency update
+	  on only files that had changed, since Solaris is so gawdawful
+	  slow at doing CC -xM
+
+2002-11-06 18:39 +0000 [r143]  don:
+
+	* Changed a couple of const/non-const discrpancies between header
+	  and source for TexGen. Removed external library dependencies in
+	  plugin makefiles
+
+2002-10-31 12:51 +0000 [r142]  robert:
+
+	* From Geoff Michel, added AC3D .ac and GEO .geo loaders.
+
+2002-10-30 13:27 +0000 [r141]  robert:
+
+	* Added first cut of new primtive shapes support.
+
+2002-10-24 20:45 +0000 [r140]  don:
+
+	* Added ARCH64 def for 64 bit builds
+
+2002-10-17 21:25 +0000 [r139]  don:
+
+	* USE_MM was not defined for IRIX
+
+2002-10-17 13:48 +0000 [r138]  robert:
+
+	* Renamed the RenderBin::sort_local to sortImplementation(),
+	  draw_local to drawImplementation() and added a new
+	  RenderBin::DrawCallback(). Added osgcubemap to the Make/ test
+	  scripts.
+
+2002-10-10 12:44 +0000 [r137]  robert:
+
+	* Added Macro's new cube map generation classes and osgcubemap
+	  demo.
+
+2002-10-08 07:39 +0000 [r136]  don:
+
+	* Added AnimationPathManipulator to osgGA and modified sgv to use
+	  it.
+
+2002-10-08 05:41 +0000 [r135]  don:
+
+	* Fixed some inconsistencies between header files and function
+	  definitions where the header file declared a parameter non-const,
+	  but the function definition expected a const. The Solaris linker
+	  was coming up with undefined symbols.
+
+2002-10-07 21:23 +0000 [r134]  robert:
+
+	* Added extra convinience methods to LOD - addChild(child,min,max).
+	  Added osganimate to test scripts.
+
+2002-10-07 19:51 +0000 [r133]  robert:
+
+	* Added new osganimate demo which demonstrate the
+	  osg::AnimationPath in action. Added extra parameters to the
+	  AnimationPath callbacks to allow finer control.
+
+2002-10-02 15:28 +0000 [r132]  robert:
+
+	* Added osgteapot demo to show how to implement custom Drawables to
+	  wrap up OpenGL code.
+
+2002-09-24 20:14 +0000 [r131]  robert:
+
+	* Changed the linux linking of -lgif to -lungif. Fixed a typo in
+	  the Images name.
+
+2002-09-24 20:04 +0000 [r130]  robert:
+
+	* Changed the image file so that use the Images/ prefix to help
+	  locate the files within the OpenSceneGraph-Data directory.
+
+2002-09-05 15:13 +0000 [r129]  don:
+
+	* For Solaris, /usr/local/lib dependencies now compile static
+	  libraries. This reduces the dependencies for binary installs.
+	  ALso rearranged the SunOS gnu and Forte compiler sections to be
+	  more generic
+
+2002-08-31 06:04 +0000 [r128]  don:
+
+	* Added the script to make IRIX distribution packages (via 'inst').
+
+2002-08-30 16:17 +0000 [r127]  robert:
+
+	* Updates to windows build docs. Merge fixes for OSX from bob.
+	  Added checking for impostor sprites into stats.
+
+2002-08-30 07:17 +0000 [r126]  robert:
+
+	* Removed the OSG_COMPILE_UNIT_TESTS define from the OSX build to
+	  avoid issues with the missing <sstream>
+
+2002-08-28 16:17 +0000 [r125]  robert:
+
+	* Added fixes to UnitTestFramework to get it compiling under
+	  Windows.
+
+2002-08-28 14:26 +0000 [r124]  robert:
+
+	* Added Neil Salter's osgUtx library into the distribution, have
+	  put all the orignal seperate headers and source into
+	  include/osg/UnitTestFrameWork and src/osg/UnitTestFramework.cpp
+	  respectively. I have done this to keep the include and source
+	  directories focused on the scene graph rather than the test
+	  framework. Have added a very simple unit test to Vec3.cpp, which
+	  are optionally compiled in with the OSG_COMPILE_UNIT_TESTS
+	  define, which is only currently defined in debug builds under
+	  unix. It should be fine to add it in under Windows project files
+	  as well. Finally, a new demo app osgunittests runs the tests and
+	  reports success or failure of the tests.
+
+2002-08-27 14:02 +0000 [r123]  robert:
+
+	* Added proper osgtexture1D demo - this demo uses a 1D texture to
+	  dynamically contour the scene.
+
+2002-08-27 10:06 +0000 [r122]  robert:
+
+	* Added osgtexture3D demo, renamed osgtexture demo to osgtexture2D,
+	  and have added osgtexture1D demo which currently is simply copy
+	  of osgtexture2D. I will be modifying it to do 1D texturing next.
+	  Fixed a bug in osg::Texture3D relating to checking of existance
+	  of texturing. Merged some fixes to the pfb loader from Ulrich
+	  Hertlein.
+
+2002-08-22 17:36 +0000 [r121]  don:
+
+	* Fixed a dependency order
+
+2002-08-20 11:27 +0000 [r120]  robert:
+
+	* Moved the IO support for the osgText and osgParticle libraries
+	  into seperate plugin libraries.
+
+2002-08-13 18:29 +0000 [r119]  don:
+
+	* Added some comments
+
+2002-08-09 16:27 +0000 [r118]  robert:
+
+	* Fixed the X and Y axis rotation billboards so that now rotate
+	  correctly. Rewrote the osgbillboard demo so that it creates a
+	  point rotatated billbaord and X,Y and Z axis billboards to both
+	  test and demonstrate this types of billboards in action.
+
+2002-08-03 18:11 +0000 [r117]  robert:
+
+	* Integrated Ulrich Hertlien's osg::Sequence node, and osgsequence
+	  demo, and support for osg::Sequence in the pfb loader.
+
+2002-07-26 15:37 +0000 [r116]  robert:
+
+	* Added Ruben Lopez's Inventor/VRML 1.0 loader.
+
+2002-07-25 14:42 +0000 [r115]  robert:
+
+	* Removed double quotes from around the : DBGF = -g
+	  -DOSG_USE_MEMORY_MANAGER As this was breaking the build.
+
+2002-07-23 15:01 +0000 [r114]  robert:
+
+	* Mods for HP-UX port.
+
+2002-07-23 13:30 +0000 [r113]  robert:
+
+	* Support added for Gnu C++ under Solaris.
+
+2002-07-23 10:48 +0000 [r112]  robert:
+
+	* Checked in Tino Schwarze's port to HP-UX.
+
+2002-07-20 16:24 +0000 [r111]  don:
+
+	* Added logo plugin
+
+2002-07-19 12:51 +0000 [r110]  robert:
+
+	* Removed the cow.osg paramter for the osgparticle cow.osg in the
+	  test scripts
+
+2002-07-18 22:34 +0000 [r109]  robert:
+
+	* Added osgoccluder to test scripts.
+
+2002-07-18 10:49 +0000 [r108]  robert:
+
+	* Updated the test scripts to include cube mapping example and
+	  osglight demo.
+
+2002-07-16 19:21 +0000 [r107]  robert:
+
+	* Updates from Bob Kuehne and Kristopher Bixler to remove the fink
+	  dependency from the MacOSX build.
+
+2002-07-16 15:13 +0000 [r106]  robert:
+
+	* Fixes for MacOSX build from Bob Kuehne.
+
+2002-07-15 13:20 +0000 [r105]  robert:
+
+	* Fixed the orientation of the osgreflect demo so that the
+	  reflection plane is orientated towards the viewer. Changed the
+	  lightmodel ambient level to 0.1,0.1,0.1 instead of 0.0, so that a
+	  small amount of ambient lighting is available to render back
+	  surfaces. The osgreflect and osgprerender suffered unexpected
+	  behaviors because of no lighting on the backfaces.
+
+2002-07-15 11:44 +0000 [r104]  robert:
+
+	* Fixed memory leak in FieldReaderIterator.cpp. Updated the
+	  Make/osgtests.bat and Make/debugtests.bat scripts.
+
+2002-07-15 10:53 +0000 [r103]  robert:
+
+	* Renamed hangglide to osghangglide
+
+2002-07-11 23:30 +0000 [r102]  don:
+
+	* added -lpthread to the link line for Linux builds. Seems Red Hat
+	  7.3 turns up undefined symbols without it.
+
+2002-07-11 16:12 +0000 [r101]  robert:
+
+	* Added support for multitexturing to osg::State and added
+	  osgmultitexture demo which adds as spherical environment map
+	  using texture 1 to any model.
+
+2002-07-10 13:33 +0000 [r100]  robert:
+
+	* Updates to osgprerender to support use of rendering to an image,
+	  rather then just a texture.
+
+2002-07-09 13:17 +0000 [r99]  robert:
+
+	* Added new demo osgprerender to demonstrate how to prerender a
+	  scene and use the result in the main rendering for special
+	  effects.
+
+2002-07-04 14:23 +0000 [r98]  robert:
+
+	* Added osgGA to the MIGNW makedefs.
+
+2002-07-02 15:01 +0000 [r97]  don:
+
+	* -n32 and -64 entries were reversed in makedefs
+
+2002-07-01 14:40 +0000 [r96]  don:
+
+	* More 64 bit build specifics in IRIX makedefs file
+
+2002-07-01 14:20 +0000 [r95]  don:
+
+	* Removed -ldl from makedefs for IRIX
+
+2002-06-21 16:45 +0000 [r94]  robert:
+
+	* Added new osggeometry demo to test the work on the new
+	  osg::Geometry Drawable.
+
+2002-06-15 20:57 +0000 [r93]  robert:
+
+	* Fixes for Visual .NET and Mingw builds, and fix MacOSX notify()
+	  crash.
+
+2002-06-13 16:21 +0000 [r92]  robert:
+
+	* Further work on Occlusion Culling. Most of work is complete, just
+	  debugging required now.
+
+2002-06-12 14:57 +0000 [r91]  robert:
+
+	* Changes for MacOSX build, send in by Bob Kuehne.
+
+2002-06-09 13:10 +0000 [r90]  robert:
+
+	* Checked in migration from osgUtil based GUIAdapter code to Neil
+	  Salter's osgGA (Gui Abstraction). This may break users code, but
+	  all it should require to fix the builds should be a change from
+	  osgUtil::CameraManipulator (etc) to osgGA::CameraManipulator and
+	  include <osgUtil/CameraManipulator (etc) to
+	  osgGA/CameraManipulator and the extra dependency of the link
+	  line.
+
+2002-06-08 19:58 +0000 [r89]  robert:
+
+	* More more occlusion culling.
+
+2002-06-05 12:44 +0000 [r88]  robert:
+
+	* Checked in osgParticle, writtten by Marco Jez.
+
+2002-05-28 23:43 +0000 [r87]  robert:
+
+	* Added new osgcallback demo, and updated small API changes to
+	  improve the flexiblity of callbacks. Added beginings of convex
+	  planer occlusions culling.
+
+2002-05-21 00:58 +0000 [r86]  don:
+
+	* Modified instrules so that the functionality of instlinks is that
+	  system links are not made to point to links, rather the real
+	  files. So links installed on a system are pointing to platform
+	  specific files rather than links that may be pointing to files of
+	  the wrong platform type.
+
+2002-05-10 19:30 +0000 [r85]  robert:
+
+	* Added image plugin library defs for IRIX, submission from Randall
+	  Hopper.
+
+2002-05-09 10:31 +0000 [r84]  robert:
+
+	* Added new osgGA - GUI Adapter library submitted by Neil Salter.
+	  This will replace the current GUI adapter code inside osgUtil.
+
+2002-05-07 02:51 +0000 [r83]  don:
+
+	* Fixed rpath nonsense in makedefs for Irix
+
+2002-05-03 16:47 +0000 [r82]  robert:
+
+	* Added support for the managing the StateSet above a LightSource
+	  node, and made it an osg::Group so that it can be used a
+	  decorator above a scene. Added osgclip demo to the test suite.
+
+2002-05-02 00:14 +0000 [r81]  robert:
+
+	* dded osg::ClipNode class for managing OpenGL clipping planes, and
+	  osgclip demo.
+
+2002-04-25 22:09 +0000 [r80]  robert:
+
+	* Fixes for IRIX build. Fix for a warning under VisualStudio.NET.
+
+2002-04-25 10:46 +0000 [r79]  robert:
+
+	* A more verbose version of the test script, using each and more
+	  memleaks.log to print out progress and report any memory leaks
+	  which have been logged. The later will only occur with a debug
+	  build. The use of echo and more makes this version osgtest.bat
+	  not portable to windows unfortuntately.
+
+2002-04-24 20:04 +0000 [r78]  robert:
+
+	* Changes for Mac OSX build, sent in by Bob Kuehne
+
+2002-04-24 08:50 +0000 [r77]  robert:
+
+	* Fix for the Cygwin build related to the new FileUtils_Unix not
+	  using the Windows PATH environmental variable for searching for
+	  libraries. Sent in by Norman Vine. Reoder of the
+	  makedefs/makedirdefs to fix Mac OSX compilation. Sent in by Bob
+	  Kuehne.
+
+2002-04-22 09:50 +0000 [r76]  robert:
+
+	* Added test script which runs all the demos in the OSG to make
+	  sure they run ok. User has to verify they are correct visually.
+
+2002-04-18 15:37 +0000 [r75]  don:
+
+	* changed LIBEXT to LIB_EXT for Darwin
+
+2002-04-18 15:16 +0000 [r74]  don:
+
+	* Added -lXi to the Linux X_LIBS
+
+2002-04-16 21:39 +0000 [r73]  don:
+
+	* Changed Linux makedepend flag from -MM to -M
+
+2002-04-16 15:21 +0000 [r72]  don:
+
+	* Added makedirdefs via a request from Bob Kheune. This allows us
+	  to edit the DIRS cruft in a single file in the Make directory
+	  instead of having to edit multiple files. Also edited Makefiles
+	  that needed to include this file. Also cleaned up txp loader to
+	  compile with SunOS. This needs to be retested on other platforms.
+
+2002-04-16 05:29 +0000 [r71]  don:
+
+	* Fixed some boo-boos in makerpms for building demo source files...
+
+2002-04-16 04:13 +0000 [r70]  don:
+
+	* Fixed Solaris 'make distribution' for demo source.
+
+2002-04-16 03:24 +0000 [r69]  don:
+
+	* fixed a few problems that didn't work right with installing demo
+	  source on platforms other than Solaris.
+
+2002-04-15 21:48 +0000 [r68]  robert:
+
+	* Compile fixes for IRIX, submitted by Randall Hopper.
+
+2002-04-15 14:45 +0000 [r67]  don:
+
+	* Added Daniel Sjölie's request to use a default complier (CXX) in
+	  makedefs. Doing this only for Linux
+
+2002-04-12 06:18 +0000 [r66]  don:
+
+	* Solaris PKG distribution now makes a shar (self-extracting shell
+	  archived) changed makepgk to do this. Changed another one of
+	  those pesky cout = std::cout in CullVisitor.cpp
+
+2002-04-12 05:09 +0000 [r65]  don:
+
+	* added 'make cleandepend' to build system.
+
+2002-04-12 05:06 +0000 [r64]  don:
+
+	* Added the 'make cleandepend' target to the build system.
+
+2002-04-10 21:51 +0000 [r63]  robert:
+
+	* Added new osg::DrawPixels class with encapsulates glDrawPixels as
+	  and osg::Drawable. Added osg::Image::readPixels to osg::Image.
+	  Made osg::LightSource to default to cullActive set to false to
+	  that LightSource nodes don't get culled by default.
+
+2002-04-10 01:29 +0000 [r62]  don:
+
+	* Added (previously omitted) libpng, libjpeg, libtiff, libgif to
+	  makedefs in the Linux section
+
+2002-04-09 22:54 +0000 [r61]  don:
+
+	* Fixed makedepend to do the right thing.
+
+2002-04-09 15:51 +0000 [r60]  don:
+
+	* Checking in all Makefile.inst in src/Demos/*. These are the
+	  Makefiles that get installed rather than the build Makefiles.
+
+2002-04-09 14:55 +0000 [r59]  don:
+
+	* Added pkgadd distribution for Solaris. Added a cleaner way to
+	  install demo source so that installed versions use a simplified
+	  makedefs/makerules. Small fix to get osgText to compile with
+	  Solaris CC. Constructor declared with a non-const argument, but
+	  implemented with const argument.
+
+2002-04-08 16:50 +0000 [r58]  don:
+
+	* Added -lstdc++ to begining of LIBS on link line.. ??
+
+2002-04-08 16:25 +0000 [r57]  don:
+
+	* Put quotes around "DBGF" for multi argument
+
+2002-04-07 17:47 +0000 [r56]  don:
+
+	* Added a stop gap fix for cygwin build. Previous experiements were
+	  creating library and plugin files that looked like system library
+	  and system files which would have deleted original files on a
+	  'make install'. Cygwin is not tested yet, but this needed to get
+	  fixed before a cygwin user wiped out his system library files.
+
+2002-04-05 01:52 +0000 [r55]  don:
+
+	* Edited INSTALL for new make and installation procedures. Checking
+	  in a fix for Norman Vine Added helprules and help.sh for a
+	  long-winded help message if you 'make help'.
+
+2002-04-04 18:01 +0000 [r54]  don:
+
+	* Added Norman Vine's changes for CYGWIN builds Added distrules and
+	  makerpms for building RPM distributions Removed old RedHatRPM
+	  distribution build directory Added new dist/RPM directory and
+	  placed temporary .spec files (these are generated by
+	  Make/makerpms and are not intended for stand-alone use, but they
+	  keep the directory warm and CVS happy)
+
+2002-04-03 17:53 +0000 [r53]  don:
+
+	* Cleaned up in stallation directives
+
+2002-04-03 17:42 +0000 [r52]  don:
+
+	* Reinstated Norman Vine's TARGET_BASENAME variable in the
+	  makefiles and added prefixes and suffixes to libs and plugins.
+	  ALl this to accomodate cygwin... Also added INST_SYS_PREFIX and
+	  INST_SHARE_PREFIX for installation, as well as "standardizing"
+	  the install locations for the various platforms.
+
+2002-04-02 06:58 +0000 [r51]  don:
+
+	* Oops forgot to add makedefs and makerules
+
+2002-04-02 06:44 +0000 [r50]  don:
+
+	* The new order for building OSG. All Makefiles are replaced and
+	  the Make directory is left with four files only : makedefs
+	  makerules makedirrules instrules These work for all platforms
+	  supported so far, which include : Linux Irix Solaris MacOSX
+	  Cygwin FreeBSD
+
+2002-04-02 06:27 +0000 [r49]  don:
+
+	* Folded in Bob Kuehne's changes for Mac OSX to makedefs and
+	  makerules
+
+2002-04-01 15:37 +0000 [r48]  don:
+
+	* Added cleanlite rules to makerules.new
+
+2002-04-01 04:54 +0000 [r47]  don:
+
+	* *** empty log message ***
+
+2002-04-01 03:39 +0000 [r46]  don:
+
+	* Completed and tested instrules.new
+
+2002-03-31 16:43 +0000 [r45]  don:
+
+	* Added more to instrules and makedefs.new Folded in Randall
+	  Hopper's changes for FreeBSD
+
+2002-03-31 16:40 +0000 [r44]  robert:
+
+	* Added new osg::Projection node, and osgUtil::NewCullVisitor which
+	  are work in progress for the new support for controlling the
+	  projection matrix from within the scene graph. Also Added
+	  osg::State::getClippingVolume(), getProjectionMatrix() and
+	  getModelViewMatrix() with allows drawables to access the current
+	  projection, and model view matrices and the view frustum in local
+	  coords to the drawable.
+
+2002-03-29 06:54 +0000 [r43]  don:
+
+	* Added new install rules for makefiles and updated makedefs and
+	  makerules... more to come
+
+2002-03-28 07:29 +0000 [r42]  don:
+
+	* Couple a fixes in makedefs and makerules
+
+2002-03-28 06:35 +0000 [r41]  don:
+
+	* Added Norman Vines fixeds for cygwin
+
+2002-03-27 16:31 +0000 [r40]  robert:
+
+	* Futher updates to MemoryManager, fixed memory leak in osgconv.
+
+2002-03-27 06:09 +0000 [r39]  don:
+
+	* Update to makeefs/makerules
+
+2002-03-27 00:55 +0000 [r38]  don:
+
+	* update to makedefs.new makerules.new
+
+2002-03-26 23:52 +0000 [r37]  robert:
+
+	* Added support for osg::MemoryManager which is based upon Paul
+	  Nettle's memory manager published at flipcode.com. This can be
+	  turned on with the OSG_USE_MEMORY_MANGER option which then uses
+	  custom global new and delete operators as well as provide osgNew
+	  and osgDelete macro's which add ability to log line and file from
+	  which calls are made. Updated osg,osgUtil,osgDB,osgText and
+	  osgPlugins/osg to use osgNew/osgDelete, and fixed memory leaks
+	  highlighted by the new memory manager.
+
+2002-03-26 21:26 +0000 [r35-36]  don:
+
+	* Adding makedirrrules to Make directory
+
+	* Temporarily adding makedefs.new and makerules.new to keep them
+	  separate from current makedefs/makerules files. Will eventually
+	  remove all makedefs.* and makerules.* and replace only makedefs
+	  and makerules with makedefs.new and makedefs.new
+
+2002-03-25 23:18 +0000 [r34]  robert:
+
+	* Added osg::MemoryManger which is currently based on Paul Nettle's
+	  memory manager published at flipcode. I havn't adopted Paul's
+	  macro's for new/delete etc, but use osg prefixed versions instead
+	  to allow greater flexiblity in handling include ordering. Have
+	  fixed a couple of new/delete[] problems which existed as a
+	  result. To use the MemoryManager to track memory usage simply add
+	  -DOSG_USE_MEMEORY_TRACKING to the compile line. Have yet to move
+	  the osg from using new to osgNew, will do this next.
+
+2002-02-13 22:56 +0000 [r33]  robert:
+
+	* Updated the makefiles to all have the #!gmake reference to force
+	  IRIX compilation using gmake rather than pmake or smake. This
+	  gets round issues with exporting OSGHOME.
+
+2002-02-12 23:49 +0000 [r32]  robert:
+
+	* Added a set of test runs to the makefiles and demos. The demos
+	  now have titles relevenat to their function.
+
+2002-02-11 19:51 +0000 [r31]  robert:
+
+	* Cleand up the root Makefile. Moved
+	  CullVisitor/RenderStage/RenderStageLighting across to managing
+	  lights entirely within RenderStageLighting, and changed the
+	  management of modelview matrices so that RenderLeaf now stores
+	  the absolute modelview matrix, rather than a model matrix as done
+	  previously. The later allows RenderLeaf's to do a glLoadMatrix
+	  rather than a glPushMatrix/glMultMatrix/glPopMatrix.
+
+2002-02-10 11:17 +0000 [r30]  robert:
+
+	* Fixes for MacOSX build.
+
+2002-02-09 10:24 +0000 [r29]  robert:
+
+	* Fixes for cygwin and mingw builds.
+
+2002-02-08 22:55 +0000 [r28]  robert:
+
+	* Added support for parents to Drawables. Bumped up version numbers
+	  in prep for 0.8.44.
+
+2002-02-08 09:30 +0000 [r27]  robert:
+
+	* Fixes for IRIX and Boris Bralo's TerraPage loader.
+
+2002-01-29 14:04 +0000 [r26]  robert:
+
+	* Moved all references to osg::Cloner to osg::CopyOp.
+
+2002-01-29 12:52 +0000 [r25]  robert:
+
+	* Have add new osg::CopyOp which replaces last nights osg::Cloner,
+	  the new class now combines Cloner and DeepCopy into one class.
+	  Cloner and DeepCopy will be removed in next commit. Also have
+	  added osgcopy app to Demos which shows how the CopyOp have be
+	  subclassed to create users own specific handling of copying. Have
+	  fixed copy constructor problems in GeoSet which fix the deep copy
+	  problem experienced yesterday.
+
+2002-01-16 12:29 +0000 [r24]  robert:
+
+	* Submission from Sean Spicer which adds Make/makedefs.irix.std.64
+	  which compiles the OSG as 64bit. Small changes by Robert to
+	  accomodate recent MacOSX makefile changes.
+
+2002-01-16 12:08 +0000 [r23]  robert:
+
+	* Changes to Make/makerules.* and Make/makedefs.* to accomodate
+	  MacOSX's need to treat plugins and shared libraries seperately.
+
+2002-01-16 10:36 +0000 [r22]  robert:
+
+	* First batch of changes required for MacOS X build. Orignal
+	  submission from Phil Atkin, merged by Robert Osfield.
+
+2002-01-04 20:44 +0000 [r21]  robert:
+
+	* Renamed the TOP variable in the Makefiles to OSGHOME.
+
+2002-01-03 23:28 +0000 [r20]  robert:
+
+	* Futher Makefile updates for Cygwin support - from Norman Vine.
+
+2002-01-03 23:19 +0000 [r19]  robert:
+
+	* Makefile changes to support Cywin port - submission from Norman
+	  Vine, updates to fix case problems under unix by Robert.
+
+2001-12-24 14:12 +0000 [r18]  robert:
+
+	* Various clean ups for the release.
+
+2001-12-15 22:44 +0000 [r17]  robert:
+
+	* Updated version numbers to 0.8.43 in prep for the impending
+	  release.
+
+2001-12-14 21:49 +0000 [r16]  robert:
+
+	* Updated OSG so that the old OSG_USE_IO_DOT_H has be removed from
+	  all headers that used it, all references to the Standard C++
+	  stream classes use the std::ostream etc convention, all
+	  references to "using namespace std" and "using namespace
+	  std::ostream etc" have been removed.
+
+2001-11-02 20:11 +0000 [r15]  robert:
+
+	* Updates to Makefiles to include osgText. Also a couple of
+	  undefined methods in osgText::Text have been added.
+
+2001-10-23 23:15 +0000 [r14]  don:
+
+	* One last change needed to makedefs.linux to sync Linux and Irix
+	  pfb loader
+
+2001-10-23 23:10 +0000 [r13]  don:
+
+	* Fixed pfb loader functionality for IRIX
+
+2001-10-23 22:59 +0000 [r12]  don:
+
+	* Fixed pfb loader so that it works for both Linux and IRix with
+	  dynamic libraries, and provides support to load (almost) all that
+	  Performer loads.
+
+2001-10-23 22:08 +0000 [r11]  robert:
+
+	* Updates to the new osgText library to get it to compile under
+	  Linux.
+
+2001-10-17 22:17 +0000 [r10]  don:
+
+	* Fixed static libraries in madefs.linux and error in
+	  ReaderWriterPFB.cpp
+
+2001-10-16 18:39 +0000 [r9]  robert:
+
+	* Fixes for IRIX build - submitted by Randall Hopper.
+
+2001-10-14 04:50 +0000 [r8]  don:
+
+	* Cleaned up some 'make clobber' issues in root Makefile
+
+2001-10-03 21:44 +0000 [r7]  robert:
+
+	* Integrated changes for MacOSX, submitted by Phil Atkin, with
+	  small mods by Robert Osfield to maintain compatability under
+	  Linux.
+
+2001-09-28 19:36 +0000 [r6]  don:
+
+	* Cleaned up inst rules a bit...
+
+2001-09-19 21:19 +0000 [r5]  don:
+
+	* More clean up for synch with 0.8.42
+
+2001-09-19 21:08 +0000 [r4]  don:
+
+	* Added a bunch of files synched with 0.8.42
+
+2001-01-10 16:32 +0000 [r2]  don:
+
+	* Initial revision
+
+2007-02-27 18:35 +0000 [r1]  root:
+
+	* Initial project roots
+
