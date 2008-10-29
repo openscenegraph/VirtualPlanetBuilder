@@ -20,8 +20,8 @@ extern "C" {
 
 #define VPB_VERSION_MAJOR       0
 #define VPB_VERSION_MINOR       9
-#define VPB_VERSION_PATCH       8
-#define VPB_VERSION_SOVERSION   8
+#define VPB_VERSION_PATCH       9
+#define VPB_VERSION_SOVERSION   9
 
 /**
  * vpbGetVersion() returns the library version number.
