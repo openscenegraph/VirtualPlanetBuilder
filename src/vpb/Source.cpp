@@ -510,7 +510,7 @@ Source* Source::doRasterReprojection(const std::string& filename, osg::Coordinat
 
     if( oWO.Initialize( psWO ) == CE_None )
     {
-        bool multithreaded = true;
+        bool multithreaded = false;
         
         if (multithreaded)
         {

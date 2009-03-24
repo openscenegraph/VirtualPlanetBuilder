@@ -1201,6 +1201,75 @@ bool DataSet::requiresReprojection()
     return false;
 }
 
+void DataSet::reprojectSourcesAndGenerateOverviews()
+{
+    if (!_sourceGraph) return;
+
+    std::string temporyFilePrefix("temporaryfile_");
+
+    osg::Timer_t before_reproject = osg::Timer::instance()->tick();
+
+    // do standardisation of coordinates systems.
+    // do any reprojection if required.
+    {
+        for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
+        {
+            Source* source = itr->get();
+            
+            log(osg::INFO, "Checking %s",source->getFileName().c_str());
+            
+            if (source && source->needReproject(_intermediateCoordinateSystem.get()))
+            {
+            
+                if (getReprojectSources())
+                {
+                    if (source->isRaster())
+                    {
+                
+                        // do the reprojection to a tempory file.
+                        std::string newFileName = temporyFilePrefix + osgDB::getStrippedName(source->getFileName()) + ".tif";
+
+                        Source* newSource = source->doRasterReprojection(newFileName,_intermediateCoordinateSystem.get());
+
+                        // replace old source by new one.
+                        if (newSource) *itr = newSource;
+                        else
+                        {
+                            log(osg::WARN, "Failed to reproject %s",source->getFileName().c_str());
+                            *itr = 0;
+                        }
+                    }
+                    else
+                    {
+                        source->do3DObjectReprojection(_intermediateCoordinateSystem.get());
+                    }
+                }
+                else
+                {
+                    log(osg::WARN, "Source file %s requires reprojection, but reprojection switched off.",source->getFileName().c_str());
+                }
+            }
+        }
+    }
+    
+    osg::Timer_t after_reproject = osg::Timer::instance()->tick();
+    
+    log(osg::NOTICE,"Time for after_reproject %f", osg::Timer::instance()->delta_s(before_reproject, after_reproject));
+
+    // do sampling of data to required values.
+    if (getBuildOverlays())
+    {
+        for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
+        {
+            Source* source = itr->get();
+            if (source) source->buildOverviews();
+        }
+    }
+
+    osg::Timer_t after_sourceGraphsort = osg::Timer::instance()->tick();
+}
+
+
 void DataSet::updateSourcesForDestinationGraphNeeds()
 {
     if (!_destinationGraph || !_sourceGraph) return;
@@ -1254,69 +1323,10 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
 
     osg::Timer_t after_consolidate = osg::Timer::instance()->tick();
     
+
     log(osg::NOTICE,"Time for consolodateRequiredResolutions %f", osg::Timer::instance()->delta_s(before, after_consolidate));
 
-    // do standardisation of coordinates systems.
-    // do any reprojection if required.
-    {
-        for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
-        {
-            Source* source = itr->get();
-            
-            log(osg::INFO, "Checking %s",source->getFileName().c_str());
-            
-            if (source && source->needReproject(_intermediateCoordinateSystem.get()))
-            {
-            
-                if (getReprojectSources())
-                {
-                    if (source->isRaster())
-                    {
-                
-                        // do the reprojection to a tempory file.
-                        std::string newFileName = temporyFilePrefix + osgDB::getStrippedName(source->getFileName()) + ".tif";
-
-                        Source* newSource = source->doRasterReprojection(newFileName,_intermediateCoordinateSystem.get());
-
-                        // replace old source by new one.
-                        if (newSource) *itr = newSource;
-                        else
-                        {
-                            log(osg::WARN, "Failed to reproject %s",source->getFileName().c_str());
-                            *itr = 0;
-                        }
-                    }
-                    else
-                    {
-                        source->do3DObjectReprojection(_intermediateCoordinateSystem.get());
-                    }
-                }
-                else
-                {
-                    log(osg::WARN, "Source file %s requires reprojection, but reprojection switched off.",source->getFileName().c_str());
-                }
-            }
-        }
-    }
-    
-    osg::Timer_t after_reproject = osg::Timer::instance()->tick();
-    
-    log(osg::NOTICE,"Time for after_reproject %f", osg::Timer::instance()->delta_s(after_consolidate, after_reproject));
-
-    // do sampling of data to required values.
-    if (getBuildOverlays())
-    {
-        for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
-        {
-            Source* source = itr->get();
-            if (source) source->buildOverviews();
-        }
-    }
-
-    
-    osg::Timer_t after_sourceGraphsort = osg::Timer::instance()->tick();
-
-    log(osg::NOTICE,"Time for after_sort %f", osg::Timer::instance()->delta_s(after_reproject, after_sourceGraphsort));
+    reprojectSourcesAndGenerateOverviews();
 
     log(osg::INFO, "Using source_lod_iterator itr");
         
@@ -1808,10 +1818,16 @@ void DataSet::createDestination(unsigned int numLevels)
 {
     log(osg::NOTICE, "started DataSet::createDestination(%u)",numLevels);
 
+#if 1
+
+    reprojectSourcesAndGenerateOverviews();
+    computeDestinationGraphFromSources(numLevels);
+
+#else
     computeDestinationGraphFromSources(numLevels);
     
     updateSourcesForDestinationGraphNeeds();
-    
+#endif    
 
     log(osg::NOTICE, "completed DataSet::createDestination(%u)",numLevels);
 
