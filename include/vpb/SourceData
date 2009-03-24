@@ -57,7 +57,7 @@ struct VPB_EXPORT SourceData : public osg::Referenced, public SpatialProperties
     virtual void readModels(DestinationData& destination);
     virtual void readShapeFile(DestinationData& destination);
 
-    float getInterpolatedValue(GDALRasterBand *band, double x, double y);
+    float getInterpolatedValue(GDALRasterBand *band, double x, double y, float originalHeight);
     float getInterpolatedValue(osg::HeightField* hf, double x, double y);
 
     Source*                                     _source;

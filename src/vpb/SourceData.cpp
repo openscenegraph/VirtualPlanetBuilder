@@ -102,7 +102,7 @@ float SourceData::getInterpolatedValue(osg::HeightField* hf, double x, double y)
     return result;
 }
 
-float SourceData::getInterpolatedValue(GDALRasterBand *band, double x, double y)
+float SourceData::getInterpolatedValue(GDALRasterBand *band, double x, double y, float originalHeight)
 {
     double geoTransform[6];
     geoTransform[0] = _geoTransform(3,0);
@@ -143,10 +143,10 @@ float SourceData::getInterpolatedValue(GDALRasterBand *band, double x, double y)
 
     ValidValueOperator validValueOperator(band);
 
-    if (validValueOperator.isNoDataValue(llHeight)) llHeight = 0.0f;
-    if (validValueOperator.isNoDataValue(ulHeight)) ulHeight = 0.0f;
-    if (validValueOperator.isNoDataValue(lrHeight)) lrHeight = 0.0f;
-    if (validValueOperator.isNoDataValue(urHeight)) urHeight = 0.0f;
+    if (validValueOperator.isNoDataValue(llHeight)) llHeight = originalHeight;
+    if (validValueOperator.isNoDataValue(ulHeight)) ulHeight = originalHeight;
+    if (validValueOperator.isNoDataValue(lrHeight)) lrHeight = originalHeight;
+    if (validValueOperator.isNoDataValue(urHeight)) urHeight = originalHeight;
 
     double x_rem = c - (int)c;
     double y_rem = r - (int)r;
@@ -967,7 +967,7 @@ void SourceData::readHeightField(DestinationData& destination)
                         for (int r = destY; r < endY; ++r)
                         {
                             double geoY = orig_Y + (delta_Y * (double)r);
-                            float h = getInterpolatedValue(bandSelected, geoX-xoffset, geoY);
+                            float h = getInterpolatedValue(bandSelected, geoX-xoffset, geoY, hf->getHeight(c,r)/scale);
                             if (!validValueOperator.isNoDataValue(h)) hf->setHeight(c,r,offset + h*scale);
                             else if (!ignoreNoDataValue) hf->setHeight(c,r,noDataValueFill);
                         }
@@ -999,7 +999,6 @@ void SourceData::readHeightField(DestinationData& destination)
                             float h = *heightPtr++;
                             if (!validValueOperator.isNoDataValue(h)) hf->setHeight(c,r,offset + h*scale);
                             else if (!ignoreNoDataValue) hf->setHeight(c,r,noDataValueFill);
-
                             h = hf->getHeight(c,r);
                         }
                     }
