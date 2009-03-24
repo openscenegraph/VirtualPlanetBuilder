@@ -113,9 +113,18 @@ class VPB_EXPORT System : public osg::Referenced
 
         unsigned int getMaxNumberOfFilesPerDirectory() const { return _maxNumberOfFilesPerDirectory; }
         
-        inline bool isFileTypeSupported(const std::string& filename, int acceptedTypeMask) const
+        inline bool isFileTypeSupported(const std::string& filename, int acceptedTypeMask)
         {
-            return isExtensionSupported(osgDB::getFileExtension(filename), acceptedTypeMask); 
+            std::string ext = osgDB::getFileExtension(filename);
+        
+            // check if file extension is in support list.
+            if (isExtensionSupported(ext, acceptedTypeMask)) return true;
+            
+            // check if file extension is the unsupported list.
+            if (_unsupportedExtensions.count(ext)!=0) return false;
+            
+            // 
+            return openFileToCheckThatItSupported(filename, acceptedTypeMask);
         }
 
         inline bool isExtensionSupported(const std::string& ext, int acceptedTypeMask) const
@@ -150,6 +159,14 @@ class VPB_EXPORT System : public osg::Referenced
                 _supportedExtensions[ext].description = description;
             }
         }
+        
+        typedef std::set<std::string> UnsupportedExtensions;
+        UnsupportedExtensions& getUnsupportedExtensions() { return _unsupportedExtensions; }
+        const UnsupportedExtensions& getUnsupportedExtensions() const { return _unsupportedExtensions; }        
+        void addUnsupportedExtension(const std::string& ext) { _unsupportedExtensions.insert(ext); }
+        
+        /** brute force way to check if file is supported by GDAL/VirtualPlanetBuilder by opening the file.*/
+        bool openFileToCheckThatItSupported(const std::string& filename, int acceptedTypeMask);
 
     protected:
     
@@ -175,7 +192,7 @@ class VPB_EXPORT System : public osg::Referenced
         osg::ref_ptr<TaskManager>   _taskManager;
         
         SupportedExtensions         _supportedExtensions;
-        
+        UnsupportedExtensions       _unsupportedExtensions;
 };
 
 }

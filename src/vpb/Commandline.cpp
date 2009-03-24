@@ -89,7 +89,7 @@ void Commandline::processFile(vpb::Source::Type type, const std::string& filenam
     {
         if (!(System::instance()->isFileTypeSupported(filename, type)))
         {
-            log(osg::NOTICE,"Ignoring %s as it's file extension is not supported", filename.c_str());
+            log(osg::INFO,"Ignoring %s as it's file extension is not supported", filename.c_str());
             return;
         }
 

@@ -17,6 +17,7 @@
 #include <vpb/FileUtils>
 
 #include <map>
+#include <gdal_priv.h>
 
 using namespace vpb;
  
@@ -445,4 +446,25 @@ unsigned long System::getFileSize(const std::string& filename)
     {
         return 0;
     }
+}
+
+bool System::openFileToCheckThatItSupported(const std::string& filename, int acceptedTypeMask)
+{
+    osg::notify(osg::INFO)<<"System::openFileToCheckThatItSupported("<<filename<<")"<<std::endl;
+    std::string ext = osgDB::getFileExtension(filename);
+
+    GDALDataset* dataset = (GDALDataset*)GDALOpen(filename.c_str(), GA_ReadOnly);
+    if (dataset)
+    {
+        osg::notify(osg::INFO)<<"   GDALOpen("<<filename<<") succeeded "<<std::endl;
+        int fileTypeMask = Source::IMAGE | Source::HEIGHT_FIELD;
+        addSupportedExtension(ext, fileTypeMask,"");
+    
+        GDALClose(dataset);
+        
+        return acceptedTypeMask & fileTypeMask;
+    }
+
+    _unsupportedExtensions.insert(ext);
+    return false;
 }
