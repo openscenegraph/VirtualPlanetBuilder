@@ -270,8 +270,8 @@ bool DestinationTile::computeImageResolution(unsigned int layer, const std::stri
                 if ((numRows % 4)!=0) numRows = ((numRows>>2)<<2)+4;
             }
             
-            log(osg::NOTICE,"numColumnsAtFullRes = %itnumColumns = %i",numColumnsRequired,numColumns);
-            log(osg::NOTICE,"numRowsAtFullRes = %i\tnumRows = ",numRowsRequired,numRows);
+            log(osg::NOTICE,"numColumnsAtFullRes = %i\tnumColumns = %i",numColumnsRequired,numColumns);
+            log(osg::NOTICE,"numRowsAtFullRes = %i\tnumRows = %i",numRowsRequired,numRows);
         }
         
         // set up properly for vector and raster (previously always vector)
@@ -551,7 +551,7 @@ void DestinationTile::equalizeCorner(Position position)
             TileCornerPair& tcp = *itr;
             if (layerNum<tcp.first->getNumLayers())
             {
-                ImageSet& imageSet = getImageSet(layerNum);
+                ImageSet& imageSet = tcp.first->getImageSet(layerNum);
                 for(ImageSet::LayerSetImageDataMap::iterator itr = imageSet._layerSetImageDataMap.begin();
                     itr != imageSet._layerSetImageDataMap.end();
                     ++itr)
