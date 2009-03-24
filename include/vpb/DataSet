@@ -151,6 +151,9 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         void computeDestinationGraphFromSources(unsigned int numLevels);
 
         void updateSourcesForDestinationGraphNeeds();
+
+        void reprojectSourcesAndGenerateOverviews();
+
         void populateDestinationGraphFromSources();
         
         void createDestination(unsigned int numLevels);
