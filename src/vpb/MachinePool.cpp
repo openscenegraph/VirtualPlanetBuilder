@@ -693,7 +693,7 @@ bool MachinePool::write(const std::string& filename) const
 bool MachinePool::setUpOnLocalHost()
 {
     log(osg::NOTICE,"Setting up MachinePool to use all %i cores on this machine.",OpenThreads::GetNumberOfProcessors());
-    addMachine(vpb::getLocalHostName(),vpb::getCacheFileName(),std::string(),std::string(),OpenThreads::GetNumberOfProcessors());
+    addMachine(vpb::getLocalHostName(),osgDB::getFilePath(vpb::getCacheFileName()),std::string(),std::string(),OpenThreads::GetNumberOfProcessors());
     return true;
 }
 
