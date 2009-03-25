@@ -507,8 +507,6 @@ void FileCache::buildRequiredReprojections(osgTerrain::TerrainTile* source)
         {
             std::string cacheDirectory = machine->getCacheDirectory();
             
-            osg::notify(osg::NOTICE)<<"machine->getCacheDirectory()="<<cacheDirectory<<std::endl;
-            
             if (!cacheDirectory.empty()) 
             {
                 filePrefix = cacheDirectory + "/";
