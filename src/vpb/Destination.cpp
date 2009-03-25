@@ -2029,17 +2029,17 @@ osg::Node* DestinationTile::createPolygonal()
         }
     }
     
-    osg::DrawElementsUShort& drawElements = *(new osg::DrawElementsUShort(GL_TRIANGLES,2*3*(numColumns-1)*(numRows-1)));
+    osg::DrawElementsUInt& drawElements = *(new osg::DrawElementsUInt(GL_TRIANGLES,2*3*(numColumns-1)*(numRows-1)));
     geometry->addPrimitiveSet(&drawElements);
     int ei=0;
     for(r=0;r<numRows-1;++r)
     {
         for(c=0;c<numColumns-1;++c)
         {
-            unsigned short i00 = (r)*numColumns+c;
-            unsigned short i10 = (r)*numColumns+c+1;
-            unsigned short i01 = (r+1)*numColumns+c;
-            unsigned short i11 = (r+1)*numColumns+c+1;
+            unsigned int i00 = (r)*numColumns+c;
+            unsigned int i10 = (r)*numColumns+c+1;
+            unsigned int i01 = (r+1)*numColumns+c;
+            unsigned int i11 = (r+1)*numColumns+c+1;
 
             float diff_00_11 = fabsf(v[i00].z()-v[i11].z());
             float diff_01_10 = fabsf(v[i01].z()-v[i10].z());
@@ -2231,7 +2231,7 @@ osg::Node* DestinationTile::createPolygonal()
 
     if (numVerticesInSkirt>0)
     {
-        osg::DrawElementsUShort& skirtDrawElements = *(new osg::DrawElementsUShort(GL_QUAD_STRIP,2*numVerticesInSkirt+2));
+        osg::DrawElementsUInt& skirtDrawElements = *(new osg::DrawElementsUInt(GL_QUAD_STRIP,2*numVerticesInSkirt+2));
         geometry->addPrimitiveSet(&skirtDrawElements);
         int ei=0;
         int firstSkirtVertexIndex = vi;
