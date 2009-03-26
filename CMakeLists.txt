@@ -1,15 +1,14 @@
+set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE)
+
 IF(WIN32)
     CMAKE_MINIMUM_REQUIRED(VERSION 2.4.6 FATAL_ERROR)
-ELSE(WIN32)
+ELSE()
     IF(APPLE)
-        CMAKE_MINIMUM_REQUIRED(VERSION 2.4.6 FATAL_ERROR)
-        IF(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} EQUAL 4 AND ${CMAKE_PATCH_VERSION} LESS 7)
-            MESSAGE("Warning: A critical CMake bug exists in 2.4.6 and below. Trying to build Universal Binaries will result in a compile error that seems unrelated. Either avoid building Universal Binaries by changing the CMAKE_OSX_ARCHITECTURES field to list only your architecture, or upgrade to the current CVS version of CMake or a newer stable version if it exists.")
-        ENDIF(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} EQUAL 4 AND ${CMAKE_PATCH_VERSION} LESS 7)
-    ELSE(APPLE)
-        CMAKE_MINIMUM_REQUIRED(VERSION 2.4.0 FATAL_ERROR)
-    ENDIF(APPLE)
-ENDIF(WIN32)
+        CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0 FATAL_ERROR)
+    ELSE()
+        CMAKE_MINIMUM_REQUIRED(VERSION 2.4.4 FATAL_ERROR)
+    ENDIF()
+ENDIF()
 
 if(COMMAND cmake_policy)
     # Works around warnings libraries linked against that don't
@@ -18,8 +17,14 @@ if(COMMAND cmake_policy)
 
     # Works around warnings about escaped quotes in ADD_DEFINITIONS
     # statements.
-    cmake_policy(SET CMP0005 OLD)
-endif(COMMAND cmake_policy)
+    cmake_policy(SET CMP0005 NEW)
+
+    # cmake-2.6.1 introduces policy cmp0008 decide how to treat full path libraries that do not appear to be valid library file names
+    # quote from cvslog "Such libraries worked by accident in the VS IDE and Xcode generators in CMake 2.4 and below."
+    if(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} GREATER 4 AND ${CMAKE_PATCH_VERSION} GREATER 0)
+        cmake_policy(SET CMP0008 OLD)
+    endif()
+endif()
 
 PROJECT(VIRTUALPLANETBUILDER)
 
@@ -36,9 +41,6 @@ SET(VIRTUALPLANETBUILDER_VERSION ${VIRTUALPLANETBUILDER_MAJOR_VERSION}.${VIRTUAL
 
 # We want to build SONAMES shared librariess
 SET(VIRTUALPLANETBUILDER_SONAMES TRUE)
-SET(OPENTHREADS_SONAMES TRUE)
-
-SET(OpenThreads_SOURCE_DIR ${VIRTUALPLANETBUILDER_SOURCE_DIR})
 
 # We have some custom .cmake scripts not in the official distribution.
 # Maybe this can be used override existing behavior if needed?
@@ -60,7 +62,7 @@ FIND_PACKAGE(Threads)
 IF(CMAKE_SYSTEM MATCHES IRIX)
     # Erase CMAKE_THREAD_LIBS_INIT and hope it works
     SET(CMAKE_THREAD_LIBS_INIT "" CACHE INTERNAL "")
-ENDIF(CMAKE_SYSTEM MATCHES IRIX)
+ENDIF()
 
 OPTION(VPB_MAINTAINER "Enable VirtualPlanetBuilder maintainer build methods, such as making svn branches, tags, updating ChangeLog." OFF)
 IF (VPB_MAINTAINER)
@@ -79,16 +81,16 @@ IF (VPB_MAINTAINER)
 
     IF   (VIRTUALPLANETBUILDER_SVN STREQUAL "trunk")
         SET(SVNSOURCEDIR ${SVNTRUNKDIR})
-    ELSE (VIRTUALPLANETBUILDER_SVN STREQUAL "trunk")
+    ELSE ()
         SET(SVNSOURCEDIR ${SVNBRANCH_DIR}/${VIRTUALPLANETBUILDER_BRANCH})
-    ENDIF(VIRTUALPLANETBUILDER_SVN STREQUAL "trunk")
+    ENDIF()
 
 
     IF   (VIRTUALPLANETBUILDER_RELEASE_CANDIDATE EQUAL 0)
         SET(RELEASE_NAME VirtualPlanetBuilder-${VIRTUALPLANETBUILDER_VERSION})
-    ELSE (VIRTUALPLANETBUILDER_RELEASE_CANDIDATE EQUAL 0)
+    ELSE ()
         SET(RELEASE_NAME VirtualPlanetBuilder-${VIRTUALPLANETBUILDER_VERSION}-rc${VIRTUALPLANETBUILDER_RELEASE_CANDIDATE})
-    ENDIF(VIRTUALPLANETBUILDER_RELEASE_CANDIDATE EQUAL 0)
+    ENDIF()
 
 
     ADD_CUSTOM_TARGET(tag-test
@@ -110,15 +112,14 @@ IF (VPB_MAINTAINER)
     #
     # Provide target for generating ChangeLog
     #
-    SET(SVN2LOG ~/bin/svn2log.py)
-    SET(GENERATELOGS ${SVNCOMMAND} log -v --xml | python ${SVN2LOG} -L -H)
+    SET(GENERATELOGS svn2cl)
 
     ADD_CUSTOM_TARGET(ChangeLog
         COMMAND ${SVNCOMMAND} update
         COMMAND ${GENERATELOGS}
     )
     
-ENDIF(VPB_MAINTAINER)
+ENDIF()
 
 
 
@@ -131,7 +132,7 @@ IF(UNIX)
     FIND_PACKAGE(X11)
     # Some Unicies need explicit linkage to the Math library or the build fails.
     FIND_LIBRARY(MATH_LIBRARY m)
-ENDIF(UNIX)
+ENDIF()
 
 FIND_PACKAGE(CURL)
 
@@ -159,10 +160,10 @@ INCLUDE_DIRECTORIES(
 #luigi#        SET(CMAKE_CXX_COMPILER "g++")
 #luigi#        SET(CMAKE_CXX_COMPILER_LOADED 2)
 #luigi#        SET(CMAKE_CXX_COMPILER_WORKS 2)
-#luigi#    ENDIF (contains)
+#luigi#    ENDIF ()
 #luigi#    SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
 #luigi#    SET(CMAKE_CXX_FLAGS_DEBUG "-ggdb -gstabs")
-#luigi#ENDIF(UNIX)
+#luigi#ENDIF()
 ########################################################################################################
 
 # Common to all platforms:
@@ -179,7 +180,7 @@ FIND_PACKAGE(GDAL)
 
 IF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
    FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin ${CMAKE_BINARY_DIR}/lib)
-ENDIF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+ENDIF()
 
 
 ################################################################################
@@ -190,11 +191,14 @@ IF(UNIX AND NOT WIN32 AND NOT APPLE)
   IF(CMAKE_SIZEOF_VOID_P MATCHES "8")
       SET(LIB_POSTFIX "64" CACHE STRING "suffix for 32/64 dir placement")
       MARK_AS_ADVANCED(LIB_POSTFIX)
-  ENDIF(CMAKE_SIZEOF_VOID_P MATCHES "8")
-ENDIF(UNIX AND NOT WIN32 AND NOT APPLE)
+  ENDIF()
+ENDIF()
 IF(NOT DEFINED LIB_POSTFIX)
     SET(LIB_POSTFIX "")
-ENDIF(NOT DEFINED LIB_POSTFIX)
+ENDIF()
+
+# Here we apparantly do some funky stuff with making the bin/ and lib/
+# folders which is probably needed to work around a very old CMake bug?
 
 #SET(OUTPUT_BINDIR ${PROJECT_BINARY_DIR}/bin/${CMAKE_SYSTEM_NAME})
 SET(OUTPUT_BINDIR ${PROJECT_BINARY_DIR}/bin)
@@ -208,10 +212,10 @@ SET(LIBRARY_OUTPUT_PATH ${OUTPUT_LIBDIR})
 
 
 
-#SET(INSTALL_BINDIR VIRTUALPLANETBUILDER/bin)
-#SET(INSTALL_INCDIR VIRTUALPLANETBUILDER/include)
-#SET(INSTALL_LIBDIR VIRTUALPLANETBUILDER/lib)
-#SET(INSTALL_DOCDIR VIRTUALPLANETBUILDER/doc)
+#SET(INSTALL_BINDIR VirtualPlanetBuilder/bin)
+#SET(INSTALL_INCDIR VirtualPlanetBuilder/include)
+#SET(INSTALL_LIBDIR VirtualPlanetBuilder/lib)
+#SET(INSTALL_DOCDIR VirtualPlanetBuilder/doc)
 
 ################################################################################
 # User Options
@@ -241,9 +245,9 @@ SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} CACHE STRING "(EXPERIMENTAL) You may 
 OPTION(DYNAMIC_VIRTUALPLANETBUILDER "Set to ON to build VIRTUALPLANETBUILDER for dynamic linking.  Use OFF for static." ON)
 IF   (DYNAMIC_VIRTUALPLANETBUILDER)
     SET(VIRTUALPLANETBUILDER_USER_DEFINED_DYNAMIC_OR_STATIC "SHARED")
-ELSE (DYNAMIC_VIRTUALPLANETBUILDER)
+ELSE ()
     SET(VIRTUALPLANETBUILDER_USER_DEFINED_DYNAMIC_OR_STATIC "STATIC")
-ENDIF(DYNAMIC_VIRTUALPLANETBUILDER)
+ENDIF()
 
 INCLUDE(VpbMacroUtils)
 
@@ -254,7 +258,7 @@ ADD_SUBDIRECTORY(src)
 OPTION(BUILD_APPLICATIONS "Enable to build VPB Applications (e.g. osgdem)" ON)
 IF   (BUILD_APPLICATIONS)
     ADD_SUBDIRECTORY(applications)
-ENDIF(BUILD_APPLICATIONS)
+ENDIF()
 
 
 
@@ -275,7 +279,7 @@ IF(APPLE)
         IF(EXISTS /Developer/SDKs/10.5.sdk)
             SET(CMAKE_OSX_ARCHITECTURES "ppc;i386;ppc64;x86_64" CACHE STRING "Build architectures for OSX" FORCE)
             SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.5 -ftree-vectorize -fvisibility-inlines-hidden" CACHE STRING "Flags used by the compiler during all build types." FORCE)
-        ELSE(EXISTS /Developer/SDKs/10.5.sdk)
+        ELSE()
             IF(EXISTS /Developer/SDKs/MacOSX10.4u.sdk)
                 SET(CMAKE_OSX_ARCHITECTURES "ppc;i386" CACHE STRING "Build architectures for OSX" FORCE)
                 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.4 -ftree-vectorize -fvisibility-inlines-hidden" CACHE STRING "Flags used by the compiler during all build types." FORCE)
@@ -283,20 +287,20 @@ IF(APPLE)
                 # No Universal Binary support
                 # Should break down further to set the -mmacosx-version-min,
                 # but the SDK detection is too unreliable here.
-            ENDIF(EXISTS /Developer/SDKs/MacOSX10.4u.sdk)
-        ENDIF(EXISTS /Developer/SDKs/10.5.sdk)
-    ENDIF(NOT VPB_CONFIG_HAS_BEEN_RUN_BEFORE)
+            ENDIF()
+        ENDIF()
+    ENDIF()
 
     OPTION(VPB_BUILD_APPLICATION_BUNDLES "Enable the building of applications and examples as OSX Bundles" OFF)
 
-ENDIF(APPLE)
+ENDIF()
 
 
 # This needs to be run very last so other parts of the scripts can take
 # advantage of this.
 IF(NOT VPB_CONFIG_HAS_BEEN_RUN_BEFORE)
     SET(VPB_CONFIG_HAS_BEEN_RUN_BEFORE 1 CACHE INTERNAL "Flag to track whether this is the first time running CMake or if CMake has been configured before")
-ENDIF(NOT VPB_CONFIG_HAS_BEEN_RUN_BEFORE)
+ENDIF()
 
 
 #-----------------------------------------------------------------------------
