@@ -169,6 +169,11 @@ class VPB_EXPORT BuildOptions : public osg::Object
             RGBA,
             RGB_16,
             RGBA_16,
+            RGB_S3TC_DXT1,
+            RGBA_S3TC_DXT1,
+            RGBA_S3TC_DXT3,
+            RGBA_S3TC_DXT5,
+            ARB_COMPRESSED,
             COMPRESSED_TEXTURE,
             COMPRESSED_RGBA_TEXTURE
         };

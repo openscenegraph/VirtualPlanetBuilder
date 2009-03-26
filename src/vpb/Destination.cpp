@@ -1223,17 +1223,28 @@ osg::StateSet* DestinationTile::createStateSet()
         int minumCompressedTextureSize = 64;
         int minumDXT3CompressedTextureSize = 256;
         
-        if (compressedImageSupported && 
-            image->s()>=minumCompressedTextureSize && image->t()>=minumCompressedTextureSize &&
-            (_dataSet->getTextureType()==DataSet::COMPRESSED_TEXTURE || _dataSet->getTextureType()==DataSet::COMPRESSED_RGBA_TEXTURE) &&
-            (image->getPixelFormat()==GL_RGB || image->getPixelFormat()==GL_RGBA))
+        osg::Texture::InternalFormatMode internalFormatMode = osg::Texture::USE_IMAGE_DATA_FORMAT;
+        switch(_dataSet->getTextureType())
+        {
+            case(BuildOptions::RGB_S3TC_DXT1): internalFormatMode = osg::Texture::USE_S3TC_DXT1_COMPRESSION; break;
+            case(BuildOptions::RGBA_S3TC_DXT1): internalFormatMode = osg::Texture::USE_S3TC_DXT1_COMPRESSION; break;
+            case(BuildOptions::RGBA_S3TC_DXT3): internalFormatMode = osg::Texture::USE_S3TC_DXT3_COMPRESSION; break;
+            case(BuildOptions::RGBA_S3TC_DXT5): internalFormatMode = osg::Texture::USE_S3TC_DXT5_COMPRESSION; break;
+            case(BuildOptions::ARB_COMPRESSED): internalFormatMode = osg::Texture::USE_ARB_COMPRESSION; break;
+            case(BuildOptions::COMPRESSED_TEXTURE): internalFormatMode = osg::Texture::USE_S3TC_DXT3_COMPRESSION; break;
+            case(BuildOptions::COMPRESSED_RGBA_TEXTURE): internalFormatMode = osg::Texture::USE_S3TC_DXT1_COMPRESSION; break;
+            default: break;
+        }
+        
+        bool compressedImageRequired = (internalFormatMode != osg::Texture::USE_IMAGE_DATA_FORMAT);
+        //  image->s()>=minumCompressedTextureSize && image->t()>=minumCompressedTextureSize &&
+
+        if (compressedImageSupported && compressedImageRequired &&
+           (image->getPixelFormat()==GL_RGB || image->getPixelFormat()==GL_RGBA))
         {
             log(osg::NOTICE,"Compressed image");
         
-            if (image->s()>=minumDXT3CompressedTextureSize && image->t()>=minumDXT3CompressedTextureSize)
-                texture->setInternalFormatMode(osg::Texture::USE_S3TC_DXT3_COMPRESSION);
-            else
-                texture->setInternalFormatMode(osg::Texture::USE_S3TC_DXT5_COMPRESSION);
+            texture->setInternalFormatMode(internalFormatMode);
 
             // force the mip mapping off temporay if we intend the graphics hardware to do the mipmapping.
             if (_dataSet->getMipMappingMode()==DataSet::MIP_MAPPING_HARDWARE)

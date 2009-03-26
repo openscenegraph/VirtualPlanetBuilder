@@ -255,7 +255,20 @@ public:
         ADD_ENUM_PROPERTY_THREE_VALUES(GeometryType, HEIGHT_FIELD, POLYGONAL, TERRAIN)
         ADD_ENUM_PROPERTY_THREE_VALUES(MipMappingMode, NO_MIP_MAPPING, MIP_MAPPING_HARDWARE,MIP_MAPPING_IMAGERY)
 
-        { AEP(TextureType); AEV(RGB_24); AEV(RGBA);AEV(RGB_16);AEV(RGBA_16);AEV(COMPRESSED_TEXTURE);AEV(COMPRESSED_RGBA_TEXTURE); }
+        {
+            AEP(TextureType); 
+            AEV(RGB_24); 
+            AEV(RGBA);
+            AEV(RGB_16);
+            AEV(RGBA_16);
+            AEV(RGB_S3TC_DXT1);
+            AEV(RGBA_S3TC_DXT1);
+            AEV(RGBA_S3TC_DXT3);
+            AEV(RGBA_S3TC_DXT5);
+            AEV(ARB_COMPRESSED);
+            AEV(COMPRESSED_TEXTURE);
+            AEV(COMPRESSED_RGBA_TEXTURE);
+        }
 
         ADD_UINT_PROPERTY(MaximumTileImageSize);
         ADD_UINT_PROPERTY(MaximumTileTerrainSize);
