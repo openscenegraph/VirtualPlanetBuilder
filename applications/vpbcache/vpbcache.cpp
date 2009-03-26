@@ -15,6 +15,7 @@
 #include <vpb/BuildLog>
 #include <vpb/System>
 #include <vpb/FileUtils>
+#include <vpb/Version>
 
 #include <osg/Timer>
 #include <osgDB/ReadFile>
@@ -31,6 +32,7 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->setDescription(arguments.getApplicationName()+" application is utility tools which can be used to generate paged geospatial terrain databases.");
     arguments.getApplicationUsage()->setCommandLineUsage(arguments.getApplicationName()+" [options] filename ...");
     arguments.getApplicationUsage()->addCommandLineOption("-h or --help","Display this information");
+    arguments.getApplicationUsage()->addCommandLineOption("--version","Display version information");
     arguments.getApplicationUsage()->addCommandLineOption("--clean","Clear the contents of the file cache");
     arguments.getApplicationUsage()->addCommandLineOption("--cache","Specify cache file to use");
     arguments.getApplicationUsage()->addCommandLineOption("--reproject","Carry out reprojections required for specified build sources.");
@@ -46,6 +48,19 @@ int main(int argc, char** argv)
         arguments.getApplicationUsage()->write(std::cout,osg::ApplicationUsage::COMMAND_LINE_OPTION);
         return 1;
     }
+
+    if (arguments.read("--version"))
+    {
+        std::cout<<"VirtualPlanetBuilder/vpbcache version "<<vpbGetVersion()<<std::endl;
+        return 0;
+    }
+
+    if (arguments.read("--version-number"))
+    {
+        std::cout<<vpbGetVersion()<<std::endl;
+        return 0;
+    }
+
 
     // read any source input definitions
     osg::ref_ptr<osgTerrain::TerrainTile> terrain = new osgTerrain::TerrainTile;

@@ -33,6 +33,7 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->setDescription(arguments.getApplicationName()+" application is utility tools which can be used to generate paged geospatial terrain databases.");
     arguments.getApplicationUsage()->setCommandLineUsage(arguments.getApplicationName()+" [options] filename ...");
     arguments.getApplicationUsage()->addCommandLineOption("-h or --help","Display this information");
+    arguments.getApplicationUsage()->addCommandLineOption("--version","Display version information");
     arguments.getApplicationUsage()->addCommandLineOption("--cache <filename>","Read the cache file to use a look up for locally cached files.");
 
     vpb::Commandline commandline;

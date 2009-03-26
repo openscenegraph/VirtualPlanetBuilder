@@ -14,6 +14,7 @@
 #include <vpb/TaskManager>
 #include <vpb/System>
 #include <vpb/FileUtils>
+#include <vpb/Version>
 
 #include <osg/Timer>
 #include <osgDB/ReadFile>
@@ -46,8 +47,21 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->setApplicationName(arguments.getApplicationName());
     arguments.getApplicationUsage()->setDescription(arguments.getApplicationName()+" application is utility tools which can be used to generate paged geospatial terrain databases.");
     arguments.getApplicationUsage()->setCommandLineUsage(arguments.getApplicationName()+" [options] filename ...");
+    arguments.getApplicationUsage()->addCommandLineOption("--version","Display version information");
     arguments.getApplicationUsage()->addCommandLineOption("--cache <filename>","Read the cache file to use a look up for locally cached files.");
     arguments.getApplicationUsage()->addCommandLineOption("-h or --help","Display this information");
+
+    if (arguments.read("--version"))
+    {
+        std::cout<<"VirtualPlanetBuilder/vpbmaster version "<<vpbGetVersion()<<std::endl;
+        return 0;
+    }
+
+    if (arguments.read("--version-number"))
+    {
+        std::cout<<vpbGetVersion()<<std::endl;
+        return 0;
+    }
 
     std::string runPath;
     if (arguments.read("--run-path",runPath))
