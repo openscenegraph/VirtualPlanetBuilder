@@ -451,7 +451,11 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--LOD","Create a LOD'd database");     
     usage.addCommandLineOption("--PagedLOD","Create a PagedLOD'd database");     
     usage.addCommandLineOption("-v","Set the vertical multiplier");     
+    usage.addCommandLineOption("--quantize <bits>","Quantize imagery to reduce precision to specified number of bits.");     
     usage.addCommandLineOption("--compressed","Use OpenGL compression on RGB destination imagery");     
+    usage.addCommandLineOption("--compressed-dxt1","Use S3TC DXT1 compression on destination imagery");     
+    usage.addCommandLineOption("--compressed-dxt3","Use S3TC DXT3 compression on destination imagery");     
+    usage.addCommandLineOption("--compressed-dxt5","Use S3TC DXT5 compression on destination imagery");     
     usage.addCommandLineOption("--RGBA-compressed","Use OpenGL compression on RGBA destination imagery");     
     usage.addCommandLineOption("--RGB-16","Use 16bit RGB destination imagery");     
     usage.addCommandLineOption("--RGB-24","Use 24bit RGB destination imagery");     
@@ -652,7 +656,13 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         buildOptions->setDatabaseType(vpb::BuildOptions::PagedLOD_DATABASE);
     }
 
+    int bits;
+    while (arguments.read("--quantize", bits)) { buildOptions->setImageryQuantization(bits); }
+
     while (arguments.read("--compressed")) { buildOptions->setTextureType(vpb::BuildOptions::COMPRESSED_TEXTURE); }
+    while (arguments.read("--compressed-dxt1")) { buildOptions->setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT1); }
+    while (arguments.read("--compressed-dxt3")) { buildOptions->setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT3); }
+    while (arguments.read("--compressed-dxt5")) { buildOptions->setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT5); }
     while (arguments.read("--RGBA-compressed")) { buildOptions->setTextureType(vpb::BuildOptions::COMPRESSED_RGBA_TEXTURE); }
     while (arguments.read("--RGB_16") || arguments.read("--RGB-16") ) { buildOptions->setTextureType(vpb::BuildOptions::RGB_16); }
     while (arguments.read("--RGBA_16") || arguments.read("--RGBA-16") ) { buildOptions->setTextureType(vpb::BuildOptions::RGBA_16); }

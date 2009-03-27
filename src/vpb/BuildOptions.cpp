@@ -43,6 +43,7 @@ BuildOptions::BuildOptions():
     _intermediateBuildName = "";
     _logFileName = "";
     _taskFileName = "";
+    _imageryQuantization = 0;
     _maxAnisotropy = 1.0;
     _maximumNumOfLevels = 30;
     _maximumTileImageSize = 256;
@@ -125,6 +126,7 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _intermediateBuildName = rhs._intermediateBuildName;
     _logFileName = rhs._logFileName;
     _taskFileName = rhs._taskFileName;
+    _imageryQuantization = rhs._imageryQuantization;
     _maxAnisotropy = rhs._maxAnisotropy;
     _maximumNumOfLevels = rhs._maximumNumOfLevels;
     _maximumTileImageSize = rhs._maximumTileImageSize;

@@ -179,6 +179,9 @@ class VPB_EXPORT BuildOptions : public osg::Object
         };
         void setTextureType(TextureType type) { _textureType = type; }
         TextureType getTextureType() const { return _textureType; }
+                
+        void setImageryQuantization(unsigned int bits) { _imageryQuantization = bits; }
+        unsigned int getImageryQuantization() const { return _imageryQuantization; }
 
         void setMaxAnisotropy(float d) { _maxAnisotropy = d; }
         float getMaxAnisotropy() const { return _maxAnisotropy; }
@@ -326,6 +329,7 @@ class VPB_EXPORT BuildOptions : public osg::Object
         bool                                        _useLocalTileTransform;
         bool                                        _writeNodeBeforeSimplification;
         DatabaseType                                _databaseType;
+        unsigned int                                _imageryQuantization;
         float                                       _maxAnisotropy;
         float                                       _maximumVisiableDistanceOfTopLevel;
         float                                       _radiusToMaxVisibleDistanceRatio;

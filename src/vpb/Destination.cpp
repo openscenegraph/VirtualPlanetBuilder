@@ -21,6 +21,7 @@
 #include <osg/Geometry>
 #include <osg/MatrixTransform>
 #include <osg/Notify>
+#include <osg/ImageUtils>
 #include <osg/io_utils>
 
 #include <osgDB/ReadFile>
@@ -1147,6 +1148,26 @@ osg::Node* DestinationTile::createScene()
     return _createdScene.get();
 }
 
+struct QuantizeOperator
+{
+    QuantizeOperator(int bits):
+        _bits(bits)
+    {
+        _max = float((2 << (_bits-1))-1);
+    }
+
+    inline void quantize(float& v) const { v = floorf(v*_max+0.499999f) / _max; }
+
+    inline void luminance(float& l) const { quantize(l); } 
+    inline void alpha(float& a) const { quantize(a); } 
+    inline void luminance_alpha(float& l,float& a) const { quantize(l); quantize(a); } 
+    inline void rgb(float& r,float& g,float& b) const { quantize(r); quantize(g); quantize(b); }
+    inline void rgba(float& r,float& g,float& b,float& a) const { quantize(r); quantize(g); quantize(b); quantize(a); }
+    
+    int     _bits;
+    float   _max;
+};
+
 osg::StateSet* DestinationTile::createStateSet()
 {
     if (_stateset.valid()) return _stateset.get();
@@ -1219,6 +1240,14 @@ osg::StateSet* DestinationTile::createStateSet()
         bool inlineImageFile = _dataSet->getDestinationTileExtension()==".ive";
         bool compressedImageSupported = inlineImageFile || imageExtension=="dds";
         bool mipmapImageSupported = compressedImageSupported; // inlineImageFile;
+        
+        
+        if (_dataSet->getImageryQuantization()!=0 && _dataSet->getImageryQuantization()<8)
+        {
+            
+            log(osg::NOTICE,"Quantize image to %i bits",_dataSet->getImageryQuantization());
+            osg::modifyImage(image, QuantizeOperator(_dataSet->getImageryQuantization()));
+        }
         
         int minumCompressedTextureSize = 64;
         int minumDXT3CompressedTextureSize = 256;
