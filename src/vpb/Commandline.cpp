@@ -521,6 +521,8 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--remove-optional-set <setname>","Remove setname to the list of optional layers.");
     usage.addCommandLineOption("--formats","List the supported source imagery and DEM formats.");
     usage.addCommandLineOption("--layer-inheritance [Lowest/Nearest/No]","Set the layer inheritance.");
+    usage.addCommandLineOption("--pot ","Use power of two imagery when generating output tiles.");
+    usage.addCommandLineOption("--npot","Permit use of non power of two imagery when generating output tiles.");
 }
 
 int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::TerrainTile* terrainInput)
