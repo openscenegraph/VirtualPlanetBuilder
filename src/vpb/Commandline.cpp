@@ -451,7 +451,9 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--LOD","Create a LOD'd database");     
     usage.addCommandLineOption("--PagedLOD","Create a PagedLOD'd database");     
     usage.addCommandLineOption("-v","Set the vertical multiplier");     
-    usage.addCommandLineOption("--quantize <bits>","Quantize imagery to reduce precision to specified number of bits.");     
+    usage.addCommandLineOption("--quantize <bits>","Quantize imagery to reduce precision to specified number of bits.");
+    usage.addCommandLineOption("--enable-error-diffusion","Enable error diffusion during quantization.");
+    usage.addCommandLineOption("--disable-error-diffusion","Disable error diffusion during quantization.");
     usage.addCommandLineOption("--compressed","Use OpenGL compression on RGB destination imagery");     
     usage.addCommandLineOption("--compressed-dxt1","Use S3TC DXT1 compression on destination imagery");     
     usage.addCommandLineOption("--compressed-dxt3","Use S3TC DXT3 compression on destination imagery");     
@@ -660,6 +662,9 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
 
     int bits;
     while (arguments.read("--quantize", bits)) { buildOptions->setImageryQuantization(bits); }
+
+    while (arguments.read("--enable-error-diffusion")) { buildOptions->setImageryErrorDiffusion(true); }
+    while (arguments.read("--disable-error-diffusion")) { buildOptions->setImageryErrorDiffusion(false); }
 
     while (arguments.read("--compressed")) { buildOptions->setTextureType(vpb::BuildOptions::COMPRESSED_TEXTURE); }
     while (arguments.read("--compressed-dxt1")) { buildOptions->setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT1); }

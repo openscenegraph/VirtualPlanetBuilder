@@ -1150,22 +1150,67 @@ osg::Node* DestinationTile::createScene()
 
 struct QuantizeOperator
 {
-    QuantizeOperator(int bits):
-        _bits(bits)
+    QuantizeOperator(unsigned int rowSize, int bits, bool errorDiffusion):
+        _rowSize(rowSize),
+        _bits(bits),
+        _errorDiffusion(errorDiffusion),
+        _i(0)
     {
         _max = float((2 << (_bits-1))-1);
+        _currentRow.resize(rowSize);
+        _nextRow.resize(rowSize);
     }
 
-    inline void quantize(float& v) const { v = floorf(v*_max+0.499999f) / _max; }
+    typedef std::vector<osg::Vec4> Errors;
 
-    inline void luminance(float& l) const { quantize(l); } 
-    inline void alpha(float& a) const { quantize(a); } 
-    inline void luminance_alpha(float& l,float& a) const { quantize(l); quantize(a); } 
-    inline void rgb(float& r,float& g,float& b) const { quantize(r); quantize(g); quantize(b); }
-    inline void rgba(float& r,float& g,float& b,float& a) const { quantize(r); quantize(g); quantize(b); quantize(a); }
-    
-    int     _bits;
-    float   _max;
+    void quantize(float& v, int colour_index) const
+    {
+        if (_max<255.0)
+        {
+            //osg::notify(osg::NOTICE)<<"quantizing "<<max<<std::endl;
+
+            if (_errorDiffusion)
+            {
+                float new_v = v - _currentRow[_i][colour_index];
+                new_v = floorf(new_v*_max+0.499999f) / _max;
+                if (new_v<0.0f) new_v=0.0f;
+                if (new_v>1.0f) new_v=1.0f;
+
+                float new_error = (new_v-v);
+                v = new_v;
+
+                if (_i+1<_rowSize)
+                {
+                    _currentRow[_i+1][colour_index] += new_error*0.33;
+                    _nextRow[_i+1][colour_index] += new_error*0.16;
+                }
+                if (_i>0)
+                {
+                    _nextRow[_i-1][colour_index] += new_error*0.16;
+                }
+                _nextRow[_i][colour_index] += new_error*0.33;
+
+            }
+            else
+            {
+                v = floorf(v*_max+0.499999f) / _max;
+            }
+        }
+    }
+
+    inline void luminance(float& l) const { quantize(l,0); }
+    inline void alpha(float& a) const { quantize(a,3); }
+    inline void luminance_alpha(float& l,float& a) const { quantize(l,0); quantize(a,3); } 
+    inline void rgb(float& r,float& g,float& b) const { quantize(r,0); quantize(g,1); quantize(b,2); }
+    inline void rgba(float& r,float& g,float& b,float& a) const { quantize(r,0); quantize(g,1); quantize(b,2); quantize(a,3); }
+
+    int                         _bits;
+    bool                        _errorDiffusion;
+    float                       _max;
+    unsigned int                _rowSize;
+    mutable unsigned int        _i;
+    mutable Errors              _currentRow;
+    mutable Errors              _nextRow;
 };
 
 osg::StateSet* DestinationTile::createStateSet()
@@ -1246,7 +1291,7 @@ osg::StateSet* DestinationTile::createStateSet()
         {
             
             log(osg::NOTICE,"Quantize image to %i bits",_dataSet->getImageryQuantization());
-            osg::modifyImage(image, QuantizeOperator(_dataSet->getImageryQuantization()));
+            osg::modifyImage(image, QuantizeOperator(image->s(), _dataSet->getImageryQuantization(), _dataSet->getImageryErrorDiffusion()));
         }
         
         int minumCompressedTextureSize = 64;

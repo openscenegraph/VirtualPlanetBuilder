@@ -278,6 +278,7 @@ public:
         ADD_FLOAT_PROPERTY(VerticalScale);
         ADD_FLOAT_PROPERTY(SkirtRatio);
         ADD_UINT_PROPERTY(ImageryQuantization);
+        ADD_BOOL_PROPERTY(ImageryErrorDiffusion);
         ADD_FLOAT_PROPERTY(MaxAnisotropy);
         
         ADD_BOOL_PROPERTY(BuildOverlays);
