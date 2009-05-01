@@ -171,6 +171,7 @@ SET(OSG_DIR "" CACHE PATH "set to base osg install path")
 
 SET(CMAKE_DEBUG_POSTFIX  "d")
 
+FIND_PACKAGE(LibSquish)
 FIND_PACKAGE(OSG)
 FIND_PACKAGE(GDAL)
 # FIND_PACKAGE(ShapeLib)

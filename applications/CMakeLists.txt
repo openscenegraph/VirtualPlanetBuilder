@@ -24,3 +24,7 @@ ADD_SUBDIRECTORY(osgdem)
 ADD_SUBDIRECTORY(vpbcache)
 ADD_SUBDIRECTORY(vpbsizes)
 ADD_SUBDIRECTORY(vpbmaster)
+
+IF (LIBSQUISH_FOUND)
+    ADD_SUBDIRECTORY(vpbtexturecompression)
+ENDIF()
