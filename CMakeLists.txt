@@ -134,8 +134,6 @@ IF(UNIX)
     FIND_LIBRARY(MATH_LIBRARY m)
 ENDIF()
 
-FIND_PACKAGE(CURL)
-
 
 # Make the headers visible to everything
 INCLUDE_DIRECTORIES(
