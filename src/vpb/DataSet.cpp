@@ -179,7 +179,7 @@ bool DataSet::computeOptimumLevel(Source* source, int maxLevel, int& level)
 {
     if (source->getType()!=Source::IMAGE && source->getType()!=Source::HEIGHT_FIELD) return false;
 
-    if (maxLevel < source->getMinLevel()) return false;
+    if (maxLevel < static_cast<int>(source->getMinLevel())) return false;
 
     SourceData* sd = source->getSourceData();
     if (!sd) return false;
@@ -460,7 +460,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                 {
                     int i_lower, i_upper, j_lower, j_upper;
                 
-                    if (l<getSubtileLevel())
+                    if (l<static_cast<int>(getSubtileLevel()))
                     {
                         // divide by 2 to the power of ((getSubtileLevel()-l);
                         int delta = getSubtileLevel()-l; 
@@ -542,7 +542,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                         int i_lower, i_upper, j_lower, j_upper;
                         
 
-                        if (l<getSubtileLevel())
+                        if (l<static_cast<int>(getSubtileLevel()))
                         {
                             // divide by 2 to the power of ((getSubtileLevel()-new_l);
                             int delta = getSubtileLevel()-new_l; 
@@ -617,10 +617,6 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
             continue;
         }
 
-        double source_xRange = sp._extents.xMax()-sp._extents.xMin();
-        double source_yRange = sp._extents.yMax()-sp._extents.yMin();
-        
-        int level = 0;
         int k = 0;
         
         if (source->getType()==Source::IMAGE || source->getType()==Source::HEIGHT_FIELD)
@@ -648,7 +644,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                 {
                     int i_lower, i_upper, j_lower, j_upper;
                 
-                    if (l<getSubtileLevel())
+                    if (l<static_cast<int>(getSubtileLevel()))
                     {
                         // divide by 2 to the power of ((getSubtileLevel()-l);
                         int delta = getSubtileLevel()-l; 
@@ -1266,7 +1262,7 @@ void DataSet::reprojectSourcesAndGenerateOverviews()
         }
     }
 
-    osg::Timer_t after_sourceGraphsort = osg::Timer::instance()->tick();
+    // osg::Timer_t after_sourceGraphsort = osg::Timer::instance()->tick();
 }
 
 
@@ -2404,8 +2400,6 @@ bool DataSet::createTileMap(unsigned int level, TilePairMap& tilepairMap)
 {
     osg::CoordinateSystemNode* cs = _intermediateCoordinateSystem.get();
     const GeospatialExtents& extents = _destinationExtents;
-    unsigned int maxImageSize = _maximumTileImageSize;
-    unsigned int maxTerrainSize = _maximumTileTerrainSize;
     unsigned int maxNumLevels = getMaximumNumOfLevels();
                                   
     // first populate the destination graph from imagery and DEM sources extents/resolution
@@ -2444,7 +2438,7 @@ bool DataSet::createTileMap(unsigned int level, TilePairMap& tilepairMap)
         if (!computeOptimumLevel(source, maxNumLevels-1, k)) continue;
 
         // skip if the tiles won't contribute to the tasks with high level number.
-        if (k<=level) continue;
+        if (k<=static_cast<int>(level)) continue;
         
         int i_min, i_max, j_min, j_max;
         if (computeCoverage(sp._extents, level, i_min, j_min, i_max, j_max)) 
@@ -2457,7 +2451,7 @@ bool DataSet::createTileMap(unsigned int level, TilePairMap& tilepairMap)
                     TilePairMap::iterator itr = tilepairMap.find(tileID);
                     if (itr != tilepairMap.end())
                     {
-                        if (k > itr->second) itr->second = k;
+                        if (k > static_cast<int>(itr->second)) itr->second = k;
                     }
                     else
                     {
@@ -2504,7 +2498,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
 
 void DataSet::selectAppropriateSplitLevels()
 {
-    int maxLevel = computeMaximumLevel(getMaximumNumOfLevels());
+    unsigned int maxLevel = computeMaximumLevel(getMaximumNumOfLevels());
     log(osg::NOTICE,"Computed maximum source level = %i", maxLevel);
 
     if (getDistributedBuildSplitLevel()==0)
@@ -2738,9 +2732,9 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
 
     unsigned int totalNumOfTasksSansRoot = intermediateTileMap.size() + bottomTileMap.size(); 
     unsigned int taskCount = 0;
-    unsigned int numTasksPerDirectory = getMaxNumberOfFilesPerDirectory();
+    // unsigned int numTasksPerDirectory = getMaxNumberOfFilesPerDirectory();
 
-    bool tooManyTasksForOneDirectory = totalNumOfTasksSansRoot > numTasksPerDirectory;
+    // bool tooManyTasksForOneDirectory = totalNumOfTasksSansRoot > numTasksPerDirectory;
     
     log(osg::NOTICE,"totalNumOfTasksSansRoot = %d", totalNumOfTasksSansRoot);
 
@@ -2761,7 +2755,7 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
             unsigned int tileX = itr->first.first;
             unsigned int tileY = itr->first.second;
 
-            unsigned int taskSet = taskCount / numTasksPerDirectory;
+            // unsigned int taskSet = taskCount / numTasksPerDirectory;
 
             std::ostringstream taskfile;
             taskfile<<taskDirectory;
@@ -2809,7 +2803,7 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
             unsigned int tileX = itr->first.first;
             unsigned int tileY = itr->first.second;
 
-            unsigned int taskSet = taskCount / numTasksPerDirectory;
+            // unsigned int taskSet = taskCount / numTasksPerDirectory;
 
             std::ostringstream taskfile;
             taskfile<<taskDirectory;
@@ -2875,7 +2869,6 @@ int DataSet::run()
     
     if (!getWriteOptionsString().empty())
     {
-        osgDB::ReaderWriter::Options* options = osgDB::Registry::instance()->getOptions();
         if (osgDB::Registry::instance()->getOptions()==0) 
         {
             osgDB::Registry::instance()->setOptions(new osgDB::ReaderWriter::Options);

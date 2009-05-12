@@ -69,7 +69,7 @@ bool Date::setWithCurrentDate()
 
 bool Date::setWithDateString(const std::string& dateString)
 {
-    int result = sscanf(dateString.c_str(), "%d/%d/%d %d:%d:%d", &year, &month, &day, &hour, &minute, &second);
+    int result = sscanf(dateString.c_str(), "%u/%u/%u %u:%u:%u", &year, &month, &day, &hour, &minute, &second);
     return result == 6;
 }
 
@@ -77,6 +77,6 @@ bool Date::setWithDateString(const std::string& dateString)
 std::string Date::getDateString() const
 {
     char datestring[256];
-    sprintf(datestring, "%d/%d/%d %d:%d:%d", year, month, day, hour, minute, second);
+    sprintf(datestring, "%u/%u/%u %u:%u:%u", year, month, day, hour, minute, second);
     return std::string(datestring);
 }

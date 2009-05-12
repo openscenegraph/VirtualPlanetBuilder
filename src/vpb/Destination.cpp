@@ -1204,10 +1204,10 @@ struct QuantizeOperator
     inline void rgb(float& r,float& g,float& b) const { quantize(r,0); quantize(g,1); quantize(b,2); }
     inline void rgba(float& r,float& g,float& b,float& a) const { quantize(r,0); quantize(g,1); quantize(b,2); quantize(a,3); }
 
+    unsigned int                _rowSize;
     int                         _bits;
     bool                        _errorDiffusion;
     float                       _max;
-    unsigned int                _rowSize;
     mutable unsigned int        _i;
     mutable Errors              _currentRow;
     mutable Errors              _nextRow;
@@ -1294,8 +1294,8 @@ osg::StateSet* DestinationTile::createStateSet()
             osg::modifyImage(image, QuantizeOperator(image->s(), _dataSet->getImageryQuantization(), _dataSet->getImageryErrorDiffusion()));
         }
         
-        int minumCompressedTextureSize = 64;
-        int minumDXT3CompressedTextureSize = 256;
+        // int minumCompressedTextureSize = 64;
+        // int minumDXT3CompressedTextureSize = 256;
         
         osg::Texture::InternalFormatMode internalFormatMode = osg::Texture::USE_IMAGE_DATA_FORMAT;
         switch(_dataSet->getTextureType())

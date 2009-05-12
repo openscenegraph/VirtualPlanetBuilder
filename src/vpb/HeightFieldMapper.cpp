@@ -720,28 +720,31 @@ double HeightFieldMapper::getZfromXY(double x, double y) const
     
     double total_ratio = 0.0;
     double total_height = 0.0;
-    
-    if ((c>=0 && c<_hf.getNumColumns()) && (r>=0 && r<_hf.getNumRows())) 
+
+    int numColumns = static_cast<int>(_hf.getNumColumns());
+    int numRows = static_cast<int>(_hf.getNumRows());
+
+    if ((c>=0 && c<numColumns) && (r>=0 && r<numRows))
     {   double local_ratio = (1.0-rx)*(1.0-ry);
         total_ratio += local_ratio;
         total_height += _hf.getHeight(c,r)*local_ratio;
     }
     
-    if (((c+1)>=0 && (c+1)<_hf.getNumColumns()) && (r>=0 && r<_hf.getNumRows()))
+    if (((c+1)>=0 && (c+1)<numColumns) && (r>=0 && r<numRows))
     {  
         double local_ratio = rx*(1.0-ry);
         total_ratio += local_ratio;
         total_height += _hf.getHeight(c+1,r)*local_ratio;
     }
 
-    if ((c>=0 && c<_hf.getNumColumns()) && ((r+1)>=0 && (r+1)<_hf.getNumRows()))
+    if ((c>=0 && c<numColumns) && ((r+1)>=0 && (r+1)<numRows))
     {  
         double local_ratio = (1.0-rx)*ry;
         total_ratio += local_ratio;
         total_height += _hf.getHeight(c,r+1)*local_ratio;
     }
 
-    if (((c+1)>=0 && (c+1)<_hf.getNumColumns()) && ((r+1)>=0 && (r+1)<_hf.getNumRows()))
+    if (((c+1)>=0 && (c+1)<numColumns) && ((r+1)>=0 && (r+1)<numRows))
     {  
         double local_ratio = rx*ry;
         total_ratio += local_ratio;

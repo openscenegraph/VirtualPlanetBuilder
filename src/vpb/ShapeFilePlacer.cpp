@@ -431,7 +431,7 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
             bool useLocalToTileTransform = _dt._dataSet->getUseLocalTileTransform();
             double verticalScale = _dt._dataSet->getVerticalScale();
 
-            const osg::Matrixd& localToWorld = _dt._localToWorld;
+            // const osg::Matrixd& localToWorld = _dt._localToWorld;
             const osg::Matrixd& worldToLocal = _dt._worldToLocal;
             
             const osg::BoundingBox & bb = node.getBoundingBox();

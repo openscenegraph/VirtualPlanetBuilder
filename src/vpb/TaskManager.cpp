@@ -206,6 +206,8 @@ void TaskManager::buildWithoutSlaves()
 
             int result = dataset->run();
 
+            log(osg::NOTICE,"dataset->run() completed, return value %d",result);
+
             if (dataset->getBuildLog())
             {
                 dataset->getBuildLog()->report(std::cout);

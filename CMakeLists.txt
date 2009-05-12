@@ -240,6 +240,68 @@ SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} CACHE STRING "You may add additiona
 # This is unofficial so this may be removed or changed at anytime.
 SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} CACHE STRING "(EXPERIMENTAL) You may add additional search paths here. Use ; to separate multiple paths.")
 
+# This is for an advanced option to give aggressive warnings
+# under different compilers. If yours is not implemented, this option
+# will not be made available.
+IF(CMAKE_COMPILER_IS_GNUCXX)
+    # To be complete, we might also do GNUCC flags,
+    # but everything here is C++ code.
+    # -Wshadow and -Woverloaded-virtual are also interesting flags, but OSG
+    # returns too many hits.
+    # FYI, if we do implement GNUCC, then -Wmissing-prototypes in another
+    # interesting C-specific flag.
+    # Also, there is a bug in gcc 4.0. Under C++, -pedantic will create
+    # errors instead of warnings for certain issues, including superfluous
+    # semicolons and commas, and the use of long long. -fpermissive seems
+    # to be the workaround.
+    SET(OSG_AGGRESSIVE_WARNING_FLAGS -Wall -Wparentheses -Wno-long-long -Wno-import -pedantic -Wreturn-type -Wmissing-braces -Wunknown-pragmas -Wunused -fpermissive)
+
+    # Previous included -Wformat=2 in OSG_AGGRESSIVE_WARNING_FLAGS but had to remove it due to standard library errors
+
+
+ELSE()
+    IF(MSVC)
+        # FIXME: What are good aggressive warning flags for Visual Studio?
+        # And do we need to further subcase this for different versions of VS?
+        # CMake variables: MSVC60, MSVC70, MSVC71, MSVC80, CMAKE_COMPILER_2005
+        SET(OSG_AGGRESSIVE_WARNING_FLAGS /W4 /wd4706 /wd4127 /wd4100)
+
+
+    ELSE()
+        # CMake lacks an elseif, so other non-gcc, non-VS compilers need
+        # to be listed below. If unhandled, OSG_AGGRESSIVE_WARNING_FLAGS should
+        # remain unset.
+    ENDIF()
+ENDIF()
+
+# This part is for the CMake menu option to toggle the warnings on/off.
+# This will only be made available if we set values for OSG_AGGRESSIVE_WARNING_FLAGS.
+IF(OSG_AGGRESSIVE_WARNING_FLAGS)
+
+    IF (APPLE)
+        SET(DEFAULT_USE_AGGRESSIVE_WARNINGS OFF)
+    ELSE()
+        SET(DEFAULT_USE_AGGRESSIVE_WARNINGS ON)
+    ENDIF()
+
+    OPTION(OSG_USE_AGGRESSIVE_WARNINGS "Enable to activate aggressive warnings" ${DEFAULT_USE_AGGRESSIVE_WARNINGS})
+    MARK_AS_ADVANCED(OSG_USE_AGGRESSIVE_WARNINGS)
+
+    IF(OSG_USE_AGGRESSIVE_WARNINGS)
+        # Add flags defined by OSG_AGGRESSIVE_WARNING_FLAGS if they aren't already there
+        FOREACH(flag ${OSG_AGGRESSIVE_WARNING_FLAGS})
+            IF(NOT CMAKE_CXX_FLAGS MATCHES "${flag}")
+                SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+            ENDIF()
+        ENDFOREACH()
+    ELSE()
+        # Remove all flags considered aggresive
+        FOREACH(flag ${OSG_AGGRESSIVE_WARNING_FLAGS})
+            STRING(REGEX REPLACE "${flag}" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+        ENDFOREACH()
+    ENDIF()
+ENDIF()
+
 # Dynamic vs Static Linking
 OPTION(DYNAMIC_VIRTUALPLANETBUILDER "Set to ON to build VIRTUALPLANETBUILDER for dynamic linking.  Use OFF for static." ON)
 IF   (DYNAMIC_VIRTUALPLANETBUILDER)

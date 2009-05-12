@@ -323,6 +323,8 @@ SourceData* SourceData::readData(Source* source)
             
         }
         break;
+    case(Source::SHAPEFILE):
+        break;
     }
     
     return 0;

@@ -316,14 +316,12 @@ bool PropertyFile::write()
         return false;
     }
 
-    int status = 0;
-    
     FileProxy file(_fileName);
     
 #if 0
     file.lseek(0, SEEK_SET);
 
-    status = file.lockf(F_LOCK, 0);
+    int status = file.lockf(F_LOCK, 0);
     if (status!=0)
     {
         perror("write: file lock error");

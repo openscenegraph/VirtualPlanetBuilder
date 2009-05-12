@@ -200,10 +200,10 @@ struct CopyPixelsOperator
     inline void rgba(float& r,float& g,float& b,float& a) { colour(r,g,b,a); }
 
     squish::u8*         _data;
+    unsigned int        _rowSize;
     int                 _bits;
     bool                _errorDiffusion;
     float               _max;
-    unsigned int        _rowSize;
     unsigned int        _i;
     Errors              _currentRow;
     Errors              _nextRow;

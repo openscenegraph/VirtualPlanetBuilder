@@ -84,7 +84,7 @@ System::System()
     GDALDriverManager* driverManager = GetGDALDriverManager();
     if (driverManager)
     {
-        for(unsigned int i=0; i<driverManager->GetDriverCount(); ++i)
+        for(int i=0; i<driverManager->GetDriverCount(); ++i)
         {
             GDALDriver* driver =  driverManager->GetDriver(i);
             if (driver)

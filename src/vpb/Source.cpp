@@ -691,7 +691,7 @@ public:
         unsigned int nCount = geometry->getVertexArray()->getNumElements();
 
         // if no data to work with return;
-        if (!vec3darray && !vec3farray || nCount==0) return true;
+        if ((!vec3darray && !vec3farray) || nCount==0) return true;
 
         double* xArray = new double[nCount];
         double* yArray = new double[nCount];

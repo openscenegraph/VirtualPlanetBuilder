@@ -62,7 +62,7 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         void setRunPath(const std::string& runPath);
         const std::string& getRunPath() const { return _runPath; }
         
-        void setBuildName(const std::string& runPath) { _buildName; }
+        void setBuildName(const std::string& buildName) { _buildName = buildName; }
         const std::string& getBuildName() const { return _buildName; }
         
         void setSourceFileName(const std::string& sourceFileName) { _sourceFileName = sourceFileName; }

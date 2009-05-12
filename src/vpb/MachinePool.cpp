@@ -134,8 +134,8 @@ Machine::Machine(const Machine& m, const osg::CopyOp& copyop):
 
 Machine::Machine(const std::string& hostname,const std::string& cacheDirectory, const std::string& commandPrefix, const std::string& commandPostfix, int numThreads):
     _machinePool(0),
-    _cacheDirectory(cacheDirectory),
     _hostname(hostname),
+    _cacheDirectory(cacheDirectory),
     _commandPrefix(commandPrefix),
     _commandPostfix(commandPostfix)
 {
@@ -420,8 +420,8 @@ void Machine::setDone(bool done)
 //
 
 MachinePool::MachinePool():
-    _taskFailureOperation(IGNORE_FAILED_TASK),
-    _done(false)
+    _done(false),
+    _taskFailureOperation(IGNORE_FAILED_TASK)
 {
     //_taskFailureOperation = IGNORE_FAILED_TASK;
     _taskFailureOperation = BLACKLIST_MACHINE_AND_RESUBMIT_TASK;

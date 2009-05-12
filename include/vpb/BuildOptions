@@ -147,7 +147,7 @@ class VPB_EXPORT BuildOptions : public osg::Object
         enum DatabaseType
         {
             LOD_DATABASE,
-            PagedLOD_DATABASE,
+            PagedLOD_DATABASE
         };
         
         void setDatabaseType(DatabaseType type) { _databaseType = type; }

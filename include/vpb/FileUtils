@@ -83,6 +83,6 @@ extern VPB_EXPORT bool hasWritePermission(const std::string& filename);
 
 extern VPB_EXPORT std::string simplifyFileName(const std::string& filename);
 
-};
+}
 
 #endif
