@@ -1415,7 +1415,7 @@ osg::StateSet* DestinationTile::createStateSet()
         {
             osg::StateAttribute* texture = 0;
             unsigned int noBlanks = 0;
-            for(int layerNum=0;
+            for(unsigned int layerNum=0;
                 layerNum<_dataSet->getNumOfTextureLevels();
                 ++layerNum)
             {
@@ -1769,7 +1769,7 @@ osg::Node* DestinationTile::createTerrainTile()
         {
             osgTerrain::Layer* layer = 0;
             unsigned int noBlanks = 0;
-            for(int layerNum=0;
+            for(unsigned int layerNum=0;
                 layerNum<_dataSet->getNumOfTextureLevels();
                 ++layerNum)
             {

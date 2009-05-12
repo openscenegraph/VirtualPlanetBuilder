@@ -83,7 +83,7 @@ int vpb::mkpath(const char *path, int mode)
     typedef std::list<std::string> Directories;
     Directories directories;
     int pos_start = 0;
-    for(int pos_current = 0; pos_current<fullpath.size(); ++pos_current)
+    for(std::string::size_type pos_current = 0; pos_current<fullpath.size(); ++pos_current)
     {
         if (fullpath[pos_current]=='\\' || fullpath[pos_current]=='/')
         {
@@ -152,7 +152,7 @@ std::string vpb::simplifyFileName(const std::string& filename)
     typedef std::list<std::string> Directories;
     Directories directories;
     int pos_start = 0;
-    for(int pos_current = 0; pos_current<filename.size(); ++pos_current)
+    for(std::string::size_type pos_current = 0; pos_current<filename.size(); ++pos_current)
     {
         if (filename[pos_current]=='\\' || filename[pos_current]=='/')
         {

@@ -668,7 +668,7 @@ bool HeightFieldMapper::map(osg::Geometry & geometry) const
         HeightFieldMapperArrayVisitor hfmv(*this);
         geometry.getVertexArray()->accept(hfmv);
         
-        return geometry.getVertexArray()->getNumElements();
+        return geometry.getVertexArray()->getNumElements() != 0;
     }
     
     if (_mappingMode == PER_GEOMETRY)
