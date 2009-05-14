@@ -462,7 +462,7 @@ bool System::openFileToCheckThatItSupported(const std::string& filename, int acc
     
         GDALClose(dataset);
         
-        return acceptedTypeMask & fileTypeMask;
+        return (acceptedTypeMask & fileTypeMask)!=0;
     }
 
     _unsupportedExtensions.insert(ext);
