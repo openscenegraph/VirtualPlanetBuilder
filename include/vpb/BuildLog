@@ -142,7 +142,7 @@ class VPB_EXPORT BuildLog : public OperationLog
         
         META_Object(vpb, BuildLog)
 
-        /** Signal that a operation has be constructed and is awaited execution.*/
+        /** Signal that a operation has been constructed and is awaiting execution.*/
         void pendingOperation(BuildOperation* operation);
         
         /** Signal that a operation has started execution.*/
@@ -161,7 +161,7 @@ class VPB_EXPORT BuildLog : public OperationLog
         /** Report if all outstanding operations have been completed. */
         bool isComplete() const;
 
-        /** Waiting for all outstanding operations to be completed. */
+        /** Wait for all outstanding operations to be completed. */
         void waitForCompletion() const;
 
 

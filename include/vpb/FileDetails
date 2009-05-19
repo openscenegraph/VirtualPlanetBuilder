@@ -11,8 +11,8 @@
  * OpenSceneGraph Public License for more details.
 */
 
-#ifndef FILEDETAIS_H
-#define FILEDETAIS_H 1
+#ifndef FILEDETAILS_H
+#define FILEDETAILS_H 1
 
 #include <osgDB/FileUtils>
 

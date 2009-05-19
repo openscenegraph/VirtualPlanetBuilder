@@ -11,6 +11,9 @@
  * OpenSceneGraph Public License for more details.
 */
 
+#ifndef DATASET_H
+#define DATASET_H 1
+
 #ifdef WIN32
 
 /////////////////////////////////////////////////////////////////////////////
@@ -22,8 +25,6 @@
 
 #endif // WIN32
 
-#ifndef DATASET_H
-#define DATASET_H 1
 
 #include <osg/CoordinateSystemNode>
 

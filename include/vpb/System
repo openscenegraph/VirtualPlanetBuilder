@@ -117,10 +117,10 @@ class VPB_EXPORT System : public osg::Referenced
         {
             std::string ext = osgDB::getFileExtension(filename);
         
-            // check if file extension is in support list.
+            // check if file extension is in supported list.
             if (isExtensionSupported(ext, acceptedTypeMask)) return true;
             
-            // check if file extension is the unsupported list.
+            // check if file extension is in the unsupported list.
             if (_unsupportedExtensions.count(ext)!=0) return false;
             
             // 

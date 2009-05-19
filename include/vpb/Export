@@ -43,9 +43,9 @@
 
 The vpb is a utility library that provides geospecifc terrain database generation support. 
 The vpb library is typically invoked by the osgdem utlitly application that users can use to build paged terrain databases 
-from geospecific imagery and digial elevation maps (DEM's).  vpb may also be used directly in your own applications to generate
+from geospecific imagery and digial elevation maps (DEMs).  vpb may also be used directly in your own applications to generate
 databases.  Note, vpb is not presently written for run-time rendering of terrain, and is just focused on database
-generation, these generated databases then can used used in standard OpenSceneGraph application which do not need to link vpb..
+generation, these generated databases then can used used in standard OpenSceneGraph application which do not need to link to vpb.
 */
 
 #endif

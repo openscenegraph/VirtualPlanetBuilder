@@ -38,7 +38,7 @@ class VPB_EXPORT MachineOperation : public osg::Operation
 };
 
         
-// forward declare to allow MachinePool and TaskManager to allow them to be declared as friends
+// forward declare to allow MachinePool and TaskManager to be declared as friends
 class MachinePool;
 class TaskManager;
 

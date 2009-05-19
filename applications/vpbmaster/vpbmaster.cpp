@@ -70,14 +70,14 @@ int main(int argc, char** argv)
         taskManager->setRunPath(runPath);
     }
 
-    // if user request help write it out to cout.
+    // if user requests help write it out to cout.
     if (arguments.read("-h") || arguments.read("--help"))
     {
         arguments.getApplicationUsage()->write(std::cout,osg::ApplicationUsage::COMMAND_LINE_OPTION);
         return 1;
     }
     
-    // if user request list of supported formats write it out to cout.
+    // if user requests list of supported formats write it out to cout.
     if (arguments.read("--formats"))
     {
 
@@ -131,7 +131,7 @@ int main(int argc, char** argv)
     std::string tasksOutputFileName;
     while (arguments.read("--to",tasksOutputFileName));
 
-    // any option left unread are converted into errors to write out later.
+    // any options left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();
 
     // report any errors if they have occured when parsing the program aguments.
@@ -189,7 +189,7 @@ int main(int argc, char** argv)
                 }
                 else
                 {
-                    taskManager->log(osg::NOTICE,"Cannot run build without machines assigned, please pass in a machines definiation file via --machines <file>.");
+                    taskManager->log(osg::NOTICE,"Cannot run build without machines assigned, please pass in a machines definition file via --machines <file>.");
                 }
             }
         }

@@ -11,6 +11,10 @@
  * OpenSceneGraph Public License for more details.
 */
 
+
+#ifndef COMMANDLINE_H
+#define COMMANDLINE_H 1
+
 #include <osg/ArgumentParser>
 #include <osgTerrain/TerrainTile>
 
@@ -76,3 +80,5 @@ class VPB_EXPORT Commandline
 };
 
 }
+
+#endif

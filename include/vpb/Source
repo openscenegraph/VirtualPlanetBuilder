@@ -176,7 +176,7 @@ public:
     /** Do reprojection by selecting one from the cache that is already in the appropriate projection. */
     Source* doRasterReprojectionUsingFileCache(osg::CoordinateSystemNode* cs);
     
-    /** Do reprojection by 3D Object in situe - i.e change this Source directly. */
+    /** Do reprojection by 3D Object in-situ -- i.e change this Source directly. */
     bool do3DObjectReprojection(osg::CoordinateSystemNode* cs);
 
     void buildOverviews();

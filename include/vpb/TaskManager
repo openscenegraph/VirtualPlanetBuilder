@@ -68,10 +68,10 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         void setSourceFileName(const std::string& sourceFileName) { _sourceFileName = sourceFileName; }
         const std::string& getSourceFileName() const { return _sourceFileName; }
 
-        /** read the task list from file.*/
+        /** write the source list to file.*/
         bool writeSource(const std::string& filename);
 
-        /** read the task list from file.*/
+        /** read the source list from file.*/
         bool readSource(const std::string& filename);
         
         const std::string& getSourceFileName() { return _sourceFileName; }
@@ -79,7 +79,7 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         /** read the task list from file.*/
         bool readTasks(const std::string& filename);
 
-        /** read the task list from file.*/
+        /** write the task list to file.*/
         bool writeTasks(const std::string& filename, bool asFileNames);
         
         const std::string& getTasksFileName() { return _tasksFileName; }
@@ -127,10 +127,10 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         /** Send a signal to the all running tasks. */
         void handleSignal(int sig);
 
-        /** Send terminate single to all running tasks and set done flag to true to exit from run loop.*/
+        /** Send terminate signal to all running tasks and set done flag to true to exit from run loop.*/
         void exit(int sig);
         
-        /** Run though all attacked tasks and check the completed tasks to see their sources are more up to
+        /** Run though all attached tasks and check the completed tasks to see if their sources are more up to
           * date than the build data of that task, if so change its status from completed to pending.*/
         void setOutOfDateTasksToPending();
 

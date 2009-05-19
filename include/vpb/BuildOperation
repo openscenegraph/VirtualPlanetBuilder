@@ -35,7 +35,7 @@ class VPB_EXPORT BuildOperation : public osg::Operation
     
         BuildOperation(ThreadPool* threadPool, BuildLog* buildLog, const std::string& name, bool keep);
         
-        /** Set the OperationLog to use store log messages.*/    
+        /** Set the OperationLog used to store log messages.*/    
         void setOperationLog(OperationLog* log) { _log = log; }
 
         /** Get the OperationLog used to store log messages.*/    
@@ -44,7 +44,7 @@ class VPB_EXPORT BuildOperation : public osg::Operation
         /** Get the const OperationLog used to store log messages.*/    
         const OperationLog* getOperationLog() const { return _log.get(); }
 
-        /** Use a TemplateMethod designed pattern - the OperationThread calls this method, and this provides progress info.*/ 
+        /** Use a TemplateMethod design pattern - the OperationThread calls this method, and this provides progress info.*/ 
         virtual void operator () (osg::Object*);
 
         /** Virtual build method - this is the mehthod that must be overriden to provide the build method.*/

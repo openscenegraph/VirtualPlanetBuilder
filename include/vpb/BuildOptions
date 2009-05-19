@@ -45,7 +45,7 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setBuildOptions(const BuildOptions& rhs);
 
 
-        /** Set the Directory, DestinationTileBaseName and DestinationTileExtension from the passed in filename.*/
+        /** Set the Directory, DestinationTileBaseName and DestinationTileExtension from the passed-in filename.*/
         void setDestinationName(const std::string& filename);
 
         void setDirectory(const std::string& directory);

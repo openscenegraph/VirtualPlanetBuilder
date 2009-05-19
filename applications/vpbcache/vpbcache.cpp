@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 
     vpb::Commandline commandline;
 
-    // if user request help write it out to cout.
+    // if user requests help write it out to cout.
     if (arguments.read("-h") || arguments.read("--help"))
     {
         arguments.getApplicationUsage()->write(std::cout,osg::ApplicationUsage::COMMAND_LINE_OPTION);
@@ -152,7 +152,7 @@ int main(int argc, char** argv)
     // make sure the OS writes changes to disk
     vpb::sync();
 
-    // any option left unread are converted into errors to write out later.
+    // any options left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();
 
     // report any errors if they have occured when parsing the program aguments.

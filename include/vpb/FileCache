@@ -46,13 +46,13 @@ class VPB_EXPORT FileCache : public osg::Object
         /** Read file cache from file.*/
         bool read(const std::string& filename);
         
-        /** Read file cache from file if it exists, otherwsie just set the filename for future use.*/
+        /** Read file cache from file if it exists, otherwise just set the filename for future use.*/
         bool open(const std::string& filename);
         
         /** Write file cache to file.*/
         bool write(const std::string& filename);
         
-        /** if the FileCache in memory has been modified since last read/writer then call write.*/
+        /** if the FileCache in memory has been modified since last read/write then call write.*/
         bool sync() { if (_requiresWrite) return write(_filename); else return false; }
 
         typedef std::list< osg::ref_ptr<FileDetails> > Variants;
@@ -84,7 +84,7 @@ class VPB_EXPORT FileCache : public osg::Object
         /** copy files from the master to the specified machine's cache directory.*/
         void mirror(Machine* machine, osgTerrain::TerrainTile* source);
         
-        /** copy and individual file to specificed machines local cache.*/
+        /** copy an individual file to specificed machine's local cache.*/
         bool copyFileToMachine(FileDetails* fd, Machine* machine);
 
         /** List the contents of the FileCache.*/

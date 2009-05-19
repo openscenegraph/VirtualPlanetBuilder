@@ -38,6 +38,8 @@ extern std::string coordinateSystemStringToWTK(const std::string& coordinateSyst
 extern double getLinearUnits(const osg::CoordinateSystemNode* lhs);
 extern bool areCoordinateSystemEquivalent(const osg::CoordinateSystemNode* lhs,const osg::CoordinateSystemNode* rhs);
 
+/** GeospatialExtents contains xmin/max and ymin/max for a spatial boundary.
+*/
 class GeospatialExtents
 {
 public:
@@ -56,6 +58,9 @@ public:
         _max(rhs._max),
         _isGeographic(rhs._isGeographic) {}
 
+  /** Initialize GeospatialExtents from doubles and Geographic indicator.
+    * Order of xmin vs xmax and ymin vs ymax are significant.
+  */
     inline GeospatialExtents(double xmin, double ymin, double xmax, double ymax, bool isGeographic) :
         _min(xmin, ymin),
         _max(xmax, ymax),
@@ -265,13 +270,13 @@ struct VPB_EXPORT SpatialProperties
     void computeExtents();
     
     
-    /** return true if the two SpatialProperties objects have equvilant coordinate systems.*/
-    bool equvilantCoordinateSystem(const SpatialProperties& sp) const;
+    /** return true if the two SpatialProperties objects have equivalent coordinate systems.*/
+    bool equivalentCoordinateSystem(const SpatialProperties& sp) const;
     
     /** return true if the two SpatialProperties objects intersect one another.*/
     bool intersects(const SpatialProperties& sp) const;
     
-    /** return true if the two SpatialProperties objects intersect one another.*/
+    /** return true if the two SpatialProperties objects are equivalent.*/
     bool compatible(const SpatialProperties& sp) const;
     
     /** compute the resolution ratio between two SpatialProperties.  

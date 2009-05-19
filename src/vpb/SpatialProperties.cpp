@@ -168,7 +168,7 @@ void SpatialProperties::computeExtents()
     log(osg::INFO,"DataSet::SpatialProperties::computeExtents() is geographic %d",_extents._isGeographic);
 }
 
-bool SpatialProperties::equvilantCoordinateSystem(const SpatialProperties& sp) const
+bool SpatialProperties::equivalentCoordinateSystem(const SpatialProperties& sp) const
 {
     return areCoordinateSystemEquivalent(_cs.get(), sp._cs.get());
 }
@@ -188,10 +188,10 @@ bool SpatialProperties::intersects(const SpatialProperties& sp) const
 bool SpatialProperties::compatible(const SpatialProperties& sp) const
 {
 #if 0
-    osg::notify(osg::NOTICE)<<"  SpatialProperties::compatible(sp) : equvilantCoordinateSystem(sp)="<<equvilantCoordinateSystem(sp)<<std::endl;
+    osg::notify(osg::NOTICE)<<"  SpatialProperties::compatible(sp) : equivalentCoordinateSystem(sp)="<<equivalentCoordinateSystem(sp)<<std::endl;
     osg::notify(osg::NOTICE)<<"                                    : intersects(sp)="<<intersects(sp)<<std::endl;
 #endif
-    return equvilantCoordinateSystem(sp) && intersects(sp);
+    return equivalentCoordinateSystem(sp) && intersects(sp);
 }
 
 double SpatialProperties::computeResolutionRatio(const SpatialProperties& sp) const

@@ -59,14 +59,14 @@ int main(int argc, char** argv)
         vpb::chdir(runPath.c_str());
     }
 
-    // if user request help write it out to cout.
+    // if user requests help write it out to cout.
     if (arguments.read("-h") || arguments.read("--help"))
     {
         arguments.getApplicationUsage()->write(std::cout,osg::ApplicationUsage::COMMAND_LINE_OPTION);
         return 1;
     }
     
-    // if user request list of supported formats write it out to cout.
+    // if user requests list of supported formats write it out to cout.
     if (arguments.read("--formats"))
     {
 
@@ -194,12 +194,12 @@ int main(int argc, char** argv)
             if (node.valid())
             {
                 osg::notify(osg::NOTICE)<<std::endl;
-                osg::notify(osg::NOTICE)<<"Second attempt to load source file \""<<sourceName<<"\" has also succeded!"<<std::endl<<std::endl;
+                osg::notify(osg::NOTICE)<<"Second attempt to load source file \""<<sourceName<<"\" successful!"<<std::endl<<std::endl;
             }
             else
             {
                 osg::notify(osg::NOTICE)<<std::endl;
-                osg::notify(osg::NOTICE)<<"Second attempt to load source file \""<<sourceName<<"\" has also failed."<<std::endl<<std::endl;
+                osg::notify(osg::NOTICE)<<"Second attempt to load source file \""<<sourceName<<"\" also failed."<<std::endl<<std::endl;
             }
             
             osg::setNotifyLevel(osg::NOTICE);
@@ -220,7 +220,7 @@ int main(int argc, char** argv)
     if (result) return result;
 
 
-    // any option left unread are converted into errors to write out later.
+    // any options left unread are converted into errors to write out later.
     arguments.reportRemainingOptionsAsUnrecognized();
 
     // report any errors if they have occured when parsing the program aguments.
@@ -281,7 +281,7 @@ int main(int argc, char** argv)
             // make sure the OS writes changes to disk
             vpb::sync();
 
-            // check to make sure that the build itself is ready to run and confirgured correctly.            
+            // check to make sure that the build itself is ready to run and configured correctly.            
             std::string buildProblems = dataset->checkBuildValidity();
             if (buildProblems.empty())
             {
