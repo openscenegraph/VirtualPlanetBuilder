@@ -441,6 +441,9 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--levels <begin_level> <end_level>","Specify the range of lavels that the next source Texture or DEM will contribute to.");
     usage.addCommandLineOption("--layer <layer_num>","Specify the layer that the next source Texture will contribute to..");
     usage.addCommandLineOption("-e <x> <y> <w> <h>","Extents of the model to generate");
+    usage.addCommandLineOption("-ge <x> <y> <w> <h>","Geographic (Lat/Lon) Extents of the model to generate");
+    usage.addCommandLineOption("-b <xa> <ya> <xb> <yb>","Bounds (similar to extents) of the model to generate. Max/Min order is not important.");
+    usage.addCommandLineOption("-gb <xa> <ya> <xb> <yb>","Geographic Bounds (similar to extents) of the model to generate. Max/Min order is not important.");
     usage.addCommandLineOption("--cs <coordinates system string>","Set the coordinates system of source imagery, DEM or destination database. The string may be any of the usual GDAL/OGR forms, complete WKT, PROJ.4, EPS");     
     usage.addCommandLineOption("--wkt <WKT string>","Set the coordinates system of source imagery, DEM or destination database in WellKownText form.");     
     usage.addCommandLineOption("--wkt-file <WKT file>","Set the coordinates system of source imagery, DEM or destination database by as file containing WellKownText definition.");     
@@ -550,9 +553,38 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
 
 
     float x,y,w,h;
+    // extents in X, Y, W, H
     while (arguments.read("-e",x,y,w,h))
     {
-        buildOptions->setDestinationExtents(vpb::GeospatialExtents(x,y,x+w,y+h,false)); // FIXME - need to check whether we a geographic extents of not
+        buildOptions->setDestinationExtents(vpb::GeospatialExtents(x,y,x+w,y+h,false)); // Geographic extents handled with -ge below since we can't auto detect them reliably
+    }
+
+    // extents in X, Y, W, H (geographic)
+    while (arguments.read("-ge",x,y,w,h))
+    {
+        buildOptions->setDestinationExtents(vpb::GeospatialExtents(x,y,x+w,y+h,true)); // Geographic extents
+    }
+
+    float xmin,ymin,xmax,ymax;
+    // extents (bounds) in xmin, ymin, xmax, ymax
+    while (arguments.read("-b",xmin,ymin,xmax,ymax))
+    {
+        // Geographic bounds handled with -gb below since we can't auto detect them reliably
+        buildOptions->setDestinationExtents(
+            vpb::GeospatialExtents(std::min(xmin,xmax),
+                                   std::min(ymin,ymin),
+                                   std::max(xmin,xmax),
+                                   std::max(ymin,ymax),false)); // Sort max/min for user convenience
+    }
+
+    // extents (bounds) in xmin, ymin, xmax, ymax (geographic)
+    while (arguments.read("-gb",xmin,ymin,xmax,ymax))
+    {
+        buildOptions->setDestinationExtents(
+            vpb::GeospatialExtents( std::min(xmin,xmax),
+                                    std::min(ymin,ymin),
+                                    std::max(xmin,xmax),
+                                    std::max(ymin,ymax),true)); // Geographic bounds=true. Sort max/min for user convenience
     }
 
     bool flag;
