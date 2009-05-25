@@ -57,12 +57,6 @@ class VPB_EXPORT HeightFieldMapper
         // ** compute z value of HeightField for x y coordinates 
         double getZfromXY(double x, double y) const;
 
-        // ** compute z value of HeightField for x y coordinates 
-        double david_getZfromXY(double x, double y) const;
-        
-        // ** compute z value of HeightField for x y coordinates 
-        double robert_getZfromXY(double x, double y) const;
-
         // set/get mode to use
         void setMode(Mode mode) { _mappingMode = mode; }
         Mode getMode() { return _mappingMode; }
