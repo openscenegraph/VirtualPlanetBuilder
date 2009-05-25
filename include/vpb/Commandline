@@ -36,13 +36,20 @@ class VPB_EXPORT Commandline
 
         void computeGeoTransForRange(double xMin, double xMax, double yMin, double yMax);
 
-        void processFile(vpb::Source::Type type, const std::string& filename);
+        enum LayerOperation
+        {
+            ADD,
+            REMOVE,
+            MODIFIED
+        };
 
-        void processImageOrHeightField(vpb::Source::Type type, const std::string& filename);
-        void processShapeFile(vpb::Source::Type type, const std::string& filename);
-        void processModel(const std::string& filename);
+        void processFile(vpb::Source::Type type, const std::string& filename, LayerOperation layerOp);
 
-        void processDirectory(vpb::Source::Type type, const std::string& filename);
+        void processImageOrHeightField(vpb::Source::Type type, const std::string& filename, LayerOperation layerOp);
+        void processShapeFile(vpb::Source::Type type, const std::string& filename, LayerOperation layerOp);
+        void processModel(const std::string& filename, LayerOperation layerOp);
+
+        void processDirectory(vpb::Source::Type type, const std::string& filename, LayerOperation layerOp);
 
         void getUsage(osg::ApplicationUsage& usage);
             
@@ -62,6 +69,8 @@ class VPB_EXPORT Commandline
         osg::Matrixd                            geoTransform;
         bool                                    geoTransformSet;
         bool                                    geoTransformScale;
+
+        LayerOperation                          currentLayerOperation;
 
         bool minmaxLevelSet;
         unsigned int maximumPossibleLevel;

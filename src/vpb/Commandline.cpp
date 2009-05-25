@@ -64,7 +64,7 @@ void Commandline::reset()
     heightAttribute = -1.0; // negative signifies that no height has been defined.
     typeAttribute = ""; // empty signifies no type attribute has been defined.
     
-    
+    currentLayerOperation = ADD;
 }
 
 void Commandline::computeGeoTransForRange(double xMin, double xMax, double yMin, double yMax)
@@ -81,9 +81,17 @@ void Commandline::computeGeoTransForRange(double xMin, double xMax, double yMin,
 }
 
 
-void Commandline::processFile(vpb::Source::Type type, const std::string& filename)
+void Commandline::processFile(vpb::Source::Type type, const std::string& filename, LayerOperation layerOp)
 {
     if (filename.empty()) return;
+
+    switch(layerOp)
+    {
+        case(ADD): log(osg::NOTICE,"ADD: %s",filename.c_str()); break;
+        case(REMOVE): log(osg::NOTICE,"REMOVE: %s",filename.c_str()); break;
+        case(MODIFIED): log(osg::NOTICE,"MODIFIED: %s",filename.c_str()); break;
+    }
+
 
     if (osgDB::fileType(filename) == osgDB::REGULAR_FILE)
     {
@@ -95,23 +103,76 @@ void Commandline::processFile(vpb::Source::Type type, const std::string& filenam
 
         switch(type)
         {
-            case(vpb::Source::IMAGE):           processImageOrHeightField(type,filename); break;
-            case(vpb::Source::HEIGHT_FIELD):    processImageOrHeightField(type,filename); break;
-            case(vpb::Source::MODEL):           processModel(filename); break;
-            case(vpb::Source::SHAPEFILE):       processShapeFile(type, filename); break;
+            case(vpb::Source::IMAGE):           processImageOrHeightField(type, filename, layerOp); break;
+            case(vpb::Source::HEIGHT_FIELD):    processImageOrHeightField(type, filename, layerOp); break;
+            case(vpb::Source::MODEL):           processModel(filename, layerOp); break;
+            case(vpb::Source::SHAPEFILE):       processShapeFile(type, filename, layerOp); break;
         }
     }
     else
     {
-        processDirectory(type, filename);
+        processDirectory(type, filename, layerOp);
     }
 }
 
-void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::string& filename)
+void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::string& filename, LayerOperation layerOp)
 {
-
     osgTerrain::Layer* existingLayer = 0;
     osgTerrain::CompositeLayer* compositeLayer = 0;
+
+    if (layerOp==REMOVE)
+    {
+        if (type==vpb::Source::IMAGE)
+        {
+            existingLayer = (layerNum < terrainTile->getNumColorLayers()) ? terrainTile->getColorLayer(layerNum) : 0;
+            compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+            if (compositeLayer)
+            {
+                for(int i=static_cast<int>(compositeLayer->getNumLayers())-1; i>=0; --i)
+                {
+                    if (compositeLayer->getFileName(i)==filename) compositeLayer->removeLayer(i);
+                }
+                if (compositeLayer->getNumLayers()==0)
+                {
+                    terrainTile->setColorLayer(layerNum,0);
+                }
+            }
+            else if (existingLayer)
+            {
+                if (existingLayer->getFileName()==filename)
+                {
+                    // remove
+                    terrainTile->setColorLayer(layerNum,0);
+                }
+            }
+        }
+        else if (type==vpb::Source::HEIGHT_FIELD)
+        {
+            existingLayer = terrainTile->getElevationLayer();
+            compositeLayer = dynamic_cast<osgTerrain::CompositeLayer*>(existingLayer);
+            if (compositeLayer)
+            {
+                for(int i=static_cast<int>(compositeLayer->getNumLayers())-1; i>=0; --i)
+                {
+                    if (compositeLayer->getFileName(i)==filename) compositeLayer->removeLayer(i);
+                }
+                if (compositeLayer->getNumLayers()==0)
+                {
+                    terrainTile->setElevationLayer(0);
+                }
+            }
+            else if (existingLayer)
+            {
+                if (existingLayer->getFileName()==filename)
+                {
+                    // remove
+                    terrainTile->setElevationLayer(0);
+                }
+            }
+        }
+        return;
+    }
+
 
     if (type==vpb::Source::IMAGE)
     {
@@ -280,7 +341,7 @@ class ApplyUserDataToDrawables : public osg::NodeVisitor
         bool                                        _replace;      
 };
 
-void Commandline::processShapeFile(vpb::Source::Type type, const std::string& filename)
+void Commandline::processShapeFile(vpb::Source::Type type, const std::string& filename, LayerOperation layerOp)
 {
     osg::ref_ptr<osgDB::ReaderWriter::Options> options = new osgDB::ReaderWriter::Options;
     options->setOptionString("double");
@@ -366,7 +427,7 @@ void Commandline::processShapeFile(vpb::Source::Type type, const std::string& fi
     }
 }
 
-void Commandline::processModel(const std::string& filename)
+void Commandline::processModel(const std::string& filename, LayerOperation layerOp)
 {
     osg::ref_ptr<osg::Node> model = osgDB::readNodeFile(filename);
 
@@ -404,7 +465,7 @@ void Commandline::processModel(const std::string& filename)
     }
 }
 
-void Commandline::processDirectory(vpb::Source::Type type, const std::string& filename)
+void Commandline::processDirectory(vpb::Source::Type type, const std::string& filename, LayerOperation layerOp)
 {
     osgDB::DirectoryContents dirContents= osgDB::getDirectoryContents(filename);
 
@@ -416,7 +477,7 @@ void Commandline::processDirectory(vpb::Source::Type type, const std::string& fi
         if((*i != ".") && (*i != ".."))
         {
             fullfilename = filename + '/' + *i;
-            processFile(type, fullfilename);
+            processFile(type, fullfilename, layerOp);
         }
     }
 }
@@ -898,19 +959,30 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     while(arguments.read("--optional-set",optionalsetname)) { buildOptions->addOptionalLayerSet(optionalsetname); }
     while(arguments.read("--remove-optional-set",optionalsetname)) { buildOptions->removeOptionalLayerSet(optionalsetname); }
 
-
     int pos = 1;
     while(pos<arguments.argc())
     {
         std::string def;
 
-        if (arguments.read(pos, "--height",heightAttribute)) 
-        {            
+        if (arguments.read(pos, "--height",heightAttribute))
+        {
         }
-        else if (arguments.read(pos, "--type",typeAttribute)) 
-        {            
+        else if (arguments.read(pos, "--type",typeAttribute))
+        {
         }
-        else if (arguments.read(pos, "--mask",def)) 
+        else if (arguments.read(pos, "--add"))
+        {
+            currentLayerOperation = ADD;
+        }
+        else if (arguments.read(pos, "--remove"))
+        {
+            currentLayerOperation = REMOVE;
+        }
+        else if (arguments.read(pos, "--modified"))
+        {
+            currentLayerOperation = MODIFIED;
+        }
+        else if (arguments.read(pos, "--mask",def))
         {
             mask = readMask(def);
         }
@@ -1086,21 +1158,21 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         {
             fout<<"-d "<<filename<<std::endl;
 
-            processFile(vpb::Source::HEIGHT_FIELD, filename);
+            processFile(vpb::Source::HEIGHT_FIELD, filename, currentLayerOperation);
             reset();
         }
         else if (arguments.read(pos, "-t",filename))
         {
             fout<<"-t "<<filename<<std::endl;
 
-            processFile(vpb::Source::IMAGE, filename);
+            processFile(vpb::Source::IMAGE, filename, currentLayerOperation);
             reset();
         }
         else if (arguments.read(pos, "-m",filename))
         {
             fout<<"-m "<<filename<<std::endl;
 
-            processFile(vpb::Source::MODEL, filename);
+            processFile(vpb::Source::MODEL, filename, currentLayerOperation);
             reset();
         }
         else if (arguments.read(pos, "--buildings",filename) || arguments.read(pos, "--building",filename) || arguments.read(pos, "-b",filename))
@@ -1108,20 +1180,20 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
             fout<<"--buildings "<<filename<<std::endl;
 
             typeAttribute = "Building";
-            processFile(vpb::Source::SHAPEFILE, filename);
+            processFile(vpb::Source::SHAPEFILE, filename, currentLayerOperation);
             reset();
         }
         else if (arguments.read(pos, "--forest",filename) || arguments.read(pos, "-f",filename))
         {
             fout<<"--forest "<<filename<<std::endl;
             typeAttribute = "Forest";
-            processFile(vpb::Source::SHAPEFILE, filename);
+            processFile(vpb::Source::SHAPEFILE, filename, currentLayerOperation);
             reset();
         }
         else if (arguments.read(pos, "--sf",filename))
         {
             fout<<"--sf "<<filename<<std::endl;
-            processFile(vpb::Source::SHAPEFILE, filename);
+            processFile(vpb::Source::SHAPEFILE, filename, currentLayerOperation);
             reset();
         }
         else if (arguments.read(pos, "-o",filename)) 
