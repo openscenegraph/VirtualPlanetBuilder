@@ -14,6 +14,7 @@
 #include <vpb/TaskManager>
 #include <vpb/System>
 #include <vpb/FileUtils>
+#include <vpb/DatabaseBuilder>
 #include <vpb/Version>
 
 #include <osg/Timer>
@@ -63,102 +64,103 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    std::string runPath;
-    if (arguments.read("--run-path",runPath))
-    {
-        vpb::chdir(runPath.c_str());
-        taskManager->setRunPath(runPath);
-    }
-
     // if user requests help write it out to cout.
     if (arguments.read("-h") || arguments.read("--help"))
     {
         arguments.getApplicationUsage()->write(std::cout,osg::ApplicationUsage::COMMAND_LINE_OPTION);
         return 1;
     }
-    
-    // if user requests list of supported formats write it out to cout.
-    if (arguments.read("--formats"))
-    {
-
-        std::cout<<"Supported formats:"<<std::endl;
-        const vpb::System::SupportedExtensions& extensions = vpb::System::instance()->getSupportExtensions();
-        for(vpb::System::SupportedExtensions::const_iterator itr = extensions.begin();
-            itr != extensions.end();
-            ++itr)
-        {
-            std::cout<<"  "<<itr->first<<" :";
-            bool first = true;
-            if (itr->second.acceptedTypeMask & vpb::Source::IMAGE)
-            {
-                std::cout<<" imagery";
-                first = false;
-            }
-            if (itr->second.acceptedTypeMask & vpb::Source::HEIGHT_FIELD)
-            {
-                if (!first) std::cout<<",";
-                std::cout<<" dem";
-                first = false;
-            }
-
-            if (itr->second.acceptedTypeMask & vpb::Source::MODEL)
-            {
-                if (!first) std::cout<<",";
-                std::cout<<" model";
-                first = false;
-            }
-
-            if (itr->second.acceptedTypeMask & vpb::Source::SHAPEFILE)
-            {
-                if (!first) std::cout<<",";
-                std::cout<<" shapefile";
-                first = false;
-            }
-            std::cout<< " : "<<itr->second.description<<std::endl;
-        }
-        
-        return 1;
-    }
-
-
-    vpb::System::instance()->readArguments(arguments);
-
-    taskManager->read(arguments);
-
-    bool buildWithoutSlaves = false;
-    while (arguments.read("--build")) { buildWithoutSlaves=true; } 
-    
-    std::string tasksOutputFileName;
-    while (arguments.read("--to",tasksOutputFileName));
-
-    // any options left unread are converted into errors to write out later.
-    arguments.reportRemainingOptionsAsUnrecognized();
-
-    // report any errors if they have occured when parsing the program aguments.
-    if (arguments.errors())
-    {
-        arguments.writeErrorMessages(std::cout);
-        return 1;
-    }
-    
-    if (!tasksOutputFileName.empty())
-    {
-        std::string sourceFileName = taskManager->getBuildName() + std::string("_master.source");
-        taskManager->setSourceFileName(sourceFileName);
-        taskManager->generateTasksFromSource();
-
-        taskManager->writeSource(tasksOutputFileName);
-        taskManager->writeTasks(tasksOutputFileName, true);
-        return 1;
-    }
 
 
     int result = 0;    
     
-    std::string buildProblems = taskManager->checkBuildValidity();
-    if (buildProblems.empty())
+    try
     {
-        try 
+        std::string runPath;
+        if (arguments.read("--run-path",runPath))
+        {
+            vpb::chdir(runPath.c_str());
+            taskManager->setRunPath(runPath);
+        }
+
+
+        // if user requests list of supported formats write it out to cout.
+        if (arguments.read("--formats"))
+        {
+
+            std::cout<<"Supported formats:"<<std::endl;
+            const vpb::System::SupportedExtensions& extensions = vpb::System::instance()->getSupportExtensions();
+            for(vpb::System::SupportedExtensions::const_iterator itr = extensions.begin();
+                itr != extensions.end();
+                ++itr)
+            {
+                std::cout<<"  "<<itr->first<<" :";
+                bool first = true;
+                if (itr->second.acceptedTypeMask & vpb::Source::IMAGE)
+                {
+                    std::cout<<" imagery";
+                    first = false;
+                }
+                if (itr->second.acceptedTypeMask & vpb::Source::HEIGHT_FIELD)
+                {
+                    if (!first) std::cout<<",";
+                    std::cout<<" dem";
+                    first = false;
+                }
+
+                if (itr->second.acceptedTypeMask & vpb::Source::MODEL)
+                {
+                    if (!first) std::cout<<",";
+                    std::cout<<" model";
+                    first = false;
+                }
+
+                if (itr->second.acceptedTypeMask & vpb::Source::SHAPEFILE)
+                {
+                    if (!first) std::cout<<",";
+                    std::cout<<" shapefile";
+                    first = false;
+                }
+                std::cout<< " : "<<itr->second.description<<std::endl;
+            }
+
+            return 1;
+        }
+
+
+        vpb::System::instance()->readArguments(arguments);
+
+        taskManager->read(arguments);
+
+        bool buildWithoutSlaves = false;
+        while (arguments.read("--build")) { buildWithoutSlaves=true; }
+
+        std::string tasksOutputFileName;
+        while (arguments.read("--to",tasksOutputFileName));
+
+        // any options left unread are converted into errors to write out later.
+        arguments.reportRemainingOptionsAsUnrecognized();
+
+        // report any errors if they have occured when parsing the program aguments.
+        if (arguments.errors())
+        {
+            arguments.writeErrorMessages(std::cout);
+            return 1;
+        }
+
+        if (!tasksOutputFileName.empty())
+        {
+            std::string sourceFileName = taskManager->getBuildName() + std::string("_master.source");
+            taskManager->setSourceFileName(sourceFileName);
+            taskManager->generateTasksFromSource();
+
+            taskManager->writeSource(tasksOutputFileName);
+            taskManager->writeTasks(tasksOutputFileName, true);
+            return 1;
+        }
+
+        std::string buildProblems = taskManager->checkBuildValidity();
+        if (buildProblems.empty())
         {
             if (buildWithoutSlaves)
             {
@@ -178,6 +180,20 @@ int main(int argc, char** argv)
                     taskManager->writeTasks(tasksOutputFileName, true);
 
                     taskManager->log(osg::NOTICE,"Generated tasks file = %s",tasksOutputFileName.c_str());
+
+                    vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(taskManager->getSource()->getTerrainTechnique());
+                    vpb::BuildOptions* buildOptions = (db && db->getBuildOptions()) ? db->getBuildOptions() : 0;
+
+                    if (buildOptions)
+                    {
+                        std::stringstream sstr;
+                        sstr << buildOptions->getDirectory() <<buildOptions->getDestinationTileBaseName()<<buildOptions->getDestinationTileExtension()<<"."<<buildOptions->getRevisionNumber()<<".source";
+
+                        taskManager->writeSource(sstr.str());
+
+
+                        taskManager->log(osg::NOTICE,"Revsion source = %s",sstr.str().c_str());
+                    }
                 }
 
                 // make sure the OS writes changes to disk
@@ -193,28 +209,29 @@ int main(int argc, char** argv)
                 }
             }
         }
-        catch(std::string str)
+        else
         {
-            taskManager->log(osg::NOTICE,"Caught exception : %s",str.c_str());
+            taskManager->log(osg::NOTICE,"Build configuration invalid : %s",buildProblems.c_str());
             result = 1;
         }
-        catch(...)
-        {
-            taskManager->log(osg::NOTICE,"Caught exception.");
-            result = 1;
-        }
+
+        double duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
+        taskManager->log(osg::NOTICE,"Total elapsed time = %f",duration);
     }
-    else
+    catch(std::string str)
     {
-        taskManager->log(osg::NOTICE,"Build configuration invalid : %s",buildProblems.c_str());
+        taskManager->log(osg::NOTICE,"Caught exception : %s",str.c_str());
+        result = 1;
+    }
+    catch(...)
+    {
+        taskManager->log(osg::NOTICE,"Caught exception.");
         result = 1;
     }
 
-            
-    double duration = osg::Timer::instance()->delta_s(startTick, osg::Timer::instance()->tick());
+    // make sure the OS writes changes to disk
+    vpb::sync();
 
-    taskManager->log(osg::NOTICE,"Total elapsed time = %f",duration);
-    
     // make sure the OS writes changes to disk
     vpb::sync();
 

@@ -320,6 +320,9 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setOptionalLayerSet(const OptionalLayerSet& ols) { _optionalLayerSet = ols; }
         const OptionalLayerSet& getOptionalLayerSet() const { return _optionalLayerSet; }
 
+        void setRevisionNumber(unsigned int num) { _revisionNumber = num; }
+        unsigned int getRevisionNumber() const { return _revisionNumber; }
+
     protected:
 
         bool                                        _buildOverlays;
@@ -395,6 +398,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
         LayerOutputPolicy                           _optionalElevationLayerOutputPolicy;
         
         OptionalLayerSet                            _optionalLayerSet;
+
+        unsigned int                                _revisionNumber;
 };
 
 }

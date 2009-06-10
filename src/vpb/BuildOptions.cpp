@@ -84,6 +84,8 @@ BuildOptions::BuildOptions():
     _defaultElevationLayerOutputPolicy = INLINE;
     _optionalImageLayerOutputPolicy = EXTERNAL_SET_DIRECTORY;
     _optionalElevationLayerOutputPolicy = EXTERNAL_SET_DIRECTORY;
+
+    _revisionNumber = 0;
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop):
@@ -172,6 +174,8 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _optionalElevationLayerOutputPolicy = rhs._optionalElevationLayerOutputPolicy;
     
     _optionalLayerSet = rhs._optionalLayerSet;
+
+    _revisionNumber = rhs._revisionNumber;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)

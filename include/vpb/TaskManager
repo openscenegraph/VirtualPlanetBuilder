@@ -40,6 +40,9 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         void setSource(osgTerrain::TerrainTile* terrain);
         osgTerrain::TerrainTile* getSource();
 
+        void setPreviousSource(osgTerrain::TerrainTile* terrain);
+        osgTerrain::TerrainTile* getPreviousSource();
+
         /** start a new set of tasks.*/
         void nextTaskSet();
         
@@ -73,8 +76,13 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
 
         /** read the source list from file.*/
         bool readSource(const std::string& filename);
-        
+
         const std::string& getSourceFileName() { return _sourceFileName; }
+
+        /** read the previous source list from file.*/
+        bool readPreviousSource(const std::string& filename);
+
+
 
         /** read the task list from file.*/
         bool readTasks(const std::string& filename);
@@ -140,7 +148,9 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
     protected:
 
         virtual ~TaskManager();
-        
+
+        osgTerrain::TerrainTile* readSourceFile(const std::string& filename);
+
         Task* readTask(osgDB::Input& fr, bool& itrAdvanced);
         bool writeTask(osgDB::Output& fout, const Task* task, bool asFileNames) const;
         
@@ -154,6 +164,9 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         std::string                             _sourceFileName;
         osg::ref_ptr<osgTerrain::TerrainTile>   _terrainTile;
         
+        std::string                             _previousSourceFileName;
+        osg::ref_ptr<osgTerrain::TerrainTile>   _previousTerrainTile;
+
         std::string                         _tasksFileName;
         TaskSetList                         _taskSetList;
 

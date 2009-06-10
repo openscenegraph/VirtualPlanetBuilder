@@ -344,6 +344,7 @@ public:
                 &BuildOptions::getOptionalLayerSet,
                 &BuildOptions::setOptionalLayerSet));
 
+        ADD_UINT_PROPERTY(RevisionNumber);
     }
     
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)

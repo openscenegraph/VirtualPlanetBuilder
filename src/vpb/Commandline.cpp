@@ -959,6 +959,7 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     while(arguments.read("--optional-set",optionalsetname)) { buildOptions->addOptionalLayerSet(optionalsetname); }
     while(arguments.read("--remove-optional-set",optionalsetname)) { buildOptions->removeOptionalLayerSet(optionalsetname); }
 
+    unsigned int revisionNum = 0;
     int pos = 1;
     while(pos<arguments.argc())
     {
@@ -969,6 +970,10 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         }
         else if (arguments.read(pos, "--type",typeAttribute))
         {
+        }
+        else if (arguments.read(pos, "--revision", revisionNum))
+        {
+            buildOptions->setRevisionNumber(revisionNum);
         }
         else if (arguments.read(pos, "--add"))
         {

@@ -75,12 +75,161 @@ const MachinePool* TaskManager::getMachinePool() const
 
 int TaskManager::read(osg::ArgumentParser& arguments)
 {
+    std::string patchFile;
+    while (arguments.read("--patch",patchFile))
+    {
+        osg::notify(osg::NOTICE)<<"--patch "<<patchFile<<std::endl;
+
+        bool firstTimeBuild = false;
+        std::string originalSourceFile;
+        std::string path = osgDB::getFilePath(patchFile);
+        std::string extension = osgDB::getFileExtension(patchFile);
+        std::string filename = osgDB::getSimpleFileName(patchFile);
+        std::string basename = osgDB::getNameLessExtension(filename);
+        if (extension=="source")
+        {
+            originalSourceFile = patchFile;
+
+            filename = osgDB::getNameLessExtension(filename);
+            extension = osgDB::getFileExtension(filename);
+            bool checkSourceFileDirectly = true;
+
+            if (!extension.empty())
+            {
+                unsigned int i;
+                for(i=0; i<extension.size(); ++i)
+                {
+                    char c = extension[i];
+                    if (c<'0' || c>'9') break;
+                }
+
+                bool isNumeric = i==extension.size();
+                int revisionNum = -1;
+                if (isNumeric)
+                {
+                    revisionNum = atof(extension.c_str());
+                    filename = osgDB::getNameLessExtension(filename);
+                    extension = osgDB::getFileExtension(filename);
+                    basename = filename;
+                    checkSourceFileDirectly = false;
+                }
+            }
+
+            if (checkSourceFileDirectly)
+            {
+                osg::ref_ptr<osgTerrain::TerrainTile> terrainTile = readSourceFile(patchFile);
+                vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(terrainTile->getTerrainTechnique());
+                vpb::BuildOptions* bo = db ? db->getBuildOptions() : 0;
+                if (bo)
+                {
+                    path = bo->getDirectory();
+                    filename = bo->getDestinationTileBaseName();
+                    basename = filename;
+                    extension =  bo->getDestinationTileExtension();
+
+                    osg::notify(osg::NOTICE)<<"   path "<<path<<std::endl;
+                    osg::notify(osg::NOTICE)<<"   filename "<<filename<<std::endl;
+                    osg::notify(osg::NOTICE)<<"   extension "<<extension<<std::endl;
+
+                    std::string rootTile = path + basename + extension;
+
+                    // check to see if database has already been built.
+                    osgDB::FileType type = osgDB::fileType(rootTile);
+                    if (type!=osgDB::REGULAR_FILE)
+                    {
+                        firstTimeBuild = true;
+                    }
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+
+        typedef std::map<int, std::string> SourceMap;
+        SourceMap sourceMap;
+
+        osgDB::DirectoryContents directoryContents = osgDB::getDirectoryContents(path);
+        for(osgDB::DirectoryContents::iterator itr = directoryContents.begin();
+            itr != directoryContents.end();
+            ++itr)
+        {
+            std::string file = *itr;
+
+            if (file.size()>=basename.size() && file.compare(0, basename.size(), basename)==0)
+            {
+                if (osgDB::getFileExtension(file)=="source")
+                {
+                    std::string nameLessSourceExtension = osgDB::getNameLessExtension(file);
+                    std::string revisionExtension = osgDB::getFileExtension(nameLessSourceExtension);
+                    if (!revisionExtension.empty())
+                    {
+                        unsigned int i;
+                        for(i=0; i<revisionExtension.size(); ++i)
+                        {
+                            char c = revisionExtension[i];
+                            if (c<'0' || c>'9') break;
+                        }
+
+                        bool isNumeric = i==revisionExtension.size();
+                        int revisionNum = -1;
+                        if (isNumeric)
+                        {
+                            revisionNum = atof(revisionExtension.c_str());
+                            sourceMap[revisionNum] = file;
+                        }
+                        else
+                        {
+                            sourceMap[0] = file;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (sourceMap.empty())
+        {
+            if (!originalSourceFile.empty())
+            {
+                if (!readPreviousSource(originalSourceFile))
+                {
+                    throw std::string("Error: Unable to read source file ") + originalSourceFile;
+                }
+
+                vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_previousTerrainTile->getTerrainTechnique());
+                vpb::BuildOptions* bo = db ? db->getBuildOptions() : 0;
+                unsigned int lastRevisionNum = bo ? bo->getRevisionNumber() : 0;
+                unsigned int newRevisionNum = firstTimeBuild ? lastRevisionNum : lastRevisionNum+1;
+
+                readSource(originalSourceFile);
+
+                getBuildOptions()->setRevisionNumber(newRevisionNum);
+            }
+            else
+            {
+                throw std::string("Error: No source files found to base database patching on.");
+            }
+        }
+        else
+        {
+            int lastRevisionNum = sourceMap.rbegin()->first;
+            std::string previousSourceFile = osgDB::concatPaths(path, sourceMap.rbegin()->second);
+
+            int newRevisionNum = lastRevisionNum+1;
+
+            readPreviousSource(previousSourceFile);
+            readSource(previousSourceFile);
+
+            getBuildOptions()->setRevisionNumber(newRevisionNum);
+        }
+    }
+
     std::string logFileName;
     while (arguments.read("--master-log",logFileName))
     {
         setBuildLog(new BuildLog(logFileName));
     }
-
 
     std::string sourceName;
     while (arguments.read("-s",sourceName))
@@ -141,6 +290,16 @@ void TaskManager::setSource(osgTerrain::TerrainTile* terrainTile)
 osgTerrain::TerrainTile* TaskManager::getSource()
 {
     return _terrainTile.get();
+}
+
+void TaskManager::setPreviousSource(osgTerrain::TerrainTile* terrainTile)
+{
+    _previousTerrainTile = terrainTile;
+}
+
+osgTerrain::TerrainTile* TaskManager::getPreviousSource()
+{
+    return _previousTerrainTile.get();
 }
 
 void TaskManager::nextTaskSet()
@@ -454,7 +613,22 @@ bool TaskManager::writeSource(const std::string& filename)
     if (_terrainTile.valid())
     {
         _sourceFileName = filename;
-    
+
+
+        std::string path = osgDB::getFilePath(filename);
+        if (!path.empty())
+        {
+            osgDB::FileType type = osgDB::fileType(path);
+            if (type==osgDB::REGULAR_FILE)
+            {
+                throw std::string("Error: TaskManager::writeSource(")+filename+std::string("), path has already been assigned to a regular file.");
+            }
+            else if (type==osgDB::FILE_NOT_FOUND)
+            {
+                vpb::mkpath(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+            }
+        }
+
         osgDB::writeNodeFile(*_terrainTile, _sourceFileName);
 
         // make sure the OS writes the file to disk
@@ -468,31 +642,63 @@ bool TaskManager::writeSource(const std::string& filename)
     }
 }
 
-bool TaskManager::readSource(const std::string& filename)
+osgTerrain::TerrainTile* TaskManager::readSourceFile(const std::string& filename)
 {
     osg::ref_ptr<osg::Node> node = osgDB::readNodeFile(filename);
     if (node.valid())
     {
-        osgTerrain::TerrainTile* loaded_terrain = dynamic_cast<osgTerrain::TerrainTile*>(node.get());
-        if (loaded_terrain) 
+        osg::ref_ptr<osgTerrain::TerrainTile> loaded_terrain = dynamic_cast<osgTerrain::TerrainTile*>(node.get());
+
+        // make sure loaded_terrain is the only one with a reference so we can release it safely on return
+        node = 0;
+
+        if (loaded_terrain.valid())
         {
-            _sourceFileName = filename;
-            _terrainTile = loaded_terrain;
-            return true;
+            return loaded_terrain.release();
         }
         else
         {
             log(osg::WARN,"Error: source file \"%s\" not suitable terrain data.",filename.c_str());
-            return false;
         }
     }
     else
     {
         log(osg::WARN,"Error: unable to load source file \"%s\" not suitable terrain data.",filename.c_str());
+    }
+
+    return 0;
+}
+
+bool TaskManager::readSource(const std::string& filename)
+{
+    osgTerrain::TerrainTile* loaded_terrain = readSourceFile(filename);
+    if (loaded_terrain)
+    {
+        _sourceFileName = filename;
+        _terrainTile = loaded_terrain;
+        return true;
+    }
+    else
+    {
         return false;
     }
-    
 }
+
+bool TaskManager::readPreviousSource(const std::string& filename)
+{
+    osgTerrain::TerrainTile* loaded_terrain = readSourceFile(filename);
+    if (loaded_terrain)
+    {
+        _previousSourceFileName = filename;
+        _previousTerrainTile = loaded_terrain;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 
 void TaskManager::clearTaskSetList()
 {
