@@ -41,7 +41,10 @@ class VPB_EXPORT BuildOptions : public osg::Object
 
 
         BuildOptions& operator = (const BuildOptions& rhs);
-        
+
+        /** return true if the BuildOptions will lead to the same database structure and options being built.*/
+        bool compatible(BuildOptions& rhs) const;
+
         void setBuildOptions(const BuildOptions& rhs);
 
 
@@ -207,11 +210,11 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setDestinationCoordinateSystemFormat(const std::string& format) { _destinationCoordinateSystem->setFormat(format); }
         const std::string& getDestinationCoordinateSystemFormat() const { return _destinationCoordinateSystem->getFormat(); }
         
-        void setRadiusEquator(double radius) { getEllipsoidModel()->setRadiusEquator(radius); }
-        double getRadiusEquator() const { return getEllipsoidModel()->getRadiusEquator(); }
+        void setRadiusEquator(double radius) { osg::EllipsoidModel* em = getEllipsoidModel(); if (em) em->setRadiusEquator(radius); }
+        double getRadiusEquator() const { const osg::EllipsoidModel* em = getEllipsoidModel(); return em ? em->getRadiusEquator() : 0.0; }
 
-        void setRadiusPolar(double radius) { getEllipsoidModel()->setRadiusPolar(radius); }
-        double getRadiusPolar() const { return getEllipsoidModel()->getRadiusPolar(); }
+        void setRadiusPolar(double radius) { osg::EllipsoidModel* em = getEllipsoidModel(); if (em) em->setRadiusPolar(radius); }
+        double getRadiusPolar() const { const osg::EllipsoidModel* em = getEllipsoidModel(); return em ? em->getRadiusPolar() : 0.0;  }
 
         void setDestinationCoordinateSystemNode(osg::CoordinateSystemNode* cs);
         osg::CoordinateSystemNode* getDestinationCoordinateSystemNode() { return _destinationCoordinateSystem.get(); }

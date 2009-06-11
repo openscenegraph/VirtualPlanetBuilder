@@ -265,3 +265,82 @@ void BuildOptions::setNotifyLevel(const std::string& notifyLevel)
     else if (notifyLevel=="DEBUG_FP") setNotifyLevel(DEBUG_FP);
 }
 
+bool BuildOptions::compatible(BuildOptions& rhs) const
+{
+
+    if (_archiveName != rhs._archiveName) return false;
+    if (_buildOverlays != rhs._buildOverlays) return false;
+    if (_reprojectSources != rhs._reprojectSources) return false;
+    if (_generateTiles != rhs._generateTiles) return false;
+    if (_convertFromGeographicToGeocentric != rhs._convertFromGeographicToGeocentric) return false;
+    if (_databaseType != rhs._databaseType) return false;
+    if (_decorateWithCoordinateSystemNode != rhs._decorateWithCoordinateSystemNode) return false;
+    if (_decorateWithMultiTextureControl != rhs._decorateWithMultiTextureControl) return false;
+    if (_defaultColor != rhs._defaultColor) return false;
+    if (_useInterpolatedImagerySampling != rhs._useInterpolatedImagerySampling) return false;
+    if (_useInterpolatedTerrainSampling != rhs._useInterpolatedTerrainSampling) return false;
+    if (_destinationCoordinateSystemString != rhs._destinationCoordinateSystemString) return false;
+    if (_directory != rhs._directory) return false;
+    if (_outputTaskDirectories != rhs._outputTaskDirectories) return false;
+    if (_extents != rhs._extents) return false;
+    if (_geometryType != rhs._geometryType) return false;
+    if (_imageExtension != rhs._imageExtension) return false;
+    if (_powerOfTwoImages != rhs._powerOfTwoImages) return false;
+    if (_intermediateBuildName != rhs._intermediateBuildName) return false;
+    if (_logFileName != rhs._logFileName) return false;
+    if (_taskFileName != rhs._taskFileName) return false;
+    if (_imageryQuantization != rhs._imageryQuantization) return false;
+    if (_imageryErrorDiffusion != rhs._imageryErrorDiffusion) return false;
+    if (_maxAnisotropy != rhs._maxAnisotropy) return false;
+    if (_maximumNumOfLevels != rhs._maximumNumOfLevels) return false;
+    if (_maximumTileImageSize != rhs._maximumTileImageSize) return false;
+    if (_maximumTileTerrainSize != rhs._maximumTileTerrainSize) return false;
+    if (_maximumVisiableDistanceOfTopLevel != rhs._maximumVisiableDistanceOfTopLevel) return false;
+    if (_mipMappingMode != rhs._mipMappingMode) return false;
+    if (_radiusToMaxVisibleDistanceRatio != rhs._radiusToMaxVisibleDistanceRatio) return false;
+    if (_simplifyTerrain != rhs._simplifyTerrain) return false;
+    if (_skirtRatio != rhs._skirtRatio) return false;
+    if (_textureType != rhs._textureType) return false;
+    if (_tileBasename != rhs._tileBasename) return false;
+    if (_tileExtension != rhs._tileExtension) return false;
+    if (_useLocalTileTransform != rhs._useLocalTileTransform) return false;
+    if (_verticalScale != rhs._verticalScale) return false;
+    if (_writeNodeBeforeSimplification != rhs._writeNodeBeforeSimplification) return false;
+    if (_distributedBuildSplitLevel != rhs._distributedBuildSplitLevel) return false;
+    if (_distributedBuildSecondarySplitLevel != rhs._distributedBuildSecondarySplitLevel) return false;
+    if (_recordSubtileFileNamesOnLeafTile != rhs._recordSubtileFileNamesOnLeafTile) return false;
+    if (_generateSubtile != rhs._generateSubtile) return false;
+    if (_subtileLevel != rhs._subtileLevel) return false;
+    if (_subtileX != rhs._subtileX) return false;
+    if (_subtileY != rhs._subtileY) return false;
+
+    if (_disableWrites != rhs._disableWrites) return false;
+
+    if (_numReadThreadsToCoresRatio != rhs._numReadThreadsToCoresRatio) return false;
+    if (_numWriteThreadsToCoresRatio != rhs._numWriteThreadsToCoresRatio) return false;
+
+    if (_buildOptionsString != rhs._buildOptionsString) return false;
+    if (_writeOptionsString != rhs._writeOptionsString) return false;
+
+    if (_layerInheritance != rhs._layerInheritance) return false;
+
+    if (_abortTaskOnError != rhs._abortTaskOnError) return false;
+    if (_abortRunOnError != rhs._abortRunOnError) return false;
+
+    if (_defaultImageLayerOutputPolicy != rhs._defaultImageLayerOutputPolicy) return false;
+    if (_defaultElevationLayerOutputPolicy != rhs._defaultElevationLayerOutputPolicy) return false;
+    if (_optionalImageLayerOutputPolicy != rhs._optionalImageLayerOutputPolicy) return false;
+    if (_optionalElevationLayerOutputPolicy != rhs._optionalElevationLayerOutputPolicy) return false;
+
+    if (_optionalLayerSet != rhs._optionalLayerSet) return false;
+
+    if (getRadiusEquator() != rhs.getRadiusEquator()) return false;
+    if (getRadiusPolar() != rhs.getRadiusPolar()) return false;
+
+    // following properties don't require checking as they don't effect compatibility
+    // if (_comment != rhs._comment) return false;
+    // if (_notifyLevel != rhs._notifyLevel) return false;
+    // if (_revisionNumber != rhs._revisionNumber) return false;
+    // if (_destinationCoordinateSystem != rhs._destinationCoordinateSystem) return false;
+    return true;
+}

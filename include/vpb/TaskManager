@@ -151,6 +151,8 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
 
         osgTerrain::TerrainTile* readSourceFile(const std::string& filename);
 
+        void readPatchSetUp(const std::string& patchFile);
+
         Task* readTask(osgDB::Input& fr, bool& itrAdvanced);
         bool writeTask(osgDB::Output& fout, const Task* task, bool asFileNames) const;
         
