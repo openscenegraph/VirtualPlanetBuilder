@@ -153,6 +153,7 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
 
         void readPatchSetUp(const std::string& patchFile);
 
+
         Task* readTask(osgDB::Input& fr, bool& itrAdvanced);
         bool writeTask(osgDB::Output& fout, const Task* task, bool asFileNames) const;
         

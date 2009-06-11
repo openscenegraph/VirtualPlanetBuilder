@@ -34,6 +34,7 @@ using namespace vpb;
 
 Source::Source(Type type, osg::Node* model):
         _type(type),
+        _patchStatus(UNASSIGNED),
         _sortValue(0.0),
         _filename(model->getName()),
         _temporaryFile(false),

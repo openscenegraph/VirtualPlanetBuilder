@@ -110,6 +110,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         bool addModel(Source::Type type, osg::Node* node);
         bool addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum);
         bool addTerrain(osgTerrain::TerrainTile* terrain);
+        bool addPatchedTerrain(osgTerrain::TerrainTile* previous_terrain, osgTerrain::TerrainTile* new_terrain);
         
         osgTerrain::TerrainTile* createTerrainRepresentation();
         

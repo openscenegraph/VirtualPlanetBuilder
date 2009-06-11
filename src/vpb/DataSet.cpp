@@ -2178,6 +2178,14 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
     return false;
 }
 
+bool DataSet::addPatchedTerrain(osgTerrain::TerrainTile* previous_terrain, osgTerrain::TerrainTile* new_terrain)
+{
+    addTerrain(new_terrain);
+
+    log(osg::NOTICE,"Currently ignoring patch terrainTile %s",previous_terrain->getName().c_str());
+
+}
+
 bool DataSet::addTerrain(osgTerrain::TerrainTile* terrainTile)
 {
     log(osg::NOTICE,"Adding terrainTile %s",terrainTile->getName().c_str());

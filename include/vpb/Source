@@ -40,6 +40,15 @@ public:
         MODEL = 8
     };
 
+    enum PatchStatus
+    {
+        UNASSIGNED,
+        UNCHANGED,
+        MODIFIED,
+        ADDED,
+        REMOVED
+    };
+
     enum ParameterPolicy
     {
         PREFER_CONFIG_SETTINGS,
@@ -49,6 +58,7 @@ public:
 
     Source():
         _type(IMAGE),
+        _patchStatus(UNASSIGNED),
         _sortValue(0.0),
         _temporaryFile(false),
         _coordinateSystemPolicy(PREFER_FILE_SETTINGS),
@@ -62,6 +72,7 @@ public:
 
     Source(Type type, const std::string& filename):
         _type(type),
+        _patchStatus(UNASSIGNED),
         _sortValue(0.0),
         _filename(filename),
         _temporaryFile(false),
@@ -85,6 +96,9 @@ public:
 
     void setType(Type type) { _type = type; }
     Type getType() const { return _type; }
+
+    void setPatchStatus(PatchStatus ps) { _patchStatus = ps; }
+    PatchStatus getPatchStatus() const { return _patchStatus; }
 
     void setSetName(const std::string& setname, BuildOptions* bo);
     
@@ -217,6 +231,7 @@ protected:
 
 
     Type                                        _type;
+    PatchStatus                                 _patchStatus;
 
     double                                      _sortValue;
 

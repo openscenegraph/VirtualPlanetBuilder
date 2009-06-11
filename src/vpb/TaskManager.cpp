@@ -187,19 +187,27 @@ void TaskManager::readPatchSetUp(const std::string& patchFile)
     {
         if (!originalSourceFile.empty())
         {
-            if (!readPreviousSource(originalSourceFile))
+            if (firstTimeBuild)
             {
-                throw std::string("Error: Unable to read source file ") + originalSourceFile;
+                readSource(originalSourceFile);
+            }
+            else
+            {
+                if (!readPreviousSource(originalSourceFile))
+                {
+                    throw std::string("Error: Unable to read source file ") + originalSourceFile;
+                }
+
+                vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_previousTerrainTile->getTerrainTechnique());
+                vpb::BuildOptions* bo = db ? db->getBuildOptions() : 0;
+                unsigned int lastRevisionNum = bo ? bo->getRevisionNumber() : 0;
+                unsigned int newRevisionNum = lastRevisionNum+1;
+
+                readSource(originalSourceFile);
+
+                getBuildOptions()->setRevisionNumber(newRevisionNum);
             }
 
-            vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_previousTerrainTile->getTerrainTechnique());
-            vpb::BuildOptions* bo = db ? db->getBuildOptions() : 0;
-            unsigned int lastRevisionNum = bo ? bo->getRevisionNumber() : 0;
-            unsigned int newRevisionNum = firstTimeBuild ? lastRevisionNum : lastRevisionNum+1;
-
-            readSource(originalSourceFile);
-
-            getBuildOptions()->setRevisionNumber(newRevisionNum);
         }
         else
         {
@@ -376,7 +384,7 @@ void TaskManager::buildWithoutSlaves()
             {
                 dataset->getBuildLog()->report(std::cout);
             }
-            
+
         }
         catch(...)
         {
@@ -388,49 +396,52 @@ void TaskManager::buildWithoutSlaves()
 
 bool TaskManager::generateTasksFromSource()
 {
-    if (_terrainTile.valid())
+    if (!_terrainTile) return false;
+    try
     {
-        try 
+
+        osg::ref_ptr<vpb::DataSet> dataset = new vpb::DataSet;
+
+        vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrainTile->getTerrainTechnique());
+        vpb::BuildOptions* bo = db ? db->getBuildOptions() : 0;
+
+        if (bo && !(bo->getLogFileName().empty()))
         {
-            osg::ref_ptr<vpb::DataSet> dataset = new vpb::DataSet;
-
-            vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrainTile->getTerrainTechnique());
-            vpb::BuildOptions* bo = db ? db->getBuildOptions() : 0;
-
-            if (bo && !(bo->getLogFileName().empty()))
-            {
-                dataset->setBuildLog(new vpb::BuildLog);
-            }
-
-            if (_taskFile.valid())
-            {
-                dataset->setTask(_taskFile.get());
-            }
-
-            dataset->addTerrain(_terrainTile.get());
-            
-            if (dataset->requiresReprojection())
-            {
-                dataset->log(osg::NOTICE,"Error: vpbmaster can not run without all source data being in the correct destination coordinates system, please reproject them.");
-                return false;
-            }
-
-            dataset->generateTasks(this);
-
-            if (dataset->getBuildLog())
-            {
-                dataset->getBuildLog()->report(std::cout);
-            }
-            
+            dataset->setBuildLog(new vpb::BuildLog);
         }
-        catch(...)
+
+        if (_taskFile.valid())
         {
-            printf("Caught exception.\n");
+            dataset->setTask(_taskFile.get());
+        }
+
+        if (_previousTerrainTile.valid())
+        {
+            dataset->addPatchedTerrain(_previousTerrainTile.get(), _terrainTile.get());
+        }
+        else
+        {
+            dataset->addTerrain(_terrainTile.get());
+        }
+
+        if (dataset->requiresReprojection())
+        {
+            dataset->log(osg::NOTICE,"Error: vpbmaster can not run without all source data being in the correct destination coordinates system, please reproject them.");
             return false;
         }
 
+        dataset->generateTasks(this);
+
+        if (dataset->getBuildLog())
+        {
+            dataset->getBuildLog()->report(std::cout);
+        }
     }
-    
+    catch(...)
+    {
+        printf("Caught exception.\n");
+        return false;
+    }
     return true;
 }
 
