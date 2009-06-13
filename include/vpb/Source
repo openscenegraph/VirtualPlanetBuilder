@@ -59,6 +59,7 @@ public:
     Source():
         _type(IMAGE),
         _patchStatus(UNASSIGNED),
+        _revisionNumber(0),
         _sortValue(0.0),
         _temporaryFile(false),
         _coordinateSystemPolicy(PREFER_FILE_SETTINGS),
@@ -73,6 +74,7 @@ public:
     Source(Type type, const std::string& filename):
         _type(type),
         _patchStatus(UNASSIGNED),
+        _revisionNumber(0),
         _sortValue(0.0),
         _filename(filename),
         _temporaryFile(false),
@@ -99,6 +101,9 @@ public:
 
     void setPatchStatus(PatchStatus ps) { _patchStatus = ps; }
     PatchStatus getPatchStatus() const { return _patchStatus; }
+
+    void setRevisionNumber(unsigned int num) { _revisionNumber = num; }
+    unsigned int getRevisionNumber() const { return _revisionNumber; }
 
     void setSetName(const std::string& setname, BuildOptions* bo);
     
@@ -232,6 +237,7 @@ protected:
 
     Type                                        _type;
     PatchStatus                                 _patchStatus;
+    unsigned int                                _revisionNumber;
 
     double                                      _sortValue;
 
@@ -278,7 +284,12 @@ public:
 
     void setSortValueFromSourceDataResolution(const osg::CoordinateSystemNode* cs);
 
-    void sort();
+    /** Sort by Source::getSortValue.**/
+    void sortBySourceSortValue();
+
+    /** Sort by Source::Type, filename, levels etc.*/
+    void sortBySourceDetails();
+
 
     class iterator
     {

@@ -35,6 +35,7 @@ using namespace vpb;
 Source::Source(Type type, osg::Node* model):
         _type(type),
         _patchStatus(UNASSIGNED),
+        _revisionNumber(0),
         _sortValue(0.0),
         _filename(model->getName()),
         _temporaryFile(false),
@@ -878,15 +879,50 @@ void CompositeSource::setSortValueFromSourceDataResolution(const osg::Coordinate
     }
 }
 
-void CompositeSource::sort()
+void CompositeSource::sortBySourceSortValue()
 {
     // sort the sources.
     std::sort(_sourceList.begin(),_sourceList.end(),DerefLessFunctor< osg::ref_ptr<Source> >());
-    
+
     // sort the composite sources internal data
     for(ChildList::iterator itr=_children.begin();itr!=_children.end();++itr)
     {
-        if (itr->valid()) (*itr)->sort();
+        if (itr->valid()) (*itr)->sortBySourceSortValue();
     }
 }
 
+
+template<class T>
+struct DerefLessSourceDetailsFunctor
+{
+    bool operator () (const T& lhs, const T& rhs)
+    {
+        if (!lhs || !rhs) return lhs<rhs;
+
+        if (lhs->getType() < rhs->getType()) return true;
+        if (rhs->getType() < lhs->getType()) return false;
+
+        if (lhs->getFileName() < rhs->getFileName()) return true;
+        if (rhs->getFileName() < lhs->getFileName()) return false;
+
+        if (lhs->getRevisionNumber() < rhs->getRevisionNumber()) return true;
+        if (rhs->getRevisionNumber() < lhs->getRevisionNumber()) return false;
+
+        if (lhs->getLayer() < rhs->getLayer()) return true;
+        if (rhs->getLayer() < lhs->getLayer()) return false;
+
+        return (lhs->getSortValue() > rhs->getSortValue());
+    }
+};
+
+void CompositeSource::sortBySourceDetails()
+{
+    // sort the sources.
+    std::sort(_sourceList.begin(),_sourceList.end(),DerefLessSourceDetailsFunctor< osg::ref_ptr<Source> >());
+
+    // sort the composite sources internal data
+    for(ChildList::iterator itr=_children.begin();itr!=_children.end();++itr)
+    {
+        if (itr->valid()) (*itr)->sortBySourceDetails();
+    }
+}

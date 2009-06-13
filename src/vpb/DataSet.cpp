@@ -74,15 +74,17 @@ void DataSet::init()
 
 }
 
-void DataSet::addSource(Source* source)
+void DataSet::addSource(Source* source, unsigned int revisionNumber)
 {
     if (!source) return;
     
     if (!_sourceGraph.valid()) _sourceGraph = new CompositeSource;
+
+    source->setRevisionNumber(revisionNumber);
     
     _sourceGraph->_sourceList.push_back(source);
 }
-
+#if 0
 void DataSet::addSource(CompositeSource* composite)
 {
     if (!composite) return;
@@ -91,7 +93,7 @@ void DataSet::addSource(CompositeSource* composite)
     
     _sourceGraph->_children.push_back(composite);
 }
-
+#endif
 void DataSet::loadSources()
 {
     assignIntermediateCoordinateSystem();
@@ -1010,7 +1012,7 @@ bool DataSet::prepareForDestinationGraphCreation()
         // sort them so highest sortValue is first.
 #endif
         _sourceGraph->setSortValueFromSourceDataResolution(_intermediateCoordinateSystem.get());
-        _sourceGraph->sort();
+        _sourceGraph->sortBySourceSortValue();
     }
 
     if (!_destinationExtents.valid()) 
@@ -2010,7 +2012,7 @@ void DataSet::_buildDestination(bool writeToDisk)
 }
 
 
-bool DataSet::addModel(Source::Type type, osg::Node* model)
+bool DataSet::addModel(Source::Type type, osg::Node* model, unsigned int revisionNumber)
 {
     vpb::Source* source = new vpb::Source(type, model);
     
@@ -2063,12 +2065,12 @@ bool DataSet::addModel(Source::Type type, osg::Node* model)
     osg::notify(osg::NOTICE)<<"   extents "<<source->_extents.xMin()<<" "<<source->_extents.xMax()<<std::endl;
     osg::notify(osg::NOTICE)<<"           "<<source->_extents.yMin()<<" "<<source->_extents.yMax()<<std::endl;
     
-    addSource(source);
+    addSource(source, revisionNumber);
 
     return true;
 }
 
-bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum)
+bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum, unsigned int revisionNumber)
 {
     
     osgTerrain::HeightFieldLayer* hfl = dynamic_cast<osgTerrain::HeightFieldLayer*>(layer);
@@ -2094,7 +2096,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
             source->setCoordinateSystem(layer->getLocator()->getCoordinateSystem());
         } 
 
-        addSource(source);
+        addSource(source, revisionNumber);
         return true;
     }
     
@@ -2121,7 +2123,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
             source->setCoordinateSystem(layer->getLocator()->getCoordinateSystem());
         }
 
-        addSource(source);
+        addSource(source, revisionNumber);
         return true;
     }
     
@@ -2150,7 +2152,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
             source->setCoordinateSystem(layer->getLocator()->getCoordinateSystem());
         }
 
-        addSource(source);
+        addSource(source, revisionNumber);
         return true;
     }
 
@@ -2161,7 +2163,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
         {
             if (compositeLayer->getLayer(i))
             {
-                addLayer(type, compositeLayer->getLayer(i), layerNum);
+                addLayer(type, compositeLayer->getLayer(i), layerNum, revisionNumber);
             }
             else if (!compositeLayer->getFileName(i).empty())
             {
@@ -2170,7 +2172,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
                 source->setMinLevel(layer->getMinLevel());
                 source->setMaxLevel(layer->getMaxLevel());
                 source->setLayer(layerNum);
-                addSource(source);
+                addSource(source, revisionNumber);
             }
         }
         return true;
@@ -2178,47 +2180,27 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
     return false;
 }
 
-bool DataSet::addPatchedTerrain(osgTerrain::TerrainTile* previous_terrain, osgTerrain::TerrainTile* new_terrain)
+bool DataSet::addTerrain(osgTerrain::TerrainTile* terrainTile, unsigned int revisionNumber)
 {
-    addTerrain(new_terrain);
-
-    log(osg::NOTICE,"Currently ignoring patch terrainTile %s",previous_terrain->getName().c_str());
-
-}
-
-bool DataSet::addTerrain(osgTerrain::TerrainTile* terrainTile)
-{
-    log(osg::NOTICE,"Adding terrainTile %s",terrainTile->getName().c_str());
-
-    if (terrainTile->getLocator())
-    {
-    }
- 
-    vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(terrainTile->getTerrainTechnique());
-    if (db && db->getBuildOptions())
-    {
-        setBuildOptions(*(db->getBuildOptions()));
-    }
-
     if (terrainTile->getElevationLayer())
     {
-        addLayer(vpb::Source::HEIGHT_FIELD, terrainTile->getElevationLayer(), 0);
+        addLayer(vpb::Source::HEIGHT_FIELD, terrainTile->getElevationLayer(), 0, revisionNumber);
     }
 
     for(unsigned int i=0; i<terrainTile->getNumColorLayers();++i)
     {
         osgTerrain::Layer* layer = terrainTile->getColorLayer(i);
-        if (layer) 
+        if (layer)
         {
-            addLayer(vpb::Source::IMAGE, layer, i);
+            addLayer(vpb::Source::IMAGE, layer, i, revisionNumber);
         }
     }
-    
+
     for(unsigned int ci=0; ci<terrainTile->getNumChildren(); ++ci)
     {
-    
+
         osg::Node* model = terrainTile->getChild(ci);
-    
+
         osg::notify(osg::NOTICE)<<"Adding model"<<model->getName()<<std::endl;
 
         Source::Type type = vpb::Source::MODEL;
@@ -2227,12 +2209,70 @@ bool DataSet::addTerrain(osgTerrain::TerrainTile* terrainTile)
             const std::string& desc = model->getDescription(di);
             if (desc=="SHAPEFILE") type = Source::SHAPEFILE;
         }
-        
-        addModel(type, model);
+
+        addModel(type, model, revisionNumber);
     }
 
     return true;
 }
+
+bool DataSet::addTerrain(osgTerrain::TerrainTile* terrainTile)
+{
+    log(osg::NOTICE,"Adding terrainTile %s",terrainTile->getName().c_str());
+
+    vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(terrainTile->getTerrainTechnique());
+    unsigned int revisionNumber = 0;
+    if (db && db->getBuildOptions())
+    {
+        revisionNumber = db->getBuildOptions()->getRevisionNumber();
+        setBuildOptions(*(db->getBuildOptions()));
+    }
+
+    return addTerrain(terrainTile, revisionNumber);
+}
+
+
+bool DataSet::addPatchedTerrain(osgTerrain::TerrainTile* previous_terrain, osgTerrain::TerrainTile* new_terrain)
+{
+    log(osg::NOTICE,"Adding previous %s and current terrainTile %s",
+        previous_terrain->getName().c_str(),
+        new_terrain->getName().c_str());
+
+    vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(previous_terrain->getTerrainTechnique());
+    unsigned int previous_revisionNumber = 0;
+    if (db && db->getBuildOptions())
+    {
+        previous_revisionNumber = db->getBuildOptions()->getRevisionNumber();
+    }
+
+    db = dynamic_cast<vpb::DatabaseBuilder*>(new_terrain->getTerrainTechnique());
+    unsigned int new_revisionNumber = previous_revisionNumber;
+    if (db && db->getBuildOptions())
+    {
+        new_revisionNumber = db->getBuildOptions()->getRevisionNumber();
+        setBuildOptions(*(db->getBuildOptions()));
+    }
+
+    log(osg::NOTICE,"   previous revision Number %i",previous_revisionNumber);
+    log(osg::NOTICE,"   new revision Number %i",new_revisionNumber);
+
+    bool result = addTerrain(previous_terrain, previous_revisionNumber);
+    result = addTerrain(new_terrain, new_revisionNumber) | result;
+
+    _sourceGraph->sortBySourceDetails();
+
+    for(CompositeSource::source_iterator sitr(_sourceGraph.get());sitr.valid();++sitr)
+    {
+        Source* source = sitr->get();
+        if (source)
+        {
+            log(osg::NOTICE, "Source File %s\t%d",source->getFileName().c_str(), source->getRevisionNumber());
+        }
+    }
+
+    return result;
+}
+
 
 osgTerrain::TerrainTile* DataSet::createTerrainRepresentation()
 {

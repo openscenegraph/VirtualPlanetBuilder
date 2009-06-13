@@ -104,11 +104,13 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         CompositeSource* getSourceGraph() { return _sourceGraph.get(); }
 
 
-        void addSource(Source* source);
-        void addSource(CompositeSource* composite);
+        void addSource(Source* source, unsigned int revisionNumber);
+        // void addSource(CompositeSource* composite);
         
-        bool addModel(Source::Type type, osg::Node* node);
-        bool addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum);
+        bool addModel(Source::Type type, osg::Node* node, unsigned int revisionNumber);
+        bool addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum, unsigned int revisionNumber);
+        bool addTerrain(osgTerrain::TerrainTile* terrain, unsigned int revisionNumber);
+
         bool addTerrain(osgTerrain::TerrainTile* terrain);
         bool addPatchedTerrain(osgTerrain::TerrainTile* previous_terrain, osgTerrain::TerrainTile* new_terrain);
         
