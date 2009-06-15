@@ -174,7 +174,11 @@ int main(int argc, char** argv)
                     tasksOutputFileName = taskManager->getBuildName() + std::string("_master.tasks");
 
                     taskManager->setSourceFileName(sourceFileName);
-                    taskManager->generateTasksFromSource();
+                    if (!taskManager->generateTasksFromSource())
+                    {
+                        // nothing to do.
+                        return 1;
+                    }
 
                     taskManager->writeSource(sourceFileName);
                     taskManager->writeTasks(tasksOutputFileName, true);
@@ -228,9 +232,6 @@ int main(int argc, char** argv)
         taskManager->log(osg::NOTICE,"Caught exception.");
         result = 1;
     }
-
-    // make sure the OS writes changes to disk
-    vpb::sync();
 
     // make sure the OS writes changes to disk
     vpb::sync();
