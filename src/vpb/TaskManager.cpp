@@ -417,7 +417,12 @@ bool TaskManager::generateTasksFromSource()
 
         if (_previousTerrainTile.valid())
         {
-            dataset->addPatchedTerrain(_previousTerrainTile.get(), _terrainTile.get());
+            unsigned int numberAlteredSources = dataset->addPatchedTerrain(_previousTerrainTile.get(), _terrainTile.get());
+            if (numberAlteredSources==0)
+            {
+                dataset->log(osg::NOTICE,"No new, modified or removed sources in patch, so no need to patch database.");
+                return false;
+            }
         }
         else
         {

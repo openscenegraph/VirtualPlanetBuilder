@@ -926,3 +926,89 @@ void CompositeSource::sortBySourceDetails()
         if (itr->valid()) (*itr)->sortBySourceDetails();
     }
 }
+
+void CompositeSource::assignSourcePatchStatus()
+{
+    if (_sourceList.empty()) return;
+
+    sortBySourceDetails();
+
+
+    SourceList::iterator itr = _sourceList.begin();
+    unsigned int lowerRevisionNumber = (*itr)->getRevisionNumber();
+    unsigned int upperRevisionNumber = (*itr)->getRevisionNumber();
+    ++itr;
+    for(;
+        itr != _sourceList.end();
+        ++itr)
+    {
+        Source* current = itr->get();
+        if (current->getRevisionNumber()>upperRevisionNumber) upperRevisionNumber = current->getRevisionNumber();
+        if (current->getRevisionNumber()<lowerRevisionNumber) lowerRevisionNumber = current->getRevisionNumber();
+    }
+
+    if (lowerRevisionNumber==upperRevisionNumber)
+    {
+        osg::notify(osg::NOTICE)<<"Equal revision numbers, "<<lowerRevisionNumber<<" and "<<upperRevisionNumber<<std::endl;
+        return;
+    }
+
+    itr = _sourceList.begin();
+    Source* previous = itr->get();
+    ++itr;
+    for(;
+        itr != _sourceList.end();
+        ++itr)
+    {
+        Source* current = itr->get();
+        if (previous->getType()==current->getType() &&
+            previous->getFileName()==current->getFileName())
+        {
+            previous->setPatchStatus(Source::UNCHANGED);
+            current->setPatchStatus(Source::UNCHANGED);
+        }
+
+        previous = current;
+    }
+
+    itr = _sourceList.begin();
+    for(;
+        itr != _sourceList.end();
+        ++itr)
+    {
+        Source* current = itr->get();
+        if (current && current->getPatchStatus()==Source::UNASSIGNED)
+        {
+            if (current->getRevisionNumber()==lowerRevisionNumber) current->setPatchStatus(Source::REMOVED);
+            else if (current->getRevisionNumber()==upperRevisionNumber) current->setPatchStatus(Source::ADDED);
+        }
+    }
+
+    // sort the composite sources internal data
+    for(ChildList::iterator itr=_children.begin();itr!=_children.end();++itr)
+    {
+        if (itr->valid()) (*itr)->assignSourcePatchStatus();
+    }
+}
+
+unsigned int CompositeSource::getNumberAlteredSources()
+{
+    unsigned int number = 0;
+
+    for(SourceList::iterator itr = _sourceList.begin();
+        itr != _sourceList.end();
+        ++itr)
+    {
+        Source* current = itr->get();
+        if (current->getPatchStatus()!=Source::UNCHANGED) ++number;
+    }
+
+    // sort the composite sources internal data
+    for(ChildList::iterator itr=_children.begin();itr!=_children.end();++itr)
+    {
+        number += (*itr)->getNumberAlteredSources();
+    }
+
+    return number;
+}
+

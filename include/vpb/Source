@@ -290,6 +290,11 @@ public:
     /** Sort by Source::Type, filename, levels etc.*/
     void sortBySourceDetails();
 
+    /** assign the Source::PatchStatus according to the versions.*/
+    void assignSourcePatchStatus();
+
+    /** count the number Source's that don't have UNCHANGED status.*/
+    unsigned int getNumberAlteredSources();
 
     class iterator
     {

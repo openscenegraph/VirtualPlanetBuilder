@@ -2259,18 +2259,32 @@ bool DataSet::addPatchedTerrain(osgTerrain::TerrainTile* previous_terrain, osgTe
     bool result = addTerrain(previous_terrain, previous_revisionNumber);
     result = addTerrain(new_terrain, new_revisionNumber) | result;
 
-    _sourceGraph->sortBySourceDetails();
+    _sourceGraph->assignSourcePatchStatus();
 
     for(CompositeSource::source_iterator sitr(_sourceGraph.get());sitr.valid();++sitr)
     {
         Source* source = sitr->get();
         if (source)
         {
-            log(osg::NOTICE, "Source File %s\t%d",source->getFileName().c_str(), source->getRevisionNumber());
+            std::string status;
+            switch(source->getPatchStatus())
+            {
+                case(Source::UNASSIGNED): status = "UNASSIGNED"; break;
+                case(Source::UNCHANGED): status = "UNCHANGED"; break;
+                case(Source::MODIFIED): status = "MODIFIED"; break;
+                case(Source::ADDED): status = "ADDED"; break;
+                case(Source::REMOVED): status = "REMOVED"; break;
+            }
+
+            log(osg::NOTICE, "Source File %s\t%d\t%s",source->getFileName().c_str(), source->getRevisionNumber(), status.c_str());
         }
     }
 
-    return result;
+    unsigned int numberOfAlteredSources = _sourceGraph->getNumberAlteredSources();
+
+    log(osg::NOTICE, "_sourceGraph->getNumberAlteredSources()=%d", numberOfAlteredSources);
+
+    return numberOfAlteredSources!=0;
 }
 
 

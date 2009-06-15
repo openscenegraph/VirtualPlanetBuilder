@@ -95,8 +95,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
 
 
         DataSet();
-        
-       
+
         void setTask(Task* taskFile) { _taskFile = taskFile; }
         Task* getTask() { return _taskFile.get(); }
         const Task* getTask() const { return _taskFile.get(); }
@@ -106,18 +105,18 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
 
         void addSource(Source* source, unsigned int revisionNumber);
         // void addSource(CompositeSource* composite);
-        
+
         bool addModel(Source::Type type, osg::Node* node, unsigned int revisionNumber);
         bool addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum, unsigned int revisionNumber);
         bool addTerrain(osgTerrain::TerrainTile* terrain, unsigned int revisionNumber);
 
         bool addTerrain(osgTerrain::TerrainTile* terrain);
         bool addPatchedTerrain(osgTerrain::TerrainTile* previous_terrain, osgTerrain::TerrainTile* new_terrain);
-        
+
         osgTerrain::TerrainTile* createTerrainRepresentation();
-        
+
         void loadSources();
-        
+
         void mapReprojectedSourcesAvailableInFileCache();
 
         void assignDestinationCoordinateSystem();
@@ -150,8 +149,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
                                                      unsigned int currentX,
                                                      unsigned int currentY,
                                                      unsigned int maxNumLevels);
-        
-        
+
         void computeDestinationGraphFromSources(unsigned int numLevels);
 
         void updateSourcesForDestinationGraphNeeds();
@@ -159,19 +157,19 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         void reprojectSourcesAndGenerateOverviews();
 
         void populateDestinationGraphFromSources();
-        
+
         void createDestination(unsigned int numLevels);
-        
+
         void buildDestination() { _buildDestination(false); }
-        
+
         void writeDestination() { _buildDestination(true); }
-        
+
         osg::Node* getDestinationRootNode() { return _rootNode.get(); }
-        
+
 
         typedef std::pair<unsigned int, unsigned int> TilePair;
         typedef std::map<TilePair, unsigned int> TilePairMap;
-        
+
         bool createTileMap(unsigned int level, TilePairMap& tilepairMap);
 
         bool generateTasks(TaskManager* taskManager);
@@ -199,15 +197,15 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
 
         void setModelPlacer(ObjectPlacer* placer) { _modelPlacer = placer; }
         ObjectPlacer* getModelPlacer() { return _modelPlacer.get(); }
-        
+
         void setShapeFilePlacer(ObjectPlacer* placer) { _shapeFilePlacer = placer; }
         ObjectPlacer* getShapeFilePlacer() { return _shapeFilePlacer.get(); }
-        
-        
+
+
         std::string getTaskName(unsigned int level, unsigned int X, unsigned int Y) const;
         std::string getSubtileName(unsigned int level, unsigned int X, unsigned int Y) const;
         const std::string getTaskOutputDirectory() const { return _taskOutputDirectory; }
-        
+
         /** Check the build validity, return an empty string if everything is OK, on error return the error string.*/
         std::string checkBuildValidity();
 
@@ -216,7 +214,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         virtual ~DataSet() {}
 
         friend class DestinationTile;
-        
+
         osg::ref_ptr<ThreadPool> _readThreadPool;
         osg::ref_ptr<ThreadPool> _writeThreadPool;
 
@@ -225,7 +223,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         void _writeRow(Row& row);
         void _buildDestination(bool writeToDisk);
         int _run();
-        
+
         void init();
 
         osg::Node* decorateWithCoordinateSystemNode(osg::Node* subgraph);
@@ -236,15 +234,13 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         bool computeOptimumTileSystemDimensions(int& C1, int& R1);
         CompositeDestination* createDestinationTile(int level, int tileX, int tileY);
         int computeMaximumLevel(int maxNumLevels);
-        
         bool prepareForDestinationGraphCreation(); 
-        
         void selectAppropriateSplitLevels();
 
         osg::ref_ptr<CompositeSource>               _sourceGraph;
-        
+
         osg::ref_ptr<CompositeDestination>          _destinationGraph;
-        
+
         QuadMap                                     _quadMap;
 
         osg::ref_ptr<osg::Node>                     _rootNode;
@@ -259,15 +255,14 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
 
         osg::ref_ptr<ObjectPlacer>                  _modelPlacer;
         osg::ref_ptr<ObjectPlacer>                  _shapeFilePlacer;
-        
+
         GeospatialExtents                           _destinationExtents;
         int                                         _C1;
         int                                         _R1;
-        
+
         bool                                        _newDestinationGraph;
-        
+
         std::string                                 _taskOutputDirectory;
-        
 };
 
 }
