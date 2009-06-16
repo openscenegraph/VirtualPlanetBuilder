@@ -437,6 +437,9 @@ bool TaskManager::generateTasksFromSource()
 
         dataset->generateTasks(this);
 
+        // update the current build options with the distination extents.
+        bo->setDestinationExtents(dataset->getDestinationExtents());
+
         if (dataset->getBuildLog())
         {
             dataset->getBuildLog()->report(std::cout);

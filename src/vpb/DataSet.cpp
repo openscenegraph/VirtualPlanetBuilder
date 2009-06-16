@@ -1059,7 +1059,12 @@ bool DataSet::prepareForDestinationGraphCreation()
             _destinationExtents.xMax() = 180.0;
         }
     }
-    
+
+    //re-assign extnts so that if we write out a source file it has the correct extents
+    _extents = _destinationExtents;
+
+    log(osg::NOTICE, "local_extents = xMin() %f %f",_extents.xMin(),_extents.xMax());
+    log(osg::NOTICE, "                yMin() %f %f",_extents.yMin(),_extents.yMax());
 
     // compute the number of texture layers required.
     unsigned int maxTextureUnit = 0;
@@ -2239,18 +2244,35 @@ bool DataSet::addPatchedTerrain(osgTerrain::TerrainTile* previous_terrain, osgTe
         new_terrain->getName().c_str());
 
     vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(previous_terrain->getTerrainTechnique());
+    BuildOptions* previous_bo = db ? db->getBuildOptions() : 0;
     unsigned int previous_revisionNumber = 0;
-    if (db && db->getBuildOptions())
+    if (previous_bo)
     {
         previous_revisionNumber = db->getBuildOptions()->getRevisionNumber();
     }
 
     db = dynamic_cast<vpb::DatabaseBuilder*>(new_terrain->getTerrainTechnique());
+    BuildOptions* new_bo = db ? db->getBuildOptions() : 0;
     unsigned int new_revisionNumber = previous_revisionNumber;
-    if (db && db->getBuildOptions())
+    if (new_bo)
     {
-        new_revisionNumber = db->getBuildOptions()->getRevisionNumber();
-        setBuildOptions(*(db->getBuildOptions()));
+        if (previous_bo)
+        {
+            // assigning previous exents
+            if (new_bo->getDestinationExtents().valid())
+            {
+                log(osg::NOTICE, "new extents found.");
+            }
+
+            if (previous_bo->getDestinationExtents().valid())
+            {
+                log(osg::NOTICE, "assigning extents found.");
+                new_bo->setDestinationExtents(previous_bo->getDestinationExtents());
+            }
+        }
+
+        new_revisionNumber = new_bo->getRevisionNumber();
+        setBuildOptions(*new_bo);
     }
 
     log(osg::NOTICE,"   previous revision Number %i",previous_revisionNumber);
@@ -3021,15 +3043,22 @@ int DataSet::_run()
         {
             startPoint = getComposite(getSubtileLevel(), getSubtileX(), getSubtileY());
         }
-    
-        DestinationTile::Sources sources = startPoint->getAllContributingSources();
-        log(osg::NOTICE,"There are %d contributing source files:",sources.size());
 
-        for(DestinationTile::Sources::iterator itr = sources.begin();
-            itr != sources.end();
-            ++itr)
+        if (startPoint)
         {
-            log(osg::NOTICE,"    %s",(*itr)->getFileName().c_str());
+            DestinationTile::Sources sources = startPoint->getAllContributingSources();
+            log(osg::NOTICE,"There are %d contributing source files:",sources.size());
+
+            for(DestinationTile::Sources::iterator itr = sources.begin();
+                itr != sources.end();
+                ++itr)
+            {
+                log(osg::NOTICE,"    %s",(*itr)->getFileName().c_str());
+            }
+        }
+        else
+        {
+            log(osg::NOTICE,"Warning: No destination graph generated.");
         }
     }
 
