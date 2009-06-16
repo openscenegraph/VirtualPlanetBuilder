@@ -2491,6 +2491,13 @@ bool DataSet::createTileMap(unsigned int level, TilePairMap& tilepairMap)
     {
         Source* source = (*itr).get();
 
+#if 1
+        if (source->getPatchStatus()==Source::UNCHANGED)
+        {
+            log(osg::NOTICE,"Skipping source %s as it hasn't changed during patching.",source->getFileName().c_str());
+            continue;
+        }
+#endif
         if (source->getMinLevel()>maxNumLevels)
         {
             log(osg::NOTICE,"Skipping source %s as its min level excees destination max level.",source->getFileName().c_str());
