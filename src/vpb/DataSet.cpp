@@ -1469,10 +1469,26 @@ void DataSet::_writeNodeFile(osg::Node& node,const std::string& filename)
     {
         if (vpb::hasWritePermission(filename))
         {
+            bool fileExistedBeforeWrite = osgDB::fileExists(filename);
+
             osgDB::ReaderWriter::WriteResult result = 
                 osgDB::Registry::instance()->writeNode(node, filename,osgDB::Registry::instance()->getOptions());
-                
-            if (!result.success())
+
+            if (result.success())
+            {
+                if (_databaseRevision.valid())
+                {
+                    if (fileExistedBeforeWrite)
+                    {
+                        if (_databaseRevision->getFilesModified()) _databaseRevision->getFilesModified()->addFile(filename);
+                    }
+                    else
+                    {
+                        if (_databaseRevision->getFilesAdded()) _databaseRevision->getFilesAdded()->addFile(filename);
+                    }
+                }
+            }
+            else
             {
                 osg::NotifySeverity level = getAbortTaskOnError() ? osg::FATAL : osg::WARN;
                 log(level, "Error: do not have write permission to write out file %s",filename.c_str());
@@ -1500,10 +1516,26 @@ void DataSet::_writeImageFile(osg::Image& image,const std::string& filename)
     {
         if (FilePathManager::instance()->checkWritePermissionAndEnsurePathAvailability(simpliedFileName))
         {
+            bool fileExistedBeforeWrite = osgDB::fileExists(filename);
+
             osgDB::ReaderWriter::WriteResult result = 
                 osgDB::Registry::instance()->writeImage(image, simpliedFileName,osgDB::Registry::instance()->getOptions());
                 
-            if (!result.success())
+            if (result.success())
+            {
+                if (_databaseRevision.valid())
+                {
+                    if (fileExistedBeforeWrite)
+                    {
+                        if (_databaseRevision->getFilesModified()) _databaseRevision->getFilesModified()->addFile(filename);
+                    }
+                    else
+                    {
+                        if (_databaseRevision->getFilesAdded()) _databaseRevision->getFilesAdded()->addFile(filename);
+                    }
+                }
+            }
+            else
             {
                 log(osg::WARN, "Error: error occurred when writing out file %s",simpliedFileName.c_str());
             }
@@ -2946,6 +2978,26 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
     return false;
 }
 
+const std::string DataSet::getDatabaseRevisionBaseFileName(unsigned int level, unsigned int x, unsigned y) const
+{
+    std::string baseName;
+    if (getSubtileLevel()==0)
+    {
+        baseName = getDirectory() + getDestinationTileBaseName() + getDestinationTileExtension();
+    }
+    else
+    {
+        std::stringstream sstr;
+        sstr << getDirectory()<<getTaskOutputDirectory() << getDestinationTileBaseName()
+                << "_L"<<level
+                << "_X" <<x
+                <<"_Y"<<y<<getDestinationTileExtension();
+        baseName = sstr.str();
+
+    }
+    return baseName;
+}
+
 int DataSet::run()
 {
     if (!getLogFileName().empty() && !getBuildLog())
@@ -2967,8 +3019,58 @@ int DataSet::run()
         osgDB::Registry::instance()->getOptions()->setOptionString(getWriteOptionsString());
     }
 
+    {
+        _databaseRevision = new osgDB::DatabaseRevision;
+
+
+        std::string baseName = getDatabaseRevisionBaseFileName(getSubtileLevel(), getSubtileX(), getSubtileY());
+
+        {
+            std::stringstream sstr;
+            sstr << baseName<<"."<<getRevisionNumber()<<".added";
+            _databaseRevision->setFilesAdded(new osgDB::FileList);
+            _databaseRevision->getFilesAdded()->setName(sstr.str());
+        }
+
+        {
+            std::stringstream sstr;
+            sstr << baseName<<"."<<getRevisionNumber()<<".removed";
+            _databaseRevision->setFilesRemoved(new osgDB::FileList);
+            _databaseRevision->getFilesRemoved()->setName(sstr.str());
+        }
+
+        {
+            std::stringstream sstr;
+            sstr << baseName<<"."<<getRevisionNumber()<<".modified";
+            _databaseRevision->setFilesModified(new osgDB::FileList);
+            _databaseRevision->getFilesModified()->setName(sstr.str());
+        }
+    }
+
     int result = _run();
-    
+
+    if (_databaseRevision.valid())
+    {
+        log(osg::NOTICE, "Time to write out DatabaseRevision::FileList - FilesAdded %s, %d",_databaseRevision->getFilesAdded()->getName().c_str(), _databaseRevision->getFilesAdded()->getFileNames().size());
+        log(osg::NOTICE, "Time to write out DatabaseRevision::FileList - FilesRemoved %s, %d",_databaseRevision->getFilesRemoved()->getName().c_str(), _databaseRevision->getFilesRemoved()->getFileNames().size());
+        log(osg::NOTICE, "Time to write out DatabaseRevision::FileList - FilesModified %s, %d",_databaseRevision->getFilesModified()->getName().c_str(), _databaseRevision->getFilesModified()->getFileNames().size());
+
+        if (_databaseRevision->getFilesAdded() && !_databaseRevision->getFilesAdded()->empty())
+        {
+            osgDB::writeObjectFile(*_databaseRevision->getFilesAdded(), _databaseRevision->getFilesAdded()->getName());
+        }
+
+        if (_databaseRevision->getFilesRemoved() && !_databaseRevision->getFilesRemoved()->empty())
+        {
+            osgDB::writeObjectFile(*_databaseRevision->getFilesRemoved(), _databaseRevision->getFilesRemoved()->getName());
+        }
+
+        if (_databaseRevision->getFilesModified() && !_databaseRevision->getFilesModified()->empty())
+        {
+            osgDB::writeObjectFile(*_databaseRevision->getFilesModified(), _databaseRevision->getFilesModified()->getName());
+        }
+    }
+
     if (getBuildLog())
     {
         popOperationLog();
@@ -3036,7 +3138,7 @@ int DataSet::_run()
             {
                 db->getBuildOptions()->setIntermediateBuildName("");
             }
-            osgDB::writeNodeFile(*terrainTile,getIntermediateBuildName());
+            _writeNodeFile(*terrainTile,getIntermediateBuildName());
             requiresGenerationOfTiles = false;
         }
     }

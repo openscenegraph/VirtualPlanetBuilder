@@ -31,6 +31,7 @@
 #include <osgTerrain/TerrainTile>
 
 #include <osgDB/Archive>
+#include <osgDB/DatabaseRevisions>
 
 #include <set>
 
@@ -209,6 +210,12 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         /** Check the build validity, return an empty string if everything is OK, on error return the error string.*/
         std::string checkBuildValidity();
 
+        void setDatabaseRevision(osgDB::DatabaseRevision* db) { _databaseRevision = db; }
+        osgDB::DatabaseRevision* getDatabaseRevision() { return _databaseRevision.get(); }
+        const osgDB::DatabaseRevision* getDatabaseRevision() const { return _databaseRevision.get(); }
+
+        const std::string getDatabaseRevisionBaseFileName(unsigned int level, unsigned int x, unsigned y) const;
+
     protected:
 
         virtual ~DataSet() {}
@@ -263,6 +270,8 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
         bool                                        _newDestinationGraph;
 
         std::string                                 _taskOutputDirectory;
+
+        osg::ref_ptr<osgDB::DatabaseRevision>       _databaseRevision;
 };
 
 }
