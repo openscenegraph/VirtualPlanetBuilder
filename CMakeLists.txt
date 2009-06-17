@@ -314,11 +314,10 @@ ENDIF()
 INCLUDE(VpbMacroUtils)
 
 # VPB Core
-IF (FOUND_OSG AND FOUND_GDAL)
+IF( OSG_FOUND AND GDAL_FOUND)
     ADD_SUBDIRECTORY(src)
     ADD_SUBDIRECTORY(applications)
 ENDIF()
-
 
 
 # Set defaults for Universal Binaries. We want 32-bit Intel/PPC on 10.4
