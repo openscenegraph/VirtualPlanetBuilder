@@ -89,7 +89,49 @@ FIND_OSG_LIBRARY( OPENTHREADS_LIBRARY OpenThreads)
 
 SET( OSG_FOUND "NO" )
 IF( OSG_LIBRARY AND OSG_INCLUDE_DIR )
+
     SET( OSG_FOUND "YES" )
+
+    EXEC_PROGRAM(osgversion ARGS --major-number OUTPUT_VARIABLE OPENSCENEGRAPH_MAJOR_VERSION)
+    EXEC_PROGRAM(osgversion ARGS --minor-number OUTPUT_VARIABLE OPENSCENEGRAPH_MINOR_VERSION)
+    EXEC_PROGRAM(osgversion ARGS --patch-number OUTPUT_VARIABLE OPENSCENEGRAPH_PATCH_VERSION)
+    EXEC_PROGRAM(osgversion ARGS --so-number OUTPUT_VARIABLE OPENSCENEGRAPH_SOVERSION)
+
+    set(OPENSCENEGRAPH_VERSION "${OPENSCENEGRAPH_MAJOR_VERSION}.${OPENSCENEGRAPH_MINOR_VERSION}.${OPENSCENEGRAPH_PATCH_VERSION}"
+                                    CACHE INTERNAL "The version of OSG which was detected")
+
+    if(OSG_FIND_VERSION)
+        if(OSG_FIND_VERSION_EXACT)
+            if(NOT OPENSCENEGRAPH_VERSION VERSION_EQUAL ${OSG_FIND_VERSION})
+                message(
+                    "ERROR: Version ${OSG_FIND_VERSION} of the OpenSceneGraph is required "
+                    "(exactly), version ${OPENSCENEGRAPH_VERSION} was found.")
+
+                SET(OSG_FOUND "NO")
+                set(OSG_LIBRARY)
+                set(OSG_INCLUDE_DIR)
+
+            endif()
+        else()
+            # version is too low
+            if(NOT OPENSCENEGRAPH_VERSION VERSION_EQUAL ${OSG_FIND_VERSION} AND
+                    NOT OPENSCENEGRAPH_VERSION VERSION_GREATER ${OSG_FIND_VERSION})
+
+                SET(OSG_FOUND "NO")
+                set(OSG_LIBRARY)
+                set(OSG_INCLUDE_DIR)
+
+                message(
+                    "ERROR: Version ${OSG_FIND_VERSION} or higher of the OpenSceneGraph "
+                    "is required.  Version ${OPENSCENEGRAPH_VERSION} was found.")
+
+            endif()
+        endif()
+    endif()
+
+ENDIF()
+
+IF( OSG_FOUND )
     
     IF (${OSG_INCLUDE_DIR} STREQUAL ${OSG_GEN_INCLUDE_DIR})
         SET( OSG_INCLUDE_DIRS ${OSG_INCLUDE_DIR})
@@ -100,6 +142,6 @@ IF( OSG_LIBRARY AND OSG_INCLUDE_DIR )
     GET_FILENAME_COMPONENT( OSG_LIBRARIES_DIR ${OSG_LIBRARY} PATH )
 #    MESSAGE("-- OSG_LIBRARIES_DIR: " ${OSG_LIBRARIES_DIR})
 #    MESSAGE("-- OSG_INCLUDE_DIRS: " ${OSG_INCLUDE_DIRS})
-ENDIF( OSG_LIBRARY AND OSG_INCLUDE_DIR )
+ENDIF( OSG_FOUND )
 
 

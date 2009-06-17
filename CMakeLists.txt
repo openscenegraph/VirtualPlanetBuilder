@@ -170,9 +170,10 @@ SET(OSG_DIR "" CACHE PATH "set to base osg install path")
 SET(CMAKE_DEBUG_POSTFIX  "d")
 
 FIND_PACKAGE(LibSquish)
-FIND_PACKAGE(OSG)
+FIND_PACKAGE(OSG 2.9.5)
 FIND_PACKAGE(GDAL)
-# FIND_PACKAGE(ShapeLib)
+
+
 
 ################################################################################
 # Create bin and lib directories if required
@@ -313,11 +314,8 @@ ENDIF()
 INCLUDE(VpbMacroUtils)
 
 # VPB Core
-ADD_SUBDIRECTORY(src)
-
-# VPB Applications
-OPTION(BUILD_APPLICATIONS "Enable to build VPB Applications (e.g. osgdem)" ON)
-IF   (BUILD_APPLICATIONS)
+IF (FOUND_OSG AND FOUND_GDAL)
+    ADD_SUBDIRECTORY(src)
     ADD_SUBDIRECTORY(applications)
 ENDIF()
 
