@@ -2840,7 +2840,7 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
             app<<" --log "<<logfile.str();
         }
 
-        taskManager->addTask(taskfile.str(), app.str(), sourceFile);
+        taskManager->addTask(taskfile.str(), app.str(), sourceFile, getDatabaseRevisionBaseFileName(0,0,0));
     }
 
     // create the tilemaps for the required split levels
@@ -2903,7 +2903,7 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
                 app<<" --log "<<logfile.str();
             }
 
-            taskManager->addTask(taskfile.str(), app.str(), sourceFile);
+            taskManager->addTask(taskfile.str(), app.str(), sourceFile, getDatabaseRevisionBaseFileName(level,tileX,tileY));
             
             ++taskCount;
         }
@@ -2968,7 +2968,7 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
                 app<<" --log "<<logfile.str();
             }
 
-            taskManager->addTask(taskfile.str(), app.str(), sourceFile);
+            taskManager->addTask(taskfile.str(), app.str(), sourceFile, getDatabaseRevisionBaseFileName(level,tileX,tileY));
 
             ++taskCount;
         }
@@ -2981,21 +2981,23 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
 const std::string DataSet::getDatabaseRevisionBaseFileName(unsigned int level, unsigned int x, unsigned y) const
 {
     std::string baseName;
-    if (getSubtileLevel()==0)
+    std::stringstream sstr;
+    if (level==0)
     {
-        baseName = getDirectory() + getDestinationTileBaseName() + getDestinationTileExtension();
+        sstr << getDirectory() << getDestinationTileBaseName() << getDestinationTileExtension();
     }
     else
     {
-        std::stringstream sstr;
-        sstr << getDirectory()<<getTaskOutputDirectory() << getDestinationTileBaseName()
+        sstr << getDirectory()<<getTaskName(level, x, y)<< "/"
+                <<getDestinationTileBaseName()
                 << "_L"<<level
                 << "_X" <<x
                 <<"_Y"<<y<<getDestinationTileExtension();
-        baseName = sstr.str();
-
     }
-    return baseName;
+
+    sstr << ".task." << getRevisionNumber();
+
+    return sstr.str();
 }
 
 int DataSet::run()
@@ -3026,24 +3028,18 @@ int DataSet::run()
         std::string baseName = getDatabaseRevisionBaseFileName(getSubtileLevel(), getSubtileX(), getSubtileY());
 
         {
-            std::stringstream sstr;
-            sstr << baseName<<"."<<getRevisionNumber()<<".added";
             _databaseRevision->setFilesAdded(new osgDB::FileList);
-            _databaseRevision->getFilesAdded()->setName(sstr.str());
+            _databaseRevision->getFilesAdded()->setName(baseName+".added");
         }
 
         {
-            std::stringstream sstr;
-            sstr << baseName<<"."<<getRevisionNumber()<<".removed";
             _databaseRevision->setFilesRemoved(new osgDB::FileList);
-            _databaseRevision->getFilesRemoved()->setName(sstr.str());
+            _databaseRevision->getFilesRemoved()->setName(baseName+".removed");
         }
 
         {
-            std::stringstream sstr;
-            sstr << baseName<<"."<<getRevisionNumber()<<".modified";
             _databaseRevision->setFilesModified(new osgDB::FileList);
-            _databaseRevision->getFilesModified()->setName(sstr.str());
+            _databaseRevision->getFilesModified()->setName(baseName+".modified");
         }
     }
 

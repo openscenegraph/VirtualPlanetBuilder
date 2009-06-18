@@ -20,6 +20,8 @@
 #include <vpb/Task>
 #include <vpb/BuildOptions>
 
+#include <osgDB/DatabaseRevisions>
+
 #include <map>
 
 namespace vpb
@@ -48,7 +50,8 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         
         /** add a task to the current task set.*/
         void addTask(Task* task);
-        void addTask(const std::string& taskFileName, const std::string& application, const std::string& sourceFile);
+        void addTask(const std::string& taskFileName, const std::string& application, const std::string& sourceFile,
+                     const std::string& fileListBaseName);
         
         /** build the database directly without using slaves.*/
         void buildWithoutSlaves();
@@ -145,6 +148,11 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         /** Check the build validity, return an empty string if everything is OK, on error return the error string.*/
         std::string checkBuildValidity();
 
+        void setDatabaseRevisions(osgDB::DatabaseRevisions* db);
+        osgDB::DatabaseRevisions* getDatabaseRevisions();
+
+        void addRevisionFileList(const std::string& filename);
+
     protected:
 
         virtual ~TaskManager();
@@ -170,17 +178,20 @@ class VPB_EXPORT TaskManager : public osg::Referenced, public Logger
         std::string                             _previousSourceFileName;
         osg::ref_ptr<osgTerrain::TerrainTile>   _previousTerrainTile;
 
-        std::string                         _tasksFileName;
-        TaskSetList                         _taskSetList;
+        std::string                             _tasksFileName;
+        TaskSetList                             _taskSetList;
 
-        bool                                _done;
+        bool                                    _done;
         
         typedef std::map<int, SignalAction> SignalActionMap;
 
-        SignalAction                        _defaultSignalAction;
-        SignalActionMap                     _signalActionMap;
+        SignalAction                            _defaultSignalAction;
+        SignalActionMap                         _signalActionMap;
         
-        mutable OpenThreads::Mutex          _signalHandleMutex;
+        mutable OpenThreads::Mutex              _signalHandleMutex;
+
+        OpenThreads::Mutex                      _databaseRevisionsMutex;
+        osg::ref_ptr<osgDB::DatabaseRevisions>  _databaseRevisions;
 };
 
 }

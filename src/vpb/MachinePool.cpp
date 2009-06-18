@@ -78,6 +78,18 @@ void MachineOperation::operator () (osg::Object* object)
                 // success
                 _task->setStatus(Task::COMPLETED);
                 _task->write();
+
+                // need to update taskmanger with any new file lists
+                if (machine->getMachinePool() && machine->getMachinePool()->getTaskManager())
+                {
+                    std::string fileListBaseName;
+                    if (_task->getProperty("fileListBaseName",fileListBaseName))
+                    {
+                        machine->getMachinePool()->getTaskManager()->addRevisionFileList(fileListBaseName+".added");
+                        machine->getMachinePool()->getTaskManager()->addRevisionFileList(fileListBaseName+".removed");
+                        machine->getMachinePool()->getTaskManager()->addRevisionFileList(fileListBaseName+".modified");
+                    }
+                }
             }
             else
             {
@@ -421,7 +433,8 @@ void Machine::setDone(bool done)
 
 MachinePool::MachinePool():
     _done(false),
-    _taskFailureOperation(IGNORE_FAILED_TASK)
+    _taskFailureOperation(IGNORE_FAILED_TASK),
+    _taskManager(0)
 {
     //_taskFailureOperation = IGNORE_FAILED_TASK;
     _taskFailureOperation = BLACKLIST_MACHINE_AND_RESUBMIT_TASK;

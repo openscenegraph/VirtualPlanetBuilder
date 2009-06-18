@@ -140,6 +140,8 @@ class VPB_EXPORT Machine : public osg::Object, public Logger
         void signal(int signal);
         
         void setDone(bool done);
+
+        MachinePool* getMachinePool() { return _machinePool; }
         
    protected:
     
@@ -178,7 +180,11 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
 
         /// override from Logger to be able to pass on to all associated Machine objects        
         void setBuildLog(BuildLog* bl);
-        
+
+
+        void setTaskManager(TaskManager* tm) { _taskManager = tm; }
+        TaskManager* getTaskManager() { return _taskManager; }
+
         void addMachine(const std::string& hostname, const std::string& cacheDirectory, const std::string& commandPrefix, const std::string& commandPostfix, int numThreads=-1);
 
         void addMachine(Machine* machine);
@@ -252,6 +258,7 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
         
         friend class TaskManager;
 
+
         typedef std::list< osg::ref_ptr<Machine> > Machines;
 
         std::string                         _machinePoolFileName;
@@ -265,6 +272,8 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
         bool                                _done;
 
         TaskFailureOperation                _taskFailureOperation;
+
+        TaskManager*                        _taskManager;
 };
 
 }

@@ -332,7 +332,8 @@ void TaskManager::addTask(Task* task)
         
 }
 
-void TaskManager::addTask(const std::string& taskFileName, const std::string& application, const std::string& sourceFile)
+void TaskManager::addTask(const std::string& taskFileName, const std::string& application, const std::string& sourceFile,
+                          const std::string& fileListBaseName)
 {
     osg::ref_ptr<Task> taskFile = new Task(taskFileName);
 
@@ -340,8 +341,9 @@ void TaskManager::addTask(const std::string& taskFileName, const std::string& ap
     {
         taskFile->setProperty("application",application);
         taskFile->setProperty("source",sourceFile);
+        taskFile->setProperty("fileListBaseName",fileListBaseName);
 
-        taskFile->write();    
+        taskFile->write();
 
         addTask(taskFile.get());
     }
@@ -461,6 +463,29 @@ bool TaskManager::run()
     {
         getMachinePool()->setTaskFailureOperation(MachinePool::COMPLETE_RUNNING_TASKS_THEN_EXIT);
     }
+
+    getMachinePool()->setTaskManager(this);
+
+    std::string revisionsFileName;
+    if (getBuildOptions())
+    {
+        revisionsFileName = getBuildOptions()->getDirectory() +
+                            getBuildOptions()->getDestinationTileBaseName() +
+                            getBuildOptions()->getDestinationTileExtension() + std::string(".revisions");
+
+
+        osg::ref_ptr<osg::Object> object = osgDB::readObjectFile(revisionsFileName);
+        osg::ref_ptr<osgDB::DatabaseRevisions> dr = dynamic_cast<osgDB::DatabaseRevisions*>(object.get());
+
+        if (!dr)
+        {
+            dr = new osgDB::DatabaseRevisions;
+            dr->setName(revisionsFileName);
+        }
+
+        setDatabaseRevisions(dr.get());
+    }
+
 
     for(TaskSetList::iterator tsItr = _taskSetList.begin();
         tsItr != _taskSetList.end() && !done();
@@ -1114,3 +1139,113 @@ std::string TaskManager::checkBuildValidity()
 
     return std::string();
 }
+
+void TaskManager::setDatabaseRevisions(osgDB::DatabaseRevisions* db)
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_databaseRevisionsMutex);
+    _databaseRevisions = db;
+}
+
+osgDB::DatabaseRevisions* TaskManager::getDatabaseRevisions()
+{
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_databaseRevisionsMutex);
+    return _databaseRevisions.get();
+}
+
+void TaskManager::addRevisionFileList(const std::string& filename)
+{
+    log(osg::INFO,"addRevisionFileList(%s)",filename.c_str());
+
+    osg::ref_ptr<osg::Object> object = osgDB::readObjectFile(filename);
+    osg::ref_ptr<osgDB::FileList> fileList = dynamic_cast<osgDB::FileList*>(object.get());
+    if (!fileList)
+    {
+        log(osg::INFO,"   failed to load file list %s",filename.c_str());
+        return;
+    }
+
+    OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_databaseRevisionsMutex);
+
+    bool writeChangesImmediately = true;
+
+    if (!filename.empty())
+    {
+        std::string ext = osgDB::getLowerCaseFileExtension(filename);
+        std::string fileListName = osgDB::getNameLessExtension(filename);
+        std::string revisionName = osgDB::getLowerCaseFileExtension(fileListName);
+        if (!revisionName.empty())
+        {
+
+            osg::ref_ptr<osgDB::DatabaseRevision> dbRevision;
+
+            // look for a suitable database revision to append to
+            for(osgDB::DatabaseRevisions::DatabaseRevisionList::iterator itr = _databaseRevisions->getDatabaseRevisionList().begin();
+                itr != _databaseRevisions->getDatabaseRevisionList().end() && !dbRevision;
+                ++itr)
+            {
+                if ((*itr)->getName()==revisionName)
+                {
+                    log(osg::INFO,"   reusing exsiting DatabaseRevision structure");
+                    dbRevision = *itr;
+                }
+            }
+
+            if (!dbRevision)
+            {
+                log(osg::INFO,"   create new DatabaseRevision structure %s", revisionName.c_str());
+
+                dbRevision = new osgDB::DatabaseRevision;
+                dbRevision->setName(revisionName);
+                dbRevision->setDatabasePath(getBuildOptions()->getDirectory());
+
+                _databaseRevisions->addRevision(dbRevision.get());
+           }
+
+            std::stringstream sstr;
+            sstr << getBuildOptions()->getDirectory()
+                 << getBuildOptions()->getDestinationTileBaseName()
+                 << getBuildOptions()->getDestinationTileExtension()
+                 << "."<<getBuildOptions()->getRevisionNumber();
+
+            std::string fileListBaseName =sstr.str();
+
+            if (ext=="added")
+            {
+                if (!dbRevision->getFilesAdded())
+                {
+                    dbRevision->setFilesAdded(new osgDB::FileList);
+                    dbRevision->getFilesAdded()->setName(fileListBaseName+".added");
+                    if (writeChangesImmediately) osgDB::writeObjectFile(*_databaseRevisions, _databaseRevisions->getName());
+                }
+                dbRevision->getFilesAdded()->append(fileList.get());
+
+                if (writeChangesImmediately) osgDB::writeObjectFile(*(dbRevision->getFilesAdded()),dbRevision->getFilesAdded()->getName());
+            }
+            else if (ext=="removed")
+            {
+                if (!dbRevision->getFilesRemoved())
+                {
+                    dbRevision->setFilesRemoved(new osgDB::FileList);
+                    dbRevision->getFilesRemoved()->setName(fileListBaseName+".removed");
+                    if (writeChangesImmediately) osgDB::writeObjectFile(*_databaseRevisions, _databaseRevisions->getName());
+                }
+                dbRevision->getFilesRemoved()->append(fileList.get());
+
+                if (writeChangesImmediately) osgDB::writeObjectFile(*(dbRevision->getFilesRemoved()),dbRevision->getFilesRemoved()->getName());
+            }
+            else if (ext=="modified")
+            {
+                if (!dbRevision->getFilesModified())
+                {
+                    dbRevision->setFilesModified(new osgDB::FileList);
+                    dbRevision->getFilesModified()->setName(fileListBaseName+".modified");
+                    if (writeChangesImmediately) osgDB::writeObjectFile(*_databaseRevisions, _databaseRevisions->getName());
+                }
+                dbRevision->getFilesModified()->append(fileList.get());
+
+                if (writeChangesImmediately) osgDB::writeObjectFile(*(dbRevision->getFilesModified()),dbRevision->getFilesModified()->getName());
+            }
+        }
+    }
+}
+
