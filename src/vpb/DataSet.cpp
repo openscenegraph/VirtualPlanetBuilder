@@ -207,7 +207,7 @@ bool DataSet::computeOptimumLevel(Source* source, int maxLevel, int& level)
     level = std::max(k_cols, k_rows);
     level = std::min(level, int(source->getMaxLevel()));
     level = std::min(level, maxLevel);
-    
+    level = std::max(level, 0);
     return true;
 }
 
