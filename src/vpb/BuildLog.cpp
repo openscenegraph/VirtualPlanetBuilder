@@ -169,13 +169,20 @@ OperationLog::~OperationLog()
 {
 }
 
+void OperationLog::log(osg::NotifySeverity level, const std::string& str)
+{
+    Message* message = new Message(osg::Timer::instance()->time_s(), level, str);
+    _messages.push_back(message);
+    if (_logFile.valid()) _logFile->write(message);
+}
+
 void OperationLog::log(osg::NotifySeverity level, const char* format, ...)
 {
     char str[1024];
     va_list args; va_start(args, format);
     vsnprintf(str, sizeof(str), format, args);
     va_end(args);
-    
+
     Message* message = new Message(osg::Timer::instance()->time_s(), level, str);
     _messages.push_back(message);
     if (_logFile.valid()) _logFile->write(message);

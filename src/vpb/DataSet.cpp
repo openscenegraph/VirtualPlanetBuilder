@@ -1467,12 +1467,15 @@ void DataSet::_writeNodeFile(osg::Node& node,const std::string& filename)
     if (_archive.valid()) _archive->writeNode(node,filename);
     else 
     {
+        osg::NotifySeverity notifylevel = getAbortTaskOnError() ? osg::FATAL : osg::WARN;
+
         if (vpb::hasWritePermission(filename))
         {
             bool fileExistedBeforeWrite = osgDB::fileExists(filename);
 
             osgDB::ReaderWriter::WriteResult result = 
                 osgDB::Registry::instance()->writeNode(node, filename,osgDB::Registry::instance()->getOptions());
+
 
             if (result.success())
             {
@@ -1490,14 +1493,28 @@ void DataSet::_writeNodeFile(osg::Node& node,const std::string& filename)
             }
             else
             {
-                osg::NotifySeverity level = getAbortTaskOnError() ? osg::FATAL : osg::WARN;
-                log(level, "Error: do not have write permission to write out file %s",filename.c_str());
+                if (!result.message().empty()) log(notifylevel, result.message());
+                else
+                {
+                    switch(result.status())
+                    {
+                        case(osgDB::ReaderWriter::WriteResult::NOT_IMPLEMENTED):
+                        case(osgDB::ReaderWriter::WriteResult::FILE_NOT_HANDLED):
+                            log(notifylevel, "Error, write support for data type not available for node file %s",filename.c_str());
+                            break;
+                        case(osgDB::ReaderWriter::WriteResult::ERROR_IN_WRITING_FILE):
+                            log(notifylevel, "Error, in writing node file %s",filename.c_str());
+                            break;
+                        default:
+                            log(notifylevel, "Error, in writing node file %s",filename.c_str());
+                            break;
+                    }
+                }
             }
         }
         else
         {
-            osg::NotifySeverity level = getAbortTaskOnError() ? osg::FATAL : osg::WARN;
-            log(level, "Error: do not have write permission to write out file %s",filename.c_str());
+           log(notifylevel, "Error: do not have write permission to write out file %s",filename.c_str());
         }
     }
 }
@@ -1514,6 +1531,8 @@ void DataSet::_writeImageFile(osg::Image& image,const std::string& filename)
     if (_archive.valid()) _archive->writeImage(image,simpliedFileName);
     else 
     {
+        osg::NotifySeverity notifylevel = getAbortTaskOnError() ? osg::FATAL : osg::WARN;
+
         if (FilePathManager::instance()->checkWritePermissionAndEnsurePathAvailability(simpliedFileName))
         {
             bool fileExistedBeforeWrite = osgDB::fileExists(filename);
@@ -1537,12 +1556,28 @@ void DataSet::_writeImageFile(osg::Image& image,const std::string& filename)
             }
             else
             {
-                log(osg::WARN, "Error: error occurred when writing out file %s",simpliedFileName.c_str());
+                if (!result.message().empty()) log(notifylevel, result.message().c_str());
+                else
+                {
+                    switch(result.status())
+                    {
+                        case(osgDB::ReaderWriter::WriteResult::NOT_IMPLEMENTED):
+                        case(osgDB::ReaderWriter::WriteResult::FILE_NOT_HANDLED):
+                            log(notifylevel, "Error, write support for data type not available for image file %s",filename.c_str());
+                            break;
+                        case(osgDB::ReaderWriter::WriteResult::ERROR_IN_WRITING_FILE):
+                            log(notifylevel, "Error, in writing image file %s",filename.c_str());
+                            break;
+                        default:
+                            log(notifylevel, "Error, in writing image file %s",filename.c_str());
+                            break;
+                    }
+                }
             }
         }
         else
         {
-            log(osg::WARN, "Error: do not have write permission to write out file %s",simpliedFileName.c_str());
+            log(notifylevel, "Error: do not have write permission to write out file %s",simpliedFileName.c_str());
         }
     }
 }

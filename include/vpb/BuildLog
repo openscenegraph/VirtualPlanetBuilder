@@ -189,7 +189,7 @@ class VPB_EXPORT BuildLog : public OperationLog
 class Logger
 {
     public:
-    
+
         virtual void setBuildLog(BuildLog* bl) { _buildLog = bl; }
         BuildLog* getBuildLog() { return _buildLog.get(); }
         const BuildLog* getBuildLog() const { return _buildLog.get(); }
@@ -197,23 +197,25 @@ class Logger
         void log(osg::NotifySeverity level, const std::string& message) const
         {
             if (level>osg::getNotifyLevel()) return;
-        
+
             if (_buildLog.valid())
             {
                 _buildLog->log(level, message);
+                if (level==osg::FATAL) throw message;
             }
             else 
             {
+                if (level==osg::FATAL) throw message;
+
                 std::cout<<message<<std::endl;
             }
-            
-            if (level==osg::FATAL) throw message;
+
         }
-        
+
         void log(osg::NotifySeverity level, const char* format, ...) const
         {
             if (level>osg::getNotifyLevel()) return;
-        
+
             va_list args; va_start(args, format);
             if (_buildLog.valid())
             {
@@ -225,21 +227,21 @@ class Logger
             }
             else 
             {
-                vprintf(format, args); printf("\n");
-
                 if (level==osg::FATAL) 
                 {
                     char str[1024];
                     vsnprintf(str, sizeof(str), format, args);
                     throw std::string(str);
                 }
+
+                vprintf(format, args); printf("\n");
             }
             va_end(args);
 
     }
 
     protected:
-    
+
         osg::ref_ptr<BuildLog> _buildLog;
         
         
