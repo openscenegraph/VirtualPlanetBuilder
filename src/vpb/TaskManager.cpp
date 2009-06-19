@@ -1,4 +1,4 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield
  *
  * This library is open source and may be redistributed and/or modified under  
  * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
@@ -441,6 +441,8 @@ bool TaskManager::generateTasksFromSource()
 
         // update the current build options with the distination extents.
         bo->setDestinationExtents(dataset->getDestinationExtents());
+        bo->setDistributedBuildSecondarySplitLevel(dataset->getDistributedBuildSecondarySplitLevel());
+        bo->setDistributedBuildSplitLevel(dataset->getDistributedBuildSplitLevel());
 
         if (dataset->getBuildLog())
         {
