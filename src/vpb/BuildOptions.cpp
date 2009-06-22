@@ -37,7 +37,7 @@ BuildOptions::BuildOptions():
     _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
     _directory = "";
     _outputTaskDirectories = true;
-    _geometryType = POLYGONAL;
+    _geometryType = TERRAIN;
     _imageExtension = ".dds";
     _powerOfTwoImages = true;
     _intermediateBuildName = "";
