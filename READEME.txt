@@ -25,4 +25,4 @@ lower bandwidth constraints of web based 3d database visualization.
 
 
 Robert Osfield.
-4th January 2008
+22nd June 2008
