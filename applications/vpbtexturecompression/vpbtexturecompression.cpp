@@ -43,7 +43,7 @@ osg::Camera* createHUD(const std::string& label)
     // set the projection matrix
     camera->setProjectionMatrix(osg::Matrix::ortho2D(0,1280,0,1024));
 
-    // set the view matrix    
+    // set the view matrix
     camera->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
     camera->setViewMatrix(osg::Matrix::identity());
 
@@ -300,7 +300,7 @@ int main(int argc, char** argv)
     }
 
     osg::GraphicsContext::WindowingSystemInterface* wsi = osg::GraphicsContext::getWindowingSystemInterface();
-    if (!wsi) 
+    if (!wsi)
     {
         osg::notify(osg::NOTICE)<<"Error, no WindowSystemInterface available, cannot create windows."<<std::endl;
         return 1;
@@ -463,7 +463,7 @@ int main(int argc, char** argv)
 
         view->setSceneData(models[i].get());
         view->getCamera()->setProjectionMatrixAsPerspective(30.0, double(vw) / double(vh), 1.0, 1000.0);
-        view->getCamera()->setViewport(new osg::Viewport(vx, vy, vw, vh));    
+        view->getCamera()->setViewport(new osg::Viewport(vx, vy, vw, vh));
         view->getCamera()->setGraphicsContext(gc.get());
         view->getCamera()->setClearMask(0);
         view->setCameraManipulator(trackball.get());

@@ -1,6 +1,6 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield
  *
- * This application is open source and may be redistributed and/or modified   
+ * This application is open source and may be redistributed and/or modified
  * freely and without restriction, both in commericial and non commericial applications,
  * as long as this copyright notice is maintained.
  * 
@@ -139,11 +139,11 @@ int main(int argc, char** argv)
     while (arguments.read("-s",sourceName))
     {
         std::string fileName = osgDB::findDataFile( sourceName);
-        if (fileName.empty()) 
+        if (fileName.empty())
         {
 
             osg::notify(osg::NOTICE)<<"Error: osgdem running on \""<<vpb::getLocalHostName()<<"\", could not find source file \""<<sourceName<<"\""<<std::endl;
-            char str[2048]; 
+            char str[2048];
             if (vpb::getCurrentWorkingDirectory( str, sizeof(str) ))
             {
                 osg::notify(osg::NOTICE)<<"       current working directory at time of error = "<<str<<std::endl;
@@ -171,7 +171,7 @@ int main(int argc, char** argv)
         if (node.valid())
         {
             osgTerrain::TerrainTile* loaded_terrain = dynamic_cast<osgTerrain::TerrainTile*>(node.get());
-            if (loaded_terrain) 
+            if (loaded_terrain)
             {
                 terrain = loaded_terrain;
             }
@@ -253,7 +253,7 @@ int main(int argc, char** argv)
     // generate the database
     if (terrain.valid())
     {
-        try 
+        try
         {
 
             vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(terrain->getTerrainTechnique());
@@ -281,7 +281,7 @@ int main(int argc, char** argv)
             // make sure the OS writes changes to disk
             vpb::sync();
 
-            // check to make sure that the build itself is ready to run and configured correctly.            
+            // check to make sure that the build itself is ready to run and configured correctly.
             std::string buildProblems = dataset->checkBuildValidity();
             if (buildProblems.empty())
             {

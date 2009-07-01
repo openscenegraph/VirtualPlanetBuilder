@@ -1,13 +1,13 @@
-/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield 
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -53,7 +53,7 @@ Source::Source(Type type, osg::Node* model):
 
 void Source::setSetName(const std::string& setname, BuildOptions* bo)
 {
-    _setname = setname; 
+    _setname = setname;
     if (bo)
     {
         if (bo->isOptionalLayerSet(setname)) _switchSetName = setname;
@@ -153,7 +153,7 @@ void Source::loadSourceData()
 
         assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy();
     }
-}    
+}
 
 void Source::assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy()
 {
@@ -200,7 +200,7 @@ void Source::assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy()
             div_y = 1.0/(double)(_sourceData->_numValuesY);
         }
     
-#if 1    
+#if 1
         _sourceData->_geoTransform = _geoTransform;
 
         _sourceData->_geoTransform(0,0) *= div_x;
@@ -299,7 +299,7 @@ Source* Source::doRasterReprojection(const std::string& filename, osg::Coordinat
     GDALDriverH hDriver = GDALGetDriverByName( "GTiff" );
         
     if (hDriver == NULL)
-    {       
+    {
         log(osg::INFO,"Unable to load driver for GTiff");
         return 0;
     }
@@ -489,7 +489,7 @@ Source* Source::doRasterReprojection(const std::string& filename, osg::Coordinat
             GDALRasterBandH dest_band = GDALGetRasterBand(hDstDS,i+1);
             GDALSetRasterNoDataValue( dest_band, new_noDataValue);
         }
-    }    
+    }
 
     psWO->papszWarpOptions = (char**)CPLMalloc(2*sizeof(char*));
     psWO->papszWarpOptions[0] = strdup("INIT_DEST=NO_DATA");
@@ -497,11 +497,11 @@ Source* Source::doRasterReprojection(const std::string& filename, osg::Coordinat
     
     if (numDestinationBands==4)
     {
-/*    
+/*
         GDALSetRasterColorInterpretation( 
             GDALGetRasterBand( hDstDS, numDestinationBands ), 
             GCI_AlphaBand );
-*/            
+*/
         psWO->nDstAlphaBand = numDestinationBands;
     }
 
@@ -578,7 +578,7 @@ Source* Source::doRasterReprojectionUsingFileCache(osg::CoordinateSystemNode* cs
     FileCache* fileCache = System::instance()->getFileCache();
     if (!fileCache) return 0;
 
-    // see if we can use the FileCache to remap the source file.            
+    // see if we can use the FileCache to remap the source file.
     std::string optimumFile = fileCache->getOptimimumFile(getFileName(), cs);
     if (!optimumFile.empty())
     {
@@ -709,7 +709,7 @@ public:
                 xArray[i] = v.x();
                 yArray[i] = v.y();
                 zArray[i] = v.z();
-            }            
+            }
         }
         else if (vec3farray)
         {
@@ -719,7 +719,7 @@ public:
                 xArray[i] = v.x();
                 yArray[i] = v.y();
                 zArray[i] = v.z();
-            }            
+            }
         }
         
         // log(osg::NOTICE,"   reprojecting %i vertices",nCount);
@@ -737,7 +737,7 @@ public:
                 v.y() = yArray[i];
                 v.z() = zArray[i];
                 // osg::notify(osg::NOTICE)<<"  after "<<v<<std::endl;
-            }            
+            }
         }
         else if (vec3farray)
         {
@@ -747,7 +747,7 @@ public:
                 v.x() = xArray[i];
                 v.y() = yArray[i];
                 v.z() = zArray[i];
-            }            
+            }
         }
 
         // clean up the temporary arrays

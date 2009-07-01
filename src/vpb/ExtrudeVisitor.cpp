@@ -1,4 +1,4 @@
-#include <vpb/ExtrudeVisitor>                  
+#include <vpb/ExtrudeVisitor>
 
 #include <osg/Geode>
 #include <osg/Notify>
@@ -18,23 +18,23 @@ namespace vpb {
 struct DuplicateOperator
 {
     template <typename ArrayType>
-    void process(ArrayType & array) 
-    {   
+    void process(ArrayType & array)
+    {
         std::size_t size = array.size();
         array.resize(size * 2);
         
-        typename ArrayType::iterator it = array.begin(); 
+        typename ArrayType::iterator it = array.begin();
         std::advance(it, size);
         std::copy(array.begin(), it, it);
     }
-};   
+};
 typedef osgUtil::OperationArrayFunctor<DuplicateOperator> DuplicateFunctor;
 
 struct DuplicateIndexOperator
-{ 
+{
     template <typename ArrayType>
-    void process(ArrayType & array) 
-    {   
+    void process(ArrayType & array)
+    {
         std::size_t size = array.size();
         array.resize(size + _indexArray->size());
         
@@ -50,8 +50,8 @@ typedef osgUtil::OperationArrayFunctor<DuplicateIndexOperator> DuplicateIndexFun
 struct DuplicateAndInterlaceOperator
 {
     template <typename ArrayType>
-    void process(ArrayType & array) 
-    {   
+    void process(ArrayType & array)
+    {
         unsigned int size = array.size();
         osg::ref_ptr<ArrayType> newArray(new ArrayType(size * 2));
         ArrayType & refNewArray = *newArray.get();
@@ -61,14 +61,14 @@ struct DuplicateAndInterlaceOperator
         
         array = refNewArray;
     }
-};   
+};
 typedef osgUtil::OperationArrayFunctor<DuplicateAndInterlaceOperator> DuplicateAndInterlaceFunctor;
 
 struct AddOddOperator
 {
     template <typename ArrayType>
-    void process(ArrayType & array) 
-    {   
+    void process(ArrayType & array)
+    {
         typedef typename ArrayType::ElementDataType ElementDataType;
                         
         ElementDataType convertedVector;
@@ -81,7 +81,7 @@ struct AddOddOperator
     }
     
     osg::Vec3d _vector;
-};   
+};
 typedef osgUtil::OperationArrayFunctor<AddOddOperator> AddOddFunctor;
 
 
@@ -253,7 +253,7 @@ void ExtrudeVisitor::extrude(osg::Geometry& geometry)
         
 
         
-        // ** link original and extruded Boundary Edgeloops 
+        // ** link original and extruded Boundary Edgeloops
         osgUtil::EdgeCollector::IndexArrayList::iterator oit, oend = originalIndexArrayList.end();
         osgUtil::EdgeCollector::IndexArrayList::iterator eit = extrudedIndexArrayList.begin();
         for (oit = originalIndexArrayList.begin(); oit != oend; ++oit, ++eit)
@@ -261,7 +261,7 @@ void ExtrudeVisitor::extrude(osg::Geometry& geometry)
             
             osg::ref_ptr<osg::DrawElementsUInt> de = linkAsTriangleStrip(*(*oit), *(*eit));
             
-            // ** if bottom shape have up normal, we need to reverse the extruded face   
+            // ** if bottom shape have up normal, we need to reverse the extruded face
             if (reverseTopShape == false)
             {
                 osgUtil::ReversePrimitiveFunctor rpf;
@@ -314,7 +314,7 @@ void ExtrudeVisitor::apply(osg::Geode & node)
         
         if (geo)
         {
-            extrude(*geo);        
+            extrude(*geo);
         }
     }
     

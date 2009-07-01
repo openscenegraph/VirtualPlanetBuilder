@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -62,7 +62,7 @@ bool FileCache::read(const std::string& filename)
         std::string str;
 
         while(!fr.eof())
-        {        
+        {
             bool itrAdvanced = false;
 
             if (fr.matchSequence("FileDetails {"))
@@ -105,7 +105,7 @@ bool FileCache::read(const std::string& filename)
                     {
                         if (!fd->getSpatialProperties()._cs) fd->getSpatialProperties()._cs = new osg::CoordinateSystemNode;
                         
-                        fd->getSpatialProperties()._cs->setCoordinateSystem(str); 
+                        fd->getSpatialProperties()._cs->setCoordinateSystem(str);
                          fd->getSpatialProperties()._extents._isGeographic = getCoordinateSystemType(fd->getSpatialProperties()._cs.get())==GEOGRAPHIC;
 
                         localAdvanced = true;
@@ -123,7 +123,7 @@ bool FileCache::read(const std::string& filename)
                     if (fr.read("geoTransform",m(0,0),m(0,1),m(1,0),m(1,1),m(3,0),m(3,1)))
                     {
                         fd->getSpatialProperties()._geoTransform = m;
-                    }                    
+                    }
 
 
                     int sizeX, sizeY, sizeZ;
@@ -147,7 +147,7 @@ bool FileCache::read(const std::string& filename)
             }
             
             if (!itrAdvanced) ++fr;
-        }        
+        }
     }
     
     _requiresWrite = !emptyBefore;
@@ -334,7 +334,7 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const osg::
     double res_closest = DBL_MAX;
     
 
-    // first check cached files on 
+    // first check cached files on
     std::string hostname = getLocalHostName();
     for(Variants::iterator vitr = variants.begin();
         vitr != variants.end();
@@ -380,7 +380,7 @@ std::string FileCache::getOptimimumFile(const std::string& filename, const Spati
     FileDetails* fd_closest_above = 0;
     double res_closest_above = DBL_MAX;
     
-    // first check cached files on 
+    // first check cached files on
     std::string hostname = getLocalHostName();
     for(Variants::iterator vitr = variants.begin();
         vitr != variants.end();
@@ -480,7 +480,7 @@ void FileCache::addSource(osgTerrain::TerrainTile* source)
         fd->setFileName(source->getFileName());
         fd->setSpatialProperties(*sd);
         
-        addFileDetails(fd);        
+        addFileDetails(fd);
     }
     
     log(osg::NOTICE,"FileCache::addSource()");
@@ -507,7 +507,7 @@ void FileCache::buildRequiredReprojections(osgTerrain::TerrainTile* source)
         {
             std::string cacheDirectory = machine->getCacheDirectory();
             
-            if (!cacheDirectory.empty()) 
+            if (!cacheDirectory.empty())
             {
                 filePrefix = cacheDirectory + "/";
             }
@@ -543,7 +543,7 @@ void FileCache::buildRequiredReprojections(osgTerrain::TerrainTile* source)
 
                     addFileDetails(fd);
                     
-                    *itr = newSource;       
+                    *itr = newSource;
                 }
             }
         }
@@ -576,7 +576,7 @@ void FileCache::buildOverviews(osgTerrain::TerrainTile* source)
         {
             std::string cacheDirectory = machine->getCacheDirectory();
             
-            if (!cacheDirectory.empty()) 
+            if (!cacheDirectory.empty())
             {
                 filePrefix = cacheDirectory + "/";
             }
@@ -624,7 +624,7 @@ void FileCache::buildOverviews(osgTerrain::TerrainTile* source)
                         log(osg::NOTICE, "     need to build mipmaps for %s",fd->getFileName().c_str());
 
                         int anOverviewList[5] = { 2, 4, 8, 16, 32 };
-                        dataset->BuildOverviews( "AVERAGE", 5, anOverviewList, 0, NULL, 
+                        dataset->BuildOverviews( "AVERAGE", 5, anOverviewList, 0, NULL,
                                                  GDALTermProgress/*GDALDummyProgress*/, NULL );
 
                     }
@@ -688,7 +688,7 @@ void FileCache::mirror(Machine* machine, osgTerrain::TerrainTile* source)
                 const SpatialProperties& fd_sp = fd->getSpatialProperties();
                 if (vpb::areCoordinateSystemEquivalent(fd_sp._cs.get(), csn))
                 {
-                    if (fd->getHostName() == machine->getHostName()) 
+                    if (fd->getHostName() == machine->getHostName())
                     {
                         fileOnTargetMachine = fd;
                     }

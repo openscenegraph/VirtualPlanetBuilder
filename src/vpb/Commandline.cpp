@@ -1,4 +1,4 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield 
  *
  * This library is open source and may be redistributed and/or modified under  
  * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
@@ -57,7 +57,7 @@ void Commandline::reset()
     currentCS = "";
     geoTransformSet = false;
     geoTransformScale = false;
-    geoTransform.makeIdentity();            
+    geoTransform.makeIdentity();
     
     mask = 0xffffffff;
     
@@ -181,7 +181,7 @@ void Commandline::processImageOrHeightField(vpb::Source::Type type, const std::s
 
         if (!compositeLayer)
         {
-            compositeLayer = new osgTerrain::CompositeLayer;            
+            compositeLayer = new osgTerrain::CompositeLayer;
             if (existingLayer) compositeLayer->addLayer(existingLayer);
 
             terrainTile->setColorLayer(layerNum, compositeLayer);
@@ -338,7 +338,7 @@ class ApplyUserDataToDrawables : public osg::NodeVisitor
             
         osg::ref_ptr<osgSim::ShapeAttributeList>    _sal;
         ShapeAttributesSet                          _shapeAttributeSet;
-        bool                                        _replace;      
+        bool                                        _replace;
 };
 
 void Commandline::processShapeFile(vpb::Source::Type type, const std::string& filename, LayerOperation layerOp)
@@ -490,76 +490,76 @@ unsigned int Commandline::readMask(const std::string& maskstring)
 
 void Commandline::getUsage(osg::ApplicationUsage& usage)
 {
-    usage.addCommandLineOption("-d <filename>","Specify the digital elevation map input file to process");
-    usage.addCommandLineOption("-t <filename>","Specify the texture map input file to process");
+    usage.addCommandLineOption("-d <filename>","Specify the digital elevation map input file to process.");
+    usage.addCommandLineOption("-t <filename>","Specify the texture map input file to process.");
     usage.addCommandLineOption("--building <filename>","Specify building outlines using shapefiles.");
-    usage.addCommandLineOption("--forest <filename>","Specify forest outlines using shapefiles");
-    usage.addCommandLineOption("-a <archivename>","Specify the archive to place the generated database");
-    usage.addCommandLineOption("--ibn <buildname>","Specify the intermediate build file name");
-    usage.addCommandLineOption("-o <outputfile>","Specify the output master file to generate");
-    usage.addCommandLineOption("-l <numOfLevels>","Specify the number of PagedLOD levels to generate");
+    usage.addCommandLineOption("--forest <filename>","Specify forest outlines using shapefiles.");
+    usage.addCommandLineOption("-a <archivename>","Specify the archive to place the generated database.");
+    usage.addCommandLineOption("--ibn <buildname>","Specify the intermediate build file name.");
+    usage.addCommandLineOption("-o <outputfile>","Specify the output master file to generate.");
+    usage.addCommandLineOption("-l <numOfLevels>","Specify the number of PagedLOD levels to generate.");
     usage.addCommandLineOption("--image-ext <ext>","Specify the Image format to output to via its plugin name, i.e. rgb, dds, jp2, jpeg.");
     usage.addCommandLineOption("--levels <begin_level> <end_level>","Specify the range of lavels that the next source Texture or DEM will contribute to.");
-    usage.addCommandLineOption("--layer <layer_num>","Specify the layer that the next source Texture will contribute to..");
-    usage.addCommandLineOption("-e <x> <y> <w> <h>","Extents of the model to generate");
-    usage.addCommandLineOption("-ge <x> <y> <w> <h>","Geographic (Lat/Lon) Extents of the model to generate");
+    usage.addCommandLineOption("--layer <layer_num>","Specify the layer that the next source Texture will contribute to.");
+    usage.addCommandLineOption("-e <x> <y> <w> <h>","Extents of the model to generate.");
+    usage.addCommandLineOption("-ge <x> <y> <w> <h>","Geographic (Lat/Lon) Extents of the model to generate.");
     usage.addCommandLineOption("-b <xa> <ya> <xb> <yb>","Bounds (similar to extents) of the model to generate. Max/Min order is not important.");
     usage.addCommandLineOption("-gb <xa> <ya> <xb> <yb>","Geographic Bounds (similar to extents) of the model to generate. Max/Min order is not important.");
-    usage.addCommandLineOption("--cs <coordinates system string>","Set the coordinates system of source imagery, DEM or destination database. The string may be any of the usual GDAL/OGR forms, complete WKT, PROJ.4, EPS");     
-    usage.addCommandLineOption("--wkt <WKT string>","Set the coordinates system of source imagery, DEM or destination database in WellKownText form.");     
-    usage.addCommandLineOption("--wkt-file <WKT file>","Set the coordinates system of source imagery, DEM or destination database by as file containing WellKownText definition.");     
-    usage.addCommandLineOption("--skirt-ratio <float>","Set the ratio of skirt height to tile size");     
-    usage.addCommandLineOption("--HEIGHT_FIELD","Create a height field database");     
-    usage.addCommandLineOption("--POLYGONAL","Create a height field database");     
-    usage.addCommandLineOption("--TERRAIN","Create a osgTerrain::Terrain database");     
-    usage.addCommandLineOption("--LOD","Create a LOD'd database");     
-    usage.addCommandLineOption("--PagedLOD","Create a PagedLOD'd database");     
-    usage.addCommandLineOption("-v","Set the vertical multiplier");     
+    usage.addCommandLineOption("--cs <coordinates system string>","Set the coordinates system of source imagery, DEM or destination database. The string may be any of the usual GDAL/OGR forms, complete WKT, PROJ.4, EPS.");
+    usage.addCommandLineOption("--wkt <WKT string>","Set the coordinates system of source imagery, DEM or destination database in WellKnownText form.");
+    usage.addCommandLineOption("--wkt-file <WKT file>","Set the coordinates system of source imagery, DEM or destination database by as file containing WellKownText definition.");
+    usage.addCommandLineOption("--skirt-ratio <float>","Set the ratio of skirt height to tile size.");
+    usage.addCommandLineOption("--HEIGHT_FIELD","Create a height field database.");
+    usage.addCommandLineOption("--POLYGONAL","Create a height field database.");
+    usage.addCommandLineOption("--TERRAIN","Create a osgTerrain::Terrain database.");
+    usage.addCommandLineOption("--LOD","Create a LOD'd database.");
+    usage.addCommandLineOption("--PagedLOD","Create a PagedLOD'd database.");
+    usage.addCommandLineOption("-v","Set the vertical multiplier.");
     usage.addCommandLineOption("--quantize <bits>","Quantize imagery to reduce precision to specified number of bits.");
     usage.addCommandLineOption("--enable-error-diffusion","Enable error diffusion during quantization.");
     usage.addCommandLineOption("--disable-error-diffusion","Disable error diffusion during quantization.");
-    usage.addCommandLineOption("--compressed","Use OpenGL compression on RGB destination imagery");     
-    usage.addCommandLineOption("--compressed-dxt1","Use S3TC DXT1 compression on destination imagery");     
-    usage.addCommandLineOption("--compressed-dxt3","Use S3TC DXT3 compression on destination imagery");     
-    usage.addCommandLineOption("--compressed-dxt5","Use S3TC DXT5 compression on destination imagery");     
-    usage.addCommandLineOption("--RGBA-compressed","Use OpenGL compression on RGBA destination imagery");     
-    usage.addCommandLineOption("--RGB-16","Use 16bit RGB destination imagery");     
-    usage.addCommandLineOption("--RGB-24","Use 24bit RGB destination imagery");     
-    usage.addCommandLineOption("--RGBA-16","Use 16bit RGBA destination imagery");     
-    usage.addCommandLineOption("--RGBA","Use 32bit RGBA destination imagery");     
+    usage.addCommandLineOption("--compressed","Use OpenGL compression on RGB destination imagery.");
+    usage.addCommandLineOption("--compressed-dxt1","Use S3TC DXT1 compression on destination imagery.");
+    usage.addCommandLineOption("--compressed-dxt3","Use S3TC DXT3 compression on destination imagery.");
+    usage.addCommandLineOption("--compressed-dxt5","Use S3TC DXT5 compression on destination imagery.");
+    usage.addCommandLineOption("--RGBA-compressed","Use OpenGL compression on RGBA destination imagery.");
+    usage.addCommandLineOption("--RGB-16","Use 16bit RGB destination imagery.");
+    usage.addCommandLineOption("--RGB-24","Use 24bit RGB destination imagery.");
+    usage.addCommandLineOption("--RGBA-16","Use 16bit RGBA destination imagery.");
+    usage.addCommandLineOption("--RGBA","Use 32bit RGBA destination imagery.");
     usage.addCommandLineOption("--vector","Interpret input as a vector data set");
-    usage.addCommandLineOption("--raster","Interpret input as a raster data set (default)");
-    usage.addCommandLineOption("--max-visible-distance-of-top-level","Set the maximum visible distance that the top most tile can be viewed at");     
+    usage.addCommandLineOption("--raster","Interpret input as a raster data set (default).");
+    usage.addCommandLineOption("--max-visible-distance-of-top-level","Set the maximum visible distance that the top most tile can be viewed at.");
     usage.addCommandLineOption("--no-terrain-simplification","Switch off terrain simplification.");
     usage.addCommandLineOption("--default-color <r,g,b,a>","Sets the default color of the terrain.");
-    usage.addCommandLineOption("--radius-to-max-visible-distance-ratio","Set the maximum visible distance ratio for all tiles apart from the top most tile. The maximum visuble distance is computed from the ratio * tile radius.");     
-    usage.addCommandLineOption("--no-mip-mapping","Disable mip mapping of textures");     
-    usage.addCommandLineOption("--mip-mapping-hardware","Use mip mapped textures, and generate the mipmaps in hardware when available.");     
-    usage.addCommandLineOption("--mip-mapping-imagery","Use mip mapped textures, and generate the mipmaps in imagery.");     
+    usage.addCommandLineOption("--radius-to-max-visible-distance-ratio","Set the maximum visible distance ratio for all tiles apart from the top most tile. The maximum visuble distance is computed from the ratio * tile radius.");
+    usage.addCommandLineOption("--no-mip-mapping","Disable mip mapping of textures.");
+    usage.addCommandLineOption("--mip-mapping-hardware","Use mip mapped textures, and generate the mipmaps in hardware when available.");
+    usage.addCommandLineOption("--mip-mapping-imagery","Use mip mapped textures, and generate the mipmaps in imagery.");
     usage.addCommandLineOption("--max-anisotropy","Max anisotropy level to use when texturing, defaults to 1.0.");
-    usage.addCommandLineOption("--bluemarble-east","Set the coordinates system for next texture or dem to represent the eastern hemisphere of the earth.");     
-    usage.addCommandLineOption("--bluemarble-west","Set the coordinates system for next texture or dem to represent the western hemisphere of the earth.");     
+    usage.addCommandLineOption("--bluemarble-east","Set the coordinates system for next texture or dem to represent the eastern hemisphere of the earth.");
+    usage.addCommandLineOption("--bluemarble-west","Set the coordinates system for next texture or dem to represent the western hemisphere of the earth.");
     usage.addCommandLineOption("--whole-globe","Set the coordinates system for next texture or dem to represent the whole hemisphere of the earth.");
     usage.addCommandLineOption("--geocentric","Build a database in geocentric (i.e. whole earth) database.");
     usage.addCommandLineOption("--radius-polar","Set the polar radius of the ellipsoid model when building a geocentric database.", "6356752.3142");
     usage.addCommandLineOption("--radius-equator","Set the polar radius of the ellipsoid model when building a geocentric database.", "6378137");
     usage.addCommandLineOption("--spherical","Set the polar and equator radius both to the average of the two.");
-    usage.addCommandLineOption("--range","");     
-    usage.addCommandLineOption("--xx","");     
-    usage.addCommandLineOption("--xt","");     
-    usage.addCommandLineOption("--yy","");     
-    usage.addCommandLineOption("--yt","");     
-    usage.addCommandLineOption("--zz","");     
+    usage.addCommandLineOption("--range","");
+    usage.addCommandLineOption("--xx","");
+    usage.addCommandLineOption("--xt","");
+    usage.addCommandLineOption("--yy","");
+    usage.addCommandLineOption("--yt","");
+    usage.addCommandLineOption("--zz","");
     usage.addCommandLineOption("--zt","");
-    usage.addCommandLineOption("--BuildOverlays [True/False]","Switch on/off the building of overlay within the source imagery. Overlays can help reduce texture aliasing artificats.");   
-    usage.addCommandLineOption("--ReprojectSources [True/False]","Switch on/off the reprojection of any source imagery that aren't in the correct projection for the database build.");   
+    usage.addCommandLineOption("--BuildOverlays [True/False]","Switch on/off the building of overlay within the source imagery. Overlays can help reduce texture aliasing artificats.");
+    usage.addCommandLineOption("--ReprojectSources [True/False]","Switch on/off the reprojection of any source imagery that aren't in the correct projection for the database build.");
     usage.addCommandLineOption("--GenerateTiles [True/False]","Switch on/off the generation of the output database tiles.");
-    usage.addCommandLineOption("--version","Print out version");     
-    usage.addCommandLineOption("--version-number","Print out version number only.");     
-    usage.addCommandLineOption("--tile-image-size","Set the tile maximum image size");
-    usage.addCommandLineOption("--tile-terrain-size","Set the tile maximum terrain size");
-    usage.addCommandLineOption("--comment","Added a comment/description string to the top most node in the dataset");     
-    usage.addCommandLineOption("-O","string option to pass to write plugins, use \" \" for multiple options");    
+    usage.addCommandLineOption("--version","Print out version.");
+    usage.addCommandLineOption("--version-number","Print out version number only.");
+    usage.addCommandLineOption("--tile-image-size","Set the tile maximum image size.");
+    usage.addCommandLineOption("--tile-terrain-size","Set the tile maximum terrain size.");
+    usage.addCommandLineOption("--comment","Added a comment/description string to the top most node in the dataset.");
+    usage.addCommandLineOption("-O","string option to pass to write plugins, use \" \" for multiple options.");
     usage.addCommandLineOption("--subtile <LOD> <X> <Y>","Set the subtile to begin the build from.");
     usage.addCommandLineOption("--record-subtile-on-leaf-tiles","Enable the setting of the subtile file name of the leaf tiles.");
     usage.addCommandLineOption("--split","Set the distributed build split level.");
@@ -578,10 +578,10 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--no-interpolate-terrain","Disable the use of interpolation when sampling data from source DEMs.");
     usage.addCommandLineOption("--interpolate-imagery","Enable the use of interpolation when sampling data from source imagery.");
     usage.addCommandLineOption("--no-interpolate-imagery","Disable the use of interpolation when sampling data from source imagery.");
-    usage.addCommandLineOption("--abort-task-on-error","Hint to osgdem to abort the build when any errors occur (default.)");
+    usage.addCommandLineOption("--abort-task-on-error","Hint to osgdem to abort the build when any errors occur (default).");
     usage.addCommandLineOption("--no-abort-task-on-error","Hint to osgdem to disable abort of the build when any errors occur.");
     usage.addCommandLineOption("--abort-run-on-error","Hint to vpbmaster to abort the run when any errors occur/tasks fail.");
-    usage.addCommandLineOption("--no-abort-run-on-error","Hint to vpbmaster to disable abort of the run when any errors occur (default.)");
+    usage.addCommandLineOption("--no-abort-run-on-error","Hint to vpbmaster to disable abort of the run when any errors occur (default).");
     usage.addCommandLineOption("--set <setname>","Assign the set name of imagery/dem data.");
     usage.addCommandLineOption("--optional-set <setname>","Add setname to the list of optional layers.");
     usage.addCommandLineOption("--remove-optional-set <setname>","Remove setname to the list of optional layers.");
@@ -716,7 +716,7 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         buildOptions->setUseInterpolatedImagerySampling(false);
     }
 
-    std::string buildname;    
+    std::string buildname;
     while (arguments.read("--ibn",buildname))
     {
         buildOptions->setIntermediateBuildName(buildname);
@@ -1050,7 +1050,7 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         else if (arguments.read(pos, "--identity"))
         {
             geoTransformSet = false;
-            geoTransform.makeIdentity();            
+            geoTransform.makeIdentity();
         }
 
         // x vector
@@ -1217,5 +1217,5 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         }
     }
 
-    return 0;    
+    return 0;
 }

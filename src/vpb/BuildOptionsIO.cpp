@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -256,8 +256,8 @@ public:
         ADD_ENUM_PROPERTY_THREE_VALUES(MipMappingMode, NO_MIP_MAPPING, MIP_MAPPING_HARDWARE,MIP_MAPPING_IMAGERY)
 
         {
-            AEP(TextureType); 
-            AEV(RGB_24); 
+            AEP(TextureType);
+            AEV(RGB_24);
             AEV(RGBA);
             AEV(RGB_16);
             AEV(RGBA_16);
@@ -302,8 +302,8 @@ public:
         ADD_DOUBLE_PROPERTY(RadiusEquator);
 
         _serializerList.push_back(new GeospatialExtentsSerializer<BuildOptions>(
-                "DestinationExtents", 
-                prototype.getDestinationExtents(), 
+                "DestinationExtents",
+                prototype.getDestinationExtents(),
                 &BuildOptions::getDestinationExtents,
                 &BuildOptions::setDestinationExtents));
 
@@ -339,8 +339,8 @@ public:
         { AEP2(OptionalElevationLayerOutputPolicy, LayerOutputPolicy); AEV(INLINE); AEV(EXTERNAL_LOCAL_DIRECTORY); AEV(EXTERNAL_SET_DIRECTORY); }
 
         _serializerList.push_back(new SetSerializer<BuildOptions, BuildOptions::OptionalLayerSet, BuildOptions::OptionalLayerSet::const_iterator>(
-                "OptionalLayerSet", 
-                prototype.getOptionalLayerSet(), 
+                "OptionalLayerSet",
+                prototype.getOptionalLayerSet(),
                 &BuildOptions::getOptionalLayerSet,
                 &BuildOptions::setOptionalLayerSet));
 

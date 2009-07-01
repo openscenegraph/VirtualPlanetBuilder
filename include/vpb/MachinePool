@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -178,7 +178,7 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
 
         osg::OperationQueue* getOperationQueue() { return _operationQueue.get(); }
 
-        /// override from Logger to be able to pass on to all associated Machine objects        
+        /// override from Logger to be able to pass on to all associated Machine objects
         void setBuildLog(BuildLog* bl);
 
 
@@ -233,7 +233,7 @@ class VPB_EXPORT MachinePool : public osg::Referenced, public Logger
             IGNORE_FAILED_TASK,
             BLACKLIST_MACHINE_AND_RESUBMIT_TASK,
             COMPLETE_RUNNING_TASKS_THEN_EXIT,
-            TERMINATE_RUNNING_TASKS_THEN_EXIT            
+            TERMINATE_RUNNING_TASKS_THEN_EXIT
         };
 
         void setTaskFailureOperation(TaskFailureOperation op) { _taskFailureOperation = op; }

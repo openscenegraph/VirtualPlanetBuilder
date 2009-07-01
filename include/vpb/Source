@@ -1,13 +1,13 @@
-/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -310,7 +310,7 @@ public:
         iterator(CompositeSource* composite=0,IteratorMode mode=ALL):
             _iteratorMode(mode)
         {
-            if (composite) 
+            if (composite)
             {
                 _positionStack.push_back(IteratorPosition(composite));
             }
@@ -363,15 +363,15 @@ public:
 
         iterator& operator++()
         {
-            advance(); 
+            advance();
             return *this;
         }
 
         iterator operator++(int)
         {
-            iterator tmp=*this; 
-            advance(); 
-            return tmp; 
+            iterator tmp=*this;
+            advance();
+            return tmp;
         }
 
         bool advance()
@@ -453,7 +453,7 @@ public:
             inline bool advanceToNextChild(CompositeSource& composite, int& index)
             {
                 ++index;
-                while (index<(int)composite._children.size()) 
+                while (index<(int)composite._children.size())
                 {
                     if (isActive(composite,index)) return true;
                     ++index;
@@ -533,9 +533,9 @@ public:
 
         base_source_iterator operator++(int)
         {
-            base_source_iterator tmp=*this; 
-            advance(); 
-            return tmp; 
+            base_source_iterator tmp=*this;
+            advance();
+            return tmp;
         }
 
         bool advance()

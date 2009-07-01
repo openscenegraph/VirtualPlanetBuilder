@@ -1,13 +1,13 @@
-/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -127,7 +127,7 @@ public:
     }
 
     GeospatialExtents intersection(const GeospatialExtents& e, double xoffset) const
-    {    
+    {
         return GeospatialExtents(osg::maximum(xMin(),e.xMin()+xoffset),osg::maximum(yMin(),e.yMin()),
                                  osg::minimum(xMax(),e.xMax()+xoffset),osg::minimum(yMax(),e.yMax()),_isGeographic);
     }
@@ -279,12 +279,12 @@ struct VPB_EXPORT SpatialProperties
     /** return true if the two SpatialProperties objects are equivalent.*/
     bool compatible(const SpatialProperties& sp) const;
     
-    /** compute the resolution ratio between two SpatialProperties.  
+    /** compute the resolution ratio between two SpatialProperties.
         return a ratio > 1.0 If the this SpatialProporty is of higher resolution than passed in one. */
     double computeResolutionRatio(const SpatialProperties& sp) const;
     
     /** compute the effective resolution.*/
-    double computeResolution() const; 
+    double computeResolution() const;
 
     osg::ref_ptr<osg::CoordinateSystemNode>     _cs;
     osg::Matrixd                                _geoTransform;

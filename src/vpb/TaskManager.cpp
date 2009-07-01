@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -36,7 +36,7 @@ TaskManager::TaskManager()
     _done = false;
     _buildName = "build";
 
-    char str[2048]; 
+    char str[2048];
     _runPath = vpb::getCurrentWorkingDirectory( str, sizeof(str));
     
     _defaultSignalAction = COMPLETE_RUNNING_TASKS_THEN_EXIT;
@@ -359,7 +359,7 @@ void TaskManager::buildWithoutSlaves()
 
     if (_terrainTile.valid())
     {
-        try 
+        try
         {
             osg::ref_ptr<vpb::DataSet> dataset = new vpb::DataSet;
 
@@ -536,10 +536,10 @@ bool TaskManager::run()
         getMachinePool()->waitForCompletion();
 
         // tally up the tasks to see how we've done on this TasksSet
-        unsigned int tasksPending = 0;        
-        unsigned int tasksRunning = 0;        
-        unsigned int tasksCompleted = 0;        
-        unsigned int tasksFailed = 0;        
+        unsigned int tasksPending = 0;
+        unsigned int tasksRunning = 0;
+        unsigned int tasksCompleted = 0;
+        unsigned int tasksFailed = 0;
         for(TaskSet::iterator itr = tsItr->begin();
             itr != tsItr->end();
             ++itr)
@@ -605,10 +605,10 @@ bool TaskManager::run()
     }
     
     // tally up the tasks to see how we've done overall
-    unsigned int tasksPending = 0;        
-    unsigned int tasksRunning = 0;        
-    unsigned int tasksCompleted = 0;        
-    unsigned int tasksFailed = 0;        
+    unsigned int tasksPending = 0;
+    unsigned int tasksRunning = 0;
+    unsigned int tasksCompleted = 0;
+    unsigned int tasksFailed = 0;
     for(TaskSetList::iterator tsItr = _taskSetList.begin();
         tsItr != _taskSetList.end();
         ++tsItr)
@@ -837,7 +837,7 @@ bool TaskManager::readTasks(const std::string& filename)
         fr.attach(&fin);
         
         while(!fr.eof())
-        {        
+        {
             bool itrAdvanced = false;
         
             std::string readFilename;
@@ -883,7 +883,7 @@ bool TaskManager::readTasks(const std::string& filename)
             }
             
             if (!itrAdvanced) ++fr;
-        }        
+        }
     }
     
     return false;
@@ -924,7 +924,7 @@ bool TaskManager::writeTasks(const std::string& filename, bool asFileNames)
             writeTask(fout,taskSet.front().get(), asFileNames);
         }
         else if (taskSet.size()>1)
-        {        
+        {
             fout.indent()<<"Tasks {"<<std::endl;
             fout.moveIn();
 
@@ -984,7 +984,7 @@ void TaskManager::setOutOfDateTasksToPending()
                     else
                     {
                         if (sourceFileLastModified.setWithDateOfLastModification(sourceFile))
-                        {                        
+                        {
                             if (sourceFileLastModified < buildDate)
                             {
                                 osg::ref_ptr<osg::Node> loadedModel = osgDB::readNodeFile(sourceFile);
@@ -996,7 +996,7 @@ void TaskManager::setOutOfDateTasksToPending()
                             }
                         
                             filenameDateMap[sourceFile] = sourceFileLastModified;
-                        }                            
+                        }
                     }
                     
                     if (sourceFileLastModified > buildDate)
@@ -1006,7 +1006,7 @@ void TaskManager::setOutOfDateTasksToPending()
                 }
             }
         }
-    }    
+    }
 }
 
 
@@ -1078,7 +1078,7 @@ void TaskManager::setSignalAction(int sig, SignalAction action)
 {
     OpenThreads::ScopedLock<OpenThreads::Mutex>  lock(_signalHandleMutex);
 
-    if (action==DO_NOT_HANDLE) 
+    if (action==DO_NOT_HANDLE)
     {
         if (_signalActionMap.count(sig)!=0)
         {
@@ -1101,7 +1101,7 @@ void TaskManager::setSignalAction(int sig, SignalAction action)
 }
 
 TaskManager::SignalAction TaskManager::getSignalAction(int sig) const
-{ 
+{
     SignalActionMap::const_iterator itr = _signalActionMap.find(sig);
     if (itr==_signalActionMap.end()) return _defaultSignalAction;
     return itr->second;

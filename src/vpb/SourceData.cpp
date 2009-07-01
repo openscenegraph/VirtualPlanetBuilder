@@ -1,13 +1,13 @@
-/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2006 Robert Osfield 
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -309,7 +309,7 @@ SourceData* SourceData::readData(Source* source)
 
                 }
                 return data;
-            }                
+            }
         }
     case(Source::MODEL):
         {
@@ -339,7 +339,7 @@ const SpatialProperties& SourceData::computeSpatialProperties(const osg::Coordin
 {
     // check to see it exists in the _spatialPropertiesMap first.
     SpatialPropertiesMap::const_iterator itr = _spatialPropertiesMap.find(cs);
-    if (itr!=_spatialPropertiesMap.end()) 
+    if (itr!=_spatialPropertiesMap.end())
     {
         return itr->second;
     }
@@ -471,7 +471,7 @@ void SourceData::readImage(DestinationData& destination)
         
             GeospatialExtents intersect_bb(d_bb.intersection(s_bb, xoffset));
             if (!intersect_bb.valid())
-            {   
+            {
                 log(osg::INFO,"Reading image but it does not intesection destination - ignoring");
                 continue;
             }
@@ -537,30 +537,30 @@ void SourceData::readImage(DestinationData& destination)
 
                 /* New code courtesy of Frank Warmerdam of the GDAL group */
 
-                // RGB images ... or at least we assume 3+ band images can be treated 
-                // as RGB. 
-                if( hasRGB ) 
-                { 
-                    GDALRasterBand* bandRed = _gdalDataset->GetRasterBand(1); 
-                    GDALRasterBand* bandGreen = _gdalDataset->GetRasterBand(2); 
-                    GDALRasterBand* bandBlue = _gdalDataset->GetRasterBand(3); 
-                    GDALRasterBand* bandAlpha = hasAlpha ? _gdalDataset->GetRasterBand(4) : 0; 
+                // RGB images ... or at least we assume 3+ band images can be treated
+                // as RGB.
+                if( hasRGB )
+                {
+                    GDALRasterBand* bandRed = _gdalDataset->GetRasterBand(1);
+                    GDALRasterBand* bandGreen = _gdalDataset->GetRasterBand(2);
+                    GDALRasterBand* bandBlue = _gdalDataset->GetRasterBand(3);
+                    GDALRasterBand* bandAlpha = hasAlpha ? _gdalDataset->GetRasterBand(4) : 0;
 
                     bandRed->RasterIO(GF_Read, 
                                       windowX,_numValuesY-(windowY+windowHeight), 
                                       windowWidth,windowHeight, 
                                       (void*)(tempImage+0),readWidth,readHeight, 
-                                      targetGDALType,pixelSpace,pixelSpace*readWidth); 
+                                      targetGDALType,pixelSpace,pixelSpace*readWidth);
                     bandGreen->RasterIO(GF_Read, 
                                         windowX,_numValuesY-(windowY+windowHeight), 
                                         windowWidth,windowHeight, 
                                         (void*)(tempImage+1),readWidth,readHeight, 
-                                        targetGDALType,pixelSpace,pixelSpace*readWidth); 
+                                        targetGDALType,pixelSpace,pixelSpace*readWidth);
                     bandBlue->RasterIO(GF_Read, 
                                        windowX,_numValuesY-(windowY+windowHeight), 
                                        windowWidth,windowHeight, 
                                        (void*)(tempImage+2),readWidth,readHeight, 
-                                       targetGDALType,pixelSpace,pixelSpace*readWidth); 
+                                       targetGDALType,pixelSpace,pixelSpace*readWidth);
 
                     if (bandAlpha)
                     {
@@ -568,79 +568,77 @@ void SourceData::readImage(DestinationData& destination)
                                            windowX,_numValuesY-(windowY+windowHeight), 
                                            windowWidth,windowHeight, 
                                            (void*)(tempImage+3),readWidth,readHeight, 
-                                           targetGDALType,pixelSpace,pixelSpace*readWidth); 
+                                           targetGDALType,pixelSpace,pixelSpace*readWidth);
                     }
-                } 
+                }
 
-                else if( hasColorTable ) 
-                { 
-                    // Pseudocolored image.  Convert 1 band + color table to 24bit RGB. 
+                else if( hasColorTable )
+                {
+                    // Pseudocolored image.  Convert 1 band + color table to 24bit RGB.
 
-                    GDALRasterBand *band; 
-                    GDALColorTable *ct; 
-                    int i; 
+                    GDALRasterBand *band;
+                    GDALColorTable *ct;
+                    int i;
 
 
-                    band = _gdalDataset->GetRasterBand(1); 
+                    band = _gdalDataset->GetRasterBand(1);
 
 
                     band->RasterIO(GF_Read, 
                                    windowX,_numValuesY-(windowY+windowHeight), 
                                    windowWidth,windowHeight, 
                                    (void*)(tempImage+0),readWidth,readHeight, 
-                                   targetGDALType,pixelSpace,pixelSpace*readWidth); 
+                                   targetGDALType,pixelSpace,pixelSpace*readWidth);
 
 
-                    ct = band->GetColorTable(); 
+                    ct = band->GetColorTable();
 
 
-                    for( i = 0; i < readWidth * readHeight; i++ ) 
-                    { 
-                        GDALColorEntry sEntry; 
+                    for( i = 0; i < readWidth * readHeight; i++ )
+                    {
+                        GDALColorEntry sEntry;
+
+                        // default to greyscale equilvelent.
+                        sEntry.c1 = tempImage[i*3];
+                        sEntry.c2 = tempImage[i*3];
+                        sEntry.c3 = tempImage[i*3];
 
 
-                        // default to greyscale equilvelent. 
-                        sEntry.c1 = tempImage[i*3]; 
-                        sEntry.c2 = tempImage[i*3]; 
-                        sEntry.c3 = tempImage[i*3]; 
+                        ct->GetColorEntryAsRGB( tempImage[i*3], &sEntry );
 
 
-                        ct->GetColorEntryAsRGB( tempImage[i*3], &sEntry ); 
-
-
-                        // Apply RGB back over destination image. 
-                        tempImage[i*3 + 0] = sEntry.c1; 
-                        tempImage[i*3 + 1] = sEntry.c2; 
-                        tempImage[i*3 + 2] = sEntry.c3; 
-                    } 
-                } 
+                        // Apply RGB back over destination image.
+                        tempImage[i*3 + 0] = sEntry.c1;
+                        tempImage[i*3 + 1] = sEntry.c2;
+                        tempImage[i*3 + 2] = sEntry.c3;
+                    }
+                }
 
 
                 else if (hasGreyScale)
-                { 
-                    // Greyscale image.  Convert 1 band to 24bit RGB. 
-                    GDALRasterBand *band; 
+                {
+                    // Greyscale image.  Convert 1 band to 24bit RGB.
+                    GDALRasterBand *band;
 
-
-                    band = _gdalDataset->GetRasterBand(1); 
+                    band = _gdalDataset->GetRasterBand(1);
 
 
                     band->RasterIO(GF_Read, 
                                    windowX,_numValuesY-(windowY+windowHeight), 
                                    windowWidth,windowHeight, 
                                    (void*)(tempImage+0),readWidth,readHeight, 
-                                   targetGDALType,pixelSpace,pixelSpace*readWidth); 
+                                   targetGDALType,pixelSpace,pixelSpace*readWidth);
                     band->RasterIO(GF_Read, 
                                    windowX,_numValuesY-(windowY+windowHeight), 
                                    windowWidth,windowHeight, 
                                    (void*)(tempImage+1),readWidth,readHeight, 
-                                   targetGDALType,pixelSpace,pixelSpace*readWidth); 
+                                   targetGDALType,pixelSpace,pixelSpace*readWidth);
                     band->RasterIO(GF_Read, 
                                    windowX,_numValuesY-(windowY+windowHeight), 
                                    windowWidth,windowHeight, 
                                    (void*)(tempImage+2),readWidth,readHeight, 
-                                   targetGDALType,pixelSpace,pixelSpace*readWidth); 
-                } 
+                                   targetGDALType,pixelSpace,pixelSpace*readWidth);
+                }
 
                 if (doResample || readWidth!=destWidth || readHeight!=destHeight)
                 {
@@ -732,7 +730,7 @@ void SourceData::readImage(DestinationData& destination)
                         }
                     }
 
-                    delete [] tempImage;  
+                    delete [] tempImage;
                     tempImage = destImage;
                 }
 
@@ -773,8 +771,8 @@ void SourceData::readImage(DestinationData& destination)
                                 }
                                 else
                                 {
-                                    // source value isn't full on so blend it with destination 
-                                    float rs = (float)sourceColumnPtr[3]/255.0f; 
+                                    // source value isn't full on so blend it with destination
+                                    float rs = (float)sourceColumnPtr[3]/255.0f;
                                     float rd = 1.0f-rs;
 
                                     destinationColumnPtr[0] = (int)(rd * (float)destinationColumnPtr[0] + rs * (float)sourceColumnPtr[0]);
@@ -880,7 +878,7 @@ void SourceData::readHeightField(DestinationData& destination)
                 return;
             }
 
-            // which band do we want to read from...        
+            // which band do we want to read from...
             int numBands = _gdalDataset->GetRasterCount();
             GDALRasterBand* bandGray = 0;
             GDALRasterBand* bandRed = 0;
@@ -977,7 +975,7 @@ void SourceData::readHeightField(DestinationData& destination)
                 }
                 else
                 {
-                    // compute dimensions to read from.        
+                    // compute dimensions to read from.
                    int windowX = osg::maximum((int)floorf((float)_numValuesX*(intersect_bb.xMin()-xoffset-s_bb.xMin())/(s_bb.xMax()-s_bb.xMin())),0);
                    int windowY = osg::maximum((int)floorf((float)_numValuesY*(intersect_bb.yMin()-s_bb.yMin())/(s_bb.yMax()-s_bb.yMin())),0);
                    int windowWidth = osg::minimum((int)ceilf((float)_numValuesX*(intersect_bb.xMax()-xoffset-s_bb.xMin())/(s_bb.xMax()-s_bb.xMin())),(int)_numValuesX)-windowX;
@@ -1006,7 +1004,7 @@ void SourceData::readHeightField(DestinationData& destination)
                     }
 
                     delete [] heightData;
-                }          
+                }
             }
         }
     }

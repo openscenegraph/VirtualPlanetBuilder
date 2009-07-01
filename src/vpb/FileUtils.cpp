@@ -36,10 +36,10 @@
     int     vpb::getpid()                                         { return ::_getpid(); }
     int     vpb::gethostname(char *name, size_t namelen)          { return ::gethostname(name, namelen); }
 
-    // See http://cvsweb.xfree86.org/cvsweb/xc/include/Xpoll.h?rev=3.11 
+    // See http://cvsweb.xfree86.org/cvsweb/xc/include/Xpoll.h?rev=3.11
     // variable XFD_SETSIZE for precedent
     int     vpb::getdtablesize()                                  { return 256; }
-    int     vpb::mkdir(const char *path, int mode)                { int status = ::mkdir(path); 
+    int     vpb::mkdir(const char *path, int mode)                { int status = ::mkdir(path);
                                                                     if (status == 0) status = ::chmod(path, mode);
                                                                     return status;
                                                                   }

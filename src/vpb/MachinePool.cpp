@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -236,7 +236,7 @@ void Machine::cancelThreads()
         thread->setParent(this);
         thread->setOperationQueue(_machinePool->getOperationQueue());
 
-        (*itr) = thread; 
+        (*itr) = thread;
     }
     log(osg::NOTICE,"Completed Machine::cancelThreads() hostname=%s, threads=%d",_hostname.c_str(),_threads.size());
 
@@ -268,7 +268,7 @@ unsigned int Machine::getNumThreadsActive() const
     {
         if ((*itr)->getCurrentOperation().valid() || 
            !(*itr)->getOperationQueue()->empty())
-        {        
+        {
             ++numThreadsActive;
         }
     }
@@ -286,7 +286,7 @@ unsigned int Machine::getNumThreadsRunning() const
         ++itr)
     {
         if ((*itr)->isRunning())
-        {        
+        {
             ++numThreadsRunning;
         }
     }
@@ -303,7 +303,7 @@ unsigned int Machine::getNumThreadsNotDone() const
         ++itr)
     {
         if (!(*itr)->getDone())
-        {        
+        {
             ++numThreadsNotDone;
         }
     }
@@ -395,7 +395,7 @@ void Machine::signal(int signal)
     log(osg::NOTICE,"Machine::signal(%d)",signal);
 
     RunningTasks tasks;
-    {    
+    {
         OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_runningTasksMutex);
         tasks = _runningTasks;
     }
@@ -442,7 +442,7 @@ MachinePool::MachinePool():
     //_taskFailureOperation = TERMINATE_RUNNING_TASKS_THEN_EXIT;
             
     _operationQueue = new osg::OperationQueue;
-    _blockOp = new BlockOperation;    
+    _blockOp = new BlockOperation;
 }
 
 MachinePool::~MachinePool()
@@ -513,7 +513,7 @@ void MachinePool::waitForCompletion()
 
     _operationQueue->add(_blockOp.get());
 
-    // wait till block is complete i.e. the operation queue has been cleared up to the block    
+    // wait till block is complete i.e. the operation queue has been cleared up to the block
     _blockOp->block();
 
     if (!done()) OpenThreads::Thread::YieldCurrentThread();
@@ -526,7 +526,7 @@ void MachinePool::waitForCompletion()
         OpenThreads::Thread::microSleep(1000000);
 #else
         OpenThreads::Thread::YieldCurrentThread();
-#endif        
+#endif
     }
 
     log(osg::INFO, "MachinePool::waitForCompletion : done %d",done());
@@ -614,7 +614,7 @@ bool MachinePool::read(const std::string& filename)
     
         _machinePoolFileName = foundFile;
 
-        {        
+        {
             OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_machinesMutex);
             _machines.clear();
         }
@@ -623,7 +623,7 @@ bool MachinePool::read(const std::string& filename)
         fr.attach(&fin);
         
         while(!fr.eof())
-        {        
+        {
             bool itrAdvanced = false;
 
             std::string readFilename;
@@ -667,7 +667,7 @@ bool MachinePool::read(const std::string& filename)
             }
 
             if (!itrAdvanced) ++fr;
-        }        
+        }
     }
     
     return true;
@@ -900,7 +900,7 @@ void MachinePool::reportTimingStatus()
             numTasksCompleted, numTasksRunning, numTasksPending, 
             int(minutesToCompletion),int(secondsRemainder),
             100.0*currentTime/estimatedTimeOfLastCompletion);
-    }    
+    }
     else
     {
         log(osg::NOTICE,"Number of tasks completed %i, running %i, pending %i. Estimated time to completion %d seconds, %2.1f percent done.",
@@ -927,7 +927,7 @@ void MachinePool::reportTimingStats()
         {
             TaskStats& stats = titr->second;
             log(osg::NOTICE,"        Task::type='%s'\tminTime=%f\tmaxTime=%f\taverageTime=%f\ttotalComputeTime=%f\tnumTasks=%d",
-                titr->first.c_str(), 
+                titr->first.c_str(),
                 stats.minTime(),
                 stats.maxTime(),
                 stats.averageTime(),

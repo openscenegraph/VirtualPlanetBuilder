@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -39,8 +39,8 @@ struct MatrixMultiplyArrayFunctor
         _matrix(matrix),
         _em(em) {}
     
-    void operator() (osg::Vec3d & vec) 
-    {   
+    void operator() (osg::Vec3d & vec)
+    {
         if (_em)
         {
             double latitude = osg::DegreesToRadians(vec.y());
@@ -65,16 +65,16 @@ struct MatrixMultiplyArrayFunctor
 class DoubleToFloatVisitor : public osg::ArrayVisitor
 {
     public:
-        virtual void apply(osg::Vec3dArray& array) 
+        virtual void apply(osg::Vec3dArray& array)
         {
             unsigned int size = array.size();
             _vertexArray = new osg::Vec3Array(size);
             osg::Vec3Array & va = *(static_cast<osg::Vec3Array*>(_vertexArray.get()));
             
             for (unsigned int i = 0; i < size; ++i)
-                osgUtil::ConvertVec<osg::Vec3d, osg::Vec3>::convert(array[i], va[i]);    
+                osgUtil::ConvertVec<osg::Vec3d, osg::Vec3>::convert(array[i], va[i]);
         }
-        virtual void apply(osg::Vec4dArray& array) 
+        virtual void apply(osg::Vec4dArray& array)
         {
             unsigned int size = array.size();
             _vertexArray = new osg::Vec4Array(size);
@@ -121,7 +121,7 @@ class BoundingBoxd
             _max.set(-DBL_MAX,-DBL_MAX,-DBL_MAX);
         }
         
-        /** Returns true if the bounding box extents are valid, false otherwise. */              
+        /** Returns true if the bounding box extents are valid, false otherwise. */
         inline bool valid() const
         {
             return _max.x()>=_min.x() &&  _max.y()>=_min.y() &&  _max.z()>=_min.z();
@@ -265,8 +265,8 @@ struct ComputeBoundd : public osg::PrimitiveFunctor
     
         ComputeBoundd()
         {
-            _vertices3f = 0;  
-            _vertices3d = 0;  
+            _vertices3f = 0;
+            _vertices3d = 0;
         }
 
         virtual void setVertexArray(unsigned int,const osg::Vec3* vertices) { _vertices3f = vertices; }
@@ -321,7 +321,7 @@ struct ComputeBoundd : public osg::PrimitiveFunctor
        
         const osg::Vec3*     _vertices3f;
         const osg::Vec3d*    _vertices3d;
-        BoundingBoxd    _bb; 
+        BoundingBoxd    _bb;
 };
 
 class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
@@ -424,8 +424,8 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
             return _heightAttributeNameStack.back();
         }
         
-        virtual void apply(osg::Geode& node)                     
-        { 
+        virtual void apply(osg::Geode& node)
+        {
             const osg::EllipsoidModel* em = _dt._dataSet->getEllipsoidModel();
             bool mapLatLongsToXYZ = _dt._dataSet->mapLatLongsToXYZ();
             bool useLocalToTileTransform = _dt._dataSet->getUseLocalTileTransform();
@@ -494,10 +494,10 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                         HeightFieldMapper hfm(_hf, _dt._extents.xMin(), _dt._extents.xMax(), _dt._extents.yMin(), _dt._extents.yMax());
                         hfm.setMode(shapeType == Building ? HeightFieldMapper::PER_GEOMETRY : HeightFieldMapper::PER_VERTEX);
                         
-                        // ** if the geometry have centroid out of the HeightField, 
+                        // ** if the geometry have centroid out of the HeightField,
                         // **  don't extrude and insert the geometry in scene graph
                         if (hfm.map(*clonedGeom.get()))
-                        {                        
+                        {
                             osg::Vec3d vec(0.0, 0.0, height);
                             
                             // ** Extrude the geometry
@@ -511,7 +511,7 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                             {
                                 osg::Vec3dArray * vertexArray = dynamic_cast<osg::Vec3dArray*>(clonedGeom->getVertexArray());
                                 MatrixMultiplyArrayFunctor mmaf(worldToLocal, mapLatLongsToXYZ ? em : 0);
-                                std::for_each(vertexArray->begin(), vertexArray->end(), mmaf);                            
+                                std::for_each(vertexArray->begin(), vertexArray->end(), mmaf);
                             }
                             
                             // ** replace VertexArray type osg::Vec3dArray by osg::Vec3Array
@@ -526,7 +526,7 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
                             
                             osg::Vec4Array* colours = dynamic_cast<osg::Vec4Array*>(clonedGeom->getColorArray());
                             if (!colours)
-                            {                            
+                            {
                                 colours = new osg::Vec4Array(1);
                                 (*colours)[0].set(1.0f,1.0f,1.0f,1.0f);
                                 clonedGeom->setColorArray(colours);
@@ -552,7 +552,7 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
         }
     
         bool overlap(double xMin, double yMin, double xMax, double yMax)
-        {    
+        {
             if ((_dt._extents.xMin() > xMax) || (xMin > _dt._extents.xMax()) || (_dt._extents.yMin() > yMax) || (yMin > _dt._extents.yMax()))
                 return false;
             else
@@ -560,7 +560,7 @@ class ShapeFileOverlapingHeightFieldPlacer : public osg::NodeVisitor
         }
         
         bool overlap(const osg::BoundingSphere & bs)
-        {    
+        {
             double xMin = bs.center().x() - bs.radius();
             double yMin = bs.center().y() - bs.radius();
             double xMax = bs.center().x() + bs.radius();

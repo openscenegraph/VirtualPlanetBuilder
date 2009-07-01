@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2008 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -84,8 +84,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setTaskFileName(const std::string& taskFileName) { _taskFileName = taskFileName; }
         const std::string& getTaskFileName() const { return _taskFileName; }
 
-        void setCommentString(const std::string& comment) { _comment = comment; }        
-        const std::string& getCommentString() const { return _comment; }        
+        void setCommentString(const std::string& comment) { _comment = comment; }
+        const std::string& getCommentString() const { return _comment; }
 
 
         void setMaximumTileImageSize(unsigned int size) { _maximumTileImageSize = size; }
@@ -396,8 +396,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
         bool                                        _abortRunOnError;
         
         LayerOutputPolicy                           _defaultImageLayerOutputPolicy;
-        LayerOutputPolicy                           _defaultElevationLayerOutputPolicy;        
-        LayerOutputPolicy                           _optionalImageLayerOutputPolicy;        
+        LayerOutputPolicy                           _defaultElevationLayerOutputPolicy;
+        LayerOutputPolicy                           _optionalImageLayerOutputPolicy;
         LayerOutputPolicy                           _optionalElevationLayerOutputPolicy;
         
         OptionalLayerSet                            _optionalLayerSet;

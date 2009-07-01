@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -41,7 +41,7 @@ void ThreadPool::init()
     _done = false;
 
     _operationQueue = new osg::OperationQueue;
-    _blockOp = new BlockOperation;    
+    _blockOp = new BlockOperation;
 
     osg::GraphicsContext* sharedContext = 0;
 
@@ -73,9 +73,9 @@ void ThreadPool::init()
                 gc = osg::GraphicsContext::createGraphicsContext(traits.get());
             }
 
-            if (gc.valid()) 
+            if (gc.valid())
             {
-                gc->realize();                
+                gc->realize();
                 
                 if (!sharedContext) sharedContext = gc.get();
                 
@@ -93,7 +93,7 @@ void ThreadPool::init()
 
         }
 
-        if (thread.valid()) 
+        if (thread.valid())
         {
             thread->setOperationQueue(_operationQueue.get());
 
@@ -113,7 +113,7 @@ void ThreadPool::startThreads()
     {
         osg::OperationThread* thread = itr->first.get();
         if (!thread->isRunning())
-        {            
+        {
             //thread->setProcessorAffinity(processNum % numProcessors);
             thread->startThread();
         }
@@ -167,7 +167,7 @@ void ThreadPool::waitForCompletion()
 
     _operationQueue->add(_blockOp.get());
 
-    // wait till block is complete i.e. the operation queue has been cleared up to the block    
+    // wait till block is complete i.e. the operation queue has been cleared up to the block
     _blockOp->block();
 
     // there can still be operations running though so need to double check.

@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -33,7 +33,7 @@ BuildOptions::BuildOptions():
     _useInterpolatedImagerySampling = true;
     _useInterpolatedTerrainSampling = true;
     _destinationCoordinateSystemString = "";
-    _destinationCoordinateSystem = new osg::CoordinateSystemNode; 
+    _destinationCoordinateSystem = new osg::CoordinateSystemNode;
     _destinationCoordinateSystem->setEllipsoidModel(new osg::EllipsoidModel);
     _directory = "";
     _outputTaskDirectories = true;
@@ -192,7 +192,7 @@ void BuildOptions::setDestinationName(const std::string& filename)
     setDirectory(path);
     setDestinationTileBaseName(base);
     setDestinationTileExtension(extension);
-} 
+}
 
 void BuildOptions::setDirectory(const std::string& directory)
 {
@@ -200,7 +200,7 @@ void BuildOptions::setDirectory(const std::string& directory)
     
     if (_directory.empty()) return;
     
-#ifdef WIN32    
+#ifdef WIN32
     // convert trailing forward slash if any to back slash.
     if (_directory[_directory.size()-1]=='/') _directory[_directory.size()-1] = '\\';
 
@@ -212,7 +212,7 @@ void BuildOptions::setDirectory(const std::string& directory)
 
     // if no trailing forward slash exists add one.
     if (_directory[_directory.size()-1]!='/') _directory.push_back('/');
-#endif    
+#endif
 
     osg::notify(osg::INFO)<<"directory name set "<<_directory<<std::endl;
 }

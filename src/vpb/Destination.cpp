@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -251,7 +251,7 @@ bool DestinationTile::computeImageResolution(unsigned int layer, const std::stri
 
         if (_dataSet->getPowerOfTwoImages())
         {
-            // use a minimum image size of 4x4 to avoid mipmap generation problems in OpenGL at sizes at 2x2. 
+            // use a minimum image size of 4x4 to avoid mipmap generation problems in OpenGL at sizes at 2x2.
             numColumns = 4;
             numRows = 4;
 
@@ -288,7 +288,7 @@ bool DestinationTile::computeImageResolution(unsigned int layer, const std::stri
             resY = (_extents.yMax()-_extents.yMin())/(double)numRows;
         }
         result = true;
-    }        
+    }
     return result;
 }
 
@@ -364,7 +364,7 @@ void DestinationTile::allocate()
 
                 imageData._imageDestination->_image = new osg::Image;
 
-                osg::Image::WriteHint writeHint = osg::Image::NO_PREFERENCE;                
+                osg::Image::WriteHint writeHint = osg::Image::NO_PREFERENCE;
                 std::string imageName = _name;
                 
                 if (layerNum>0)
@@ -379,18 +379,18 @@ void DestinationTile::allocate()
                     {
                         case(BuildOptions::INLINE):
                             imageName += "_";
-                            imageName += setName;    
+                            imageName += setName;
                             writeHint = osg::Image::EXTERNAL_FILE;
                             break;
                         case(BuildOptions::EXTERNAL_LOCAL_DIRECTORY):
                             imageName += "_";
-                            imageName += setName;    
+                            imageName += setName;
                             writeHint = osg::Image::EXTERNAL_FILE;
                             break;
                         case(BuildOptions::EXTERNAL_SET_DIRECTORY):
                             imageName = _parent->getRelativePathForExternalSet(setName) + imageName;
                             writeHint = osg::Image::EXTERNAL_FILE;
-                            break;                        
+                            break;
                     }
                 }
                 
@@ -450,7 +450,7 @@ void DestinationTile::computeNeighboursFromQuadMap()
     }
 }
 
-void DestinationTile::setNeighbours(DestinationTile* left, DestinationTile* left_below, 
+void DestinationTile::setNeighbours(DestinationTile* left, DestinationTile* left_below,
                                     DestinationTile* below, DestinationTile* below_right,
                                     DestinationTile* right, DestinationTile* right_above,
                                     DestinationTile* above, DestinationTile* above_left)
@@ -636,7 +636,7 @@ void DestinationTile::equalizeCorner(Position position)
             }
 
         }
-    }    
+    }
     
     typedef std::pair<osg::HeightField*,TileCornerPair> HeightFieldCornerPair;
     typedef std::vector<HeightFieldCornerPair> HeightFieldCornerList;
@@ -733,7 +733,7 @@ const char* edgeString(DestinationTile::Position position)
         case DestinationTile::RIGHT: return "right";
         case DestinationTile::ABOVE: return "above";
         default : return "<not an edge>";
-    }    
+    }
 }
 
 void DestinationTile::setTileComplete(bool complete)
@@ -977,7 +977,7 @@ void DestinationTile::equalizeEdge(Position position)
             data2 += delta2;
             
             // equailize normals
-            osg::Vec2 heightDelta = (heightField1->getHeightDelta(i1,j1) + 
+            osg::Vec2 heightDelta = (heightField1->getHeightDelta(i1,j1) +
                                     heightField2->getHeightDelta(i2,j2))*0.5f;
                                
             // pass the normals on to the tiles.
@@ -1057,8 +1057,8 @@ void DestinationTile::optimizeResolution()
                 for(unsigned int c=0;c<numColumns;++c)
                 {
                     hf->setHeight(c,r,minHeight);
-                } 
-            } 
+                }
+            }
         }
     }
 }
@@ -1116,7 +1116,7 @@ osg::Node* DestinationTile::createScene()
             }
         }
         else
-        {                
+        {
             for(ModelList::iterator itr = _models->_models.begin();
                 itr != _models->_models.end();
                 ++itr)
@@ -1135,7 +1135,7 @@ osg::Node* DestinationTile::createScene()
             }
         }
         else
-        {                
+        {
             for(ModelList::iterator itr = _models->_shapeFiles.begin();
                 itr != _models->_shapeFiles.end();
                 ++itr)
@@ -1200,7 +1200,7 @@ struct QuantizeOperator
 
     inline void luminance(float& l) const { quantize(l,0); }
     inline void alpha(float& a) const { quantize(a,3); }
-    inline void luminance_alpha(float& l,float& a) const { quantize(l,0); quantize(a,3); } 
+    inline void luminance_alpha(float& l,float& a) const { quantize(l,0); quantize(a,3); }
     inline void rgb(float& r,float& g,float& b) const { quantize(r,0); quantize(g,1); quantize(b,2); }
     inline void rgba(float& r,float& g,float& b,float& a) const { quantize(r,0); quantize(g,1); quantize(b,2); quantize(a,3); }
 
@@ -1277,7 +1277,7 @@ osg::StateSet* DestinationTile::createStateSet()
                 texture->setFilter(osg::Texture::MAG_FILTER,osg::Texture::LINEAR);
             }
             break;
-        }        
+        }
 
         texture->setMaxAnisotropy(_dataSet->getMaxAnisotropy());
         _stateset->setTextureAttributeAndModes(layerNum,texture,osg::StateAttribute::ON);
@@ -1388,7 +1388,7 @@ osg::StateSet* DestinationTile::createStateSet()
         case(BuildOptions::INHERIT_LOWEST_AVAILABLE):
         {
             osg::StateAttribute* texture = 0;
-            // first look for an available texture 
+            // first look for an available texture
             for(layerNum=0;
                 layerNum<_dataSet->getNumOfTextureLevels() && texture==0;
                 ++layerNum)
@@ -1397,7 +1397,7 @@ osg::StateSet* DestinationTile::createStateSet()
             }
 
             if (texture)
-            {            
+            {
                 // now fill in any blanks
                 for(layerNum=0;
                     layerNum<_dataSet->getNumOfTextureLevels();
@@ -1561,7 +1561,7 @@ osg::ClusterCullingCallback* DestinationTile::createClusterCullingCallback()
                 float local_m = globe_radius*( 1.0/ cos(theta+phi) - 1.0);
                 float local_radius = static_cast<float>(globe_radius * tan(beta)); // beta*globe_radius;
                 min_dot_product = osg::minimum(min_dot_product, local_dot_product);
-                max_cluster_culling_height = osg::maximum(max_cluster_culling_height,local_m);      
+                max_cluster_culling_height = osg::maximum(max_cluster_culling_height,local_m);
                 max_cluster_culling_radius = osg::maximum(max_cluster_culling_radius,local_radius);
             }
             else
@@ -1573,11 +1573,11 @@ osg::ClusterCullingCallback* DestinationTile::createClusterCullingCallback()
     }
     
 
-    // set up cluster cullling, 
+    // set up cluster cullling
     osg::ClusterCullingCallback* ccc = new osg::ClusterCullingCallback;
 
     ccc->set(center_position + transformed_center_normal*max_cluster_culling_height ,
-             transformed_center_normal, 
+             transformed_center_normal,
              min_dot_product,
              max_cluster_culling_radius);
 
@@ -1589,7 +1589,7 @@ osg::Node* DestinationTile::createTerrainTile()
     if (!_terrain) _terrain = new DestinationData(_dataSet);
 
     // call createStateSet() here even when we don't use it directly as
-    // we still want any OpenGL compression and mipmap generation that it'll provide, will 
+    // we still want any OpenGL compression and mipmap generation that it'll provide, will
     // replace with a more tuned implementation later.
     createStateSet();
 
@@ -1622,12 +1622,12 @@ osg::Node* DestinationTile::createTerrainTile()
     
     double radius = (_extents._max-_extents._min).length()*0.5;
     
-    if (_dataSet->getConvertFromGeographicToGeocentric()) 
+    if (_dataSet->getConvertFromGeographicToGeocentric())
     {
         locator->setCoordinateSystemType(osgTerrain::Locator::GEOCENTRIC);
         locator->setTransformAsExtents(osg::DegreesToRadians(_extents.xMin()),
                                        osg::DegreesToRadians(_extents.yMin()),
-                                       osg::DegreesToRadians(_extents.xMax()), 
+                                       osg::DegreesToRadians(_extents.xMax()),
                                        osg::DegreesToRadians(_extents.yMax()));
 
         if (em)
@@ -1644,14 +1644,14 @@ osg::Node* DestinationTile::createTerrainTile()
             osg::Vec3d origin(X,Y,Z);
             
             radius = (origin-center_position).length();
-        }            
+        }
 
     }
     else
     {
         locator->setTransformAsExtents(_extents.xMin(),
                                        _extents.yMin(),
-                                       _extents.xMax(), 
+                                       _extents.xMax(),
                                        _extents.yMax());
 
         locator->setCoordinateSystemType(osgTerrain::Locator::PROJECTED);
@@ -1663,7 +1663,7 @@ osg::Node* DestinationTile::createTerrainTile()
 
     // create the terrain node that we'll hang the height field off
     osgTerrain::TerrainTile* terrainTile = new osgTerrain::TerrainTile;
-    terrainTile->setLocator(locator);    
+    terrainTile->setLocator(locator);
 
 
     // assign height field
@@ -1703,7 +1703,7 @@ osg::Node* DestinationTile::createTerrainTile()
             {
                 ImageData& imageData = litr->second;
                 if (imageData._imageDestination.valid() && imageData._imageDestination->_image.valid())
-                {        
+                {
                     osg::Image* image = imageData._imageDestination->_image.get();
 
                     osgTerrain::ImageLayer* imageLayer = new osgTerrain::ImageLayer;
@@ -1723,7 +1723,7 @@ osg::Node* DestinationTile::createTerrainTile()
         {
             ImageData& imageData = imageSet._layerSetImageDataMap.begin()->second;
             if (imageData._imageDestination.valid() && imageData._imageDestination->_image.valid())
-            {        
+            {
                 osg::Image* image = imageData._imageDestination->_image.get();
 
                 osgTerrain::ImageLayer* imageLayer = new osgTerrain::ImageLayer;
@@ -1751,7 +1751,7 @@ osg::Node* DestinationTile::createTerrainTile()
             }
 
             if (layer)
-            {            
+            {
                 // now fill in any blanks
                 for(unsigned int layerNum=0;
                     layerNum<_dataSet->getNumOfTextureLevels();
@@ -1820,7 +1820,7 @@ static osg::Vec3 computeLocalPosition(const osg::Matrixd& worldToLocal, double X
 }
 
 static inline osg::Vec3 computeLocalSkirtVector(const osg::EllipsoidModel* et, const osg::HeightField* grid, unsigned int i, unsigned int j, float length, bool useLocalToTileTransform, const osg::Matrixd& localToWorld)
-{ 
+{
     // no local to tile transform + mapping from lat+longs to XYZ so we need to use
     // a rotatated skirt vector - use the gravity vector.
     double longitude = grid->getOrigin().x()+grid->getXInterval()*((double)(i));
@@ -1878,7 +1878,7 @@ osg::Node* DestinationTile::createPolygonal()
         grid->allocate(numColumns,numRows);
         grid->setOrigin(osg::Vec3(_extents.xMin(),_extents.yMin(),0.0f));
         grid->setXInterval(double(_extents.xMax()-_extents.xMin())/double(numColumns-1));
-        grid->setYInterval(double(_extents.yMax()-_extents.yMin())/double(numRows-1)); 
+        grid->setYInterval(double(_extents.yMax()-_extents.yMin())/double(numRows-1));
         
         if (!_terrain) _terrain = new DestinationData(_dataSet);
         
@@ -1914,7 +1914,7 @@ osg::Node* DestinationTile::createPolygonal()
 
     color[0].set(255,255,255,255);
 
-    osg::ref_ptr<osg::Vec3Array> n = new osg::Vec3Array(numVertices); // must use ref_ptr so the array isn't removed when smooothvisitor is used    
+    osg::ref_ptr<osg::Vec3Array> n = new osg::Vec3Array(numVertices); // must use ref_ptr so the array isn't removed when smooothvisitor is used
     
 
     _localToWorld.makeIdentity();
@@ -1948,7 +1948,7 @@ osg::Node* DestinationTile::createPolygonal()
             double midX,midY;
             et->convertLatLongHeightToXYZ(osg::DegreesToRadians(midLat),osg::DegreesToRadians(midLong),midZ, midX,midY,midZ);
             
-            double length = sqrt((midX-minX)*(midX-minX) + (midY-minY)*(midY-minY)); 
+            double length = sqrt((midX-minX)*(midX-minX) + (midY-minY)*(midY-minY));
             
             skirtLength = length*skirtRatio;
             skirtVector.set(0.0f,0.0f,-skirtLength);
@@ -1974,7 +1974,7 @@ osg::Node* DestinationTile::createPolygonal()
         }
         
     }
-    else if (mapLatLongsToXYZ) 
+    else if (mapLatLongsToXYZ)
     {
         // no local to tile transform + mapping from lat+longs to XYZ so we need to use
         // a rotatated skirt vector - use the gravity vector.
@@ -2048,7 +2048,7 @@ osg::Node* DestinationTile::createPolygonal()
                     float local_m = globe_radius*( 1.0/ cos(theta+phi) - 1.0);
                     float local_radius = static_cast<float>(globe_radius * tan(beta)); // beta*globe_radius;
                     min_dot_product = osg::minimum(min_dot_product, local_dot_product);
-                    max_cluster_culling_height = osg::maximum(max_cluster_culling_height,local_m);      
+                    max_cluster_culling_height = osg::maximum(max_cluster_culling_height,local_m);
                     max_cluster_culling_radius = osg::maximum(max_cluster_culling_radius,local_radius);
                 }
                 else
@@ -2107,7 +2107,7 @@ osg::Node* DestinationTile::createPolygonal()
             if (imageSet._layerSetImageDataMap.empty()) continue;
                         
             ImageData& imageData = imageSet._layerSetImageDataMap.begin()->second;
-            if (imageData._imageDestination.valid() && imageData._imageDestination->_image.valid()) 
+            if (imageData._imageDestination.valid() && imageData._imageDestination->_image.valid())
             {
                 geometry->setTexCoordArray(layerNum,&t);
             }
@@ -2258,11 +2258,11 @@ osg::Node* DestinationTile::createPolygonal()
                                                
                     X1 -= X0;
                     Y1 -= Y0;
-                    Z1 -= Z0;                          
+                    Z1 -= Z0;
                                                
                     X2 -= X0;
                     Y2 -= Y0;
-                    Z2 -= Z0;                          
+                    Z2 -= Z0;
 
                     float xInterval = sqrt(X1*X1 + Y1*Y1 + Z1*Z1);
                     float yInterval = sqrt(X2*X2 + Y2*Y2 + Z2*Z2);
@@ -2302,11 +2302,11 @@ osg::Node* DestinationTile::createPolygonal()
 
     if (useClusterCullingCallback)
     {
-        // set up cluster cullling, 
+        // set up cluster cullling
         osg::ClusterCullingCallback* ccc = new osg::ClusterCullingCallback;
 
         ccc->set(center_position + transformed_center_normal*max_cluster_culling_height ,
-                 transformed_center_normal, 
+                 transformed_center_normal,
                  min_dot_product,
                  max_cluster_culling_radius);
         geometry->setCullCallback(ccc);
@@ -2441,7 +2441,7 @@ osg::Node* DestinationTile::createPolygonal()
     if (_dataSet->getSimplifyTerrain())
     {
         unsigned int targetMaxNumVertices = 512;
-        double sample_ratio = (numVertices <= targetMaxNumVertices) ? 1.0 : (double)targetMaxNumVertices/(double)numVertices; 
+        double sample_ratio = (numVertices <= targetMaxNumVertices) ? 1.0 : (double)targetMaxNumVertices/(double)numVertices;
         double radius = double(geometry->getBound().radius());
         double maximumError = radius / 2000.0;
     
@@ -2492,7 +2492,7 @@ void DestinationTile::readFrom(Source* source)
     if (source && 
         source->intersects(*this) &&
         _level>=source->getMinLevel() && _level<=source->getMaxLevel() && 
-        source->getSourceData()) 
+        source->getSourceData())
     {
         log(osg::INFO,"DestinationTile::readFrom -> SourceData::read() ");
         log(osg::INFO,"    destination._level=%d\t%d\t%d",_level,source->getMinLevel(),source->getMaxLevel());
@@ -2567,7 +2567,7 @@ void DestinationTile::readFrom(Source* source)
                         }
                         break;
                     }
-                }                    
+                }
                 break;
             }
             case(Source::HEIGHT_FIELD):
@@ -2779,7 +2779,7 @@ void CompositeDestination::computeMaximumSourceResolution()
 }
 
 void CompositeDestination::equalizeBoundaries()
-{   
+{
     // handle leaves
     for(TileList::iterator titr=_tiles.begin();
         titr!=_tiles.end();
@@ -2844,7 +2844,7 @@ public:
         if (terrain)
         {
             osg::ClusterCullingCallback* callback = dynamic_cast<osg::ClusterCullingCallback*>(terrain->getCullCallback());
-            if (callback) 
+            if (callback)
             {
                 _callbackList.push_back(Triple(getNodePath(),terrain,callback));
             }
@@ -2860,7 +2860,7 @@ public:
         for(unsigned int i=0; i<geode.getNumDrawables();++i)
         {
             osg::ClusterCullingCallback* callback = dynamic_cast<osg::ClusterCullingCallback*>(geode.getDrawable(i)->getCullCallback());
-            if (callback) 
+            if (callback)
             {
                 _callbackList.push_back(Triple(getNodePath(),geode.getDrawable(i),callback));
             }
@@ -2898,7 +2898,7 @@ osg::Node* CompositeDestination::createScene()
             osg::Node* node = (*citr)->createScene();
             if (node) group->addChild(node);
         }
-        return group;            
+        return group;
     }
 
 
@@ -3028,7 +3028,7 @@ osg::Node* CompositeDestination::createScene()
     {
         osg::Node* node = (*titr)->createScene();
         
-        if (node) 
+        if (node)
         {
             double maxVisibleDistance = osg::maximum(_maxVisibleDistance, node->getBound().radius()*_dataSet->getRadiusToMaxVisibleDistanceRatio());
             rangeNodeListMap[maxVisibleDistance].push_back(node);
@@ -3110,7 +3110,7 @@ bool CompositeDestination::areSubTilesComplete()
             itr!=(*citr)->_tiles.end();
             ++itr)
         {
-            if (!(*itr)->getTileComplete()) 
+            if (!(*itr)->getTileComplete())
             {
                 return false;
             }
@@ -3136,12 +3136,12 @@ std::string CompositeDestination::getExternalSubTileName()
     bool isRoot = (_level == 0);
 
     if (externalFile && isRoot)
-    { 
+    {
         filename = _dataSet->getTaskName(_level,_tileX,_tileY) + std::string("/") + _name+"_subtile"+_dataSet->getDestinationTileExtension();
         log(osg::INFO,"CompositeDestination::getExternalSubTileName()=%s ROOT!!",filename.c_str());
     }
     else if (externalFile && isLeaf)
-    { 
+    {
         filename = std::string("../") + _dataSet->getTaskName(_level,_tileX,_tileY) + std::string("/") + _name+"_subtile"+_dataSet->getDestinationTileExtension();
         log(osg::INFO,"CompositeDestination::getExternalSubTileName()=%s LEAF!!",filename.c_str());
     }
@@ -3192,13 +3192,13 @@ std::string CompositeDestination::getRelativePathForExternalSet(const std::strin
     std::string tilePath = getTilePath();
     std::string root = _dataSet->getDirectory();
     std::string::size_type pos = tilePath.find(root);
-    if (pos==std::string::npos) 
+    if (pos==std::string::npos)
     {
         _dataSet->log(osg::NOTICE,"Error: CompositeDestination::getRelativePathForExternalSet() error in paths, root = %s, getTilePath()=%s",root.c_str(),tilePath.c_str());
         return setname + std::string("/");
     }
     
-    if (pos!=0) 
+    if (pos!=0)
     {
         _dataSet->log(osg::NOTICE,"Error: CompositeDestination::getRelativePathForExternalSet() error in paths, root = %s, getTilePath()=%s",root.c_str(),tilePath.c_str());
         return setname + std::string("/");
@@ -3247,7 +3247,7 @@ osg::Node* CompositeDestination::createPagedLODScene()
             osg::Node* node = (*citr)->createScene();
             if (node) group->addChild(node);
         }
-        return group;            
+        return group;
     }
 
     // must be either a LOD or a PagedLOD
@@ -3341,7 +3341,7 @@ osg::Node* CompositeDestination::createPagedLODScene()
 osg::Node* CompositeDestination::createSubTileScene()
 {
     if (_type==GROUP ||
-        _children.empty() || 
+        _children.empty() ||
         _tiles.empty()) return 0;
 
     // handle chilren
@@ -3383,7 +3383,7 @@ void CompositeDestination::unrefSubTileData()
         ++citr)
     {
         (*citr)->unrefLocalData();
-    } 
+    }
 }
 
 void CompositeDestination::unrefLocalData()
@@ -3414,7 +3414,7 @@ DestinationTile::Sources CompositeDestination::getAllContributingSources()
         {
             sourceSet.insert(itr->get());
         }
-    }    
+    }
     
     return DestinationTile::Sources(sourceSet.begin(), sourceSet.end());
 }

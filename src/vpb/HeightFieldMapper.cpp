@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -43,7 +43,7 @@ HeightFieldMapper::HeightFieldMapper(osg::HeightField & hf, double xMin, double 
     _yMin(yMin),
     _xMax(xMax),
     _yMax(yMax)
-{    
+{
 }
 
 HeightFieldMapper::~HeightFieldMapper()
@@ -104,10 +104,10 @@ class ComputeCentroidVisitor : public osg::ArrayVisitor
 };
 
 struct CopyIndexedOperator
-{ 
+{
     template <typename ArrayType>
-    void process(ArrayType & array) 
-    {   
+    void process(ArrayType & array)
+    {
         ArrayType * va = new ArrayType();
         
         osg::UIntArray::iterator it, end = _indexArray->end();
@@ -120,10 +120,10 @@ struct CopyIndexedOperator
     osg::ref_ptr<osg::UIntArray> _indexArray;
     osg::ref_ptr<osg::Array> _copyArray;
 };
-typedef osgUtil::OperationArrayFunctor<CopyIndexedOperator> CopyIndexedFunctor;  
+typedef osgUtil::OperationArrayFunctor<CopyIndexedOperator> CopyIndexedFunctor;
 
 struct IsConvexPolygonVisitor : public osg::ArrayVisitor
-{ 
+{
     virtual void apply(osg::Vec3Array& array) { process<osg::Vec3Array>(array); }
     virtual void apply(osg::Vec4Array& array) { process<osg::Vec4Array>(array); }
 
@@ -132,8 +132,8 @@ struct IsConvexPolygonVisitor : public osg::ArrayVisitor
     virtual void apply(osg::Vec4dArray& array) { process<osg::Vec4dArray>(array); }
     
     template <typename ArrayType>
-    void process(ArrayType & array) 
-    {   
+    void process(ArrayType & array)
+    {
         typedef typename ArrayType::ElementDataType VecType;
         
         bool positif;
@@ -208,8 +208,8 @@ public:
     virtual void apply(osg::Vec4dArray& array) { process<osg::Vec4dArray>(array); }
     
     template <typename ArrayType>
-    void process(ArrayType & array) 
-    {   
+    void process(ArrayType & array)
+    {
         unsigned int size = array.size();
         osg::ref_ptr<ArrayType> newArray(new ArrayType);
         newArray->reserve(size);
@@ -270,8 +270,8 @@ class CutGeometryToOverlapHeightField
         typedef typename ArrayType::ElementDataType VecType;
         
         
-        CutGeometryToOverlapHeightField(double xMin, double yMin, double xMax, double yMax) 
-        :     _xMin(xMin), _yMin(yMin), _xMax(xMax), _yMax(yMax) 
+        CutGeometryToOverlapHeightField(double xMin, double yMin, double xMax, double yMax)
+        :     _xMin(xMin), _yMin(yMin), _xMax(xMax), _yMax(yMax)
         {}
 
         bool overlapHeightField(double x, double y) const
@@ -280,7 +280,7 @@ class CutGeometryToOverlapHeightField
         }
         
         void process(ArrayType & array)
-        {   
+        {
             
             unsigned int size = array.size();
             _cuttenVertexArray = new ArrayType;
@@ -291,7 +291,7 @@ class CutGeometryToOverlapHeightField
             // ** find the first vertex overlaping the HeightField
             unsigned int i=0;
             bool notFound = true;
-            while (notFound && (i<size)) 
+            while (notFound && (i<size))
             {
                 VecType & vec = array[i];
                 if (overlapHeightField(vec.x(), vec.y()))
@@ -304,7 +304,7 @@ class CutGeometryToOverlapHeightField
             
             // ** move vertex at the end of the array. Now, the first vertex in the array overlap the HeightField
             if (i)
-            {   
+            {
                 std::rotate(array.begin(), array.begin() + i, array.end());
             }
             
@@ -331,7 +331,7 @@ class CutGeometryToOverlapHeightField
                         VecType & v = array[i];
                         if (overlapHeightField(v.x(), v.y()))
                             notOverlap = false;
-                        else 
+                        else
                             ++i;
                     }
                     
@@ -352,8 +352,8 @@ class CutGeometryToOverlapHeightField
                     refNewArray.push_back(vec);
                 }
                 
-                ++i;                
-            } 
+                ++i;
+            }
         }
         
         enum Corner
@@ -433,7 +433,7 @@ class CutGeometryToOverlapHeightField
                 else if (v2.y() == _yMin)
                 {
                     if (v1.x() > v2.x())
-                    {   
+                    {
                         if (isCorner(v1) != C10) array.push_back(CreatePolicy::create(_xMax, _yMin));
                         array.push_back(CreatePolicy::create(_xMax, _yMax));
                         array.push_back(CreatePolicy::create(_xMin, _yMax));
@@ -552,44 +552,44 @@ template <typename ArrayType>
 struct CreatePolicy3
 {
     typedef typename ArrayType::ElementDataType VecType;
-    static VecType create(double x, double y) { return VecType(x, y, 0); } 
+    static VecType create(double x, double y) { return VecType(x, y, 0); }
 };
 
 template <typename ArrayType>
 struct CreatePolicy4
 {
     typedef typename ArrayType::ElementDataType VecType;
-    static VecType create(double x, double y) { return VecType(x, y, 0, 1); } 
+    static VecType create(double x, double y) { return VecType(x, y, 0, 1); }
 };
 
 class CutGeometryToOverlapHeightFieldVisitor : public osg::ArrayVisitor
 {
     public:
 
-        CutGeometryToOverlapHeightFieldVisitor(double xMin, double yMin, double xMax, double yMax) 
-        :     _xMin(xMin), _yMin(yMin), _xMax(xMax), _yMax(yMax) 
+        CutGeometryToOverlapHeightFieldVisitor(double xMin, double yMin, double xMax, double yMax)
+        :     _xMin(xMin), _yMin(yMin), _xMax(xMax), _yMax(yMax)
         {}
         
-        void apply(osg::Vec3Array& array) 
-        { 
+        void apply(osg::Vec3Array& array)
+        {
             CutGeometryToOverlapHeightField<osg::Vec3Array, CreatePolicy3<osg::Vec3Array> > cutter(_xMin, _yMin, _xMax, _yMax);
-            cutter.process(array); 
+            cutter.process(array);
             _cuttenVertexArray = cutter._cuttenVertexArray;
         }
-        void apply(osg::Vec4Array& array) 
-        { 
+        void apply(osg::Vec4Array& array)
+        {
             CutGeometryToOverlapHeightField<osg::Vec4Array, CreatePolicy4<osg::Vec4Array> > cutter(_xMin, _yMin, _xMax, _yMax);
             cutter.process(array);
             _cuttenVertexArray = cutter._cuttenVertexArray;
         }
-        void apply(osg::Vec3dArray& array) 
-        { 
+        void apply(osg::Vec3dArray& array)
+        {
             CutGeometryToOverlapHeightField<osg::Vec3dArray, CreatePolicy3<osg::Vec3dArray> > cutter(_xMin, _yMin, _xMax, _yMax);
             cutter.process(array);
             _cuttenVertexArray = cutter._cuttenVertexArray;
         }
-        void apply(osg::Vec4dArray& array) 
-        { 
+        void apply(osg::Vec4dArray& array)
+        {
             CutGeometryToOverlapHeightField<osg::Vec4dArray, CreatePolicy4<osg::Vec4dArray> > cutter(_xMin, _yMin, _xMax, _yMax);
             cutter.process(array);
             _cuttenVertexArray = cutter._cuttenVertexArray;
@@ -621,7 +621,7 @@ bool HeightFieldMapper::getCentroid(osg::Geometry & geometry, osg::Vec3d & centr
     ec.getEdgeloopIndexList(indexArrayList);
     if (indexArrayList.empty()) return false;
     
-    // ** create a new vertexArray only with vertex composing the out edge line 
+    // ** create a new vertexArray only with vertex composing the out edge line
     CopyIndexedFunctor cif;
     cif._indexArray = indexArrayList.front();
     geometry.getVertexArray()->accept(cif);
@@ -637,7 +637,7 @@ bool HeightFieldMapper::getCentroid(osg::Geometry & geometry, osg::Vec3d & centr
     // ** check if outedge line is concave
     IsConvexPolygonVisitor convexTest;
     geometry.getVertexArray()->accept(convexTest);
-    if (convexTest._isConvex == false) 
+    if (convexTest._isConvex == false)
         return false;
         
     // ** Remove vertex which not overlap the HeightField and insert
@@ -682,7 +682,7 @@ bool HeightFieldMapper::map(osg::Geometry & geometry) const
         
         double z = zHeightField - centroid.z();
         
-        // add z value to z coordinates to all vertex 
+        // add z value to z coordinates to all vertex
         osgUtil::AddRangeFunctor arf;
         arf._vector = osg::Vec3d(0,0,z);
         arf._begin = 0;
@@ -731,21 +731,21 @@ double HeightFieldMapper::getZfromXY(double x, double y) const
     }
     
     if (((c+1)>=0 && (c+1)<numColumns) && (r>=0 && r<numRows))
-    {  
+    {
         double local_ratio = rx*(1.0-ry);
         total_ratio += local_ratio;
         total_height += _hf.getHeight(c+1,r)*local_ratio;
     }
 
     if ((c>=0 && c<numColumns) && ((r+1)>=0 && (r+1)<numRows))
-    {  
+    {
         double local_ratio = (1.0-rx)*ry;
         total_ratio += local_ratio;
         total_height += _hf.getHeight(c,r+1)*local_ratio;
     }
 
     if (((c+1)>=0 && (c+1)<numColumns) && ((r+1)>=0 && (r+1)<numRows))
-    {  
+    {
         double local_ratio = rx*ry;
         total_ratio += local_ratio;
         total_height += _hf.getHeight(c+1,r+1)*local_ratio;

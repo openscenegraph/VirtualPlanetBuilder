@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -23,7 +23,7 @@
 using namespace vpb;
 
 namespace vpb
-{        
+{
 
 struct FileProxy
 {
@@ -222,7 +222,7 @@ bool PropertyFile::read()
         file.lseek(0, SEEK_SET);
         int size = file.lseek(0, SEEK_END);
 
-        if (_currentSize!=size) 
+        if (_currentSize!=size)
         {
             if (_currentData) delete [] _currentData;
             _currentData = new char[size];
@@ -245,7 +245,7 @@ bool PropertyFile::read()
         if (status!=0) perror("read: file unlock error");
 #endif
 
-    }    
+    }
 
     bool dataChanged = (_currentSize != _previousSize) ||
                        memcmp(_currentData, _previousData, _currentSize)!=0;
@@ -284,11 +284,11 @@ bool PropertyFile::read()
 
                 if (startValue<end_of_line)
                 {
-                    _propertyMap[std::string(curr, endName+1)] = std::string(startValue, end_of_line); 
+                    _propertyMap[std::string(curr, endName+1)] = std::string(startValue, end_of_line);
                 }
                 else
                 {
-                    _propertyMap[std::string(curr, endName+1)] = ""; 
+                    _propertyMap[std::string(curr, endName+1)] = "";
                 }
             }
             else

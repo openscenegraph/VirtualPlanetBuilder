@@ -1,13 +1,13 @@
-/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2007 Robert Osfield 
+/* -*-c++-*- VirtualPlanetBuilder - Copyright (C) 1998-2009 Robert Osfield
  *
- * This library is open source and may be redistributed and/or modified under  
- * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or 
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
  * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * OpenSceneGraph Public License for more details.
 */
 
@@ -121,37 +121,37 @@ System::~System()
 void System::readEnvironmentVariables()
 {
     const char* str = getenv("VPB_SOURCE_PATHS");
-    if (str) 
+    if (str)
     {
         osgDB::convertStringPathIntoFilePathList(std::string(str),_sourcePaths);
     }
 
     str = getenv("VPB_DESTINATION_DIR");
-    if (str) 
+    if (str)
     {
         _destinationDirectory = str;
     }
 
     str = getenv("VPB_INTERMEDIATE_DIR");
-    if (str) 
+    if (str)
     {
         _intermediateDirectory = str;
     }
 
     str = getenv("VPB_LOG_DIR");
-    if (str) 
+    if (str)
     {
         _logDirectory = str;
     }
 
     str = getenv("VPB_TASK_DIR");
-    if (str) 
+    if (str)
     {
         _taskDirectory = str;
     }
 
     str = getenv("VPB_TRIM_TILES_SCHEME");
-    if (str) 
+    if (str)
     {
         if (strcmp(str,"OLDEST")==0 || strcmp(str,"oldest")==0 ||  strcmp(str,"Oldest")==0)
         {
@@ -164,33 +164,33 @@ void System::readEnvironmentVariables()
     }
 
     str = getenv("VPB_NUM_UNUSED_DATASETS_TO_TRIM_FROM_CACHE");
-    if (str) 
+    if (str)
     {
         _numUnusedDatasetsToTrimFromCache = atoi(str);
     }
 
     str = getenv("VPB_MAXIMUM_NUM_OPEN_DATASETS");
-    if (str) 
+    if (str)
     {
         _maxNumDatasets = atoi(str);
     }
 
 
     str = getenv("VPB_MACHINE_FILE");
-    if (str) 
+    if (str)
     {
         _machineFileName = str;
     }
     
     str = getenv("VPB_CACHE_FILE");
-    if (str) 
+    if (str)
     {
         _cacheFileName = str;
     }
     
 
     str = getenv("VPB_MAXIMUM_OF_FILES_PER_DIRECTORY");
-    if (str) 
+    if (str)
     {
         _maxNumberOfFilesPerDirectory = atoi(str);
     }
@@ -266,7 +266,7 @@ public:
         if (itr->second->referenceCount()!=1) return;
     
         double t = itr->second->getTimeStamp();
-        if (_timeIteratorMap.size() < _num) 
+        if (_timeIteratorMap.size() < _num)
         {
             _timeIteratorMap.insert(TimeIteratorMap::value_type(t,itr));
         }
@@ -277,7 +277,7 @@ public:
                 // erase the end entry
                 _timeIteratorMap.erase(_timeIteratorMap.rbegin()->first);
                 _timeIteratorMap.insert(TimeIteratorMap::value_type(t,itr));
-            }            
+            }
         }
         else
         {
@@ -314,14 +314,14 @@ public:
     
     bool            _oldest;
     unsigned int    _num;
-    TimeIteratorMap _timeIteratorMap;    
+    TimeIteratorMap _timeIteratorMap;
 };
 
 void System::clearUnusedDatasets(unsigned int numToClear)
 {
     TrimN lowerN(numToClear, _trimOldestTiles);
 
-    lowerN.add(_datasetMap);    
+    lowerN.add(_datasetMap);
     lowerN.eraseFrom(_datasetMap);
     
     _datasetMap.clear();
@@ -331,7 +331,7 @@ GeospatialDataset* System::openGeospatialDataset(const std::string& filename, Ac
 {
     // first check to see if dataset already exists in cache, if so return it.
     DatasetMap::iterator itr = _datasetMap.find(FileNameAccessModePair(filename,accessMode));
-    if (itr != _datasetMap.end()) 
+    if (itr != _datasetMap.end())
     {
         //osg::notify(osg::NOTICE)<<"System::openGeospatialDataset("<<filename<<") returning existing entry, ref count "<<itr->second->referenceCount()<<std::endl;
         return itr->second.get();
@@ -385,7 +385,7 @@ bool System::getDateOfLastModification(osgTerrain::TerrainTile* source, Date& da
     for(unsigned int i=0; i<source->getNumColorLayers();++i)
     {
         osgTerrain::Layer* layer = source->getColorLayer(i);
-        if (layer) 
+        if (layer)
         {
             layers.push_back(layer);
         }

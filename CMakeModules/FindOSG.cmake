@@ -100,31 +100,34 @@ IF( OSG_LIBRARY AND OSG_INCLUDE_DIR )
     set(OPENSCENEGRAPH_VERSION "${OPENSCENEGRAPH_MAJOR_VERSION}.${OPENSCENEGRAPH_MINOR_VERSION}.${OPENSCENEGRAPH_PATCH_VERSION}"
                                     CACHE INTERNAL "The version of OSG which was detected")
 
-    if(OSG_FIND_VERSION)
-        if(OSG_FIND_VERSION_EXACT)
-            if(NOT OPENSCENEGRAPH_VERSION VERSION_EQUAL ${OSG_FIND_VERSION})
-                message(
-                    "ERROR: Version ${OSG_FIND_VERSION} of the OpenSceneGraph is required "
-                    "(exactly), version ${OPENSCENEGRAPH_VERSION} was found.")
+    if(${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} GREATER 4 AND ${CMAKE_PATCH_VERSION} GREATER 0)
 
-                SET(OSG_FOUND "NO")
-                set(OSG_LIBRARY)
-                set(OSG_INCLUDE_DIR)
+        if(OSG_FIND_VERSION)
+            if(OSG_FIND_VERSION_EXACT)
+                if(NOT OPENSCENEGRAPH_VERSION VERSION_EQUAL ${OSG_FIND_VERSION})
+                    message(
+                        "ERROR: Version ${OSG_FIND_VERSION} of the OpenSceneGraph is required "
+                        "(exactly), version ${OPENSCENEGRAPH_VERSION} was found.")
 
-            endif()
-        else()
-            # version is too low
-            if(NOT OPENSCENEGRAPH_VERSION VERSION_EQUAL ${OSG_FIND_VERSION} AND
-                    NOT OPENSCENEGRAPH_VERSION VERSION_GREATER ${OSG_FIND_VERSION})
+                    SET(OSG_FOUND "NO")
+                    set(OSG_LIBRARY)
+                    set(OSG_INCLUDE_DIR)
 
-                SET(OSG_FOUND "NO")
-                set(OSG_LIBRARY)
-                set(OSG_INCLUDE_DIR)
+                endif()
+            else()
+                # version is too low
+                if(NOT OPENSCENEGRAPH_VERSION VERSION_EQUAL ${OSG_FIND_VERSION} AND
+                        NOT OPENSCENEGRAPH_VERSION VERSION_GREATER ${OSG_FIND_VERSION})
 
-                message(
-                    "ERROR: Version ${OSG_FIND_VERSION} or higher of the OpenSceneGraph "
-                    "is required.  Version ${OPENSCENEGRAPH_VERSION} was found.")
+                    SET(OSG_FOUND "NO")
+                    set(OSG_LIBRARY)
+                    set(OSG_INCLUDE_DIR)
 
+                    message(
+                        "ERROR: Version ${OSG_FIND_VERSION} or higher of the OpenSceneGraph "
+                        "is required.  Version ${OPENSCENEGRAPH_VERSION} was found.")
+
+                endif()
             endif()
         endif()
     endif()
