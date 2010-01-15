@@ -12,7 +12,7 @@
 */
 
 #include <vpb/BuildOptions>
-#include <osgDB/Serializer>
+#include <vpb/Serializer>
 
 #include <iostream>
 #include <string>
@@ -29,7 +29,7 @@
 using namespace vpb;
 
 template<typename C>
-class GeospatialExtentsSerializer : public osgDB::Serializer
+class GeospatialExtentsSerializer : public vpb::Serializer
 {
 public:
 
@@ -78,7 +78,7 @@ public:
 
 
 template<typename C, typename T, typename Itr>
-class SetSerializer : public osgDB::Serializer
+class SetSerializer : public vpb::Serializer
 {
 public:
 
@@ -151,7 +151,7 @@ public:
 
 
 #define CREATE_ENUM_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
-    typedef osgDB::EnumSerializer<CLASS, CLASS::PROPERTY> MySerializer;\
+    typedef vpb::EnumSerializer<CLASS, CLASS::PROPERTY> MySerializer;\
     osg::ref_ptr<MySerializer> serializer = new MySerializer(\
         #PROPERTY,\
         PROTOTYPE.get##PROPERTY(),\
@@ -161,7 +161,7 @@ public:
 
 
 #define CREATE_ENUM_SERIALIZER2(CLASS,NAME, PROPERTY,PROTOTYPE) \
-    typedef osgDB::EnumSerializer<CLASS, CLASS::PROPERTY> MySerializer;\
+    typedef vpb::EnumSerializer<CLASS, CLASS::PROPERTY> MySerializer;\
     osg::ref_ptr<MySerializer> serializer = new MySerializer(\
         #NAME,\
         PROTOTYPE.get##NAME(),\
@@ -232,7 +232,7 @@ class BuildOptionsLookUps
 {
 public:
 
-    typedef std::list< osg::ref_ptr<osgDB::Serializer> > SerializerList;
+    typedef std::list< osg::ref_ptr<vpb::Serializer> > SerializerList;
     SerializerList _serializerList;
 
     BuildOptionsLookUps()
@@ -250,8 +250,10 @@ public:
         ADD_STRING_PROPERTY(LogFileName);
         ADD_STRING_PROPERTY(TaskFileName);
         ADD_STRING_PROPERTY(CommentString);
-        
+
         ADD_ENUM_PROPERTY_TWO_VALUES(DatabaseType, LOD_DATABASE, PagedLOD_DATABASE)
+
+
         ADD_ENUM_PROPERTY_THREE_VALUES(GeometryType, HEIGHT_FIELD, POLYGONAL, TERRAIN)
         ADD_ENUM_PROPERTY_THREE_VALUES(MipMappingMode, NO_MIP_MAPPING, MIP_MAPPING_HARDWARE,MIP_MAPPING_IMAGERY)
 
@@ -346,7 +348,7 @@ public:
 
         ADD_UINT_PROPERTY(RevisionNumber);
     }
-    
+
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)
     {
         for(SerializerList::iterator itr = _serializerList.begin();
@@ -355,8 +357,7 @@ public:
         {
             (*itr)->read(fr,db, itrAdvanced);
         }
-        
-        
+
         return true;
     }
 
