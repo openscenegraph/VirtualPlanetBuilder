@@ -1,3 +1,53 @@
+2009-07-01 16:17  robert
+
+	* CMakeModules/FindOSG.cmake, applications/osgdem/osgdem.cpp,
+	  applications/vpbcache/vpbcache.cpp,
+	  applications/vpbmaster/vpbmaster.cpp,
+	  applications/vpbsizes/vpbsizes.cpp,
+	  applications/vpbtexturecompression/vpbtexturecompression.cpp,
+	  include/vpb/BlockOperation, include/vpb/BuildLog,
+	  include/vpb/BuildOperation, include/vpb/BuildOptions,
+	  include/vpb/Commandline, include/vpb/DataSet,
+	  include/vpb/DatabaseBuilder, include/vpb/Date,
+	  include/vpb/Destination, include/vpb/Export,
+	  include/vpb/ExtrudeVisitor, include/vpb/FileCache,
+	  include/vpb/FileDetails, include/vpb/FilePathManager,
+	  include/vpb/FileUtils, include/vpb/GeospatialDataset,
+	  include/vpb/HeightFieldMapper, include/vpb/MachinePool,
+	  include/vpb/ObjectPlacer, include/vpb/PropertyFile,
+	  include/vpb/ShapeFilePlacer, include/vpb/Source,
+	  include/vpb/SourceData, include/vpb/SpatialProperties,
+	  include/vpb/System, include/vpb/Task, include/vpb/TaskManager,
+	  include/vpb/ThreadPool, include/vpb/Version,
+	  src/vpb/BuildLog.cpp, src/vpb/BuildOperation.cpp,
+	  src/vpb/BuildOptions.cpp, src/vpb/BuildOptionsIO.cpp,
+	  src/vpb/Commandline.cpp, src/vpb/DataSet.cpp,
+	  src/vpb/DatabaseBuilder.cpp, src/vpb/DatabaseBuilderIO.cpp,
+	  src/vpb/Date.cpp, src/vpb/Destination.cpp,
+	  src/vpb/ExtrudeVisitor.cpp, src/vpb/FileCache.cpp,
+	  src/vpb/FileDetails.cpp, src/vpb/FilePathManager.cpp,
+	  src/vpb/FileUtils.cpp, src/vpb/GeospatialDataset.cpp,
+	  src/vpb/HeightFieldMapper.cpp, src/vpb/MachinePool.cpp,
+	  src/vpb/ObjectPlacer.cpp, src/vpb/PropertyFile.cpp,
+	  src/vpb/ShapeFilePlacer.cpp, src/vpb/Source.cpp,
+	  src/vpb/SourceData.cpp, src/vpb/SpatialProperties.cpp,
+	  src/vpb/System.cpp, src/vpb/Task.cpp, src/vpb/TaskManager.cpp,
+	  src/vpb/ThreadPool.cpp: From Chris Hanson, "Remove extraneous
+	  trailing whitespace at the right end of lines with real code
+	  content
+	  Unify the copyright header and update copyright range to 2009
+	  Unify whether commandline options are listed with a period after
+	  description or not
+	  
+	  The changes were done manually, not by script because a dumb
+	  regex couldn't tell the
+	  difference between intentional and accidental instances."
+
+2009-06-22 15:37  robert
+
+	* ChangeLog, NEWS.txt, READEME.txt: Update ChangeLog, README and
+	  NEWS for 0.9.11 developer release
+
 2009-06-22 14:41  robert
 
 	* CMakeLists.txt, include/vpb/Version: Updated version number to

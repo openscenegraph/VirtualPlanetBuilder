@@ -150,7 +150,7 @@ public:
 };
 
 
-#define CREATE_ENUM_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
+#define VPB_CREATE_ENUM_SERIALIZER(CLASS,PROPERTY,PROTOTYPE) \
     typedef vpb::EnumSerializer<CLASS, CLASS::PROPERTY> MySerializer;\
     osg::ref_ptr<MySerializer> serializer = new MySerializer(\
         #PROPERTY,\
@@ -160,7 +160,7 @@ public:
     )
 
 
-#define CREATE_ENUM_SERIALIZER2(CLASS,NAME, PROPERTY,PROTOTYPE) \
+#define VPB_CREATE_ENUM_SERIALIZER2(CLASS,NAME, PROPERTY,PROTOTYPE) \
     typedef vpb::EnumSerializer<CLASS, CLASS::PROPERTY> MySerializer;\
     osg::ref_ptr<MySerializer> serializer = new MySerializer(\
         #NAME,\
@@ -170,62 +170,62 @@ public:
     )
 
     
-#define ADD_ENUM_PROPERTY(PROPERTY) \
-    CREATE_ENUM_SERIALIZER(BuildOptions, PROPERTY, prototype); \
+#define VPB_ADD_ENUM_PROPERTY(PROPERTY) \
+    VPB_CREATE_ENUM_SERIALIZER(BuildOptions, PROPERTY, prototype); \
     _serializerList.push_back(serializer.get())
 
-#define ADD_ENUM_PROPERTY2(NAME, PROPERTY) \
-    CREATE_ENUM_SERIALIZER2(BuildOptions, NAME, PROPERTY, prototype); \
+#define VPB_ADD_ENUM_PROPERTY2(NAME, PROPERTY) \
+    VPB_CREATE_ENUM_SERIALIZER2(BuildOptions, NAME, PROPERTY, prototype); \
     _serializerList.push_back(serializer.get())
 
-#define ADD_STRING_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_STRING_SERIALIZER(BuildOptions,PROPERTY,prototype))
+#define VPB_ADD_STRING_PROPERTY(PROPERTY) _serializerList.push_back(VPB_CREATE_STRING_SERIALIZER(BuildOptions,PROPERTY,prototype))
 
 
-#define ADD_UINT_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_UINT_SERIALIZER(BuildOptions,PROPERTY,prototype))
+#define VPB_ADD_UINT_PROPERTY(PROPERTY) _serializerList.push_back(VPB_CREATE_UINT_SERIALIZER(BuildOptions,PROPERTY,prototype))
 
 
-#define ADD_INT_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_INT_SERIALIZER(BuildOptions,PROPERTY,prototype))
+#define VPB_ADD_INT_PROPERTY(PROPERTY) _serializerList.push_back(VPB_CREATE_INT_SERIALIZER(BuildOptions,PROPERTY,prototype))
 
 
-#define ADD_FLOAT_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_FLOAT_SERIALIZER(BuildOptions,PROPERTY,prototype))
+#define VPB_ADD_FLOAT_PROPERTY(PROPERTY) _serializerList.push_back(VPB_CREATE_FLOAT_SERIALIZER(BuildOptions,PROPERTY,prototype))
 
 
-#define ADD_DOUBLE_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_DOUBLE_SERIALIZER(BuildOptions,PROPERTY,prototype))
+#define VPB_ADD_DOUBLE_PROPERTY(PROPERTY) _serializerList.push_back(VPB_CREATE_DOUBLE_SERIALIZER(BuildOptions,PROPERTY,prototype))
 
 
 
-#define ADD_VEC4_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_VEC4_SERIALIZER(BuildOptions,PROPERTY,prototype))
+#define VPB_ADD_VEC4_PROPERTY(PROPERTY) _serializerList.push_back(VPB_CREATE_VEC4_SERIALIZER(BuildOptions,PROPERTY,prototype))
 
 
-#define ADD_BOOL_PROPERTY(PROPERTY) _serializerList.push_back(CREATE_BOOL_SERIALIZER(BuildOptions,PROPERTY,prototype))
+#define VPB_ADD_BOOL_PROPERTY(PROPERTY) _serializerList.push_back(VPB_CREATE_BOOL_SERIALIZER(BuildOptions,PROPERTY,prototype))
 
-#define ADD_ENUM_VALUE(VALUE) serializer->add(BuildOptions::VALUE, #VALUE)
+#define VPB_ADD_ENUM_VALUE(VALUE) serializer->add(BuildOptions::VALUE, #VALUE)
 
-#define ADD_ENUM_PROPERTY_TWO_VALUES(PROPERTY,VALUE1,VALUE2) \
+#define VPB_ADD_ENUM_PROPERTY_TWO_VALUES(PROPERTY,VALUE1,VALUE2) \
     { \
-        ADD_ENUM_PROPERTY(PROPERTY);\
-        ADD_ENUM_VALUE(VALUE1);\
-        ADD_ENUM_VALUE(VALUE2);\
+        VPB_ADD_ENUM_PROPERTY(PROPERTY);\
+        VPB_ADD_ENUM_VALUE(VALUE1);\
+        VPB_ADD_ENUM_VALUE(VALUE2);\
     }
 
-#define ADD_ENUM_PROPERTY_TWO_VALUES(PROPERTY,VALUE1,VALUE2) \
+#define VPB_ADD_ENUM_PROPERTY_TWO_VALUES(PROPERTY,VALUE1,VALUE2) \
     { \
-        ADD_ENUM_PROPERTY(PROPERTY);\
-        ADD_ENUM_VALUE(VALUE1);\
-        ADD_ENUM_VALUE(VALUE2);\
+        VPB_ADD_ENUM_PROPERTY(PROPERTY);\
+        VPB_ADD_ENUM_VALUE(VALUE1);\
+        VPB_ADD_ENUM_VALUE(VALUE2);\
     }
 
-#define ADD_ENUM_PROPERTY_THREE_VALUES(PROPERTY,VALUE1,VALUE2,VALUE3) \
+#define VPB_ADD_ENUM_PROPERTY_THREE_VALUES(PROPERTY,VALUE1,VALUE2,VALUE3) \
     { \
-        ADD_ENUM_PROPERTY(PROPERTY);\
-        ADD_ENUM_VALUE(VALUE1);\
-        ADD_ENUM_VALUE(VALUE2);\
-        ADD_ENUM_VALUE(VALUE3);\
+        VPB_ADD_ENUM_PROPERTY(PROPERTY);\
+        VPB_ADD_ENUM_VALUE(VALUE1);\
+        VPB_ADD_ENUM_VALUE(VALUE2);\
+        VPB_ADD_ENUM_VALUE(VALUE3);\
     }
 
-#define AEV ADD_ENUM_VALUE
-#define AEP ADD_ENUM_PROPERTY
-#define AEP2 ADD_ENUM_PROPERTY2
+#define VPB_AEV VPB_ADD_ENUM_VALUE
+#define VPB_AEP VPB_ADD_ENUM_PROPERTY
+#define VPB_AEP2 VPB_ADD_ENUM_PROPERTY2
 
 
 class BuildOptionsLookUps
@@ -239,69 +239,69 @@ public:
     {
         BuildOptions prototype;
 
-        ADD_STRING_PROPERTY(Directory);
-        ADD_BOOL_PROPERTY(OutputTaskDirectories);
-        ADD_STRING_PROPERTY(DestinationTileBaseName);
-        ADD_STRING_PROPERTY(DestinationTileExtension);
-        ADD_STRING_PROPERTY(DestinationImageExtension);
-        ADD_BOOL_PROPERTY(PowerOfTwoImages);
-        ADD_STRING_PROPERTY(ArchiveName);
-        ADD_STRING_PROPERTY(IntermediateBuildName);
-        ADD_STRING_PROPERTY(LogFileName);
-        ADD_STRING_PROPERTY(TaskFileName);
-        ADD_STRING_PROPERTY(CommentString);
+        VPB_ADD_STRING_PROPERTY(Directory);
+        VPB_ADD_BOOL_PROPERTY(OutputTaskDirectories);
+        VPB_ADD_STRING_PROPERTY(DestinationTileBaseName);
+        VPB_ADD_STRING_PROPERTY(DestinationTileExtension);
+        VPB_ADD_STRING_PROPERTY(DestinationImageExtension);
+        VPB_ADD_BOOL_PROPERTY(PowerOfTwoImages);
+        VPB_ADD_STRING_PROPERTY(ArchiveName);
+        VPB_ADD_STRING_PROPERTY(IntermediateBuildName);
+        VPB_ADD_STRING_PROPERTY(LogFileName);
+        VPB_ADD_STRING_PROPERTY(TaskFileName);
+        VPB_ADD_STRING_PROPERTY(CommentString);
 
-        ADD_ENUM_PROPERTY_TWO_VALUES(DatabaseType, LOD_DATABASE, PagedLOD_DATABASE)
+        VPB_ADD_ENUM_PROPERTY_TWO_VALUES(DatabaseType, LOD_DATABASE, PagedLOD_DATABASE)
 
 
-        ADD_ENUM_PROPERTY_THREE_VALUES(GeometryType, HEIGHT_FIELD, POLYGONAL, TERRAIN)
-        ADD_ENUM_PROPERTY_THREE_VALUES(MipMappingMode, NO_MIP_MAPPING, MIP_MAPPING_HARDWARE,MIP_MAPPING_IMAGERY)
+        VPB_ADD_ENUM_PROPERTY_THREE_VALUES(GeometryType, HEIGHT_FIELD, POLYGONAL, TERRAIN)
+        VPB_ADD_ENUM_PROPERTY_THREE_VALUES(MipMappingMode, NO_MIP_MAPPING, MIP_MAPPING_HARDWARE,MIP_MAPPING_IMAGERY)
 
         {
-            AEP(TextureType);
-            AEV(RGB_24);
-            AEV(RGBA);
-            AEV(RGB_16);
-            AEV(RGBA_16);
-            AEV(RGB_S3TC_DXT1);
-            AEV(RGBA_S3TC_DXT1);
-            AEV(RGBA_S3TC_DXT3);
-            AEV(RGBA_S3TC_DXT5);
-            AEV(ARB_COMPRESSED);
-            AEV(COMPRESSED_TEXTURE);
-            AEV(COMPRESSED_RGBA_TEXTURE);
+            VPB_AEP(TextureType);
+            VPB_AEV(RGB_24);
+            VPB_AEV(RGBA);
+            VPB_AEV(RGB_16);
+            VPB_AEV(RGBA_16);
+            VPB_AEV(RGB_S3TC_DXT1);
+            VPB_AEV(RGBA_S3TC_DXT1);
+            VPB_AEV(RGBA_S3TC_DXT3);
+            VPB_AEV(RGBA_S3TC_DXT5);
+            VPB_AEV(ARB_COMPRESSED);
+            VPB_AEV(COMPRESSED_TEXTURE);
+            VPB_AEV(COMPRESSED_RGBA_TEXTURE);
         }
 
-        ADD_UINT_PROPERTY(MaximumTileImageSize);
-        ADD_UINT_PROPERTY(MaximumTileTerrainSize);
+        VPB_ADD_UINT_PROPERTY(MaximumTileImageSize);
+        VPB_ADD_UINT_PROPERTY(MaximumTileTerrainSize);
 
-        ADD_FLOAT_PROPERTY(MaximumVisibleDistanceOfTopLevel);
-        ADD_FLOAT_PROPERTY(RadiusToMaxVisibleDistanceRatio);
-        ADD_FLOAT_PROPERTY(VerticalScale);
-        ADD_FLOAT_PROPERTY(SkirtRatio);
-        ADD_UINT_PROPERTY(ImageryQuantization);
-        ADD_BOOL_PROPERTY(ImageryErrorDiffusion);
-        ADD_FLOAT_PROPERTY(MaxAnisotropy);
+        VPB_ADD_FLOAT_PROPERTY(MaximumVisibleDistanceOfTopLevel);
+        VPB_ADD_FLOAT_PROPERTY(RadiusToMaxVisibleDistanceRatio);
+        VPB_ADD_FLOAT_PROPERTY(VerticalScale);
+        VPB_ADD_FLOAT_PROPERTY(SkirtRatio);
+        VPB_ADD_UINT_PROPERTY(ImageryQuantization);
+        VPB_ADD_BOOL_PROPERTY(ImageryErrorDiffusion);
+        VPB_ADD_FLOAT_PROPERTY(MaxAnisotropy);
         
-        ADD_BOOL_PROPERTY(BuildOverlays);
-        ADD_BOOL_PROPERTY(ReprojectSources);
-        ADD_BOOL_PROPERTY(GenerateTiles);
-        ADD_BOOL_PROPERTY(ConvertFromGeographicToGeocentric);
-        ADD_BOOL_PROPERTY(UseLocalTileTransform);
-        ADD_BOOL_PROPERTY(SimplifyTerrain);
-        ADD_BOOL_PROPERTY(DecorateGeneratedSceneGraphWithCoordinateSystemNode);
-        ADD_BOOL_PROPERTY(DecorateGeneratedSceneGraphWithMultiTextureControl);
-        ADD_BOOL_PROPERTY(WriteNodeBeforeSimplification);
+        VPB_ADD_BOOL_PROPERTY(BuildOverlays);
+        VPB_ADD_BOOL_PROPERTY(ReprojectSources);
+        VPB_ADD_BOOL_PROPERTY(GenerateTiles);
+        VPB_ADD_BOOL_PROPERTY(ConvertFromGeographicToGeocentric);
+        VPB_ADD_BOOL_PROPERTY(UseLocalTileTransform);
+        VPB_ADD_BOOL_PROPERTY(SimplifyTerrain);
+        VPB_ADD_BOOL_PROPERTY(DecorateGeneratedSceneGraphWithCoordinateSystemNode);
+        VPB_ADD_BOOL_PROPERTY(DecorateGeneratedSceneGraphWithMultiTextureControl);
+        VPB_ADD_BOOL_PROPERTY(WriteNodeBeforeSimplification);
 
-        ADD_VEC4_PROPERTY(DefaultColor);
+        VPB_ADD_VEC4_PROPERTY(DefaultColor);
         
-        ADD_BOOL_PROPERTY(UseInterpolatedImagerySampling);
-        ADD_BOOL_PROPERTY(UseInterpolatedTerrainSampling);
+        VPB_ADD_BOOL_PROPERTY(UseInterpolatedImagerySampling);
+        VPB_ADD_BOOL_PROPERTY(UseInterpolatedTerrainSampling);
         
-        ADD_STRING_PROPERTY(DestinationCoordinateSystem);
-        ADD_STRING_PROPERTY(DestinationCoordinateSystemFormat);
-        ADD_DOUBLE_PROPERTY(RadiusPolar);
-        ADD_DOUBLE_PROPERTY(RadiusEquator);
+        VPB_ADD_STRING_PROPERTY(DestinationCoordinateSystem);
+        VPB_ADD_STRING_PROPERTY(DestinationCoordinateSystemFormat);
+        VPB_ADD_DOUBLE_PROPERTY(RadiusPolar);
+        VPB_ADD_DOUBLE_PROPERTY(RadiusEquator);
 
         _serializerList.push_back(new GeospatialExtentsSerializer<BuildOptions>(
                 "DestinationExtents",
@@ -309,36 +309,36 @@ public:
                 &BuildOptions::getDestinationExtents,
                 &BuildOptions::setDestinationExtents));
 
-        ADD_UINT_PROPERTY(MaximumNumOfLevels);
+        VPB_ADD_UINT_PROPERTY(MaximumNumOfLevels);
         
-        ADD_UINT_PROPERTY(DistributedBuildSplitLevel);
-        ADD_UINT_PROPERTY(DistributedBuildSecondarySplitLevel);
-        ADD_BOOL_PROPERTY(RecordSubtileFileNamesOnLeafTile);
-        ADD_BOOL_PROPERTY(GenerateSubtile);
-        ADD_UINT_PROPERTY(SubtileLevel);
-        ADD_UINT_PROPERTY(SubtileX);
-        ADD_UINT_PROPERTY(SubtileY);
+        VPB_ADD_UINT_PROPERTY(DistributedBuildSplitLevel);
+        VPB_ADD_UINT_PROPERTY(DistributedBuildSecondarySplitLevel);
+        VPB_ADD_BOOL_PROPERTY(RecordSubtileFileNamesOnLeafTile);
+        VPB_ADD_BOOL_PROPERTY(GenerateSubtile);
+        VPB_ADD_UINT_PROPERTY(SubtileLevel);
+        VPB_ADD_UINT_PROPERTY(SubtileX);
+        VPB_ADD_UINT_PROPERTY(SubtileY);
 
-        { AEP(NotifyLevel); AEV(ALWAYS); AEV(FATAL); AEV(WARN); AEV(NOTICE); AEV(INFO); AEV(DEBUG_INFO); AEV(DEBUG_FP); }
+        { VPB_AEP(NotifyLevel); VPB_AEV(ALWAYS); VPB_AEV(FATAL); VPB_AEV(WARN); VPB_AEV(NOTICE); VPB_AEV(INFO); VPB_AEV(DEBUG_INFO); VPB_AEV(DEBUG_FP); }
 
-        ADD_BOOL_PROPERTY(DisableWrites);
+        VPB_ADD_BOOL_PROPERTY(DisableWrites);
         
-        ADD_FLOAT_PROPERTY(NumReadThreadsToCoresRatio);
-        ADD_FLOAT_PROPERTY(NumWriteThreadsToCoresRatio);
+        VPB_ADD_FLOAT_PROPERTY(NumReadThreadsToCoresRatio);
+        VPB_ADD_FLOAT_PROPERTY(NumWriteThreadsToCoresRatio);
 
-        ADD_STRING_PROPERTY(BuildOptionsString);
-        ADD_STRING_PROPERTY(WriteOptionsString);
+        VPB_ADD_STRING_PROPERTY(BuildOptionsString);
+        VPB_ADD_STRING_PROPERTY(WriteOptionsString);
 
-        { AEP(LayerInheritance); AEV(INHERIT_LOWEST_AVAILABLE); AEV(INHERIT_NEAREST_AVAILABLE); AEV(NO_INHERITANCE); }
+        { VPB_AEP(LayerInheritance); VPB_AEV(INHERIT_LOWEST_AVAILABLE); VPB_AEV(INHERIT_NEAREST_AVAILABLE); VPB_AEV(NO_INHERITANCE); }
 
-        ADD_BOOL_PROPERTY(AbortTaskOnError);
-        ADD_BOOL_PROPERTY(AbortRunOnError);
+        VPB_ADD_BOOL_PROPERTY(AbortTaskOnError);
+        VPB_ADD_BOOL_PROPERTY(AbortRunOnError);
         
-        { AEP2(DefaultImageLayerOutputPolicy, LayerOutputPolicy); AEV(INLINE); AEV(EXTERNAL_LOCAL_DIRECTORY); AEV(EXTERNAL_SET_DIRECTORY); }
-        { AEP2(DefaultElevationLayerOutputPolicy, LayerOutputPolicy); AEV(INLINE); AEV(EXTERNAL_LOCAL_DIRECTORY); AEV(EXTERNAL_SET_DIRECTORY); }
+        { VPB_AEP2(DefaultImageLayerOutputPolicy, LayerOutputPolicy); VPB_AEV(INLINE); VPB_AEV(EXTERNAL_LOCAL_DIRECTORY); VPB_AEV(EXTERNAL_SET_DIRECTORY); }
+        { VPB_AEP2(DefaultElevationLayerOutputPolicy, LayerOutputPolicy); VPB_AEV(INLINE); VPB_AEV(EXTERNAL_LOCAL_DIRECTORY); VPB_AEV(EXTERNAL_SET_DIRECTORY); }
         
-        { AEP2(OptionalImageLayerOutputPolicy, LayerOutputPolicy); AEV(INLINE); AEV(EXTERNAL_LOCAL_DIRECTORY); AEV(EXTERNAL_SET_DIRECTORY); }
-        { AEP2(OptionalElevationLayerOutputPolicy, LayerOutputPolicy); AEV(INLINE); AEV(EXTERNAL_LOCAL_DIRECTORY); AEV(EXTERNAL_SET_DIRECTORY); }
+        { VPB_AEP2(OptionalImageLayerOutputPolicy, LayerOutputPolicy); VPB_AEV(INLINE); VPB_AEV(EXTERNAL_LOCAL_DIRECTORY); VPB_AEV(EXTERNAL_SET_DIRECTORY); }
+        { VPB_AEP2(OptionalElevationLayerOutputPolicy, LayerOutputPolicy); VPB_AEV(INLINE); VPB_AEV(EXTERNAL_LOCAL_DIRECTORY); VPB_AEV(EXTERNAL_SET_DIRECTORY); }
 
         _serializerList.push_back(new SetSerializer<BuildOptions, BuildOptions::OptionalLayerSet, BuildOptions::OptionalLayerSet::const_iterator>(
                 "OptionalLayerSet",
@@ -346,7 +346,7 @@ public:
                 &BuildOptions::getOptionalLayerSet,
                 &BuildOptions::setOptionalLayerSet));
 
-        ADD_UINT_PROPERTY(RevisionNumber);
+        VPB_ADD_UINT_PROPERTY(RevisionNumber);
     }
 
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)
