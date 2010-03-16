@@ -227,6 +227,8 @@ public:
 #define VPB_AEP VPB_ADD_ENUM_PROPERTY
 #define VPB_AEP2 VPB_ADD_ENUM_PROPERTY2
 
+#define VPB_SCOPED_AEV(SCOPE,VALUE) serializer->add(SCOPE::VALUE, #VALUE)
+
 
 class BuildOptionsLookUps
 {
@@ -347,6 +349,15 @@ public:
                 &BuildOptions::setOptionalLayerSet));
 
         VPB_ADD_UINT_PROPERTY(RevisionNumber);
+
+        {
+            VPB_AEP(BlendingPolicy);
+            VPB_SCOPED_AEV(osgTerrain::TerrainTile,INHERIT);
+            VPB_SCOPED_AEV(osgTerrain::TerrainTile,DO_NOT_SET_BLENDING);
+            VPB_SCOPED_AEV(osgTerrain::TerrainTile,ENABLE_BLENDING);
+            VPB_SCOPED_AEV(osgTerrain::TerrainTile,ENABLE_BLENDING_WHEN_ALPHA_PRESENT);
+        }
+
     }
 
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)

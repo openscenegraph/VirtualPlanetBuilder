@@ -685,6 +685,15 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         buildOptions->setRecordSubtileFileNamesOnLeafTile(true);
     }
 
+    std::string blendingPolicy;
+    while(arguments.read("--blending-policy", blendingPolicy))
+    {
+        if (blendingPolicy == "INHERIT") buildOptions->setBlendingPolicy(osgTerrain::TerrainTile::INHERIT);
+        else if (blendingPolicy == "DO_NOT_SET_BLENDING") buildOptions->setBlendingPolicy(osgTerrain::TerrainTile::DO_NOT_SET_BLENDING);
+        else if (blendingPolicy == "ENABLE_BLENDING") buildOptions->setBlendingPolicy(osgTerrain::TerrainTile::ENABLE_BLENDING);
+        else if (blendingPolicy == "ENABLE_BLENDING_WHEN_ALPHA_PRESENT") buildOptions->setBlendingPolicy(osgTerrain::TerrainTile::ENABLE_BLENDING_WHEN_ALPHA_PRESENT);
+    }
+
     std::string notifyLevel;
     while(arguments.read("--notify-level", notifyLevel))
     {

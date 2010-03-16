@@ -1665,6 +1665,8 @@ osg::Node* DestinationTile::createTerrainTile()
     osgTerrain::TerrainTile* terrainTile = new osgTerrain::TerrainTile;
     terrainTile->setLocator(locator);
 
+    // set the blending policy (defaults to INEHRIT).
+    terrainTile->setBlendingPolicy(_dataSet->getBlendingPolicy());
 
     // assign height field
     {

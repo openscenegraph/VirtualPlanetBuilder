@@ -17,6 +17,7 @@
 #include <osg/CoordinateSystemNode>
 #include <osgDB/Archive>
 #include <osgTerrain/Terrain>
+#include <osgTerrain/TerrainTile>
 #include <osgDB/Archive>
 
 #include <set>
@@ -326,6 +327,14 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setRevisionNumber(unsigned int num) { _revisionNumber = num; }
         unsigned int getRevisionNumber() const { return _revisionNumber; }
 
+        typedef osgTerrain::TerrainTile::BlendingPolicy BlendingPolicy;
+
+        /** Set the policy to use when deciding whether to enable/disable blending and use of transparent bin.*/
+        void setBlendingPolicy(BlendingPolicy policy) { _blendingPolicy = policy; }
+
+        /** Get the policy to use when deciding whether to enable/disable blending and use of transparent bin.*/
+        BlendingPolicy getBlendingPolicy() const { return _blendingPolicy; }
+
     protected:
 
         bool                                        _buildOverlays;
@@ -403,6 +412,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
         OptionalLayerSet                            _optionalLayerSet;
 
         unsigned int                                _revisionNumber;
+
+        BlendingPolicy                              _blendingPolicy;
 };
 
 }

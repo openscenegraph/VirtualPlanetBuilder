@@ -86,6 +86,8 @@ BuildOptions::BuildOptions():
     _optionalElevationLayerOutputPolicy = EXTERNAL_SET_DIRECTORY;
 
     _revisionNumber = 0;
+
+    _blendingPolicy = osgTerrain::TerrainTile::INHERIT;
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop):
@@ -176,6 +178,8 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _optionalLayerSet = rhs._optionalLayerSet;
 
     _revisionNumber = rhs._revisionNumber;
+
+    _blendingPolicy = rhs._blendingPolicy;
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)
