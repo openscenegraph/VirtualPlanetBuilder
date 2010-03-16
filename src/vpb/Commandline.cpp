@@ -589,6 +589,7 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--layer-inheritance [Lowest/Nearest/No]","Set the layer inheritance.");
     usage.addCommandLineOption("--pot ","Use power of two imagery when generating output tiles.");
     usage.addCommandLineOption("--npot","Permit use of non power of two imagery when generating output tiles.");
+    usage.addCommandLineOption("--blending-policy <policy>", "Set the blending policy to use on TerrainTiles.  <policy> can be INHERIT, DO_NOT_SET_BLENDING, ENABLE_BLENDING or ENABLE_BLENDING_WHEN_ALPHA_PRESENT.");
 }
 
 int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::TerrainTile* terrainInput)
