@@ -1663,7 +1663,12 @@ osg::Node* DestinationTile::createTerrainTile()
 
     // create the terrain node that we'll hang the height field off
     osgTerrain::TerrainTile* terrainTile = new osgTerrain::TerrainTile;
+
+    // set the location of the tile
     terrainTile->setLocator(locator);
+
+    // set the tile ID
+    terrainTile->setTileID(osgTerrain::TileID(_level, _tileX, _tileY));
 
     // set the blending policy (defaults to INEHRIT).
     terrainTile->setBlendingPolicy(_dataSet->getBlendingPolicy());
