@@ -1840,7 +1840,11 @@ void DataSet::_writeRow(Row& row)
                     node = decorateWithMultiTextureControl(node.get());
                 }
 
-                if (_decorateWithCoordinateSystemNode)
+                if (getGeometryType()==TERRAIN)
+                {
+                    node = decorateWithTerrain(node.get());
+                }
+                else if (_decorateWithCoordinateSystemNode)
                 {
                     node = decorateWithCoordinateSystemNode(node.get());
                 }
@@ -1903,6 +1907,27 @@ void DataSet::createDestination(unsigned int numLevels)
 
 }
 
+osg::Node* DataSet::decorateWithTerrain(osg::Node* subgraph)
+{
+    osgTerrain::Terrain* terrain = new osgTerrain::Terrain;
+
+    if (_destinationCoordinateSystem.valid() && _destinationCoordinateSystem->getCoordinateSystem().empty())
+    {
+        terrain->setFormat(_destinationCoordinateSystem->getFormat());
+        terrain->setCoordinateSystem(_destinationCoordinateSystem->getCoordinateSystem());
+    }
+
+    // set the ellipsoid model if geocentric coords are used.
+    if (getConvertFromGeographicToGeocentric()) terrain->setEllipsoidModel(getEllipsoidModel());
+
+    // add the a subgraph.
+    terrain->addChild(subgraph);
+
+    log(osg::NOTICE, "called DataSet::decorateWithTerrain()");
+
+    return terrain;
+}
+
 osg::Node* DataSet::decorateWithCoordinateSystemNode(osg::Node* subgraph)
 {
     // don't decorate if no coord system is set.
@@ -1912,10 +1937,10 @@ osg::Node* DataSet::decorateWithCoordinateSystemNode(osg::Node* subgraph)
     osg::CoordinateSystemNode* csn = new osg::CoordinateSystemNode(
             _destinationCoordinateSystem->getFormat(),
             _destinationCoordinateSystem->getCoordinateSystem());
-    
+
     // set the ellipsoid model if geocentric coords are used.
     if (getConvertFromGeographicToGeocentric()) csn->setEllipsoidModel(getEllipsoidModel());
-    
+
     // add the a subgraph.
     csn->addChild(subgraph);
 
@@ -1993,7 +2018,11 @@ void DataSet::_buildDestination(bool writeToDisk)
                 _rootNode = decorateWithMultiTextureControl(_rootNode.get());
             }
 
-            if (_decorateWithCoordinateSystemNode)
+            if (getGeometryType()==TERRAIN)
+            {
+                _rootNode = decorateWithTerrain(_rootNode.get());
+            }
+            else if (_decorateWithCoordinateSystemNode)
             {
                 _rootNode = decorateWithCoordinateSystemNode(_rootNode.get());
             }

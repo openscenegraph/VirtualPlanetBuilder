@@ -233,6 +233,7 @@ class VPB_EXPORT DataSet : public BuildOptions, public Logger
 
         void init();
 
+        osg::Node* decorateWithTerrain(osg::Node* subgraph);
         osg::Node* decorateWithCoordinateSystemNode(osg::Node* subgraph);
         osg::Node* decorateWithMultiTextureControl(osg::Node* subgraph);
 
