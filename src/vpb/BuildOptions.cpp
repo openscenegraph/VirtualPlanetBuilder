@@ -17,9 +17,71 @@
 
 using namespace vpb;
 
-BuildOptions::BuildOptions():
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// ImageOptions
+//
+ImageOptions::ImageOptions():
     osg::Object(true)
 {
+}
+
+ImageOptions::ImageOptions(const ImageOptions& rhs,const osg::CopyOp& copyop):
+    osg::Object(rhs,copyop)
+{
+    setImageOptions(rhs);
+}
+
+
+ImageOptions& ImageOptions::operator = (const ImageOptions& rhs)
+{
+    if (this==&rhs) return *this;
+
+    setImageOptions(rhs);
+
+    return *this;
+}
+
+
+void ImageOptions::setImageOptions(const ImageOptions& rhs)
+{
+    _defaultColor = rhs._defaultColor;
+    _useInterpolatedImagerySampling = rhs._useInterpolatedImagerySampling;
+    _imageExtension = rhs._imageExtension;
+    _powerOfTwoImages = rhs._powerOfTwoImages;
+    _imageryQuantization = rhs._imageryQuantization;
+    _imageryErrorDiffusion = rhs._imageryErrorDiffusion;
+    _maxAnisotropy = rhs._maxAnisotropy;
+    _maximumTileImageSize = rhs._maximumTileImageSize;
+    _mipMappingMode = rhs._mipMappingMode;
+    _textureType = rhs._textureType;
+}
+
+bool ImageOptions::compatible(ImageOptions& rhs) const
+{
+    if (_defaultColor != rhs._defaultColor) return false;
+    if (_useInterpolatedImagerySampling != rhs._useInterpolatedImagerySampling) return false;
+    if (_imageExtension != rhs._imageExtension) return false;
+    if (_powerOfTwoImages != rhs._powerOfTwoImages) return false;
+    if (_imageryQuantization != rhs._imageryQuantization) return false;
+    if (_imageryErrorDiffusion != rhs._imageryErrorDiffusion) return false;
+    if (_maxAnisotropy != rhs._maxAnisotropy) return false;
+    if (_maximumTileImageSize != rhs._maximumTileImageSize) return false;
+    if (_mipMappingMode != rhs._mipMappingMode) return false;
+    if (_textureType != rhs._textureType) return false;
+    return true;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// BuildOptions
+//
+BuildOptions::BuildOptions()
+//    :osg::Object(true)
+{
+    _imageOptions = new ImageOptions;
+
     _archiveName = "";
     _buildOverlays = false;
     _reprojectSources = true;
@@ -29,8 +91,6 @@ BuildOptions::BuildOptions():
     _databaseType = PagedLOD_DATABASE;
     _decorateWithCoordinateSystemNode = true;
     _decorateWithMultiTextureControl = true;
-    _defaultColor.set(0.5f,0.5f,1.0f,1.0f);
-    _useInterpolatedImagerySampling = true;
     _useInterpolatedTerrainSampling = true;
     _destinationCoordinateSystemString = "";
     _destinationCoordinateSystem = new osg::CoordinateSystemNode;
@@ -38,23 +98,15 @@ BuildOptions::BuildOptions():
     _directory = "";
     _outputTaskDirectories = true;
     _geometryType = TERRAIN;
-    _imageExtension = ".dds";
-    _powerOfTwoImages = true;
     _intermediateBuildName = "";
     _logFileName = "";
     _taskFileName = "";
-    _imageryQuantization = 0;
-    _imageryErrorDiffusion = false;
-    _maxAnisotropy = 1.0;
     _maximumNumOfLevels = 30;
-    _maximumTileImageSize = 256;
     _maximumTileTerrainSize = 64;
     _maximumVisiableDistanceOfTopLevel = 1e10;
-    _mipMappingMode = MIP_MAPPING_IMAGERY;
     _radiusToMaxVisibleDistanceRatio = 7.0f;
     _simplifyTerrain = true;
     _skirtRatio = 0.02f;
-    _textureType = COMPRESSED_TEXTURE;
     _tileBasename = "output";
     _tileExtension = ".ive";
     _useLocalTileTransform = true;
@@ -90,8 +142,8 @@ BuildOptions::BuildOptions():
     _blendingPolicy = osgTerrain::TerrainTile::INHERIT;
 }
 
-BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop):
-    osg::Object(rhs,copyop)
+BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop)
+    //:osg::Object(rhs,copyop)
 {
     setBuildOptions(rhs);
 }
@@ -108,6 +160,10 @@ BuildOptions& BuildOptions::operator = (const BuildOptions& rhs)
 
 void BuildOptions::setBuildOptions(const BuildOptions& rhs)
 {
+    _imageOptions = osg::clone(rhs.getImageOptions());
+
+    setImageOptions(rhs);
+
     _archiveName = rhs._archiveName;
     _buildOverlays = rhs._buildOverlays;
     _reprojectSources = rhs._reprojectSources;
@@ -117,8 +173,6 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _databaseType = rhs._databaseType;
     _decorateWithCoordinateSystemNode = rhs._decorateWithCoordinateSystemNode;
     _decorateWithMultiTextureControl = rhs._decorateWithMultiTextureControl;
-    _defaultColor = rhs._defaultColor;
-    _useInterpolatedImagerySampling = rhs._useInterpolatedImagerySampling;
     _useInterpolatedTerrainSampling = rhs._useInterpolatedTerrainSampling;
     _destinationCoordinateSystemString = rhs._destinationCoordinateSystemString;
     _destinationCoordinateSystem = rhs._destinationCoordinateSystem;
@@ -126,23 +180,15 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _outputTaskDirectories = rhs._outputTaskDirectories;
     _extents = rhs._extents;
     _geometryType = rhs._geometryType;
-    _imageExtension = rhs._imageExtension;
-    _powerOfTwoImages = rhs._powerOfTwoImages;
     _intermediateBuildName = rhs._intermediateBuildName;
     _logFileName = rhs._logFileName;
     _taskFileName = rhs._taskFileName;
-    _imageryQuantization = rhs._imageryQuantization;
-    _imageryErrorDiffusion = rhs._imageryErrorDiffusion;
-    _maxAnisotropy = rhs._maxAnisotropy;
     _maximumNumOfLevels = rhs._maximumNumOfLevels;
-    _maximumTileImageSize = rhs._maximumTileImageSize;
     _maximumTileTerrainSize = rhs._maximumTileTerrainSize;
     _maximumVisiableDistanceOfTopLevel = rhs._maximumVisiableDistanceOfTopLevel;
-    _mipMappingMode = rhs._mipMappingMode;
     _radiusToMaxVisibleDistanceRatio = rhs._radiusToMaxVisibleDistanceRatio;
     _simplifyTerrain = rhs._simplifyTerrain;
     _skirtRatio = rhs._skirtRatio;
-    _textureType = rhs._textureType;
     _tileBasename = rhs._tileBasename;
     _tileExtension = rhs._tileExtension;
     _useLocalTileTransform = rhs._useLocalTileTransform;
@@ -271,6 +317,9 @@ void BuildOptions::setNotifyLevel(const std::string& notifyLevel)
 
 bool BuildOptions::compatible(BuildOptions& rhs) const
 {
+    if (!(_imageOptions->compatible(*rhs.getImageOptions()))) return false;
+
+    if (!ImageOptions::compatible(rhs)) return false;
 
     if (_archiveName != rhs._archiveName) return false;
     if (_buildOverlays != rhs._buildOverlays) return false;
@@ -280,31 +329,21 @@ bool BuildOptions::compatible(BuildOptions& rhs) const
     if (_databaseType != rhs._databaseType) return false;
     if (_decorateWithCoordinateSystemNode != rhs._decorateWithCoordinateSystemNode) return false;
     if (_decorateWithMultiTextureControl != rhs._decorateWithMultiTextureControl) return false;
-    if (_defaultColor != rhs._defaultColor) return false;
-    if (_useInterpolatedImagerySampling != rhs._useInterpolatedImagerySampling) return false;
     if (_useInterpolatedTerrainSampling != rhs._useInterpolatedTerrainSampling) return false;
     if (_destinationCoordinateSystemString != rhs._destinationCoordinateSystemString) return false;
     if (_directory != rhs._directory) return false;
     if (_outputTaskDirectories != rhs._outputTaskDirectories) return false;
     if (_extents != rhs._extents) return false;
     if (_geometryType != rhs._geometryType) return false;
-    if (_imageExtension != rhs._imageExtension) return false;
-    if (_powerOfTwoImages != rhs._powerOfTwoImages) return false;
     if (_intermediateBuildName != rhs._intermediateBuildName) return false;
     if (_logFileName != rhs._logFileName) return false;
     if (_taskFileName != rhs._taskFileName) return false;
-    if (_imageryQuantization != rhs._imageryQuantization) return false;
-    if (_imageryErrorDiffusion != rhs._imageryErrorDiffusion) return false;
-    if (_maxAnisotropy != rhs._maxAnisotropy) return false;
     if (_maximumNumOfLevels != rhs._maximumNumOfLevels) return false;
-    if (_maximumTileImageSize != rhs._maximumTileImageSize) return false;
     if (_maximumTileTerrainSize != rhs._maximumTileTerrainSize) return false;
     if (_maximumVisiableDistanceOfTopLevel != rhs._maximumVisiableDistanceOfTopLevel) return false;
-    if (_mipMappingMode != rhs._mipMappingMode) return false;
     if (_radiusToMaxVisibleDistanceRatio != rhs._radiusToMaxVisibleDistanceRatio) return false;
     if (_simplifyTerrain != rhs._simplifyTerrain) return false;
     if (_skirtRatio != rhs._skirtRatio) return false;
-    if (_textureType != rhs._textureType) return false;
     if (_tileBasename != rhs._tileBasename) return false;
     if (_tileExtension != rhs._tileExtension) return false;
     if (_useLocalTileTransform != rhs._useLocalTileTransform) return false;

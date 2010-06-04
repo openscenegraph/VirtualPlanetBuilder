@@ -29,7 +29,93 @@
 namespace vpb
 {
 
-class VPB_EXPORT BuildOptions : public osg::Object
+class VPB_EXPORT ImageOptions : public osg::Object
+{
+    public:
+
+        ImageOptions();
+
+        /** Copy constructor using CopyOp to manage deep vs shallow copy.*/
+        ImageOptions(const ImageOptions&,const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY);
+
+        META_Object(vpb, ImageOptions);
+
+        ImageOptions& operator = (const ImageOptions& rhs);
+
+        /** return true if the ImageOptions will lead to the same database structure and options being built.*/
+        bool compatible(ImageOptions& rhs) const;
+
+        void setImageOptions(const ImageOptions& rhs);
+
+
+        void setDestinationImageExtension(const std::string& extension) { _imageExtension = extension; }
+        const std::string& getDestinationImageExtension() const { return _imageExtension; }
+
+        void setPowerOfTwoImages(bool powerOfTwoImages) { _powerOfTwoImages = powerOfTwoImages; }
+        bool getPowerOfTwoImages() const { return _powerOfTwoImages; }
+
+        void setMaximumTileImageSize(unsigned int size) { _maximumTileImageSize = size; }
+        unsigned int getMaximumTileImageSize() const { return _maximumTileImageSize; }
+
+        void setDefaultColor(const osg::Vec4& defaultColor) { _defaultColor = defaultColor; }
+        const osg::Vec4& getDefaultColor() const { return _defaultColor; }
+
+        void setUseInterpolatedImagerySampling(bool flag) { _useInterpolatedImagerySampling = flag; }
+        bool getUseInterpolatedImagerySampling() const { return _useInterpolatedImagerySampling; }
+
+        enum TextureType
+        {
+            RGB_24,
+            RGBA,
+            RGB_16,
+            RGBA_16,
+            RGB_S3TC_DXT1,
+            RGBA_S3TC_DXT1,
+            RGBA_S3TC_DXT3,
+            RGBA_S3TC_DXT5,
+            ARB_COMPRESSED,
+            COMPRESSED_TEXTURE,
+            COMPRESSED_RGBA_TEXTURE
+        };
+
+        void setTextureType(TextureType type) { _textureType = type; }
+        TextureType getTextureType() const { return _textureType; }
+
+        void setImageryQuantization(unsigned int bits) { _imageryQuantization = bits; }
+        unsigned int getImageryQuantization() const { return _imageryQuantization; }
+
+        void setImageryErrorDiffusion(bool errorDiffusion) { _imageryErrorDiffusion = errorDiffusion; }
+        bool getImageryErrorDiffusion() const { return _imageryErrorDiffusion; }
+
+        void setMaxAnisotropy(float d) { _maxAnisotropy = d; }
+        float getMaxAnisotropy() const { return _maxAnisotropy; }
+
+
+        enum MipMappingMode
+        {
+            NO_MIP_MAPPING, /// disable mip mapping - use LINEAR, LINEAR filters.
+            MIP_MAPPING_HARDWARE, /// use mip mapping, dynamically compute them in hardware if supported
+            MIP_MAPPING_IMAGERY /// use mip mapping, and store imagery along with associated mip maps.
+        };
+
+        void setMipMappingMode(MipMappingMode mipMappingMode) { _mipMappingMode = mipMappingMode; }
+        MipMappingMode getMipMappingMode() const { return _mipMappingMode; }
+
+    protected:
+
+        unsigned int                                _imageryQuantization;
+        bool                                        _imageryErrorDiffusion;
+        float                                       _maxAnisotropy;
+        osg::Vec4                                   _defaultColor;
+        bool                                        _useInterpolatedImagerySampling;
+        std::string                                 _imageExtension;
+        bool                                        _powerOfTwoImages;
+        TextureType                                 _textureType;
+        unsigned int                                _maximumTileImageSize;
+        MipMappingMode                              _mipMappingMode;
+};
+
+class VPB_EXPORT BuildOptions : public ImageOptions
 {
     public:
     
@@ -40,7 +126,6 @@ class VPB_EXPORT BuildOptions : public osg::Object
         
         META_Object(vpb, BuildOptions);
 
-
         BuildOptions& operator = (const BuildOptions& rhs);
 
         /** return true if the BuildOptions will lead to the same database structure and options being built.*/
@@ -48,6 +133,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
 
         void setBuildOptions(const BuildOptions& rhs);
 
+        ImageOptions* getImageOptions() { return _imageOptions.get(); }
+        const ImageOptions* getImageOptions() const { return _imageOptions.get(); }
 
         /** Set the Directory, DestinationTileBaseName and DestinationTileExtension from the passed-in filename.*/
         void setDestinationName(const std::string& filename);
@@ -64,11 +151,6 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setDestinationTileExtension(const std::string& extension) { _tileExtension = extension; }
         const std::string& getDestinationTileExtension() const { return _tileExtension; }
 
-        void setDestinationImageExtension(const std::string& extension) { _imageExtension = extension; }
-        const std::string& getDestinationImageExtension() const { return _imageExtension; }
-
-        void setPowerOfTwoImages(bool powerOfTwoImages) { _powerOfTwoImages = powerOfTwoImages; }
-        bool getPowerOfTwoImages() const { return _powerOfTwoImages; }
 
         /** Set the Archive name if one is to be used.*/
         void setArchiveName(const std::string& filename) { _archiveName = filename; }
@@ -89,9 +171,6 @@ class VPB_EXPORT BuildOptions : public osg::Object
         const std::string& getCommentString() const { return _comment; }
 
 
-        void setMaximumTileImageSize(unsigned int size) { _maximumTileImageSize = size; }
-        unsigned int getMaximumTileImageSize() const { return _maximumTileImageSize; }
-
         void setMaximumTileTerrainSize(unsigned int size) { _maximumTileTerrainSize = size; }
         unsigned int getMaximumTileTerrainSize() const { return _maximumTileTerrainSize; }
 
@@ -107,11 +186,6 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setSkirtRatio(float skirtRatio) { _skirtRatio = skirtRatio; }
         float getSkirtRatio() const { return _skirtRatio; }
 
-        void setDefaultColor(const osg::Vec4& defaultColor) { _defaultColor = defaultColor; }
-        const osg::Vec4& getDefaultColor() const { return _defaultColor; }
-
-        void setUseInterpolatedImagerySampling(bool flag) { _useInterpolatedImagerySampling = flag; }
-        bool getUseInterpolatedImagerySampling() const { return _useInterpolatedImagerySampling; }
 
         void setUseInterpolatedTerrainSampling(bool flag) { _useInterpolatedTerrainSampling = flag; }
         bool getUseInterpolatedTerrainSampling() const { return _useInterpolatedTerrainSampling; }
@@ -167,42 +241,6 @@ class VPB_EXPORT BuildOptions : public osg::Object
         void setGeometryType(GeometryType type) { _geometryType = type; }
         GeometryType getGeometryType() const { return _geometryType; }
 
-        enum TextureType
-        {
-            RGB_24,
-            RGBA,
-            RGB_16,
-            RGBA_16,
-            RGB_S3TC_DXT1,
-            RGBA_S3TC_DXT1,
-            RGBA_S3TC_DXT3,
-            RGBA_S3TC_DXT5,
-            ARB_COMPRESSED,
-            COMPRESSED_TEXTURE,
-            COMPRESSED_RGBA_TEXTURE
-        };
-        void setTextureType(TextureType type) { _textureType = type; }
-        TextureType getTextureType() const { return _textureType; }
-                
-        void setImageryQuantization(unsigned int bits) { _imageryQuantization = bits; }
-        unsigned int getImageryQuantization() const { return _imageryQuantization; }
-
-        void setImageryErrorDiffusion(bool errorDiffusion) { _imageryErrorDiffusion = errorDiffusion; }
-        bool getImageryErrorDiffusion() const { return _imageryErrorDiffusion; }
-
-        void setMaxAnisotropy(float d) { _maxAnisotropy = d; }
-        float getMaxAnisotropy() const { return _maxAnisotropy; }
-
-
-        enum MipMappingMode
-        {
-            NO_MIP_MAPPING, /// disable mip mapping - use LINEAR, LINEAR filters.
-            MIP_MAPPING_HARDWARE, /// use mip mapping, dynamically compute them in hardware if supported
-            MIP_MAPPING_IMAGERY /// use mip mapping, and store imagery along with associated mip maps.
-        };
-
-        void setMipMappingMode(MipMappingMode mipMappingMode) { _mipMappingMode = mipMappingMode; }
-        MipMappingMode getMipMappingMode() const { return _mipMappingMode; }
 
 
         void setDestinationCoordinateSystem(const std::string& wellKnownText);
@@ -337,6 +375,7 @@ class VPB_EXPORT BuildOptions : public osg::Object
 
     protected:
 
+
         bool                                        _buildOverlays;
         bool                                        _reprojectSources;
         bool                                        _generateTiles;
@@ -347,20 +386,14 @@ class VPB_EXPORT BuildOptions : public osg::Object
         bool                                        _useLocalTileTransform;
         bool                                        _writeNodeBeforeSimplification;
         DatabaseType                                _databaseType;
-        unsigned int                                _imageryQuantization;
-        bool                                        _imageryErrorDiffusion;
-        float                                       _maxAnisotropy;
         float                                       _maximumVisiableDistanceOfTopLevel;
         float                                       _radiusToMaxVisibleDistanceRatio;
         float                                       _skirtRatio;
         float                                       _verticalScale;
         GeometryType                                _geometryType;
         GeospatialExtents                           _extents;
-        MipMappingMode                              _mipMappingMode;
         osg::ref_ptr<osg::CoordinateSystemNode>     _destinationCoordinateSystem;
 
-        osg::Vec4                                   _defaultColor;
-        bool                                        _useInterpolatedImagerySampling;
         bool                                        _useInterpolatedTerrainSampling;
 
         std::string                                 _archiveName;
@@ -368,16 +401,12 @@ class VPB_EXPORT BuildOptions : public osg::Object
         std::string                                 _destinationCoordinateSystemString;
         std::string                                 _directory;
         bool                                        _outputTaskDirectories;
-        std::string                                 _imageExtension;
-        bool                                        _powerOfTwoImages;
         std::string                                 _intermediateBuildName;
         std::string                                 _logFileName;
         std::string                                 _taskFileName;
         std::string                                 _tileBasename;
         std::string                                 _tileExtension;
-        TextureType                                 _textureType;
         unsigned int                                _maximumNumOfLevels;
-        unsigned int                                _maximumTileImageSize;
         unsigned int                                _maximumTileTerrainSize;
         
         
@@ -414,6 +443,8 @@ class VPB_EXPORT BuildOptions : public osg::Object
         unsigned int                                _revisionNumber;
 
         BlendingPolicy                              _blendingPolicy;
+
+        osg::ref_ptr<ImageOptions>                  _imageOptions;
 };
 
 }
