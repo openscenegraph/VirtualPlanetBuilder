@@ -360,12 +360,19 @@ class VPB_EXPORT BuildOptions : public ImageOptions
         
         typedef std::set<std::string> OptionalLayerSet;
         void setOptionalLayerSet(const OptionalLayerSet& ols) { _optionalLayerSet = ols; }
+        OptionalLayerSet& getOptionalLayerSet() { return _optionalLayerSet; }
         const OptionalLayerSet& getOptionalLayerSet() const { return _optionalLayerSet; }
 
         void setRevisionNumber(unsigned int num) { _revisionNumber = num; }
         unsigned int getRevisionNumber() const { return _revisionNumber; }
 
-        typedef osgTerrain::TerrainTile::BlendingPolicy BlendingPolicy;
+        enum BlendingPolicy
+        {
+            INHERIT = osgTerrain::TerrainTile::INHERIT,
+            DO_NOT_SET_BLENDING = osgTerrain::TerrainTile::DO_NOT_SET_BLENDING,
+            ENABLE_BLENDING = osgTerrain::TerrainTile::ENABLE_BLENDING,
+            ENABLE_BLENDING_WHEN_ALPHA_PRESENT  = osgTerrain::TerrainTile::ENABLE_BLENDING_WHEN_ALPHA_PRESENT
+        };
 
         /** Set the policy to use when deciding whether to enable/disable blending and use of transparent bin.*/
         void setBlendingPolicy(BlendingPolicy policy) { _blendingPolicy = policy; }

@@ -78,6 +78,22 @@ bool DatabaseBuilder_writeLocalData(const osg::Object& obj, osgDB::Output& fw)
     return true;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// New wrappers
+//
+
+#include <osgDB/ObjectWrapper>
+#include <osgDB/InputStream>
+#include <osgDB/OutputStream>
+
+REGISTER_OBJECT_WRAPPER( DatabaseBuilder,
+                         new vpb::DatabaseBuilder,
+                         vpb::DatabaseBuilder,
+                         "osg::Object osgTerrain::TerrainTechnique vpb::DatabaseBuilder" )
+{
+    ADD_OBJECT_SERIALIZER( BuildOptions, vpb::BuildOptions, NULL );
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,13 +134,30 @@ class VPBReaderWriter : public osgDB::ReaderWriter
             std::ifstream fin(fileName.c_str());
             if (fin)
             {
-                return readNode(fin, local_opt.get());
+                std::string str;
+                fin >> str;
+                fin.seekg(0);
+                if (str=="#Ascii Scene")
+                {
+                    return readNode_new(fin, local_opt.get());
+                }
+                else
+                {
+                    return readNode_old(fin, local_opt.get());
+                }
             }
-            return 0L;
-                        
+            return ReadResult::ERROR_IN_READING_FILE;
         }
-        
-        virtual ReadResult readNode(std::istream& fin, const Options* options) const
+
+        virtual ReadResult readNode_new(std::istream& fin, const Options* options) const
+        {
+            osgDB::ReaderWriter* rw = osgDB::Registry::instance()->getReaderWriterForExtension("osg2");
+            if (!rw) return ReadResult::FILE_NOT_HANDLED;
+
+            return rw->readNode( fin, options );
+        }
+
+        virtual ReadResult readNode_old(std::istream& fin, const Options* options) const
         {
             fin.imbue(std::locale::classic());
 
@@ -163,14 +196,48 @@ class VPBReaderWriter : public osgDB::ReaderWriter
                 }
                 return group;
             }
+        }
 
+        Options* prepareWriting( WriteResult& result, const std::string& fileName, const Options* options ) const
+        {
+            std::string ext = osgDB::getFileExtension( fileName );
+            if ( !acceptsExtension(ext) ) result = WriteResult::FILE_NOT_HANDLED;
+
+            osg::ref_ptr<Options> local_opt = options ?
+                static_cast<Options*>(options->clone(osg::CopyOp::SHALLOW_COPY)) : new Options;
+            local_opt->getDatabasePathList().push_front(osgDB::getFilePath(fileName));
+            if ( ext=="osgt" || ext=="source" || ext=="vpb" ) local_opt->setOptionString( local_opt->getOptionString() + " Ascii" );
+            if ( ext=="osgx" ) local_opt->setOptionString( local_opt->getOptionString() + " XML" );
+
+            return local_opt.release();
         }
 
         virtual WriteResult writeNode(const osg::Node& node,const std::string& fileName, const osgDB::ReaderWriter::Options* options) const
         {
+            return writeNode_new(node, fileName, options);
+        }
+
+        virtual WriteResult writeNode_new(const osg::Node& node,const std::string& fileName, const osgDB::ReaderWriter::Options* options) const
+        {
+            WriteResult result = WriteResult::FILE_SAVED;
+            osg::ref_ptr<Options> local_opt = prepareWriting( result, fileName, options );
+            if ( !result.success() ) return result;
+
+            osgDB::ofstream fout( fileName.c_str(), std::ios::out|std::ios::binary );
+            if ( !fout ) return WriteResult::ERROR_IN_WRITING_FILE;
+
+            osgDB::ReaderWriter* rw = osgDB::Registry::instance()->getReaderWriterForExtension("osg2");
+            if (!rw) return WriteResult::FILE_NOT_HANDLED;
+
+            result = rw->writeNode( node, fout, local_opt.get() );
+
+            return result;
+        }
+
+        virtual WriteResult writeNode_old(const osg::Node& node,const std::string& fileName, const osgDB::ReaderWriter::Options* options) const
+        {
             std::string ext = osgDB::getFileExtension(fileName);
             if (!acceptsExtension(ext)) return WriteResult::FILE_NOT_HANDLED;
-
 
             osgDB::Output fout(fileName.c_str());
             if (fout)
@@ -187,9 +254,10 @@ class VPBReaderWriter : public osgDB::ReaderWriter
             }
             return WriteResult("Unable to open file for output");
         }
+
 };
-        
 
 // now register with Registry to instantiate the above
 // reader/writer.
 REGISTER_OSGPLUGIN(vpb, VPBReaderWriter)
+

@@ -352,10 +352,10 @@ public:
 
         {
             VPB_AEP(BlendingPolicy);
-            VPB_SCOPED_AEV(osgTerrain::TerrainTile,INHERIT);
-            VPB_SCOPED_AEV(osgTerrain::TerrainTile,DO_NOT_SET_BLENDING);
-            VPB_SCOPED_AEV(osgTerrain::TerrainTile,ENABLE_BLENDING);
-            VPB_SCOPED_AEV(osgTerrain::TerrainTile,ENABLE_BLENDING_WHEN_ALPHA_PRESENT);
+            VPB_AEV(INHERIT);
+            VPB_AEV(DO_NOT_SET_BLENDING);
+            VPB_AEV(ENABLE_BLENDING);
+            VPB_AEV(ENABLE_BLENDING_WHEN_ALPHA_PRESENT);
         }
 
     }
@@ -422,3 +422,214 @@ bool BuildOptions_writeLocalData(const osg::Object& obj, osgDB::Output& fw)
 
     return true;
 }
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// New serializers ImageOptions
+//
+#include <osgDB/ObjectWrapper>
+#include <osgDB/InputStream>
+#include <osgDB/OutputStream>
+
+namespace ImageOptionsIO {
+
+REGISTER_OBJECT_WRAPPER( ImageOptions,
+                         new vpb::ImageOptions,
+                         vpb::ImageOptions,
+                         "osg::Object vpb::ImageOptions" )
+{
+    ADD_STRING_SERIALIZER( DestinationImageExtension, ".dds" );
+    ADD_UINT_SERIALIZER( MaximumTileImageSize, 256 );
+    ADD_VEC4_SERIALIZER( DefaultColor, osg::Vec4(0.5f,0.5f,1.0f,1.0f) );
+    ADD_BOOL_SERIALIZER( PowerOfTwoImages, true );
+    ADD_BOOL_SERIALIZER( UseInterpolatedImagerySampling, true );
+
+    BEGIN_ENUM_SERIALIZER( TextureType, COMPRESSED_TEXTURE );
+        ADD_ENUM_VALUE( RGB_24 );
+        ADD_ENUM_VALUE( RGBA );
+        ADD_ENUM_VALUE( RGB_16 );
+        ADD_ENUM_VALUE( RGBA_16 );
+        ADD_ENUM_VALUE( RGB_S3TC_DXT1 );
+        ADD_ENUM_VALUE( RGBA_S3TC_DXT1 );
+        ADD_ENUM_VALUE( RGBA_S3TC_DXT3 );
+        ADD_ENUM_VALUE( RGBA_S3TC_DXT5 );
+        ADD_ENUM_VALUE( ARB_COMPRESSED );
+        ADD_ENUM_VALUE( COMPRESSED_TEXTURE );
+        ADD_ENUM_VALUE( COMPRESSED_RGBA_TEXTURE );
+    END_ENUM_SERIALIZER();
+
+    ADD_UINT_SERIALIZER( ImageryQuantization, 0 );
+    ADD_BOOL_SERIALIZER( ImageryErrorDiffusion, false );
+    ADD_FLOAT_SERIALIZER( MaxAnisotropy, 1.0 );
+
+    BEGIN_ENUM_SERIALIZER( MipMappingMode, MIP_MAPPING_IMAGERY );
+        ADD_ENUM_VALUE( NO_MIP_MAPPING );
+        ADD_ENUM_VALUE( MIP_MAPPING_HARDWARE );
+        ADD_ENUM_VALUE( MIP_MAPPING_IMAGERY );
+    END_ENUM_SERIALIZER();
+}
+
+}
+
+namespace BuildOptionsIO {
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// New serializers BuildOptions
+//
+static bool checkOptionalLayerSet( const vpb::BuildOptions& bo )
+{ return !(bo.getOptionalLayerSet().empty()); }
+
+static bool readOptionalLayerSet( osgDB::InputStream& is, vpb::BuildOptions& bo )
+{
+    vpb::BuildOptions::OptionalLayerSet& ols = bo.getOptionalLayerSet();
+    unsigned int size = 0; is >> size >> osgDB::BEGIN_BRACKET;
+    for ( unsigned int i=0; i<size; ++i  )
+    {
+        std::string value;
+        is.readWrappedString( value );
+        ols.insert(value);
+    }
+    is >> osgDB::END_BRACKET;
+    return true;
+}
+
+static bool writeOptionalLayerSet( osgDB::OutputStream& os, const vpb::BuildOptions& bo )
+{
+    const vpb::BuildOptions::OptionalLayerSet& ols = bo.getOptionalLayerSet();
+    unsigned int size = ols.size();
+    os << size << osgDB::BEGIN_BRACKET << std::endl;
+    for ( vpb::BuildOptions::OptionalLayerSet::const_iterator itr = ols.begin(); itr != ols.end(); ++itr )
+    {
+        os.writeWrappedString( *itr );
+        os << std::endl;
+    }
+    os << osgDB::END_BRACKET << std::endl;
+    return true;
+
+}
+
+REGISTER_OBJECT_WRAPPER( BuildOptions,
+                         new vpb::BuildOptions,
+                         vpb::BuildOptions,
+                         "osg::Object vpb::ImageOptions vpb::BuildOptions" )
+{
+    ADD_STRING_SERIALIZER( Directory, "" );
+    ADD_STRING_SERIALIZER( DestinationTileBaseName, "output" );
+    ADD_STRING_SERIALIZER( DestinationTileExtension, ".ive" );
+    ADD_BOOL_SERIALIZER( OutputTaskDirectories, true );
+    ADD_STRING_SERIALIZER( ArchiveName, "");
+    ADD_STRING_SERIALIZER( IntermediateBuildName, "");
+    ADD_STRING_SERIALIZER( LogFileName, "");
+    ADD_STRING_SERIALIZER( TaskFileName, "");
+    ADD_STRING_SERIALIZER( CommentString, "");
+
+    ADD_UINT_SERIALIZER( MaximumTileTerrainSize, 64);
+    ADD_FLOAT_SERIALIZER( MaximumVisibleDistanceOfTopLevel, 1e10);
+    ADD_FLOAT_SERIALIZER( RadiusToMaxVisibleDistanceRatio, 7.0f);
+    ADD_FLOAT_SERIALIZER( VerticalScale, 1.0f);
+    ADD_FLOAT_SERIALIZER( SkirtRatio, 0.02f);
+
+    ADD_BOOL_SERIALIZER( UseInterpolatedTerrainSampling, true);
+    ADD_BOOL_SERIALIZER( BuildOverlays, false);
+    ADD_BOOL_SERIALIZER( ReprojectSources, true);
+    ADD_BOOL_SERIALIZER( GenerateTiles, true);
+    ADD_BOOL_SERIALIZER( ConvertFromGeographicToGeocentric, false);
+    ADD_BOOL_SERIALIZER( UseLocalTileTransform, true);
+    ADD_BOOL_SERIALIZER( SimplifyTerrain, true);
+
+    ADD_BOOL_SERIALIZER( DecorateGeneratedSceneGraphWithCoordinateSystemNode, true);
+    ADD_BOOL_SERIALIZER( DecorateGeneratedSceneGraphWithMultiTextureControl, true);
+    ADD_BOOL_SERIALIZER( WriteNodeBeforeSimplification, false);
+
+    BEGIN_ENUM_SERIALIZER( DatabaseType, PagedLOD_DATABASE );
+        ADD_ENUM_VALUE( LOD_DATABASE );
+        ADD_ENUM_VALUE( PagedLOD_DATABASE );
+    END_ENUM_SERIALIZER();
+
+    BEGIN_ENUM_SERIALIZER( GeometryType, TERRAIN );
+        ADD_ENUM_VALUE( HEIGHT_FIELD );
+        ADD_ENUM_VALUE( POLYGONAL );
+        ADD_ENUM_VALUE( TERRAIN );
+    END_ENUM_SERIALIZER();
+
+    ADD_STRING_SERIALIZER( DestinationCoordinateSystem, "");
+    ADD_DOUBLE_SERIALIZER( RadiusEquator, osg::WGS_84_RADIUS_EQUATOR);
+    ADD_DOUBLE_SERIALIZER( RadiusPolar, osg::WGS_84_RADIUS_POLAR);
+
+    ADD_UINT_SERIALIZER( MaximumNumOfLevels, 30);
+    ADD_UINT_SERIALIZER( DistributedBuildSplitLevel, 0);
+    ADD_UINT_SERIALIZER( DistributedBuildSecondarySplitLevel, 0);
+    ADD_BOOL_SERIALIZER( RecordSubtileFileNamesOnLeafTile, false);
+    ADD_BOOL_SERIALIZER( GenerateSubtile, false);
+    ADD_UINT_SERIALIZER( SubtileLevel, 0);
+    ADD_UINT_SERIALIZER( SubtileX, 0);
+    ADD_UINT_SERIALIZER( SubtileY, 0);
+
+    BEGIN_ENUM_SERIALIZER( NotifyLevel, NOTICE );
+        ADD_ENUM_VALUE( ALWAYS );
+        ADD_ENUM_VALUE( FATAL );
+        ADD_ENUM_VALUE( WARN );
+        ADD_ENUM_VALUE( NOTICE );
+        ADD_ENUM_VALUE( INFO );
+        ADD_ENUM_VALUE( DEBUG_INFO );
+        ADD_ENUM_VALUE( DEBUG_FP );
+    END_ENUM_SERIALIZER();
+
+    ADD_BOOL_SERIALIZER( DisableWrites, false);
+    ADD_FLOAT_SERIALIZER( NumReadThreadsToCoresRatio, 0.0f);
+    ADD_FLOAT_SERIALIZER( NumWriteThreadsToCoresRatio, 0.0f);
+
+    ADD_STRING_SERIALIZER( BuildOptionsString, "");
+    ADD_STRING_SERIALIZER( WriteOptionsString, "");
+
+    BEGIN_ENUM_SERIALIZER( LayerInheritance, INHERIT_NEAREST_AVAILABLE );
+        ADD_ENUM_VALUE( INHERIT_LOWEST_AVAILABLE );
+        ADD_ENUM_VALUE( INHERIT_NEAREST_AVAILABLE );
+        ADD_ENUM_VALUE( NO_INHERITANCE );
+    END_ENUM_SERIALIZER();
+
+    ADD_BOOL_SERIALIZER( AbortTaskOnError, true);
+    ADD_BOOL_SERIALIZER( AbortRunOnError, false);
+
+    BEGIN_ENUM_SERIALIZER2( DefaultImageLayerOutputPolicy, vpb::BuildOptions::LayerOutputPolicy, INLINE );
+        ADD_ENUM_VALUE( INLINE );
+        ADD_ENUM_VALUE( EXTERNAL_LOCAL_DIRECTORY );
+        ADD_ENUM_VALUE( EXTERNAL_SET_DIRECTORY );
+    END_ENUM_SERIALIZER();
+
+    BEGIN_ENUM_SERIALIZER2( DefaultElevationLayerOutputPolicy, vpb::BuildOptions::LayerOutputPolicy, INLINE );
+        ADD_ENUM_VALUE( INLINE );
+        ADD_ENUM_VALUE( EXTERNAL_LOCAL_DIRECTORY );
+        ADD_ENUM_VALUE( EXTERNAL_SET_DIRECTORY );
+    END_ENUM_SERIALIZER();
+
+    BEGIN_ENUM_SERIALIZER2( OptionalImageLayerOutputPolicy, vpb::BuildOptions::LayerOutputPolicy, EXTERNAL_SET_DIRECTORY );
+        ADD_ENUM_VALUE( INLINE );
+        ADD_ENUM_VALUE( EXTERNAL_LOCAL_DIRECTORY );
+        ADD_ENUM_VALUE( EXTERNAL_SET_DIRECTORY );
+    END_ENUM_SERIALIZER();
+
+    BEGIN_ENUM_SERIALIZER2( OptionalElevationLayerOutputPolicy, vpb::BuildOptions::LayerOutputPolicy, EXTERNAL_SET_DIRECTORY );
+        ADD_ENUM_VALUE( INLINE );
+        ADD_ENUM_VALUE( EXTERNAL_LOCAL_DIRECTORY );
+        ADD_ENUM_VALUE( EXTERNAL_SET_DIRECTORY );
+    END_ENUM_SERIALIZER();
+
+    ADD_USER_SERIALIZER( OptionalLayerSet );
+
+    ADD_UINT_SERIALIZER( RevisionNumber, 0);
+
+    BEGIN_ENUM_SERIALIZER( BlendingPolicy, INHERIT);
+        ADD_ENUM_VALUE( INHERIT );
+        ADD_ENUM_VALUE( DO_NOT_SET_BLENDING );
+        ADD_ENUM_VALUE( ENABLE_BLENDING );
+        ADD_ENUM_VALUE( ENABLE_BLENDING_WHEN_ALPHA_PRESENT );
+    END_ENUM_SERIALIZER();
+
+}
+
+}
+

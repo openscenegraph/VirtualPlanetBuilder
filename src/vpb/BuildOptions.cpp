@@ -24,6 +24,16 @@ using namespace vpb;
 ImageOptions::ImageOptions():
     osg::Object(true)
 {
+    _imageryQuantization = 0;
+    _imageryErrorDiffusion = false;
+    _maxAnisotropy = 1.0;
+    _defaultColor.set(0.5f,0.5f,1.0f,1.0f);
+    _useInterpolatedImagerySampling = true;
+    _imageExtension = ".dds";
+    _powerOfTwoImages = true;
+    _textureType = COMPRESSED_TEXTURE;
+    _maximumTileImageSize = 256;
+    _mipMappingMode = MIP_MAPPING_IMAGERY;
 }
 
 ImageOptions::ImageOptions(const ImageOptions& rhs,const osg::CopyOp& copyop):
@@ -139,7 +149,7 @@ BuildOptions::BuildOptions()
 
     _revisionNumber = 0;
 
-    _blendingPolicy = osgTerrain::TerrainTile::INHERIT;
+    _blendingPolicy = INHERIT;
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop)
