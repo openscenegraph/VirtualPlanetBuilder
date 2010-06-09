@@ -592,6 +592,94 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--blending-policy <policy>", "Set the blending policy to use on TerrainTiles.  <policy> can be INHERIT, DO_NOT_SET_BLENDING, ENABLE_BLENDING or ENABLE_BLENDING_WHEN_ALPHA_PRESENT.");
 }
 
+bool Commandline::readImageOptions(int pos, std::ostream& fout, osg::ArgumentParser& arguments, vpb::ImageOptions& imageOptions)
+{
+    bool readField = false;
+
+    if (arguments.read(pos, "--interpolate-imagery"))
+    {
+        imageOptions.setUseInterpolatedImagerySampling(true);
+        readField = true;
+    }
+
+    if (arguments.read(pos, "--no-interpolate-imagery"))
+    {
+        imageOptions.setUseInterpolatedImagerySampling(false);
+        readField = true;
+    }
+
+    int bits;
+    if (arguments.read(pos, "--quantize", bits)) { imageOptions.setImageryQuantization(bits); readField = true; }
+
+    if (arguments.read(pos, "--enable-error-diffusion")) { imageOptions.setImageryErrorDiffusion(true); readField = true;}
+    if (arguments.read(pos, "--disable-error-diffusion")) { imageOptions.setImageryErrorDiffusion(false); readField = true;}
+
+    if (arguments.read(pos, "--compressed")) { imageOptions.setTextureType(vpb::BuildOptions::COMPRESSED_TEXTURE); readField = true;}
+    if (arguments.read(pos, "--compressed-dxt1")) { imageOptions.setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT1); readField = true;}
+    if (arguments.read(pos, "--compressed-dxt3")) { imageOptions.setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT3); readField = true;}
+    if (arguments.read(pos, "--compressed-dxt5")) { imageOptions.setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT5); readField = true;}
+    if (arguments.read(pos, "--RGBA-compressed")) { imageOptions.setTextureType(vpb::BuildOptions::COMPRESSED_RGBA_TEXTURE); readField = true;}
+    if (arguments.read(pos, "--RGB_16") || arguments.read(pos, "--RGB-16") ) { imageOptions.setTextureType(vpb::BuildOptions::RGB_16); readField = true;}
+    if (arguments.read(pos, "--RGBA_16") || arguments.read(pos, "--RGBA-16") ) { imageOptions.setTextureType(vpb::BuildOptions::RGBA_16); readField = true;}
+    if (arguments.read(pos, "--RGB_24") || arguments.read(pos, "--RGB-24") ) { imageOptions.setTextureType(vpb::BuildOptions::RGB_24); readField = true;}
+    if (arguments.read(pos, "--RGBA") || arguments.read(pos, "--RGBA") ) { imageOptions.setTextureType(vpb::BuildOptions::RGBA); readField = true;}
+
+    if (arguments.read(pos, "--no_mip_mapping") || arguments.read(pos, "--no-mip-mapping")) { imageOptions.setMipMappingMode(vpb::BuildOptions::NO_MIP_MAPPING); readField = true;}
+    if (arguments.read(pos, "--mip_mapping_hardware") || arguments.read(pos, "--mip-mapping-hardware")) { imageOptions.setMipMappingMode(vpb::BuildOptions::MIP_MAPPING_HARDWARE); readField = true; }
+    if (arguments.read(pos, "--mip_mapping_imagery") || arguments.read(pos, "--mip-mapping-imagery")) { imageOptions.setMipMappingMode(vpb::BuildOptions::MIP_MAPPING_IMAGERY); readField = true;}
+
+    float maxAnisotropy;
+    if (arguments.read(pos, "--max_anisotropy",maxAnisotropy) || arguments.read(pos, "--max-anisotropy",maxAnisotropy))
+    {
+        imageOptions.setMaxAnisotropy(maxAnisotropy);
+        readField = true;
+    }
+
+    unsigned int image_size;
+    if (arguments.read(pos, "--tile-image-size",image_size)) { imageOptions.setMaximumTileImageSize(image_size); readField = true;}
+
+    std::string str;
+    if (arguments.read("pos, --default-color",str) ||
+        arguments.read("pos, --default_color",str))
+    {
+        osg::Vec4 defaultColor;
+        if( sscanf( str.c_str(), "%f,%f,%f,%f",
+                &defaultColor[0], &defaultColor[1], &defaultColor[2], &defaultColor[3] ) != 4 )
+        {
+            fout<<"Color argument format incorrect."<<std::endl;
+            return 1;
+        }
+        imageOptions.setDefaultColor(defaultColor);
+        readField = true;
+    }
+
+    std::string image_ext;
+    if (arguments.read(pos, "--image-ext",image_ext))
+    {
+        std::string::size_type dot = image_ext.find_last_of('.');
+        if (dot!=std::string::npos) image_ext.erase(0,dot+1);
+
+        osgDB::ReaderWriter* rw = osgDB::Registry::instance()->getReaderWriterForExtension(image_ext);
+        if (rw)
+        {
+            image_ext.insert(0,".");
+            imageOptions.setDestinationImageExtension(image_ext);
+        }
+        else
+        {
+            fout<<"Error: can not find plugin to write out image with extension '"<<image_ext<<"'"<<std::endl;
+            return false;
+        }
+
+        readField = true;
+    }
+
+    if (arguments.read(pos, "--npot")) { imageOptions.setPowerOfTwoImages(false); readField = true; }
+    if (arguments.read(pos, "--pot")) { imageOptions.setPowerOfTwoImages(true); readField = true; }
+
+    return readField;
+}
+
 int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::TerrainTile* terrainInput)
 {
     terrainTile = terrainInput;
@@ -612,7 +700,6 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
 
     std::string logFilename;
     while(arguments.read("--log",logFilename)) { buildOptions->setLogFileName(logFilename); }
-
 
     float x,y,w,h;
     // extents in X, Y, W, H
@@ -711,20 +798,11 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         buildOptions->setUseInterpolatedTerrainSampling(true);
     }
 
-    while(arguments.read("--interpolate-imagery"))
-    {
-        buildOptions->setUseInterpolatedImagerySampling(true);
-    }
-
     while(arguments.read("--no-interpolate-terrain"))
     {
         buildOptions->setUseInterpolatedTerrainSampling(false);
     }
 
-    while(arguments.read("--no-interpolate-imagery"))
-    {
-        buildOptions->setUseInterpolatedImagerySampling(false);
-    }
 
     std::string buildname;
     while (arguments.read("--ibn",buildname))
@@ -763,34 +841,6 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         buildOptions->setDatabaseType(vpb::BuildOptions::PagedLOD_DATABASE);
     }
 
-    int bits;
-    while (arguments.read("--quantize", bits)) { buildOptions->setImageryQuantization(bits); }
-
-    while (arguments.read("--enable-error-diffusion")) { buildOptions->setImageryErrorDiffusion(true); }
-    while (arguments.read("--disable-error-diffusion")) { buildOptions->setImageryErrorDiffusion(false); }
-
-    while (arguments.read("--compressed")) { buildOptions->setTextureType(vpb::BuildOptions::COMPRESSED_TEXTURE); }
-    while (arguments.read("--compressed-dxt1")) { buildOptions->setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT1); }
-    while (arguments.read("--compressed-dxt3")) { buildOptions->setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT3); }
-    while (arguments.read("--compressed-dxt5")) { buildOptions->setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT5); }
-    while (arguments.read("--RGBA-compressed")) { buildOptions->setTextureType(vpb::BuildOptions::COMPRESSED_RGBA_TEXTURE); }
-    while (arguments.read("--RGB_16") || arguments.read("--RGB-16") ) { buildOptions->setTextureType(vpb::BuildOptions::RGB_16); }
-    while (arguments.read("--RGBA_16") || arguments.read("--RGBA-16") ) { buildOptions->setTextureType(vpb::BuildOptions::RGBA_16); }
-    while (arguments.read("--RGB_24") || arguments.read("--RGB-24") ) { buildOptions->setTextureType(vpb::BuildOptions::RGB_24); }
-    while (arguments.read("--RGBA") || arguments.read("--RGBA") ) { buildOptions->setTextureType(vpb::BuildOptions::RGBA); }
-
-    while (arguments.read("--no_mip_mapping") || arguments.read("--no-mip-mapping")) { buildOptions->setMipMappingMode(vpb::BuildOptions::NO_MIP_MAPPING); }
-    while (arguments.read("--mip_mapping_hardware") || arguments.read("--mip-mapping-hardware")) { buildOptions->setMipMappingMode(vpb::BuildOptions::MIP_MAPPING_HARDWARE); }
-    while (arguments.read("--mip_mapping_imagery") || arguments.read("--mip-mapping-imagery")) { buildOptions->setMipMappingMode(vpb::BuildOptions::MIP_MAPPING_IMAGERY); }
-
-    float maxAnisotropy;
-    while (arguments.read("--max_anisotropy",maxAnisotropy) || arguments.read("--max-anisotropy",maxAnisotropy))
-    {
-        buildOptions->setMaxAnisotropy(maxAnisotropy);
-    }
-
-    unsigned int image_size;
-    while (arguments.read("--tile-image-size",image_size)) { buildOptions->setMaximumTileImageSize(image_size); }
 
     unsigned int terrain_size;
     while (arguments.read("--tile-terrain-size",terrain_size)) { buildOptions->setMaximumTileTerrainSize(terrain_size); }
@@ -879,41 +929,6 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     }
 
 
-    std::string str;
-    while (arguments.read("--default-color",str) ||
-           arguments.read("--default_color",str))
-    {
-        osg::Vec4 defaultColor;
-        if( sscanf( str.c_str(), "%f,%f,%f,%f",
-                &defaultColor[0], &defaultColor[1], &defaultColor[2], &defaultColor[3] ) != 4 )
-        {
-            fout<<"Color argument format incorrect."<<std::endl;
-            return 1;
-        }
-        buildOptions->setDefaultColor(defaultColor);
-    }
-
-    std::string image_ext;
-    while (arguments.read("--image-ext",image_ext))
-    {
-        std::string::size_type dot = image_ext.find_last_of('.');
-        if (dot!=std::string::npos) image_ext.erase(0,dot+1);
-
-        osgDB::ReaderWriter* rw = osgDB::Registry::instance()->getReaderWriterForExtension(image_ext);
-        if (rw) 
-        {
-            image_ext.insert(0,".");
-            buildOptions->setDestinationImageExtension(image_ext);
-        }
-        else
-        {
-            fout<<"Error: can not find plugin to write out image with extension '"<<image_ext<<"'"<<std::endl;
-            return 1;
-        }
-    }
-
-    while (arguments.read("--npot")) { buildOptions->setPowerOfTwoImages(false); }
-    while (arguments.read("--pot")) { buildOptions->setPowerOfTwoImages(true); }
 
     while (arguments.read("--height-attribute",heightAttributeName)) {}
 
@@ -946,6 +961,7 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         }
     }
 
+    std::string str;
     while (arguments.read("--build-options",str) || arguments.read("--bo",str))
     {
         osg::notify(osg::NOTICE)<<"Setting --bo "<<str<<std::endl;
@@ -969,13 +985,18 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     while(arguments.read("--optional-set",optionalsetname)) { buildOptions->addOptionalLayerSet(optionalsetname); }
     while(arguments.read("--remove-optional-set",optionalsetname)) { buildOptions->removeOptionalLayerSet(optionalsetname); }
 
+    vpb::ImageOptions* imageOptions = dynamic_cast<vpb::ImageOptions*>(buildOptions.get());
+
     unsigned int revisionNum = 0;
     int pos = 1;
     while(pos<arguments.argc())
     {
         std::string def;
 
-        if (arguments.read(pos, "--height",heightAttribute))
+        if (readImageOptions(pos, fout, arguments, *imageOptions))
+        {
+        }
+        else if (arguments.read(pos, "--height",heightAttribute))
         {
         }
         else if (arguments.read(pos, "--type",typeAttribute))
@@ -1150,6 +1171,10 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         else if (arguments.read(pos, "--layer", layerNum))
         {
             fout<<"--layer layeNumber="<<layerNum<<std::endl;
+
+            // create a new ImageOptions object for the new layer.
+            imageOptions = new vpb::ImageOptions(*buildOptions);
+            buildOptions->setLayerImageOptions(layerNum, imageOptions);
         }
 
         else if (arguments.read(pos, "--vector"))

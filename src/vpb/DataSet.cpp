@@ -371,10 +371,6 @@ CompositeDestination* DataSet::createDestinationTile(int currentLevel, int curre
     // that way the default of RASTER for image and VECTOR for height is maintained
     tile->_dataType = SpatialProperties::NONE;
 
-    tile->_pixelFormat = (getTextureType()==COMPRESSED_RGBA_TEXTURE||
-                          getTextureType()==RGBA ||
-                          getTextureType()==RGBA_16) ? GL_RGBA : GL_RGB;
-
     tile->setMaximumImagerySize(_maximumTileImageSize,_maximumTileImageSize);
     tile->setMaximumTerrainSize(_maximumTileTerrainSize,_maximumTileTerrainSize);
     
@@ -768,9 +764,6 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
     // that way the default of RASTER for image and VECTOR for height is maintained
     tile->_dataType = SpatialProperties::NONE;
 
-    tile->_pixelFormat = (getTextureType()==COMPRESSED_RGBA_TEXTURE||
-                          getTextureType()==RGBA ||
-                          getTextureType()==RGBA_16) ? GL_RGBA : GL_RGB;
     tile->setMaximumImagerySize(maxImageSize,maxImageSize);
     tile->setMaximumTerrainSize(maxTerrainSize,maxTerrainSize);
     tile->computeMaximumSourceResolution(_sourceGraph.get());

@@ -511,6 +511,35 @@ static bool writeOptionalLayerSet( osgDB::OutputStream& os, const vpb::BuildOpti
 
 }
 
+static bool checkLayerImageOptions( const vpb::BuildOptions& bo )
+{ return bo.getNumLayerImageOptions()>0; }
+
+static bool readLayerImageOptions( osgDB::InputStream& is, vpb::BuildOptions& bo )
+{
+    unsigned int size = 0; is >> size >> osgDB::BEGIN_BRACKET;
+    for ( unsigned int i=0; i<size; ++i  )
+    {
+        vpb::ImageOptions* imageOptions = dynamic_cast<vpb::ImageOptions*>( is.readObject() );
+        if ( imageOptions ) bo.setLayerImageOptions( i, imageOptions );
+    }
+    is >> osgDB::END_BRACKET;
+    return true;
+}
+
+static bool writeLayerImageOptions( osgDB::OutputStream& os, const vpb::BuildOptions& bo )
+{
+    unsigned int size = bo.getNumLayerImageOptions();
+    os << size << osgDB::BEGIN_BRACKET << std::endl;
+    for ( unsigned int i=0; i< size; ++i)
+    {
+        OSG_NOTICE<<"Writing out ImageOptions "<<bo.getLayerImageOptions(i)<<" "<<bo.getLayerImageOptions(i)->className()<<std::endl;
+        os.writeObject( bo.getLayerImageOptions(i) );
+    }
+    os << osgDB::END_BRACKET << std::endl;
+    return true;
+
+}
+
 REGISTER_OBJECT_WRAPPER( BuildOptions,
                          new vpb::BuildOptions,
                          vpb::BuildOptions,
@@ -629,6 +658,7 @@ REGISTER_OBJECT_WRAPPER( BuildOptions,
         ADD_ENUM_VALUE( ENABLE_BLENDING_WHEN_ALPHA_PRESENT );
     END_ENUM_SERIALIZER();
 
+    ADD_USER_SERIALIZER( LayerImageOptions );
 }
 
 }

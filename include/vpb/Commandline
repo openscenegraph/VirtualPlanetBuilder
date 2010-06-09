@@ -53,6 +53,8 @@ class VPB_EXPORT Commandline
 
         void getUsage(osg::ApplicationUsage& usage);
             
+        bool readImageOptions(int pos, std::ostream& fout, osg::ArgumentParser& arguments, vpb::ImageOptions& imageOptions);
+
         int read(std::ostream& fout, osg::ArgumentParser& arguments, osgTerrain::TerrainTile* terrainInput);
 
     protected:

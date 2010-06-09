@@ -90,7 +90,6 @@ class VPB_EXPORT ImageOptions : public osg::Object
         void setMaxAnisotropy(float d) { _maxAnisotropy = d; }
         float getMaxAnisotropy() const { return _maxAnisotropy; }
 
-
         enum MipMappingMode
         {
             NO_MIP_MAPPING, /// disable mip mapping - use LINEAR, LINEAR filters.
@@ -132,9 +131,6 @@ class VPB_EXPORT BuildOptions : public ImageOptions
         bool compatible(BuildOptions& rhs) const;
 
         void setBuildOptions(const BuildOptions& rhs);
-
-        ImageOptions* getImageOptions() { return _imageOptions.get(); }
-        const ImageOptions* getImageOptions() const { return _imageOptions.get(); }
 
         /** Set the Directory, DestinationTileBaseName and DestinationTileExtension from the passed-in filename.*/
         void setDestinationName(const std::string& filename);
@@ -380,6 +376,17 @@ class VPB_EXPORT BuildOptions : public ImageOptions
         /** Get the policy to use when deciding whether to enable/disable blending and use of transparent bin.*/
         BlendingPolicy getBlendingPolicy() const { return _blendingPolicy; }
 
+
+        void setLayerImageOptions(unsigned int layerNum, vpb::ImageOptions* imageOptions);
+        vpb::ImageOptions* getLayerImageOptions(unsigned int layerNum);
+        const vpb::ImageOptions* getLayerImageOptions(unsigned int layerNum) const;
+        unsigned int getNumLayerImageOptions() const { return _imageOptions.size(); }
+        const vpb::ImageOptions* getValidLayerImageOptions(unsigned int layerNum) const
+        {
+            const vpb::ImageOptions* io = getLayerImageOptions(layerNum);
+            return io ? io : this;
+        }
+
     protected:
 
 
@@ -451,7 +458,8 @@ class VPB_EXPORT BuildOptions : public ImageOptions
 
         BlendingPolicy                              _blendingPolicy;
 
-        osg::ref_ptr<ImageOptions>                  _imageOptions;
+        typedef std::vector< osg::ref_ptr<ImageOptions> > LayerImageOptions;
+        LayerImageOptions                            _imageOptions;
 };
 
 }

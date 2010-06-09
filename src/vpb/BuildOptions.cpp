@@ -90,8 +90,6 @@ bool ImageOptions::compatible(ImageOptions& rhs) const
 BuildOptions::BuildOptions()
 //    :osg::Object(true)
 {
-    _imageOptions = new ImageOptions;
-
     _archiveName = "";
     _buildOverlays = false;
     _reprojectSources = true;
@@ -170,8 +168,6 @@ BuildOptions& BuildOptions::operator = (const BuildOptions& rhs)
 
 void BuildOptions::setBuildOptions(const BuildOptions& rhs)
 {
-    _imageOptions = osg::clone(rhs.getImageOptions());
-
     setImageOptions(rhs);
 
     _archiveName = rhs._archiveName;
@@ -236,6 +232,13 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
     _revisionNumber = rhs._revisionNumber;
 
     _blendingPolicy = rhs._blendingPolicy;
+
+    _imageOptions.clear();
+    for(unsigned int i=0; i< rhs.getNumLayerImageOptions(); ++i)
+    {
+        _imageOptions.push_back( rhs.getLayerImageOptions(i) ? osg::clone(rhs.getLayerImageOptions(i)) : 0 );
+    }
+
 }
 
 void BuildOptions::setDestinationName(const std::string& filename)
@@ -327,9 +330,7 @@ void BuildOptions::setNotifyLevel(const std::string& notifyLevel)
 
 bool BuildOptions::compatible(BuildOptions& rhs) const
 {
-    if (!(_imageOptions->compatible(*rhs.getImageOptions()))) return false;
-
-    if (!ImageOptions::compatible(rhs)) return false;
+    // if (!ImageOptions::compatible(rhs)) return false;
 
     if (_archiveName != rhs._archiveName) return false;
     if (_buildOverlays != rhs._buildOverlays) return false;
@@ -390,6 +391,17 @@ bool BuildOptions::compatible(BuildOptions& rhs) const
     if (getRadiusEquator() != rhs.getRadiusEquator()) return false;
     if (getRadiusPolar() != rhs.getRadiusPolar()) return false;
 
+    if (_imageOptions.size() != rhs._imageOptions.size()) return false;
+    for(unsigned int i=0; i<_imageOptions.size();++i)
+    {
+        if (_imageOptions[i].valid())
+        {
+            if (!(_imageOptions[i]->compatible(*(rhs._imageOptions[i])))) return false;
+        }
+        else if (rhs._imageOptions[i].valid()) return false;
+    }
+
+
     // following properties don't require checking as they don't effect compatibility
     // if (_comment != rhs._comment) return false;
     // if (_notifyLevel != rhs._notifyLevel) return false;
@@ -397,3 +409,30 @@ bool BuildOptions::compatible(BuildOptions& rhs) const
     // if (_destinationCoordinateSystem != rhs._destinationCoordinateSystem) return false;
     return true;
 }
+
+void BuildOptions::setLayerImageOptions(unsigned int layerNum, vpb::ImageOptions* imageOptions)
+{
+    if (layerNum>=_imageOptions.size())
+    {
+        for(unsigned int i = _imageOptions.size(); i<layerNum; ++i)
+        {
+            _imageOptions.push_back( new vpb::ImageOptions(*this) );
+        }
+        _imageOptions.push_back(imageOptions);
+    }
+    else
+    {
+        _imageOptions[layerNum] = imageOptions;
+    }
+}
+
+vpb::ImageOptions* BuildOptions::getLayerImageOptions(unsigned int layerNum)
+{
+    return layerNum < _imageOptions.size() ? _imageOptions[layerNum].get() : 0;
+}
+
+const vpb::ImageOptions* BuildOptions::getLayerImageOptions(unsigned int layerNum) const
+{
+    return layerNum < _imageOptions.size() ? _imageOptions[layerNum].get() : 0;
+}
+

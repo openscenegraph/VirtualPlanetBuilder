@@ -24,6 +24,7 @@ namespace vpb
 class DestinationTile;
 class CompositeDestination;
 class DataSet;
+class ImageOptions;
 
 class VPB_EXPORT TransformToLocal : public osg::Referenced
 {
@@ -98,6 +99,10 @@ public:
     DestinationTile();
     
     void accept(DestinationVisitor& visitor) { visitor.apply(*this); }
+
+
+    const ImageOptions* getImageOptions(unsigned int layerNum) const;
+    GLenum getPixelFormat(unsigned int layerNum) const;
 
     void computeNeighboursFromQuadMap();
 
@@ -177,7 +182,6 @@ public:
     unsigned int                                _level;
     unsigned int                                _tileX;
     unsigned int                                _tileY;
-    GLenum                                      _pixelFormat;
 
     struct ImageData
     {

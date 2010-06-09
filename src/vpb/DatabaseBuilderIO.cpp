@@ -121,6 +121,8 @@ class VPBReaderWriter : public osgDB::ReaderWriter
 
         virtual ReadResult readNode(const std::string& file, const Options* opt) const
         {
+            OSG_INFO<<"VPBReaderWriter::readNode()"<<std::endl;
+
             std::string ext = osgDB::getFileExtension(file);
             if (!acceptsExtension(ext)) return ReadResult::FILE_NOT_HANDLED;
 
@@ -136,8 +138,9 @@ class VPBReaderWriter : public osgDB::ReaderWriter
             {
                 std::string str;
                 fin >> str;
+
                 fin.seekg(0);
-                if (str=="#Ascii Scene")
+                if (str=="#Ascii")
                 {
                     return readNode_new(fin, local_opt.get());
                 }
@@ -151,14 +154,19 @@ class VPBReaderWriter : public osgDB::ReaderWriter
 
         virtual ReadResult readNode_new(std::istream& fin, const Options* options) const
         {
+            OSG_INFO<<"readNode_new()"<<std::endl;
+
             osgDB::ReaderWriter* rw = osgDB::Registry::instance()->getReaderWriterForExtension("osg2");
             if (!rw) return ReadResult::FILE_NOT_HANDLED;
+
+            OSG_INFO<<"   found ReaderWriter, readNode_new()"<<std::endl;
 
             return rw->readNode( fin, options );
         }
 
         virtual ReadResult readNode_old(std::istream& fin, const Options* options) const
         {
+            OSG_INFO<<"readNode_old()"<<std::endl;
             fin.imbue(std::locale::classic());
 
             osgDB::Input fr;

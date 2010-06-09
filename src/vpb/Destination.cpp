@@ -80,7 +80,6 @@ DestinationTile::DestinationTile():
     _level(0),
     _tileX(0),
     _tileY(0),
-    _pixelFormat(GL_RGB),
     _maxSourceLevel(0),
     _image_maxNumColumns(4096),
     _image_maxNumRows(4096),
@@ -97,6 +96,18 @@ DestinationTile::DestinationTile():
     }
 }
 
+const vpb::ImageOptions* DestinationTile::getImageOptions(unsigned int layerNum) const
+{
+    return _dataSet->getValidLayerImageOptions(layerNum);
+}
+
+GLenum DestinationTile::getPixelFormat(unsigned int layerNum) const
+{
+    ImageOptions::TextureType textureType = getImageOptions(layerNum)->getTextureType();
+    return (textureType==ImageOptions::COMPRESSED_RGBA_TEXTURE||
+            textureType==ImageOptions::RGBA ||
+            textureType==ImageOptions::RGBA_16) ? GL_RGBA : GL_RGB;
+}
 
 void DestinationTile::requiresDivision(float resolutionSensitivityScale, bool& needToDivideX, bool& needToDivideY)
 {
@@ -249,7 +260,7 @@ bool DestinationTile::computeImageResolution(unsigned int layer, const std::stri
         unsigned int numRowsRequired    = osg::minimum(_image_maxNumRows,numRowsAtFullRes);
 
 
-        if (_dataSet->getPowerOfTwoImages())
+        if (getImageOptions(layer)->getPowerOfTwoImages())
         {
             // use a minimum image size of 4x4 to avoid mipmap generation problems in OpenGL at sizes at 2x2.
             numColumns = 4;
@@ -264,7 +275,7 @@ bool DestinationTile::computeImageResolution(unsigned int layer, const std::stri
             numColumns = osg::maximum(4u, numColumnsRequired);
             numRows = osg::maximum(4u, numRowsRequired);
             
-            if (_dataSet->getDestinationImageExtension()==".dds")
+            if (getImageOptions(layer)->getDestinationImageExtension()==".dds")
             {
                 // when doing compressed textures make sure that it's an multiple of four
                 if ((numColumns % 4)!=0) numColumns = ((numColumns>>2)<<2)+4;
@@ -394,14 +405,14 @@ void DestinationTile::allocate()
                     }
                 }
                 
-                imageName += _dataSet->getDestinationImageExtension();
+                imageName += getImageOptions(layerNum)->getDestinationImageExtension();
 
                 _dataSet->log(osg::NOTICE,"imageName = %s",imageName.c_str());
 
                 imageData._imageDestination->_image->setFileName(imageName.c_str());
                 imageData._imageDestination->_image->setWriteHint(writeHint);
 
-                imageData._imageDestination->_image->allocateImage(texture_numColumns,texture_numRows,1,_pixelFormat,GL_UNSIGNED_BYTE);
+                imageData._imageDestination->_image->allocateImage(texture_numColumns,texture_numRows,1,getPixelFormat(layerNum),GL_UNSIGNED_BYTE);
                 unsigned char* data = imageData._imageDestination->_image->data();
                 unsigned int totalSize = imageData._imageDestination->_image->getTotalSizeInBytesIncludingMipmaps();
                 for(unsigned int i=0;i<totalSize;++i)
@@ -1253,7 +1264,7 @@ osg::StateSet* DestinationTile::createStateSet()
         texture->setImage(image);
         texture->setWrap(osg::Texture::WRAP_S,osg::Texture::CLAMP_TO_EDGE);
         texture->setWrap(osg::Texture::WRAP_T,osg::Texture::CLAMP_TO_EDGE);
-        switch (_dataSet->getMipMappingMode())
+        switch (getImageOptions(layerNum)->getMipMappingMode())
         {
           case(DataSet::NO_MIP_MAPPING):
             {
@@ -1279,7 +1290,7 @@ osg::StateSet* DestinationTile::createStateSet()
             break;
         }
 
-        texture->setMaxAnisotropy(_dataSet->getMaxAnisotropy());
+        texture->setMaxAnisotropy(getImageOptions(layerNum)->getMaxAnisotropy());
         _stateset->setTextureAttributeAndModes(layerNum,texture,osg::StateAttribute::ON);
 
         bool inlineImageFile = _dataSet->getDestinationTileExtension()==".ive";
@@ -1287,18 +1298,19 @@ osg::StateSet* DestinationTile::createStateSet()
         bool mipmapImageSupported = compressedImageSupported; // inlineImageFile;
         
         
-        if (_dataSet->getImageryQuantization()!=0 && _dataSet->getImageryQuantization()<8)
+        if (getImageOptions(layerNum)->getImageryQuantization()!=0 &&
+            getImageOptions(layerNum)->getImageryQuantization()<8)
         {
             
-            log(osg::NOTICE,"Quantize image to %i bits",_dataSet->getImageryQuantization());
-            osg::modifyImage(image, QuantizeOperator(image->s(), _dataSet->getImageryQuantization(), _dataSet->getImageryErrorDiffusion()));
+            log(osg::NOTICE,"Quantize image to %i bits",getImageOptions(layerNum)->getImageryQuantization());
+            osg::modifyImage(image, QuantizeOperator(image->s(), getImageOptions(layerNum)->getImageryQuantization(), getImageOptions(layerNum)->getImageryErrorDiffusion()));
         }
         
         // int minumCompressedTextureSize = 64;
         // int minumDXT3CompressedTextureSize = 256;
         
         osg::Texture::InternalFormatMode internalFormatMode = osg::Texture::USE_IMAGE_DATA_FORMAT;
-        switch(_dataSet->getTextureType())
+        switch(getImageOptions(layerNum)->getTextureType())
         {
             case(BuildOptions::RGB_S3TC_DXT1): internalFormatMode = osg::Texture::USE_S3TC_DXT1_COMPRESSION; break;
             case(BuildOptions::RGBA_S3TC_DXT1): internalFormatMode = osg::Texture::USE_S3TC_DXT1_COMPRESSION; break;
@@ -1321,14 +1333,14 @@ osg::StateSet* DestinationTile::createStateSet()
             texture->setInternalFormatMode(internalFormatMode);
 
             // force the mip mapping off temporay if we intend the graphics hardware to do the mipmapping.
-            if (_dataSet->getMipMappingMode()==DataSet::MIP_MAPPING_HARDWARE)
+            if (getImageOptions(layerNum)->getMipMappingMode()==DataSet::MIP_MAPPING_HARDWARE)
             {
                 log(osg::INFO,"   switching off MIP_MAPPING for compile");
                 texture->setFilter(osg::Texture::MIN_FILTER,osg::Texture::LINEAR);
             }
 
             // make sure the OSG doesn't rescale images if it doesn't need to.
-            texture->setResizeNonPowerOfTwoHint(_dataSet->getPowerOfTwoImages());
+            texture->setResizeNonPowerOfTwoHint(getImageOptions(layerNum)->getPowerOfTwoImages());
 
 
             // get OpenGL driver to create texture from image.
@@ -1337,7 +1349,7 @@ osg::StateSet* DestinationTile::createStateSet()
             image->readImageFromCurrentTexture(0,true);
 
             // restore the mip mapping mode.
-            if (_dataSet->getMipMappingMode()==DataSet::MIP_MAPPING_HARDWARE)
+            if (getImageOptions(layerNum)->getMipMappingMode()==DataSet::MIP_MAPPING_HARDWARE)
                 texture->setFilter(osg::Texture::MIN_FILTER,osg::Texture::LINEAR_MIPMAP_LINEAR);
 
             texture->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
@@ -1361,12 +1373,12 @@ osg::StateSet* DestinationTile::createStateSet()
                 image->scaleImage(image->s(),image->t(),image->r(),GL_UNSIGNED_SHORT_5_5_5_1);
             }
 
-            if (mipmapImageSupported && _dataSet->getMipMappingMode()==DataSet::MIP_MAPPING_IMAGERY)
+            if (mipmapImageSupported && getImageOptions(layerNum)->getMipMappingMode()==DataSet::MIP_MAPPING_IMAGERY)
             {
                 log(osg::NOTICE,"Doing mipmapping");
 
                 // make sure the OSG doesn't rescale images if it doesn't need to.
-                texture->setResizeNonPowerOfTwoHint(_dataSet->getPowerOfTwoImages());
+                texture->setResizeNonPowerOfTwoHint(getImageOptions(layerNum)->getPowerOfTwoImages());
 
                 // get OpenGL driver to create texture from image.
                 texture->apply(*(_dataSet->getState()));
@@ -1682,17 +1694,18 @@ osg::Node* DestinationTile::createTerrainTile()
         terrainTile->setElevationLayer(hfLayer);
     }
     
-    osg::Texture::FilterMode minFilter = _dataSet->getMipMappingMode()==BuildOptions::NO_MIP_MAPPING ? 
-                    osg::Texture::LINEAR :
-                    osg::Texture::LINEAR_MIPMAP_LINEAR;
-
-    osg::Texture::FilterMode magFilter = osg::Texture::LINEAR;
 
     // assign the imagery
     for(unsigned int layerNum=0;
         layerNum<getNumLayers();
         ++layerNum)
     {
+        osg::Texture::FilterMode minFilter = getImageOptions(layerNum)->getMipMappingMode()==BuildOptions::NO_MIP_MAPPING ?
+                        osg::Texture::LINEAR :
+                        osg::Texture::LINEAR_MIPMAP_LINEAR;
+
+        osg::Texture::FilterMode magFilter = osg::Texture::LINEAR;
+
         ImageSet& imageSet = getImageSet(layerNum);
         if (imageSet._layerSetImageDataMap.empty()) continue;
         
