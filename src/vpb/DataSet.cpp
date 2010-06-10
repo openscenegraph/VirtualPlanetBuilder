@@ -200,7 +200,7 @@ bool DataSet::computeOptimumLevel(Source* source, int maxLevel, int& level)
 
     // log(osg::NOTICE,"Source %s resX %f resY %f",source->getFileName().c_str(), sourceResolutionX, sourceResolutionX);
 
-    double tileSize = source->getType()==Source::IMAGE ? _maximumTileImageSize-2 : _maximumTileTerrainSize-1;
+    double tileSize = source->getType()==Source::IMAGE ? getLayerMaximumTileImageSize(source->getLayer())-2 : _maximumTileTerrainSize-1;
 
     int k_cols = int( ceil( 1.0 + ::log( destination_xRange / (_C1 * sourceResolutionX * tileSize ) ) / ::log(2.0) ) );
     int k_rows = int( ceil( 1.0 + ::log( destination_yRange / (_R1 * sourceResolutionY * tileSize ) ) / ::log(2.0) ) );
@@ -371,7 +371,6 @@ CompositeDestination* DataSet::createDestinationTile(int currentLevel, int curre
     // that way the default of RASTER for image and VECTOR for height is maintained
     tile->_dataType = SpatialProperties::NONE;
 
-    tile->setMaximumImagerySize(_maximumTileImageSize,_maximumTileImageSize);
     tile->setMaximumTerrainSize(_maximumTileTerrainSize,_maximumTileTerrainSize);
     
     destinationGraph->_tiles.push_back(tile);
@@ -764,7 +763,6 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
     // that way the default of RASTER for image and VECTOR for height is maintained
     tile->_dataType = SpatialProperties::NONE;
 
-    tile->setMaximumImagerySize(maxImageSize,maxImageSize);
     tile->setMaximumTerrainSize(maxTerrainSize,maxTerrainSize);
     tile->computeMaximumSourceResolution(_sourceGraph.get());
 

@@ -81,8 +81,6 @@ DestinationTile::DestinationTile():
     _tileX(0),
     _tileY(0),
     _maxSourceLevel(0),
-    _image_maxNumColumns(4096),
-    _image_maxNumRows(4096),
     _terrain_maxNumColumns(1024),
     _terrain_maxNumRows(1024),
     _terrain_maxSourceResolutionX(0.0f),
@@ -239,7 +237,7 @@ bool DestinationTile::computeImageResolution(unsigned int layer, const std::stri
     ImageData& imageData = getImageData(layer,setname);
 
     if (imageData._image_maxSourceResolutionX!=0.0f && imageData._image_maxSourceResolutionY!=0.0f &&
-        _image_maxNumColumns!=0 && _image_maxNumRows!=0)
+        _dataSet->getLayerMaximumTileImageSize(layer)!=0)
     {
         // set up properly for vector and raster (previously always vector)
         // assume raster if _dataType not set (default for Destination Tile)
@@ -256,8 +254,8 @@ bool DestinationTile::computeImageResolution(unsigned int layer, const std::stri
             numRowsAtFullRes = (unsigned int)ceilf((_extents.yMax()-_extents.yMin())/imageData._image_maxSourceResolutionY);
         }
 
-        unsigned int numColumnsRequired = osg::minimum(_image_maxNumColumns,numColumnsAtFullRes);
-        unsigned int numRowsRequired    = osg::minimum(_image_maxNumRows,numRowsAtFullRes);
+        unsigned int numColumnsRequired = osg::minimum(_dataSet->getLayerMaximumTileImageSize(layer),numColumnsAtFullRes);
+        unsigned int numRowsRequired    = osg::minimum(_dataSet->getLayerMaximumTileImageSize(layer),numRowsAtFullRes);
 
 
         if (getImageOptions(layer)->getPowerOfTwoImages())

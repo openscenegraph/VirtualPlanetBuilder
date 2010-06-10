@@ -387,6 +387,8 @@ class VPB_EXPORT BuildOptions : public ImageOptions
             return io ? io : this;
         }
 
+        unsigned int getLayerMaximumTileImageSize(unsigned int layer) const { return getValidLayerImageOptions(layer)->getMaximumTileImageSize(); }
+
     protected:
 
 

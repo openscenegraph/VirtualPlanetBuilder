@@ -113,11 +113,6 @@ public:
 
     void checkNeighbouringTiles();
 
-    void setMaximumImagerySize(unsigned int maxNumColumns,unsigned int maxNumRows)
-    {
-        _image_maxNumColumns = maxNumColumns;
-        _image_maxNumRows = maxNumRows;
-    }
 
     void setMaximumTerrainSize(unsigned int maxNumColumns,unsigned int maxNumRows)
     {
@@ -248,9 +243,6 @@ public:
 
 
     unsigned int                                _maxSourceLevel;
-
-    unsigned int                                _image_maxNumColumns;
-    unsigned int                                _image_maxNumRows;
 
     unsigned int                                _terrain_maxNumColumns;
     unsigned int                                _terrain_maxNumRows;
