@@ -790,6 +790,9 @@ void SourceData::readImage(DestinationData& destination)
                             destinationColumnPtr[0] = sourceColumnPtr[0];
                             destinationColumnPtr[1] = sourceColumnPtr[1];
                             destinationColumnPtr[2] = sourceColumnPtr[2];
+                            if (destination_hasAlpha) 
+                                destinationColumnPtr[3] = 255; 
+              
                         }
                     }
                 }
