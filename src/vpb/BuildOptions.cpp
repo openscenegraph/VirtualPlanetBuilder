@@ -386,21 +386,17 @@ bool BuildOptions::compatible(BuildOptions& rhs) const
     if (_optionalImageLayerOutputPolicy != rhs._optionalImageLayerOutputPolicy) return false;
     if (_optionalElevationLayerOutputPolicy != rhs._optionalElevationLayerOutputPolicy) return false;
 
-    if (_optionalLayerSet != rhs._optionalLayerSet) return false;
-
     if (getRadiusEquator() != rhs.getRadiusEquator()) return false;
     if (getRadiusPolar() != rhs.getRadiusPolar()) return false;
 
-    if (_imageOptions.size() != rhs._imageOptions.size()) return false;
-    for(unsigned int i=0; i<_imageOptions.size();++i)
+    unsigned minNumImageOptions = std::min(_imageOptions.size(), rhs._imageOptions.size());
+    for(unsigned int i=0; i<minNumImageOptions;++i)
     {
-        if (_imageOptions[i].valid())
+        if (_imageOptions[i].valid() && rhs._imageOptions[i])
         {
             if (!(_imageOptions[i]->compatible(*(rhs._imageOptions[i])))) return false;
         }
-        else if (rhs._imageOptions[i].valid()) return false;
     }
-
 
     // following properties don't require checking as they don't effect compatibility
     // if (_comment != rhs._comment) return false;
