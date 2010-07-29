@@ -133,7 +133,7 @@ class VPBReaderWriter : public osgDB::ReaderWriter
             osg::ref_ptr<Options> local_opt = opt ? static_cast<Options*>(opt->clone(osg::CopyOp::SHALLOW_COPY)) : new Options;
             local_opt->setDatabasePath(osgDB::getFilePath(fileName));
 
-            std::ifstream fin(fileName.c_str(), std::ios::out|std::ios::binary);
+            std::ifstream fin(fileName.c_str(), std::ios::in);
             if (fin)
             {
                 std::string str;
@@ -232,7 +232,7 @@ class VPBReaderWriter : public osgDB::ReaderWriter
             osg::ref_ptr<Options> local_opt = prepareWriting( result, fileName, options );
             if ( !result.success() ) return result;
 
-            osgDB::ofstream fout( fileName.c_str(), std::ios::out|std::ios::binary );
+            osgDB::ofstream fout( fileName.c_str(), std::ios::out );
             if ( !fout ) return WriteResult::ERROR_IN_WRITING_FILE;
 
             osgDB::ReaderWriter* rw = osgDB::Registry::instance()->getReaderWriterForExtension("osg2");
