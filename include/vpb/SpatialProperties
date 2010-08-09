@@ -116,6 +116,11 @@ public:
         return _max.x()>=_min.x() &&  _max.y()>=_min.y();
     }
 
+    inline bool nonZeroExtents() const
+    {
+        return valid() && _max.x()!=_min.x() &&  _max.y()!=_min.y();
+    }
+
     inline double radius() const
     {
         return sqrt((radius2()));

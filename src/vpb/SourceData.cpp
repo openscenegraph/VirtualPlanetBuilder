@@ -470,7 +470,7 @@ void SourceData::readImage(DestinationData& destination)
             log(osg::INFO,"  d_bb %f %f",d_bb.xMin(),d_bb.xMax());
         
             GeospatialExtents intersect_bb(d_bb.intersection(s_bb, xoffset));
-            if (!intersect_bb.valid())
+            if (!intersect_bb.nonZeroExtents())
             {
                 log(osg::INFO,"Reading image but it does not intesection destination - ignoring");
                 continue;
@@ -838,8 +838,7 @@ void SourceData::readHeightField(DestinationData& destination)
             log(osg::INFO,"  d_bb %f %f",d_bb.xMin(),d_bb.xMax());
         
             GeospatialExtents intersect_bb(d_bb.intersection(s_bb, xoffset));
-
-            if (!intersect_bb.valid())
+            if (!intersect_bb.nonZeroExtents())
             {
                 log(osg::INFO,"Reading height field but it does not intesection destination - ignoring");
                 continue;
