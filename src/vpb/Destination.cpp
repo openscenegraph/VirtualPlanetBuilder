@@ -1291,7 +1291,7 @@ osg::StateSet* DestinationTile::createStateSet()
         texture->setMaxAnisotropy(getImageOptions(layerNum)->getMaxAnisotropy());
         _stateset->setTextureAttributeAndModes(layerNum,texture,osg::StateAttribute::ON);
 
-        bool inlineImageFile = _dataSet->getDestinationTileExtension()==".ive";
+        bool inlineImageFile = _dataSet->getDestinationTileExtension()==".ive" || _dataSet->getDestinationTileExtension()==".osgb" ;
         bool compressedImageSupported = inlineImageFile || imageExtension=="dds";
         bool mipmapImageSupported = compressedImageSupported; // inlineImageFile;
         
