@@ -67,7 +67,7 @@ int main(int argc, char** argv)
     // if user requests help write it out to cout.
     if (arguments.read("-h") || arguments.read("--help"))
     {
-        arguments.getApplicationUsage()->write(std::cout,osg::ApplicationUsage::COMMAND_LINE_OPTION);
+        arguments.getApplicationUsage()->write(std::cout,osg::ApplicationUsage::COMMAND_LINE_OPTION);        
         return 1;
     }
 
@@ -122,8 +122,7 @@ int main(int argc, char** argv)
                     first = false;
                 }
                 std::cout<< " : "<<itr->second.description<<std::endl;
-            }
-
+            }            
             return 1;
         }
 
@@ -144,7 +143,8 @@ int main(int argc, char** argv)
         // report any errors if they have occured when parsing the program aguments.
         if (arguments.errors())
         {
-            arguments.writeErrorMessages(std::cout);
+            arguments.writeErrorMessages(std::cout);            
+            taskManager->exit(SIGTERM);
             return 1;
         }
 
@@ -155,7 +155,8 @@ int main(int argc, char** argv)
             taskManager->generateTasksFromSource();
 
             taskManager->writeSource(tasksOutputFileName);
-            taskManager->writeTasks(tasksOutputFileName, true);
+            taskManager->writeTasks(tasksOutputFileName, true); 
+            taskManager->exit(SIGTERM);
             return 1;
         }
 
@@ -177,6 +178,7 @@ int main(int argc, char** argv)
                     if (!taskManager->generateTasksFromSource())
                     {
                         // nothing to do.
+                        taskManager->exit(SIGTERM);
                         return 1;
                     }
 
@@ -205,7 +207,11 @@ int main(int argc, char** argv)
 
                 if (taskManager->hasMachines())
                 {
-                    taskManager->run();
+                    if(!taskManager->run()) 
+                    {
+                        result = 1;
+                    }
+                    
                 }
                 else
                 {
@@ -234,8 +240,9 @@ int main(int argc, char** argv)
     }
 
     // make sure the OS writes changes to disk
-    vpb::sync();
-
+    vpb::sync();    
+    taskManager->log(osg::NOTICE,"Run Complete.");   
+    taskManager->exit(SIGTERM);
     return result;
 }
 

@@ -241,7 +241,9 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     std::string logFileName;
     while (arguments.read("--master-log",logFileName))
     {
-        setBuildLog(new BuildLog(logFileName));
+        BuildLog* bl = new BuildLog(logFileName);
+        setBuildLog(bl);
+        pushOperationLog(bl);
     }
 
     std::string sourceName;
@@ -407,10 +409,15 @@ bool TaskManager::generateTasksFromSource()
         vpb::DatabaseBuilder* db = dynamic_cast<vpb::DatabaseBuilder*>(_terrainTile->getTerrainTechnique());
         vpb::BuildOptions* bo = db ? db->getBuildOptions() : 0;
 
-        if (bo && !(bo->getLogFileName().empty()))
+        if (getBuildLog())
         {
-            dataset->setBuildLog(new vpb::BuildLog);
+            dataset->setBuildLog(getBuildLog());
         }
+        else if (bo && !(bo->getLogFileName().empty()))
+        {
+            dataset->setBuildLog(new vpb::BuildLog(bo->getLogFileName()));
+        }
+        
 
         if (_taskFile.valid())
         {
@@ -1015,6 +1022,12 @@ void TaskManager::setDone(bool done)
     _done = done;
 
     if (_done) getMachinePool()->release();
+}
+
+void TaskManager::exit(int sig)
+{
+    handleSignal(sig);
+    setDone(true);
 }
 
 void TaskManager::handleSignal(int sig)
