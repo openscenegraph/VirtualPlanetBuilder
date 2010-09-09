@@ -55,6 +55,7 @@ void ThreadPool::init()
         if (_requiresGraphicsContext)
         {
             osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+            traits->readDISPLAY();
             traits->x = 0;
             traits->y = 0;
             traits->width = 1;
