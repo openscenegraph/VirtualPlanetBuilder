@@ -169,11 +169,12 @@ SET(OSG_DIR "" CACHE PATH "set to base osg install path")
 
 SET(CMAKE_DEBUG_POSTFIX  "d")
 
+FIND_PACKAGE(NVTT)
 FIND_PACKAGE(LibSquish)
 FIND_PACKAGE(OSG 2.9.8)
 FIND_PACKAGE(GDAL)
 
-
+OPTION(BUILD_USE_NVTT_WHEN_AVAILABLE "Enable the use of NVidia Texture Tools when available." TRUE)
 
 ################################################################################
 # Create bin and lib directories if required

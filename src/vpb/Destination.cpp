@@ -15,6 +15,7 @@
 #include <vpb/Source>
 #include <vpb/Destination>
 #include <vpb/DataSet>
+#include <vpb/TextureUtils>
 
 #include <osg/Texture2D>
 #include <osg/ShapeDrawable>
@@ -1328,32 +1329,9 @@ osg::StateSet* DestinationTile::createStateSet()
         {
             log(osg::NOTICE,"Compressed image");
         
-            texture->setInternalFormatMode(internalFormatMode);
-
-            // force the mip mapping off temporay if we intend the graphics hardware to do the mipmapping.
-            if (getImageOptions(layerNum)->getMipMappingMode()==DataSet::MIP_MAPPING_HARDWARE)
-            {
-                log(osg::INFO,"   switching off MIP_MAPPING for compile");
-                texture->setFilter(osg::Texture::MIN_FILTER,osg::Texture::LINEAR);
-            }
-
-            // make sure the OSG doesn't rescale images if it doesn't need to.
-            texture->setResizeNonPowerOfTwoHint(getImageOptions(layerNum)->getPowerOfTwoImages());
-
-
-            // get OpenGL driver to create texture from image.
-            texture->apply(*(_dataSet->getState()));
-
-            image->readImageFromCurrentTexture(0,true);
-
-            // restore the mip mapping mode.
-            if (getImageOptions(layerNum)->getMipMappingMode()==DataSet::MIP_MAPPING_HARDWARE)
-                texture->setFilter(osg::Texture::MIN_FILTER,osg::Texture::LINEAR_MIPMAP_LINEAR);
-
-            texture->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
-
-
-            texture->dirtyTextureObject();
+            bool generateMiMap = getImageOptions(layerNum)->getMipMappingMode()==DataSet::MIP_MAPPING_IMAGERY;
+            bool resizePowerOfTwo = getImageOptions(layerNum)->getPowerOfTwoImages();
+            vpb::compress(*_dataSet->getState(),*texture,internalFormatMode,generateMiMap,resizePowerOfTwo);
 
             log(osg::INFO,">>>>>>>>>>>>>>>compressed image.<<<<<<<<<<<<<<");
 
@@ -1375,17 +1353,8 @@ osg::StateSet* DestinationTile::createStateSet()
             {
                 log(osg::NOTICE,"Doing mipmapping");
 
-                // make sure the OSG doesn't rescale images if it doesn't need to.
-                texture->setResizeNonPowerOfTwoHint(getImageOptions(layerNum)->getPowerOfTwoImages());
-
-                // get OpenGL driver to create texture from image.
-                texture->apply(*(_dataSet->getState()));
-
-                image->readImageFromCurrentTexture(0,true);
-
-                texture->setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
-
-                texture->dirtyTextureObject();
+                bool resizePowerOfTwo = getImageOptions(layerNum)->getPowerOfTwoImages();
+                vpb::generateMipMap(*_dataSet->getState(),*texture,resizePowerOfTwo);
 
                 log(osg::INFO,">>>>>>>>>>>>>>>mip mapped image.<<<<<<<<<<<<<<");
 
@@ -1456,7 +1425,9 @@ osg::StateSet* DestinationTile::createStateSet()
         }
     }
 
+#ifndef HAVE_NVTT
     _dataSet->getState()->checkGLErrors("DestinationTile::createStateSet()");
+#endif
 
     return _stateset.get();
 }

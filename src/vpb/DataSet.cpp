@@ -3137,8 +3137,14 @@ int DataSet::_run()
     
     log(osg::NOTICE,"DataSet::_run() %i %i",getDistributedBuildSplitLevel(),getDistributedBuildSecondarySplitLevel());
 
+#ifdef HAVE_NVTT 
+    bool requiresGraphicsContextInMainThread = false;
+    bool requiresGraphicsContextInWritingThread = false;
+#else
     bool requiresGraphicsContextInMainThread = true;
-    
+    bool requiresGraphicsContextInWritingThread = true;
+#endif
+
     int numProcessors = OpenThreads::GetNumberOfProcessors();
 #if 0
     if (numProcessors>1)
@@ -3156,7 +3162,7 @@ int DataSet::_run()
         if (numWriteThreads>=1)
         {
             log(osg::NOTICE,"Starting %i write threads.",numWriteThreads);
-            _writeThreadPool = new ThreadPool(numWriteThreads, true);
+            _writeThreadPool = new ThreadPool(numWriteThreads, requiresGraphicsContextInWritingThread);
             _writeThreadPool->startThreads();
             
             //requiresGraphicsContextInMainThread = false;
