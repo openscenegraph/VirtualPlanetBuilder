@@ -18,13 +18,6 @@
 #include <vpb/Export>
 #include <osg/Texture>
 
-// predeclaration
-namespace osg
-{
-    class Image;
-    class Texture;
-}
-
 namespace vpb
 {
 

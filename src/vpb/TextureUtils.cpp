@@ -177,7 +177,7 @@ void nvttProcess( osg::Texture& texture, nvtt::Format format, bool generateMipMa
     // Fill input options
     nvtt::InputOptions inputOptions;
     inputOptions.setTextureLayout(nvtt::TextureType_2D, image.s(), image.t() );
-      inputOptions.setNormalMap(false);
+    inputOptions.setNormalMap(false);
     inputOptions.setConvertToNormalMap(false);
     inputOptions.setGamma(2.2f, 2.2f);
     inputOptions.setNormalizeMipmaps(false);
