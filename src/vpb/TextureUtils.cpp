@@ -64,7 +64,7 @@ struct OSGImageOutputHandler : public nvtt::OutputHandler
     }
 
     // create the osg image from the given format
-    osg::Image* createOSGImage()
+    osg::Image* createOSGImage(osg::Texture& texture)
     {
         // convert nvtt format to OpenGL pixel format
         GLint pixelFormat;
@@ -90,7 +90,13 @@ struct OSGImageOutputHandler : public nvtt::OutputHandler
             return 0;
         }
 
-        osg::Image* image = new osg::Image();
+        // Reuse the image from the texture if it it exists
+        // Important to behave like the non-NVTT code (and to works with --terrain!)
+        osg::Image* image = texture.getImage(0);
+        if ( image == 0 )
+        {
+            image = new osg::Image();
+        }
 
         // Compute the total size and the mipmap offsets
         osg::Image::MipmapDataType mipmapOffsets(_mipmaps.size()-1);
@@ -238,7 +244,7 @@ void nvttProcess( osg::Texture& texture, nvtt::Format format, bool generateMipMa
     nvtt::Compressor compressor;
     compressor.process(inputOptions,compressionOptions,outputOptions);
 
-    texture.setImage( 0, outputHandler.createOSGImage() );
+    texture.setImage( 0, outputHandler.createOSGImage(texture) );
     texture.setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
     texture.setResizeNonPowerOfTwoHint(resizeToPowerOfTwo);
 }
