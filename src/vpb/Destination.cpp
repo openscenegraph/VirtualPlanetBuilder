@@ -105,7 +105,10 @@ GLenum DestinationTile::getPixelFormat(unsigned int layerNum) const
     ImageOptions::TextureType textureType = getImageOptions(layerNum)->getTextureType();
     return (textureType==ImageOptions::COMPRESSED_RGBA_TEXTURE||
             textureType==ImageOptions::RGBA ||
-            textureType==ImageOptions::RGBA_16) ? GL_RGBA : GL_RGB;
+            textureType==ImageOptions::RGBA_16 ||
+            textureType==ImageOptions::RGBA_S3TC_DXT1 ||
+            textureType==ImageOptions::RGBA_S3TC_DXT3 ||
+            textureType==ImageOptions::RGBA_S3TC_DXT5 ) ? GL_RGBA : GL_RGB;
 }
 
 void DestinationTile::requiresDivision(float resolutionSensitivityScale, bool& needToDivideX, bool& needToDivideY)

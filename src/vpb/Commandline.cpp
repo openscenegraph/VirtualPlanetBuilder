@@ -519,6 +519,7 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--enable-error-diffusion","Enable error diffusion during quantization.");
     usage.addCommandLineOption("--disable-error-diffusion","Disable error diffusion during quantization.");
     usage.addCommandLineOption("--compressed","Use OpenGL compression on RGB destination imagery.");
+    usage.addCommandLineOption("--compressed-dxt1a","Use S3TC DXT1 compression with 1 bit alpha on destination imagery.");
     usage.addCommandLineOption("--compressed-dxt1","Use S3TC DXT1 compression on destination imagery.");
     usage.addCommandLineOption("--compressed-dxt3","Use S3TC DXT3 compression on destination imagery.");
     usage.addCommandLineOption("--compressed-dxt5","Use S3TC DXT5 compression on destination imagery.");
@@ -615,7 +616,8 @@ bool Commandline::readImageOptions(int pos, std::ostream& fout, osg::ArgumentPar
     if (arguments.read(pos, "--disable-error-diffusion")) { imageOptions.setImageryErrorDiffusion(false); readField = true;}
 
     if (arguments.read(pos, "--compressed")) { imageOptions.setTextureType(vpb::BuildOptions::COMPRESSED_TEXTURE); readField = true;}
-    if (arguments.read(pos, "--compressed-dxt1")) { imageOptions.setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT1); readField = true;}
+    if (arguments.read(pos, "--compressed-dxt1")) { imageOptions.setTextureType(vpb::BuildOptions::RGB_S3TC_DXT1); readField = true;}
+    if (arguments.read(pos, "--compressed-dxt1a")) { imageOptions.setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT1); readField = true;}
     if (arguments.read(pos, "--compressed-dxt3")) { imageOptions.setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT3); readField = true;}
     if (arguments.read(pos, "--compressed-dxt5")) { imageOptions.setTextureType(vpb::BuildOptions::RGBA_S3TC_DXT5); readField = true;}
     if (arguments.read(pos, "--RGBA-compressed")) { imageOptions.setTextureType(vpb::BuildOptions::COMPRESSED_RGBA_TEXTURE); readField = true;}
