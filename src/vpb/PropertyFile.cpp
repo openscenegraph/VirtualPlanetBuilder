@@ -15,6 +15,9 @@
 #include <vpb/FileUtils>
 
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include <iostream>
 #include <sstream>
@@ -47,9 +50,11 @@ struct FileProxy
             vpb::fclose(file);
 
             _fileID = vpb::open (filename.c_str(), O_RDWR);
-
+#if 0
             vpb::fchmod(_fileID, S_IREAD | S_IWRITE | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-            
+#else
+            vpb::fchmod(_fileID, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+#endif            
             vpb::fsync();
 
             // osg::notify(osg::NOTICE)<<"Opened new file "<<filename<<" _fileID = "<<_fileID<<std::endl;
