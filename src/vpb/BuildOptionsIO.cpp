@@ -358,6 +358,8 @@ public:
             VPB_AEV(ENABLE_BLENDING_WHEN_ALPHA_PRESENT);
         }
 
+        VPB_ADD_ENUM_PROPERTY_THREE_VALUES(CompressionMethod, GL_DRIVER, NVTT, NVTT_NOCUDA)
+
     }
 
     bool read(osgDB::Input& fr, BuildOptions& db, bool& itrAdvanced)
@@ -656,6 +658,12 @@ REGISTER_OBJECT_WRAPPER( BuildOptions,
         ADD_ENUM_VALUE( DO_NOT_SET_BLENDING );
         ADD_ENUM_VALUE( ENABLE_BLENDING );
         ADD_ENUM_VALUE( ENABLE_BLENDING_WHEN_ALPHA_PRESENT );
+    END_ENUM_SERIALIZER();
+
+    BEGIN_ENUM_SERIALIZER( CompressionMethod, GL_DRIVER);
+        ADD_ENUM_VALUE( GL_DRIVER );
+        ADD_ENUM_VALUE( NVTT );
+        ADD_ENUM_VALUE( NVTT_NOCUDA);        
     END_ENUM_SERIALIZER();
 
     ADD_USER_SERIALIZER( LayerImageOptions );

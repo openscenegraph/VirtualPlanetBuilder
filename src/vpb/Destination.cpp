@@ -102,13 +102,13 @@ const vpb::ImageOptions* DestinationTile::getImageOptions(unsigned int layerNum)
 
 GLenum DestinationTile::getPixelFormat(unsigned int layerNum) const
 {
-    ImageOptions::TextureType textureType = getImageOptions(layerNum)->getTextureType();
+    ImageOptions::TextureType textureType = getImageOptions(layerNum)->getTextureType();    
     return (textureType==ImageOptions::COMPRESSED_RGBA_TEXTURE||
             textureType==ImageOptions::RGBA ||
             textureType==ImageOptions::RGBA_16 ||
             textureType==ImageOptions::RGBA_S3TC_DXT1 ||
             textureType==ImageOptions::RGBA_S3TC_DXT3 ||
-            textureType==ImageOptions::RGBA_S3TC_DXT5 ) ? GL_RGBA : GL_RGB;
+            textureType==ImageOptions::RGBA_S3TC_DXT5 ) ? GL_RGBA : GL_RGB;        
 }
 
 void DestinationTile::requiresDivision(float resolutionSensitivityScale, bool& needToDivideX, bool& needToDivideY)
@@ -1319,7 +1319,7 @@ osg::StateSet* DestinationTile::createStateSet()
             case(BuildOptions::RGBA_S3TC_DXT3): internalFormatMode = osg::Texture::USE_S3TC_DXT3_COMPRESSION; break;
             case(BuildOptions::RGBA_S3TC_DXT5): internalFormatMode = osg::Texture::USE_S3TC_DXT5_COMPRESSION; break;
             case(BuildOptions::ARB_COMPRESSED): internalFormatMode = osg::Texture::USE_ARB_COMPRESSION; break;
-            case(BuildOptions::COMPRESSED_TEXTURE): internalFormatMode = osg::Texture::USE_S3TC_DXT1_COMPRESSION; break;
+            case(BuildOptions::COMPRESSED_TEXTURE): internalFormatMode = osg::Texture::USE_S3TC_DXT1_COMPRESSION; break;            
             case(BuildOptions::COMPRESSED_RGBA_TEXTURE): internalFormatMode = osg::Texture::USE_S3TC_DXT3_COMPRESSION; break;
             default: break;
         }
@@ -1334,7 +1334,7 @@ osg::StateSet* DestinationTile::createStateSet()
         
             bool generateMiMap = getImageOptions(layerNum)->getMipMappingMode()==DataSet::MIP_MAPPING_IMAGERY;
             bool resizePowerOfTwo = getImageOptions(layerNum)->getPowerOfTwoImages();
-            vpb::compress(*_dataSet->getState(),*texture,internalFormatMode,generateMiMap,resizePowerOfTwo);
+            vpb::compress(*_dataSet->getState(),*texture,internalFormatMode,generateMiMap,resizePowerOfTwo,_dataSet->getCompressionMethod());
 
             log(osg::INFO,">>>>>>>>>>>>>>>compressed image.<<<<<<<<<<<<<<");
 
@@ -1357,7 +1357,7 @@ osg::StateSet* DestinationTile::createStateSet()
                 log(osg::NOTICE,"Doing mipmapping");
 
                 bool resizePowerOfTwo = getImageOptions(layerNum)->getPowerOfTwoImages();
-                vpb::generateMipMap(*_dataSet->getState(),*texture,resizePowerOfTwo);
+                vpb::generateMipMap(*_dataSet->getState(),*texture,resizePowerOfTwo,_dataSet->getCompressionMethod());
 
                 log(osg::INFO,">>>>>>>>>>>>>>>mip mapped image.<<<<<<<<<<<<<<");
 
@@ -1428,9 +1428,9 @@ osg::StateSet* DestinationTile::createStateSet()
         }
     }
 
-#ifndef HAVE_NVTT
-    _dataSet->getState()->checkGLErrors("DestinationTile::createStateSet()");
-#endif
+    if(_dataSet->getCompressionMethod() == vpb::BuildOptions::GL_DRIVER) {
+      _dataSet->getState()->checkGLErrors("DestinationTile::createStateSet()");
+    }
 
     return _stateset.get();
 }

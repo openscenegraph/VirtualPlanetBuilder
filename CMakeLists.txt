@@ -167,6 +167,8 @@ INCLUDE_DIRECTORIES(
 # Common to all platforms:
 SET(OSG_DIR "" CACHE PATH "set to base osg install path")
 
+SET(3rdPartyRoot "" CACHE PATH "set to base 3rd party dependancy path")
+
 SET(CMAKE_DEBUG_POSTFIX  "d")
 
 FIND_PACKAGE(NVTT)

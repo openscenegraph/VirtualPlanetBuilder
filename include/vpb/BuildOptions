@@ -376,6 +376,16 @@ class VPB_EXPORT BuildOptions : public ImageOptions
         /** Get the policy to use when deciding whether to enable/disable blending and use of transparent bin.*/
         BlendingPolicy getBlendingPolicy() const { return _blendingPolicy; }
 
+        enum CompressionMethod
+        {
+            GL_DRIVER, //Use a GL context to do the compression
+            NVTT, //Use NVTT based compression, using CUDA if available
+            NVTT_NOCUDA //Use NVTT based compression with CUDA disabled
+        };
+
+        void setCompressionMethod(CompressionMethod compressionMethod) { _compressionMethod = compressionMethod; }
+        CompressionMethod getCompressionMethod() const { return _compressionMethod; }        
+
 
         void setLayerImageOptions(unsigned int layerNum, vpb::ImageOptions* imageOptions);
         vpb::ImageOptions* getLayerImageOptions(unsigned int layerNum);
@@ -459,6 +469,8 @@ class VPB_EXPORT BuildOptions : public ImageOptions
         unsigned int                                _revisionNumber;
 
         BlendingPolicy                              _blendingPolicy;
+
+        CompressionMethod                           _compressionMethod;
 
         typedef std::vector< osg::ref_ptr<ImageOptions> > LayerImageOptions;
         LayerImageOptions                            _imageOptions;

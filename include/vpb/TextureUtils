@@ -17,12 +17,13 @@
 
 #include <vpb/Export>
 #include <osg/Texture>
+#include <vpb/BuildOptions>
 
 namespace vpb
 {
 
-extern VPB_EXPORT void compress(osg::State& state, osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo);
-extern VPB_EXPORT void generateMipMap(osg::State& state, osg::Texture& texture, bool resizeToPowerOfTwo);
+extern VPB_EXPORT void compress(osg::State& state, osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method);
+extern VPB_EXPORT void generateMipMap(osg::State& state, osg::Texture& texture, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method);
 
 
 }

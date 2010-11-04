@@ -25,6 +25,7 @@ FIND_PATH( ${THIS_OSG_INCLUDE_DIR} ${THIS_OSG_INCLUDE_FILE}
         $ENV{OSG_SOURCE_DIR}
         $ENV{OSGDIR}
         $ENV{OSG_DIR}
+        ${OSG_DIR}
         /usr/local/
         /usr/
         /sw/ # Fink
@@ -53,6 +54,7 @@ FIND_LIBRARY(${MYLIBRARY}
     PATHS
         $ENV{OSG_BUILD_DIR}
         $ENV{OSG_DIR}
+        ${OSG_DIR}
         $ENV{OSGDIR}
         $ENV{OSG_ROOT}
         ~/Library/Frameworks

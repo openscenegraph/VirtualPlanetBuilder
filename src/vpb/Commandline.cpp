@@ -591,6 +591,9 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--pot ","Use power of two imagery when generating output tiles.");
     usage.addCommandLineOption("--npot","Permit use of non power of two imagery when generating output tiles.");
     usage.addCommandLineOption("--blending-policy <policy>", "Set the blending policy to use on TerrainTiles.  <policy> can be INHERIT, DO_NOT_SET_BLENDING, ENABLE_BLENDING or ENABLE_BLENDING_WHEN_ALPHA_PRESENT.");
+    usage.addCommandLineOption("--compressor-gl-driver", "Use the OpenGL driver to compress output imagery.");
+    usage.addCommandLineOption("--compressor-nvtt", "Use NVTT to compress output imagery, using CUDA if possible.");
+    usage.addCommandLineOption("--compressor-nvtt-nocuda", "Use NVTT to compress output imagery, disabling CUDA.");    
 }
 
 bool Commandline::readImageOptions(int pos, std::ostream& fout, osg::ArgumentParser& arguments, vpb::ImageOptions& imageOptions)
@@ -782,6 +785,19 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         else if (blendingPolicy == "DO_NOT_SET_BLENDING") buildOptions->setBlendingPolicy(vpb::BuildOptions::DO_NOT_SET_BLENDING);
         else if (blendingPolicy == "ENABLE_BLENDING") buildOptions->setBlendingPolicy(vpb::BuildOptions::ENABLE_BLENDING);
         else if (blendingPolicy == "ENABLE_BLENDING_WHEN_ALPHA_PRESENT") buildOptions->setBlendingPolicy(vpb::BuildOptions::ENABLE_BLENDING_WHEN_ALPHA_PRESENT);
+    }
+    
+    while(arguments.read("--compressor-nvtt"))
+    {
+      buildOptions->setCompressionMethod(vpb::BuildOptions::NVTT);      
+    }
+    while(arguments.read("--compressor-nvtt-nocuda"))
+    {
+      buildOptions->setCompressionMethod(vpb::BuildOptions::NVTT_NOCUDA);      
+    }
+    while(arguments.read("--compressor-gl-driver"))
+    {
+      buildOptions->setCompressionMethod(vpb::BuildOptions::GL_DRIVER);      
     }
 
     std::string notifyLevel;

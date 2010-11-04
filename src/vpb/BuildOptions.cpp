@@ -148,6 +148,9 @@ BuildOptions::BuildOptions()
     _revisionNumber = 0;
 
     _blendingPolicy = INHERIT;
+    
+    _compressionMethod = GL_DRIVER;
+
 }
 
 BuildOptions::BuildOptions(const BuildOptions& rhs,const osg::CopyOp& copyop)
@@ -233,6 +236,8 @@ void BuildOptions::setBuildOptions(const BuildOptions& rhs)
 
     _blendingPolicy = rhs._blendingPolicy;
 
+    _compressionMethod = rhs._compressionMethod;
+    
     _imageOptions.clear();
     for(unsigned int i=0; i< rhs.getNumLayerImageOptions(); ++i)
     {

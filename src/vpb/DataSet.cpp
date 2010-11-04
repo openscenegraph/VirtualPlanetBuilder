@@ -3138,8 +3138,8 @@ int DataSet::_run()
     log(osg::NOTICE,"DataSet::_run() %i %i",getDistributedBuildSplitLevel(),getDistributedBuildSecondarySplitLevel());
 
 #ifdef HAVE_NVTT 
-    bool requiresGraphicsContextInMainThread = false;
-    bool requiresGraphicsContextInWritingThread = false;
+    bool requiresGraphicsContextInMainThread = (getCompressionMethod() == vpb::BuildOptions::GL_DRIVER);    
+    bool requiresGraphicsContextInWritingThread = (getCompressionMethod() == vpb::BuildOptions::GL_DRIVER);
 #else
     bool requiresGraphicsContextInMainThread = true;
     bool requiresGraphicsContextInWritingThread = true;
