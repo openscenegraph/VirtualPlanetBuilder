@@ -177,7 +177,7 @@ void convertRGBToBGRA( std::vector<unsigned char>& outputData, const unsigned ch
 }
 
 // Main interface with NVTT
-void nvttProcess( osg::Texture& texture, nvtt::Format format, bool generateMipMap, bool resizeToPowerOfTwo ,vpb::BuildOptions::CompressionMethod method)
+void nvttProcess( osg::Texture& texture, nvtt::Format format, bool generateMipMap, bool resizeToPowerOfTwo ,vpb::BuildOptions::CompressionMethod method,vpb::BuildOptions::CompressionQuality quality)
 {
     const osg::Image& image = *texture.getImage(0);
     // Fill input options
@@ -215,7 +215,21 @@ void nvttProcess( osg::Texture& texture, nvtt::Format format, bool generateMipMa
 
     // Fill compression options
     nvtt::CompressionOptions compressionOptions;
-    compressionOptions.setQuality( nvtt::Quality_Production );
+    switch(quality) 
+    {
+      case vpb::BuildOptions::FASTEST:
+        compressionOptions.setQuality( nvtt::Quality_Fastest );
+        break;
+      case vpb::BuildOptions::NORMAL:
+        compressionOptions.setQuality( nvtt::Quality_Normal );
+        break;
+      case vpb::BuildOptions::PRODUCTION:
+        compressionOptions.setQuality( nvtt::Quality_Production);
+        break;
+      case vpb::BuildOptions::HIGHEST:
+        compressionOptions.setQuality( nvtt::Quality_Highest);
+        break;
+    }    
     compressionOptions.setFormat( format );
     //compressionOptions.setQuantization(false,false,false);
     if (format == nvtt::Format_RGBA)
@@ -259,7 +273,7 @@ void nvttProcess( osg::Texture& texture, nvtt::Format format, bool generateMipMa
 }
 #endif
 
-void vpb::compress(osg::State& state, osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo,vpb::BuildOptions::CompressionMethod method)
+void vpb::compress(osg::State& state, osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo,vpb::BuildOptions::CompressionMethod method, vpb::BuildOptions::CompressionQuality quality)
 {
 #ifdef HAVE_NVTT
 
@@ -285,7 +299,7 @@ void vpb::compress(osg::State& state, osg::Texture& texture, osg::Texture::Inter
         return;
     }
 
-    nvttProcess( texture, format, generateMipMap, resizeToPowerOfTwo,method );
+    nvttProcess( texture, format, generateMipMap, resizeToPowerOfTwo,method,quality );
     
   } else {
     
@@ -333,7 +347,7 @@ void vpb::generateMipMap(osg::State& state, osg::Texture& texture, bool resizeTo
 #ifdef HAVE_NVTT
 
   if(method != vpb::BuildOptions::GL_DRIVER) {
-    nvttProcess( texture, nvtt::Format_RGBA, true, resizeToPowerOfTwo,method);
+    nvttProcess( texture, nvtt::Format_RGBA, true, resizeToPowerOfTwo,method, vpb::BuildOptions::NORMAL);
   } else {
 
 #endif

@@ -1334,7 +1334,7 @@ osg::StateSet* DestinationTile::createStateSet()
         
             bool generateMiMap = getImageOptions(layerNum)->getMipMappingMode()==DataSet::MIP_MAPPING_IMAGERY;
             bool resizePowerOfTwo = getImageOptions(layerNum)->getPowerOfTwoImages();
-            vpb::compress(*_dataSet->getState(),*texture,internalFormatMode,generateMiMap,resizePowerOfTwo,_dataSet->getCompressionMethod());
+            vpb::compress(*_dataSet->getState(),*texture,internalFormatMode,generateMiMap,resizePowerOfTwo,_dataSet->getCompressionMethod(),_dataSet->getCompressionQuality());
 
             log(osg::INFO,">>>>>>>>>>>>>>>compressed image.<<<<<<<<<<<<<<");
 

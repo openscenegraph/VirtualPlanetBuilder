@@ -386,6 +386,18 @@ class VPB_EXPORT BuildOptions : public ImageOptions
         void setCompressionMethod(CompressionMethod compressionMethod) { _compressionMethod = compressionMethod; }
         CompressionMethod getCompressionMethod() const { return _compressionMethod; }        
 
+        //Only applies when using NVVT compression. 
+        enum CompressionQuality
+        {
+            FASTEST,
+                NORMAL,
+                PRODUCTION,
+                HIGHEST
+        };
+
+        void setCompressionQuality(CompressionQuality compressionQuality) { _compressionQuality = compressionQuality; }
+        CompressionQuality getCompressionQuality() const { return _compressionQuality ; } 
+
 
         void setLayerImageOptions(unsigned int layerNum, vpb::ImageOptions* imageOptions);
         vpb::ImageOptions* getLayerImageOptions(unsigned int layerNum);
@@ -471,6 +483,7 @@ class VPB_EXPORT BuildOptions : public ImageOptions
         BlendingPolicy                              _blendingPolicy;
 
         CompressionMethod                           _compressionMethod;
+        CompressionQuality                          _compressionQuality;
 
         typedef std::vector< osg::ref_ptr<ImageOptions> > LayerImageOptions;
         LayerImageOptions                            _imageOptions;

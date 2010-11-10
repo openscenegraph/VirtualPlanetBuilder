@@ -594,6 +594,10 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--compressor-gl-driver", "Use the OpenGL driver to compress output imagery.");
     usage.addCommandLineOption("--compressor-nvtt", "Use NVTT to compress output imagery, using CUDA if possible.");
     usage.addCommandLineOption("--compressor-nvtt-nocuda", "Use NVTT to compress output imagery, disabling CUDA.");    
+    usage.addCommandLineOption("--compression-quality-fastest", "Uses the 'fastest' quality setting when using NVVT to compress textures.");    
+    usage.addCommandLineOption("--compression-quality-normal", "Uses the 'normal' quality setting when using NVVT to compress textures.");    
+    usage.addCommandLineOption("--compression-quality-production", "Uses the 'production' quality setting when using NVVT to compress textures.");    
+    usage.addCommandLineOption("--compression-quality-highest", "Uses the 'highest' quality setting when using NVVT to compress textures.");    
 }
 
 bool Commandline::readImageOptions(int pos, std::ostream& fout, osg::ArgumentParser& arguments, vpb::ImageOptions& imageOptions)
@@ -799,6 +803,24 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     {
       buildOptions->setCompressionMethod(vpb::BuildOptions::GL_DRIVER);      
     }
+
+    while(arguments.read("--compression-quality-fastest"))
+    {
+      buildOptions->setCompressionQuality(vpb::BuildOptions::FASTEST);      
+    }
+    while(arguments.read("--compression-quality-normal"))
+    {
+      buildOptions->setCompressionQuality(vpb::BuildOptions::NORMAL);      
+    }
+    while(arguments.read("--compression-quality-production"))
+    {
+      buildOptions->setCompressionQuality(vpb::BuildOptions::PRODUCTION);      
+    }
+    while(arguments.read("--compression-quality-highest"))
+    {
+      buildOptions->setCompressionQuality(vpb::BuildOptions::HIGHEST);      
+    }
+    
 
     std::string notifyLevel;
     while(arguments.read("--notify-level", notifyLevel))

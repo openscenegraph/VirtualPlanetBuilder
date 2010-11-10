@@ -150,6 +150,7 @@ BuildOptions::BuildOptions()
     _blendingPolicy = INHERIT;
     
     _compressionMethod = GL_DRIVER;
+    _compressionQuality = FASTEST;
 
 }
 
