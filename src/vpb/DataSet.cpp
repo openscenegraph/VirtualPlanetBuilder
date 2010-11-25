@@ -18,8 +18,6 @@
 
 #include <osg/GLU>
 
-#include <osgTerrain/GeometryTechnique>
-
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>
 #include <osgDB/FileNameUtils>
@@ -1592,7 +1590,9 @@ public:
             }
         }
         
-        if (dataSet->getDestinationTileExtension()==".osg") _writeHint = osg::Image::EXTERNAL_FILE;
+        if (dataSet->getDestinationTileExtension()==".osg" ||
+            dataSet->getDestinationTileExtension()==".osgt" ||
+            dataSet->getDestinationTileExtension()==".osgx") _writeHint = osg::Image::EXTERNAL_FILE;
     }
 
     vpb::DataSet*           _dataSet;
