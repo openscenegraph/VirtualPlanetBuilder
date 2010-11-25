@@ -107,6 +107,11 @@ System::System()
     addSupportedExtension("ppm", Source::IMAGE | Source::HEIGHT_FIELD, "Netpbm");
 
     addSupportedExtension("shp", Source::SHAPEFILE, "Shape file loader");
+
+    addSupportedExtension("osgb", Source::MODEL, "OpenSceneGraph binary format");
+    addSupportedExtension("osgx", Source::MODEL, "OpenSceneGraph xml format");
+    addSupportedExtension("osgt", Source::MODEL, "OpenSceneGraph text/ascii format");
+
     addSupportedExtension("osg", Source::MODEL, "OpenSceneGraph .osg ascii format");
     addSupportedExtension("ive", Source::MODEL, "OpenSceneGraph .ive binary format");
 }

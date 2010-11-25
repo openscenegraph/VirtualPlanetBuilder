@@ -549,7 +549,7 @@ REGISTER_OBJECT_WRAPPER( BuildOptions,
 {
     ADD_STRING_SERIALIZER( Directory, "" );
     ADD_STRING_SERIALIZER( DestinationTileBaseName, "output" );
-    ADD_STRING_SERIALIZER( DestinationTileExtension, ".ive" );
+    ADD_STRING_SERIALIZER( DestinationTileExtension, ".osgb" );
     ADD_BOOL_SERIALIZER( OutputTaskDirectories, true );
     ADD_STRING_SERIALIZER( ArchiveName, "");
     ADD_STRING_SERIALIZER( IntermediateBuildName, "");

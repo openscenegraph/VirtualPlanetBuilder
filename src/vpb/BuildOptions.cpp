@@ -116,7 +116,7 @@ BuildOptions::BuildOptions()
     _simplifyTerrain = true;
     _skirtRatio = 0.02f;
     _tileBasename = "output";
-    _tileExtension = ".ive";
+    _tileExtension = ".osgb";
     _useLocalTileTransform = true;
     _verticalScale = 1.0f;
     _writeNodeBeforeSimplification = false;
