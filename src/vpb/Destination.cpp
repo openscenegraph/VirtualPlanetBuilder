@@ -33,8 +33,6 @@
 #include <osgUtil/Simplifier>
 #include <osgUtil/TriStripVisitor>
 
-#include <osgTerrain/GeometryTechnique>
-
 using namespace vpb;
 
 #define SHIFT_RASTER_BY_HALF_CELL
@@ -1793,10 +1791,6 @@ osg::Node* DestinationTile::createTerrainTile()
     }
 
     
-    // assign the terrain technique that will be used to render the terrain tile.
-    osgTerrain::GeometryTechnique* gt = new osgTerrain::GeometryTechnique;
-    terrainTile->setTerrainTechnique(gt);
-    
     // assign cluster culling callback to terrain
     terrainTile->setCullCallback(createClusterCullingCallback());
     
@@ -2840,6 +2834,18 @@ public:
             {
                 _callbackList.push_back(Triple(getNodePath(),terrain,callback));
             }
+            return;
+        }
+        
+        osgTerrain::TerrainTile* terrainTile = dynamic_cast<osgTerrain::TerrainTile*>(&group);
+        if (terrainTile)
+        {
+            osg::ClusterCullingCallback* callback = dynamic_cast<osg::ClusterCullingCallback*>(terrainTile->getCullCallback());
+            if (callback)
+            {
+                _callbackList.push_back(Triple(getNodePath(),terrain,callback));
+            }
+            return;
         }
         else
         {
