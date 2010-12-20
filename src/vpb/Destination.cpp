@@ -23,6 +23,7 @@
 #include <osg/MatrixTransform>
 #include <osg/Notify>
 #include <osg/ImageUtils>
+#include <osg/PagedLOD>
 #include <osg/io_utils>
 
 #include <osgDB/ReadFile>
@@ -386,11 +387,11 @@ void DestinationTile::allocate()
                 
                 if (!setName.empty())
                 {
-                    switch(_dataSet->getOptionalElevationLayerOutputPolicy())
+                    switch(_dataSet->getOptionalImageLayerOutputPolicy())
                     {
                         case(BuildOptions::INLINE):
                             imageName += "_";
-                            imageName += setName;
+                            imageName += setName;                            
                             writeHint = osg::Image::EXTERNAL_FILE;
                             break;
                         case(BuildOptions::EXTERNAL_LOCAL_DIRECTORY):
@@ -398,7 +399,7 @@ void DestinationTile::allocate()
                             imageName += setName;
                             writeHint = osg::Image::EXTERNAL_FILE;
                             break;
-                        case(BuildOptions::EXTERNAL_SET_DIRECTORY):
+                        case(BuildOptions::EXTERNAL_SET_DIRECTORY):                            
                             imageName = _parent->getRelativePathForExternalSet(setName) + imageName;
                             writeHint = osg::Image::EXTERNAL_FILE;
                             break;

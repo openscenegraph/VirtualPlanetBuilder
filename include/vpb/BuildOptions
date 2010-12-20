@@ -390,9 +390,9 @@ class VPB_EXPORT BuildOptions : public ImageOptions
         enum CompressionQuality
         {
             FASTEST,
-                NORMAL,
-                PRODUCTION,
-                HIGHEST
+            NORMAL,
+            PRODUCTION,
+            HIGHEST
         };
 
         void setCompressionQuality(CompressionQuality compressionQuality) { _compressionQuality = compressionQuality; }

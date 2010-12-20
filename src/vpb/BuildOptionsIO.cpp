@@ -542,6 +542,42 @@ static bool writeLayerImageOptions( osgDB::OutputStream& os, const vpb::BuildOpt
 
 }
 
+
+static bool checkDestinationExtents( const vpb::BuildOptions& bo )
+{ return bo.getDestinationExtents().valid(); }
+
+static bool readDestinationExtents( osgDB::InputStream& is, vpb::BuildOptions& bo )
+{    
+    double xMin, xMax, yMin, yMax;
+    bool isGeo;
+    is >> osgDB::BEGIN_BRACKET;
+    is >> xMin;
+    is >> yMin;
+    is >> xMax;    
+    is >> yMax;
+    is >> isGeo;
+    is >> osgDB::END_BRACKET;
+    GeospatialExtents ext(xMin, yMin,xMax,yMax,isGeo);
+    bo.setDestinationExtents(ext);
+    return true;
+}
+
+static bool writeDestinationExtents( osgDB::OutputStream& os, const vpb::BuildOptions& bo )
+{    
+    GeospatialExtents ext(bo.getDestinationExtents());
+    os << osgDB::BEGIN_BRACKET << std::endl;            
+    os << ext.xMin();
+    os << ext.yMin();
+    os << ext.xMax();    
+    os << ext.yMax();
+    os << ext._isGeographic;
+    os << std::endl;
+
+    os << osgDB::END_BRACKET << std::endl;
+    return true;
+}
+
+
 REGISTER_OBJECT_WRAPPER( BuildOptions,
                          new vpb::BuildOptions,
                          vpb::BuildOptions,
@@ -649,7 +685,7 @@ REGISTER_OBJECT_WRAPPER( BuildOptions,
         ADD_ENUM_VALUE( EXTERNAL_SET_DIRECTORY );
     END_ENUM_SERIALIZER();
 
-    ADD_USER_SERIALIZER( OptionalLayerSet );
+    ADD_USER_SERIALIZER( OptionalLayerSet );    
 
     ADD_UINT_SERIALIZER( RevisionNumber, 0);
 
@@ -666,7 +702,20 @@ REGISTER_OBJECT_WRAPPER( BuildOptions,
         ADD_ENUM_VALUE( NVTT_NOCUDA);        
     END_ENUM_SERIALIZER();
 
+    BEGIN_ENUM_SERIALIZER( CompressionQuality, FASTEST);
+        ADD_ENUM_VALUE( FASTEST );
+        ADD_ENUM_VALUE( NORMAL );
+        ADD_ENUM_VALUE( PRODUCTION );        
+        ADD_ENUM_VALUE( HIGHEST );
+    END_ENUM_SERIALIZER();   
+
+    ADD_USER_SERIALIZER( DestinationExtents );
+
     ADD_USER_SERIALIZER( LayerImageOptions );
+
+    
+
+    
 }
 
 }

@@ -586,6 +586,8 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--set <setname>","Assign the set name of imagery/dem data.");
     usage.addCommandLineOption("--optional-set <setname>","Add setname to the list of optional layers.");
     usage.addCommandLineOption("--remove-optional-set <setname>","Remove setname to the list of optional layers.");
+    usage.addCommandLineOption("--optional-image-layout [inline/external-set-dir/external-local-dir]","Sets the layout to be used for optional image layers.");
+    usage.addCommandLineOption("--optional-elevation-layout [inline/external-set-dir/external-local-dir]","Sets the layout to be used for optional elevation layers.");
     usage.addCommandLineOption("--formats","List the supported source imagery and DEM formats.");
     usage.addCommandLineOption("--layer-inheritance [Lowest/Nearest/No]","Set the layer inheritance.");
     usage.addCommandLineOption("--pot ","Use power of two imagery when generating output tiles.");
@@ -1016,16 +1018,50 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         osgDB::ReaderWriter::Options* options = new osgDB::ReaderWriter::Options;
         options->setOptionString(str);
         osgDB::Registry::instance()->setOptions(options);
-    }
-
-    std::string filename;
-    double xMin, xMax, yMin, yMax;
+    }    
     
     std::string optionalsetname;
     while(arguments.read("--optional-set",optionalsetname)) { buildOptions->addOptionalLayerSet(optionalsetname); }
     while(arguments.read("--remove-optional-set",optionalsetname)) { buildOptions->removeOptionalLayerSet(optionalsetname); }
+    
+    std::string optionalImageLayout;
+    while (arguments.read("--optional-image-layout",optionalImageLayout) )
+    {
+        if (optionalImageLayout == "Inline" || optionalImageLayout == "inline")
+        {
+            buildOptions->setOptionalImageLayerOutputPolicy(BuildOptions::INLINE);
+        }
+        else if (optionalImageLayout == "External-Set-Dir" || optionalImageLayout == "external-set-dir")
+        {
+            buildOptions->setOptionalImageLayerOutputPolicy(BuildOptions::EXTERNAL_SET_DIRECTORY);
+        }
+        else if (optionalImageLayout == "External-Local-Dir" || optionalImageLayout == "external-local-dir")
+        {
+            buildOptions->setOptionalImageLayerOutputPolicy(BuildOptions::EXTERNAL_LOCAL_DIRECTORY);
+        }
+    }
+
+    std::string optionalElevationLayout;
+    while (arguments.read("--optional-elevation-layout",optionalElevationLayout) )
+    {
+        if (optionalElevationLayout == "Inline" || optionalElevationLayout == "inline")
+        {
+            buildOptions->setOptionalElevationLayerOutputPolicy(BuildOptions::INLINE);
+        }
+        else if (optionalElevationLayout == "External-Set-Dir" || optionalElevationLayout == "external-set-dir")
+        {
+            buildOptions->setOptionalElevationLayerOutputPolicy(BuildOptions::EXTERNAL_SET_DIRECTORY);
+        }
+        else if (optionalElevationLayout == "External-Local-Dir" || optionalElevationLayout == "external-local-dir")
+        {
+            buildOptions->setOptionalElevationLayerOutputPolicy(BuildOptions::EXTERNAL_LOCAL_DIRECTORY);
+        }
+    }
 
     vpb::ImageOptions* imageOptions = dynamic_cast<vpb::ImageOptions*>(buildOptions.get());
+
+    std::string filename;
+    double xMin, xMax, yMin, yMax;
 
     unsigned int revisionNum = 0;
     int pos = 1;
