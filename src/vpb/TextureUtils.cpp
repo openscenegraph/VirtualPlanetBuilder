@@ -274,7 +274,7 @@ void nvttProcess( osg::Texture& texture, nvtt::Format format, bool generateMipMa
 #endif
 
 #ifdef HAVE_NVTT
-void NVTTCProcessor::compress(osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method, vpb::BuildOptions::CompressionQuality quality)
+void vpb::NVTTProcessor::compress(osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method, vpb::BuildOptions::CompressionQuality quality)
 {
     nvtt::Format format;
     switch (compressedFormat)
@@ -299,7 +299,7 @@ void NVTTCProcessor::compress(osg::Texture& texture, osg::Texture::InternalForma
     nvttProcess( texture, format, generateMipMap, resizeToPowerOfTwo,method,quality );
 }
 
-void NVTTCompressor::generateMipMap(osg::Texture& texture, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method)
+void vpb::NVTTProcessor::generateMipMap(osg::Texture& texture, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method)
 {
     nvttProcess( texture, nvtt::Format_RGBA, true, resizeToPowerOfTwo,method, vpb::BuildOptions::NORMAL);
 }
@@ -312,7 +312,8 @@ void vpb::compress(osg::State& state, osg::Texture& texture, osg::Texture::Inter
 
   if(method != vpb::BuildOptions::GL_DRIVER) {
 
-    NVTTProcessor::compress(osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo,vpb::BuildOptions::CompressionMethod method, vpb::BuildOptions::CompressionQuality quality);
+    vpb::NVTTProcessor processor;
+    processor.compress(texture, compressedFormat, generateMipMap, resizeToPowerOfTwo, method, quality);
 
   } else {
 
@@ -361,7 +362,8 @@ void vpb::generateMipMap(osg::State& state, osg::Texture& texture, bool resizeTo
 
   if(method != vpb::BuildOptions::GL_DRIVER) {
 
-    NVTTProcessor::generateMipMap(osg::State& state, osg::Texture& texture, bool resizeToPowerOfTwo,vpb::BuildOptions::CompressionMethod method)
+    vpb::NVTTProcessor processor;
+    processor.generateMipMap(texture, resizeToPowerOfTwo, method);
 
       
 } else {

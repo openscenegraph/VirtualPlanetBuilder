@@ -24,12 +24,14 @@ namespace vpb
 
 class ImageProcessor
 {
+public:
     virtual void compress(osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method, vpb::BuildOptions::CompressionQuality quality) = 0;
     virtual void generateMipMap(osg::Texture& texture, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method) = 0;
 };
 
 class VPB_EXPORT NVTTProcessor : public ImageProcessor
 {
+public:
     virtual void compress(osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method, vpb::BuildOptions::CompressionQuality quality);
     virtual void generateMipMap(osg::Texture& texture, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method);
 };
