@@ -273,12 +273,9 @@ void nvttProcess( osg::Texture& texture, nvtt::Format format, bool generateMipMa
 }
 #endif
 
-void vpb::compress(osg::State& state, osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo,vpb::BuildOptions::CompressionMethod method, vpb::BuildOptions::CompressionQuality quality)
-{
 #ifdef HAVE_NVTT
-
-  if(method != vpb::BuildOptions::GL_DRIVER) {
-
+void NVTTCProcessor::compress(osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method, vpb::BuildOptions::CompressionQuality quality)
+{
     nvtt::Format format;
     switch (compressedFormat)
     {
@@ -300,12 +297,28 @@ void vpb::compress(osg::State& state, osg::Texture& texture, osg::Texture::Inter
     }
 
     nvttProcess( texture, format, generateMipMap, resizeToPowerOfTwo,method,quality );
-    
-  } else {
-    
+}
+
+void NVTTCompressor::generateMipMap(osg::Texture& texture, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method)
+{
+    nvttProcess( texture, nvtt::Format_RGBA, true, resizeToPowerOfTwo,method, vpb::BuildOptions::NORMAL);
+}
 #endif
 
-    if(method != vpb::BuildOptions::GL_DRIVER) 
+
+void vpb::compress(osg::State& state, osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo,vpb::BuildOptions::CompressionMethod method, vpb::BuildOptions::CompressionQuality quality)
+{
+#ifdef HAVE_NVTT
+
+  if(method != vpb::BuildOptions::GL_DRIVER) {
+
+    NVTTProcessor::compress(osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo,vpb::BuildOptions::CompressionMethod method, vpb::BuildOptions::CompressionQuality quality);
+
+  } else {
+
+#endif
+
+    if(method != vpb::BuildOptions::GL_DRIVER)
     {
       log(osg::WARN,"NVTT selected for texture processing but it is not available.");
     }
@@ -347,12 +360,15 @@ void vpb::generateMipMap(osg::State& state, osg::Texture& texture, bool resizeTo
 #ifdef HAVE_NVTT
 
   if(method != vpb::BuildOptions::GL_DRIVER) {
-    nvttProcess( texture, nvtt::Format_RGBA, true, resizeToPowerOfTwo,method, vpb::BuildOptions::NORMAL);
-  } else {
+
+    NVTTProcessor::generateMipMap(osg::State& state, osg::Texture& texture, bool resizeToPowerOfTwo,vpb::BuildOptions::CompressionMethod method)
+
+      
+} else {
 
 #endif
 
-    if(method != vpb::BuildOptions::GL_DRIVER) 
+    if(method != vpb::BuildOptions::GL_DRIVER)
     {
       log(osg::WARN,"NVTT selected for texture processing but it is not available.");
     }
@@ -372,4 +388,6 @@ void vpb::generateMipMap(osg::State& state, osg::Texture& texture, bool resizeTo
 #ifdef HAVE_NVTT
   }
  #endif
+
 }
+
