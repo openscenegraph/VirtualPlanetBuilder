@@ -7,15 +7,15 @@
 #include <string.h>
 
 
-class VPB_EXPORT NVTTProcessor : public vpb::ImageProcessor
+class VPB_EXPORT NVTTProcessor : public osg::ImageProcessor
 {
 public:
-    virtual void compress(osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, CompressionMethod method, CompressionQuality quality);
-    virtual void generateMipMap(osg::Texture& texture, bool resizeToPowerOfTwo, CompressionMethod method);
+    virtual void compress(osg::Image& image, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, CompressionMethod method, CompressionQuality quality);
+    virtual void generateMipMap(osg::Image& image, bool resizeToPowerOfTwo, CompressionMethod method);
 
 protected:
 
-    void process( osg::Texture& texture, nvtt::Format format, bool generateMipMap, bool resizeToPowerOfTwo, CompressionMethod method, CompressionQuality quality);
+    void process( osg::Image& texture, nvtt::Format format, bool generateMipMap, bool resizeToPowerOfTwo, CompressionMethod method, CompressionQuality quality);
 
     struct VPBErrorHandler : public nvtt::ErrorHandler
     {
@@ -38,7 +38,7 @@ protected:
         virtual ~OSGImageOutputHandler();
 
         // create the osg image from the given format
-        osg::Image* createOSGImage(osg::Texture& texture);
+        bool assignImage(osg::Image& image);
 
         /// Indicate the start of a new compressed image that's part of the final texture.
         virtual void beginImage(int size, int width, int height, int depth, int face, int miplevel);
@@ -97,7 +97,7 @@ NVTTProcessor::OSGImageOutputHandler::~OSGImageOutputHandler()
 }
 
 // create the osg image from the given format
-osg::Image* NVTTProcessor::OSGImageOutputHandler::createOSGImage(osg::Texture& texture)
+bool NVTTProcessor::OSGImageOutputHandler::assignImage(osg::Image& image)
 {
     // convert nvtt format to OpenGL pixel format
     GLint pixelFormat;
@@ -120,15 +120,7 @@ osg::Image* NVTTProcessor::OSGImageOutputHandler::createOSGImage(osg::Texture& t
         break;
     default:
         vpb::log(osg::WARN," Invalid or not supported format");
-        return 0;
-    }
-
-    // Reuse the image from the texture if it it exists
-    // Important to behave like the non-NVTT code (and to works with --terrain!)
-    osg::Image* image = texture.getImage(0);
-    if ( image == 0 )
-    {
-        image = new osg::Image();
+        return false;
     }
 
     // Compute the total size and the mipmap offsets
@@ -149,9 +141,10 @@ osg::Image* NVTTProcessor::OSGImageOutputHandler::createOSGImage(osg::Texture& t
         ptr += _mipmaps[n]->size();
     }
 
-    image->setImage(_width,_height,1,pixelFormat,pixelFormat,GL_UNSIGNED_BYTE,data,osg::Image::USE_NEW_DELETE);
-    image->setMipmapLevels(mipmapOffsets);
-    return image;
+    image.setImage(_width,_height,1,pixelFormat,pixelFormat,GL_UNSIGNED_BYTE,data,osg::Image::USE_NEW_DELETE);
+    image.setMipmapLevels(mipmapOffsets);
+
+    return true;
 }
 
 /// Indicate the start of a new compressed image that's part of the final texture.
@@ -209,9 +202,8 @@ void NVTTProcessor::convertRGBToBGRA( std::vector<unsigned char>& outputData, co
 }
 
 // Main interface with NVTT
-void NVTTProcessor::process( osg::Texture& texture, nvtt::Format format, bool generateMipMap, bool resizeToPowerOfTwo ,vpb::ImageProcessor::CompressionMethod method,vpb::ImageProcessor::CompressionQuality quality)
+void NVTTProcessor::process( osg::Image& image, nvtt::Format format, bool generateMipMap, bool resizeToPowerOfTwo, CompressionMethod method, CompressionQuality quality)
 {
-    const osg::Image& image = *texture.getImage(0);
     // Fill input options
     nvtt::InputOptions inputOptions;
     inputOptions.setTextureLayout(nvtt::TextureType_2D, image.s(), image.t() );
@@ -288,7 +280,8 @@ void NVTTProcessor::process( osg::Texture& texture, nvtt::Format format, bool ge
 
     // Process the compression now
     nvtt::Compressor compressor;
-    if(method == vpb::ImageProcessor::NVTT) {           
+    if(method == USE_GPU)
+    {
       compressor.enableCudaAcceleration(true);
       if(!compressor.isCudaAccelerationEnabled()) {
         vpb::log(osg::WARN, "CUDA acceleration was enabled but it is not available. CPU will be used.");
@@ -299,18 +292,16 @@ void NVTTProcessor::process( osg::Texture& texture, nvtt::Format format, bool ge
 
     compressor.process(inputOptions,compressionOptions,outputOptions);
 
-    texture.setImage( 0, outputHandler.createOSGImage(texture) );
-    texture.setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
-    texture.setResizeNonPowerOfTwoHint(resizeToPowerOfTwo);
+    outputHandler.assignImage(image);
 }
 
-void NVTTProcessor::compress(osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, CompressionMethod method, CompressionQuality quality)
+void NVTTProcessor::compress(osg::Image& image, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, CompressionMethod method, CompressionQuality quality)
 {
     nvtt::Format format;
     switch (compressedFormat)
     {
     case osg::Texture::USE_S3TC_DXT1_COMPRESSION:
-        if (texture.getImage(0)->getPixelFormat() == GL_RGBA)
+        if (image.getPixelFormat() == GL_RGBA)
             format = nvtt::Format_DXT1a;
         else
             format = nvtt::Format_DXT1;
@@ -326,12 +317,12 @@ void NVTTProcessor::compress(osg::Texture& texture, osg::Texture::InternalFormat
         return;
     }
 
-    process( texture, format, generateMipMap, resizeToPowerOfTwo,method,quality );
+    process( image, format, generateMipMap, resizeToPowerOfTwo, method, quality );
 }
 
-void NVTTProcessor::generateMipMap(osg::Texture& texture, bool resizeToPowerOfTwo, CompressionMethod method)
+void NVTTProcessor::generateMipMap(osg::Image& image, bool resizeToPowerOfTwo, CompressionMethod method)
 {
-    process( texture, nvtt::Format_RGBA, true, resizeToPowerOfTwo,method, NORMAL);
+    process( image, nvtt::Format_RGBA, true, resizeToPowerOfTwo, method, NORMAL);
 }
 #endif
 
@@ -342,8 +333,21 @@ void vpb::compress(osg::State& state, osg::Texture& texture, osg::Texture::Inter
 
   if(method != vpb::BuildOptions::GL_DRIVER) {
 
+    NVTTProcessor::CompressionMethod cm = (method==vpb::BuildOptions::NVTT) ?  NVTTProcessor::USE_GPU : NVTTProcessor::USE_CPU;
+    NVTTProcessor::CompressionQuality cq = NVTTProcessor::NORMAL;
+    switch(quality)
+    {
+        case(vpb::BuildOptions::FASTEST): cq = NVTTProcessor::FASTEST;
+        case(vpb::BuildOptions::NORMAL): cq = NVTTProcessor::NORMAL;
+        case(vpb::BuildOptions::PRODUCTION): cq = NVTTProcessor::PRODUCTION;
+        case(vpb::BuildOptions::HIGHEST): cq = NVTTProcessor::HIGHEST;
+    }
+
     NVTTProcessor processor;
-    processor.compress(texture, compressedFormat, generateMipMap, resizeToPowerOfTwo, static_cast<ImageProcessor::CompressionMethod>(method), static_cast<ImageProcessor::CompressionQuality>(quality));
+    processor.compress(*texture.getImage(0), compressedFormat, generateMipMap, resizeToPowerOfTwo, cm, cq);
+
+    texture.setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
+    texture.setResizeNonPowerOfTwoHint(resizeToPowerOfTwo);
 
   } else {
 
@@ -392,10 +396,14 @@ void vpb::generateMipMap(osg::State& state, osg::Texture& texture, bool resizeTo
 
   if(method != vpb::BuildOptions::GL_DRIVER) {
 
-    NVTTProcessor processor;
-    processor.generateMipMap(texture, resizeToPowerOfTwo, static_cast<ImageProcessor::CompressionMethod>(method));
+    NVTTProcessor::CompressionMethod cm = (method==vpb::BuildOptions::NVTT) ?  NVTTProcessor::USE_GPU : NVTTProcessor::USE_CPU;
 
-      
+    NVTTProcessor processor;
+    processor.generateMipMap(*texture.getImage(0), resizeToPowerOfTwo, cm);
+
+    texture.setInternalFormatMode(osg::Texture::USE_IMAGE_DATA_FORMAT);
+    texture.setResizeNonPowerOfTwoHint(resizeToPowerOfTwo);
+
 } else {
 
 #endif

@@ -19,19 +19,16 @@
 #include <osg/Texture>
 #include <vpb/BuildOptions>
 
-namespace vpb
+namespace osg
 {
-
 class ImageProcessor
 {
 public:
 
-
     enum CompressionMethod
     {
-        GL_DRIVER, //Use a GL context to do the compression
-        NVTT, //Use NVTT based compression, using CUDA if available
-        NVTT_NOCUDA //Use NVTT based compression with CUDA disabled
+        USE_CPU, /// Use CPU for compression even when GPU compression is available
+        USE_GPU  /// Use GPU for compression when available (i.e CUDA), otherwise fallback to CPU
     };
 
     //Only applies when using NVVT compression.
@@ -43,13 +40,17 @@ public:
         HIGHEST
     };
 
-    virtual void compress(osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, CompressionMethod method, CompressionQuality quality) = 0;
-    virtual void generateMipMap(osg::Texture& texture, bool resizeToPowerOfTwo, CompressionMethod method) = 0;
+    virtual void compress(osg::Image& image, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, CompressionMethod method, CompressionQuality quality) = 0;
+    virtual void generateMipMap(osg::Image& image, bool resizeToPowerOfTwo, CompressionMethod method) = 0;
 };
+
+}
+
+namespace vpb
+{
 
 extern VPB_EXPORT void compress(osg::State& state, osg::Texture& texture, osg::Texture::InternalFormatMode compressedFormat, bool generateMipMap, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method, vpb::BuildOptions::CompressionQuality quality);
 extern VPB_EXPORT void generateMipMap(osg::State& state, osg::Texture& texture, bool resizeToPowerOfTwo, vpb::BuildOptions::CompressionMethod method);
-
 
 }
 
