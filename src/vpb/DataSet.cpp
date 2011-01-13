@@ -3137,13 +3137,15 @@ int DataSet::_run()
     
     log(osg::NOTICE,"DataSet::_run() %i %i",getDistributedBuildSplitLevel(),getDistributedBuildSecondarySplitLevel());
 
-#ifdef HAVE_NVTT 
-    bool requiresGraphicsContextInMainThread = (getCompressionMethod() == vpb::BuildOptions::GL_DRIVER);    
-    bool requiresGraphicsContextInWritingThread = (getCompressionMethod() == vpb::BuildOptions::GL_DRIVER);
-#else
     bool requiresGraphicsContextInMainThread = true;
     bool requiresGraphicsContextInWritingThread = true;
-#endif
+
+    osgDB::ImageProcessor* imageProcessor = osgDB::Registry::instance()->getImageProcessor();
+    if (imageProcessor)
+    {
+        requiresGraphicsContextInMainThread = (getCompressionMethod() == vpb::BuildOptions::GL_DRIVER);
+        requiresGraphicsContextInWritingThread = (getCompressionMethod() == vpb::BuildOptions::GL_DRIVER);
+    }
 
     int numProcessors = OpenThreads::GetNumberOfProcessors();
 #if 0
