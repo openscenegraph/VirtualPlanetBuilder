@@ -71,6 +71,8 @@ struct DestinationData : public osg::Referenced, SpatialProperties
 class DestinationVisitor
 {
 public:
+    DestinationVisitor() {}
+    virtual ~DestinationVisitor() {}
 
     virtual void traverse(CompositeDestination&);
     virtual void apply(CompositeDestination& cd);

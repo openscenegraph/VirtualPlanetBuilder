@@ -30,7 +30,8 @@ struct FileProxy
     typedef unsigned int offset_t;
 
     FileProxy(const std::string& filename):
-        _fileID(0)
+        _fileID(0),
+        _requiresSync(false)
     {
         if (vpb::access(filename.c_str(), F_OK)==0)
         {

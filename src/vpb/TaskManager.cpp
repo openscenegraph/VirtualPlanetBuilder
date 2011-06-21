@@ -102,7 +102,7 @@ void TaskManager::readPatchSetUp(const std::string& patchFile)
             int revisionNum = -1;
             if (isNumeric)
             {
-                revisionNum = atof(extension.c_str());
+                revisionNum = atoi(extension.c_str());
                 filename = osgDB::getNameLessExtension(filename);
                 extension = osgDB::getFileExtension(filename);
                 basename = filename;
@@ -171,7 +171,7 @@ void TaskManager::readPatchSetUp(const std::string& patchFile)
                     int revisionNum = -1;
                     if (isNumeric)
                     {
-                        revisionNum = atof(revisionExtension.c_str());
+                        revisionNum = atoi(revisionExtension.c_str());
                         sourceMap[revisionNum] = file;
                     }
                     else

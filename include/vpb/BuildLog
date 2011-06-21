@@ -189,6 +189,8 @@ class VPB_EXPORT BuildLog : public OperationLog
 class Logger
 {
     public:
+        Logger() {}
+        virtual ~Logger() {}
 
         virtual void setBuildLog(BuildLog* bl) { _buildLog = bl; }
         BuildLog* getBuildLog() { return _buildLog.get(); }
