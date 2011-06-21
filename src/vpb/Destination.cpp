@@ -32,7 +32,6 @@
 
 #include <osgUtil/SmoothingVisitor>
 #include <osgUtil/Simplifier>
-#include <osgUtil/TriStripVisitor>
 
 using namespace vpb;
 
@@ -2439,12 +2438,6 @@ osg::Node* DestinationTile::createPolygonal()
     
         simplifier.simplify(*geometry, pointsToProtectDuringSimplification);  // this will replace the normal vector with a new one
     }
-
-    osgUtil::TriStripVisitor tsv;
-    tsv.setMinStripSize(3);
-    tsv.stripify(*geometry);
-
-
 
     if (useLocalToTileTransform)
     {
