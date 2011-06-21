@@ -173,7 +173,7 @@ SET(CMAKE_DEBUG_POSTFIX  "d")
 
 FIND_PACKAGE(NVTT)
 FIND_PACKAGE(LibSquish)
-FIND_PACKAGE(OSG 2.9.8)
+FIND_PACKAGE(OpenSceneGraph 2.9.8 REQUIRED osgDB osgFX osgUtil osgSim osgTerrain osgViewer osgGA osgText)
 FIND_PACKAGE(GDAL)
 
 ################################################################################
