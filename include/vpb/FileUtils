@@ -26,7 +26,7 @@
 #ifdef WIN32
     #include <sys/types.h>
     #include <sys/stat.h>
-
+#if !(defined(__CYGWIN__) || defined(__MINGW32__))
     #define ssize_t int     // return type of read() is int on Win32
     #define __const const
     #define __off_t off_t
@@ -37,7 +37,7 @@
     #define W_OK 02
     #define R_OK 04
     #define X_OK 06
-    
+#endif
     // For fchmod (which doesn't exist on Win32)
     // S_IREAD and S_IWRITE are in <sys/stat.h>
     #define S_IRGRP 0
@@ -45,7 +45,9 @@
     #define S_IROTH 0
     #define S_IWOTH 0
 
+#if !(defined(__CYGWIN__) || defined(__MINGW32__))
     #define S_IRWXU _S_IREAD | _S_IWRITE
+#endif
     #define S_IRWXG 0
     #define S_IRWXO 0
 #else

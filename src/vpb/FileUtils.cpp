@@ -8,7 +8,9 @@
     #define WIN32_LEAN_AND_MEAN 1
     #include <windows.h>
     #include <stdarg.h>
+#if !(defined(__CYGWIN__) || defined(__MINGW32__))
     #include <varargs.h>
+#endif
     #include <io.h>
     #include <process.h>
     #include <direct.h>
@@ -16,9 +18,11 @@
     #include <winsock.h>
     #include <sys/types.h>
 
+#if !(defined(__CYGWIN__) || defined(__MINGW32__))
     #define ssize_t int     // return type of read() is int on Win32
     #define __const const
     #define __off_t off_t
+#endif
 
     int     vpb::access(const char *path, int amode)              { return ::_access(path, amode); }
     int     vpb::open(const char *path, int oflag)                { return ::_open(path, oflag); }
