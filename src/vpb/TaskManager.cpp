@@ -827,6 +827,8 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
 
 bool TaskManager::readTasks(const std::string& filename)
 {
+    log(osg::NOTICE,"Reading tasks from file...");
+
     std::string foundFile = osgDB::findDataFile(filename);
     if (foundFile.empty())
     {
@@ -893,6 +895,7 @@ bool TaskManager::readTasks(const std::string& filename)
         }
     }
     
+    log(osg::NOTICE,"Task file read");
     return false;
 }
 
