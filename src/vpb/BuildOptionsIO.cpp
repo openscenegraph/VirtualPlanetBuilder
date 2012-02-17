@@ -272,6 +272,8 @@ public:
             VPB_AEV(ARB_COMPRESSED);
             VPB_AEV(COMPRESSED_TEXTURE);
             VPB_AEV(COMPRESSED_RGBA_TEXTURE);
+            VPB_AEV(RGB32F);
+            VPB_AEV(RGBA32F);
         }
 
         VPB_ADD_UINT_PROPERTY(MaximumTileImageSize);
@@ -460,6 +462,8 @@ REGISTER_OBJECT_WRAPPER( ImageOptions,
         ADD_ENUM_VALUE( ARB_COMPRESSED );
         ADD_ENUM_VALUE( COMPRESSED_TEXTURE );
         ADD_ENUM_VALUE( COMPRESSED_RGBA_TEXTURE );
+        ADD_ENUM_VALUE( RGB32F );
+        ADD_ENUM_VALUE( RGBA32F );
     END_ENUM_SERIALIZER();
 
     ADD_UINT_SERIALIZER( ImageryQuantization, 0 );

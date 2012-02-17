@@ -106,7 +106,15 @@ GLenum DestinationTile::getPixelFormat(unsigned int layerNum) const
             textureType==ImageOptions::RGBA_16 ||
             textureType==ImageOptions::RGBA_S3TC_DXT1 ||
             textureType==ImageOptions::RGBA_S3TC_DXT3 ||
-            textureType==ImageOptions::RGBA_S3TC_DXT5 ) ? GL_RGBA : GL_RGB;        
+            textureType==ImageOptions::RGBA_S3TC_DXT5 ||
+            textureType==ImageOptions::RGBA32F) ? GL_RGBA : GL_RGB;        
+}
+
+GLenum DestinationTile::getPixelType(unsigned int layerNum) const
+{
+    ImageOptions::TextureType textureType = getImageOptions(layerNum)->getTextureType();
+    return (textureType==ImageOptions::RGBA32F||
+            textureType==ImageOptions::RGB32F ? GL_FLOAT : GL_UNSIGNED_BYTE);
 }
 
 void DestinationTile::requiresDivision(float resolutionSensitivityScale, bool& needToDivideX, bool& needToDivideY)
@@ -412,7 +420,7 @@ void DestinationTile::allocate()
                 imageData._imageDestination->_image->setFileName(imageName.c_str());
                 imageData._imageDestination->_image->setWriteHint(writeHint);
 
-                imageData._imageDestination->_image->allocateImage(texture_numColumns,texture_numRows,1,getPixelFormat(layerNum),GL_UNSIGNED_BYTE);
+                imageData._imageDestination->_image->allocateImage(texture_numColumns,texture_numRows,1,getPixelFormat(layerNum),getPixelType(layerNum));
                 unsigned char* data = imageData._imageDestination->_image->data();
                 unsigned int totalSize = imageData._imageDestination->_image->getTotalSizeInBytesIncludingMipmaps();
                 for(unsigned int i=0;i<totalSize;++i)

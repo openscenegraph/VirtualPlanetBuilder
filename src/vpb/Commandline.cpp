@@ -528,6 +528,8 @@ void Commandline::getUsage(osg::ApplicationUsage& usage)
     usage.addCommandLineOption("--RGB-24","Use 24bit RGB destination imagery.");
     usage.addCommandLineOption("--RGBA-16","Use 16bit RGBA destination imagery.");
     usage.addCommandLineOption("--RGBA","Use 32bit RGBA destination imagery.");
+    usage.addCommandLineOption("--RGB32F","Use 3 channel, 32bit per channel destination imagery.");
+    usage.addCommandLineOption("--RGBA32F","Use 4 channel, 32bit per channel destination imagery.");
     usage.addCommandLineOption("--vector","Interpret input as a vector data set");
     usage.addCommandLineOption("--raster","Interpret input as a raster data set (default).");
     usage.addCommandLineOption("--max-visible-distance-of-top-level","Set the maximum visible distance that the top most tile can be viewed at.");
@@ -634,6 +636,8 @@ bool Commandline::readImageOptions(int pos, std::ostream& fout, osg::ArgumentPar
     if (arguments.read(pos, "--RGBA_16") || arguments.read(pos, "--RGBA-16") ) { imageOptions.setTextureType(vpb::BuildOptions::RGBA_16); readField = true;}
     if (arguments.read(pos, "--RGB_24") || arguments.read(pos, "--RGB-24") ) { imageOptions.setTextureType(vpb::BuildOptions::RGB_24); readField = true;}
     if (arguments.read(pos, "--RGBA") || arguments.read(pos, "--RGBA") ) { imageOptions.setTextureType(vpb::BuildOptions::RGBA); readField = true;}
+    if (arguments.read(pos, "--RGB32F") || arguments.read(pos, "--RGB32F") ) { imageOptions.setTextureType(vpb::BuildOptions::RGB32F); readField = true;}
+    if (arguments.read(pos, "--RGBA32F") || arguments.read(pos, "--RGBA32F") ) { imageOptions.setTextureType(vpb::BuildOptions::RGBA32F); readField = true;}
 
     if (arguments.read(pos, "--no_mip_mapping") || arguments.read(pos, "--no-mip-mapping")) { imageOptions.setMipMappingMode(vpb::BuildOptions::NO_MIP_MAPPING); readField = true;}
     if (arguments.read(pos, "--mip_mapping_hardware") || arguments.read(pos, "--mip-mapping-hardware")) { imageOptions.setMipMappingMode(vpb::BuildOptions::MIP_MAPPING_HARDWARE); readField = true; }

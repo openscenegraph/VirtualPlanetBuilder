@@ -75,7 +75,9 @@ class VPB_EXPORT ImageOptions : public osg::Object
             RGBA_S3TC_DXT5,
             ARB_COMPRESSED,
             COMPRESSED_TEXTURE,
-            COMPRESSED_RGBA_TEXTURE
+            COMPRESSED_RGBA_TEXTURE,
+            RGB32F,
+            RGBA32F
         };
 
         void setTextureType(TextureType type) { _textureType = type; }

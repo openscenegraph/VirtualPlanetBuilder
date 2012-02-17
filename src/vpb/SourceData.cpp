@@ -525,8 +525,8 @@ void SourceData::readImage(DestinationData& destination)
             {
                 // RGB
 
-                unsigned int numBytesPerPixel = 1;
-                GDALDataType targetGDALType = GDT_Byte;
+                unsigned int numBytesPerPixel = destination._image->getDataType() == GL_FLOAT ? 4 : 1;
+                GDALDataType targetGDALType = destination._image->getDataType() == GL_FLOAT ? GDT_Float32 : GDT_Byte;
 
                 int pixelSpace=numSourceComponents*numBytesPerPixel;
 
@@ -554,12 +554,12 @@ void SourceData::readImage(DestinationData& destination)
                     bandGreen->RasterIO(GF_Read, 
                                         windowX,_numValuesY-(windowY+windowHeight), 
                                         windowWidth,windowHeight, 
-                                        (void*)(tempImage+1),readWidth,readHeight, 
+                                        (void*)(tempImage+1*numBytesPerPixel),readWidth,readHeight, 
                                         targetGDALType,pixelSpace,pixelSpace*readWidth);
                     bandBlue->RasterIO(GF_Read, 
                                        windowX,_numValuesY-(windowY+windowHeight), 
                                        windowWidth,windowHeight, 
-                                       (void*)(tempImage+2),readWidth,readHeight, 
+                                       (void*)(tempImage+2*numBytesPerPixel),readWidth,readHeight, 
                                        targetGDALType,pixelSpace,pixelSpace*readWidth);
 
                     if (bandAlpha)
@@ -567,7 +567,7 @@ void SourceData::readImage(DestinationData& destination)
                         bandAlpha->RasterIO(GF_Read, 
                                            windowX,_numValuesY-(windowY+windowHeight), 
                                            windowWidth,windowHeight, 
-                                           (void*)(tempImage+3),readWidth,readHeight, 
+                                           (void*)(tempImage+3*numBytesPerPixel),readWidth,readHeight, 
                                            targetGDALType,pixelSpace,pixelSpace*readWidth);
                     }
                 }
@@ -631,12 +631,12 @@ void SourceData::readImage(DestinationData& destination)
                     band->RasterIO(GF_Read, 
                                    windowX,_numValuesY-(windowY+windowHeight), 
                                    windowWidth,windowHeight, 
-                                   (void*)(tempImage+1),readWidth,readHeight, 
+                                   (void*)(tempImage+1*numBytesPerPixel),readWidth,readHeight, 
                                    targetGDALType,pixelSpace,pixelSpace*readWidth);
                     band->RasterIO(GF_Read, 
                                    windowX,_numValuesY-(windowY+windowHeight), 
                                    windowWidth,windowHeight, 
-                                   (void*)(tempImage+2),readWidth,readHeight, 
+                                   (void*)(tempImage+2*numBytesPerPixel),readWidth,readHeight, 
                                    targetGDALType,pixelSpace,pixelSpace*readWidth);
                 }
 
@@ -668,16 +668,28 @@ void SourceData::readImage(DestinationData& destination)
                             if (read_j==readHeight-1) flt_read_jr=0.0f;
 
                             unsigned char* dest = destImage + (j*destWidth + i) * pixelSpace;
+                            float* dest_float = (float*)dest;
                             if (flt_read_ir==0.0f)  // no need to interpolate i axis.
                             {
                                 if (flt_read_jr==0.0f)  // no need to interpolate j axis.
                                 {
                                     // copy pixels
                                     unsigned char* src = tempImage + (read_j*readWidth + read_i) * pixelSpace;
-                                    dest[0] = src[0];
-                                    dest[1] = src[1];
-                                    dest[2] = src[2];
-                                    if (numSourceComponents==4) dest[3] = src[3];
+                                    if (targetGDALType == GDT_Float32)
+                                    {
+                                        float* src_float = (float*)src;
+                                        dest_float[0] = src_float[0];
+                                        dest_float[1] = src_float[1];
+                                        dest_float[2] = src_float[2];
+                                        if (numSourceComponents==4) dest_float[3] = src_float[3];
+                                    }
+                                    else
+                                    {
+                                        dest[0] = src[0];
+                                        dest[1] = src[1];
+                                        dest[2] = src[2];
+                                        if (numSourceComponents==4) dest[3] = src[3];
+                                    }
                                     //std::cout<<"copy");
                                 }
                                 else  // need to interpolate j axis.
@@ -687,10 +699,22 @@ void SourceData::readImage(DestinationData& destination)
                                     unsigned char* src_1 = src_0 + readWidth*pixelSpace;
                                     float r_0 = 1.0f-flt_read_jr;
                                     float r_1 = flt_read_jr;
-                                    dest[0] = (unsigned char)((float)src_0[0]*r_0 + (float)src_1[0]*r_1);
-                                    dest[1] = (unsigned char)((float)src_0[1]*r_0 + (float)src_1[1]*r_1);
-                                    dest[2] = (unsigned char)((float)src_0[2]*r_0 + (float)src_1[2]*r_1);
-                                    if (numSourceComponents==4) dest[3] = (unsigned char)((float)src_0[3]*r_0 + (float)src_1[3]*r_1);
+                                    if (targetGDALType == GDT_Float32)
+                                    {
+                                        float* src_0_float = (float*)src_0;
+                                        float* src_1_float = (float*)src_1;
+                                        dest[0] = src_0_float[0]*r_0 + src_1_float[0]*r_1;
+                                        dest[1] = src_0_float[1]*r_0 + src_1_float[1]*r_1;
+                                        dest[2] = src_0_float[2]*r_0 + src_1_float[2]*r_1;
+                                        if (numSourceComponents==4) dest[3] = src_0_float[3]*r_0 + src_1_float[3]*r_1;
+                                    }
+                                    else
+                                    {
+                                        dest[0] = (unsigned char)((float)src_0[0]*r_0 + (float)src_1[0]*r_1);
+                                        dest[1] = (unsigned char)((float)src_0[1]*r_0 + (float)src_1[1]*r_1);
+                                        dest[2] = (unsigned char)((float)src_0[2]*r_0 + (float)src_1[2]*r_1);
+                                        if (numSourceComponents==4) dest[3] = (unsigned char)((float)src_0[3]*r_0 + (float)src_1[3]*r_1);
+                                    }
                                     //std::cout<<"interpolate j axis");
                                 }
                             }
@@ -703,10 +727,22 @@ void SourceData::readImage(DestinationData& destination)
                                     unsigned char* src_1 = src_0 + pixelSpace;
                                     float r_0 = 1.0f-flt_read_ir;
                                     float r_1 = flt_read_ir;
-                                    dest[0] = (unsigned char)((float)src_0[0]*r_0 + (float)src_1[0]*r_1);
-                                    dest[1] = (unsigned char)((float)src_0[1]*r_0 + (float)src_1[1]*r_1);
-                                    dest[2] = (unsigned char)((float)src_0[2]*r_0 + (float)src_1[2]*r_1);
-                                    if (numSourceComponents==4) dest[3] = (unsigned char)((float)src_0[3]*r_0 + (float)src_1[3]*r_1);
+                                    if (targetGDALType == GDT_Float32)
+                                    {
+                                        float* src_0_float = (float*)src_0;
+                                        float* src_1_float = (float*)src_1;
+                                        dest[0] = src_0_float[0]*r_0 + src_1_float[0]*r_1;
+                                        dest[1] = src_0_float[1]*r_0 + src_1_float[1]*r_1;
+                                        dest[2] = src_0_float[2]*r_0 + src_1_float[2]*r_1;
+                                        if (numSourceComponents==4) dest[3] = src_0_float[3]*r_0 + src_1_float[3]*r_1;
+                                    }
+                                    else
+                                    {
+                                        dest[0] = (unsigned char)((float)src_0[0]*r_0 + (float)src_1[0]*r_1);
+                                        dest[1] = (unsigned char)((float)src_0[1]*r_0 + (float)src_1[1]*r_1);
+                                        dest[2] = (unsigned char)((float)src_0[2]*r_0 + (float)src_1[2]*r_1);
+                                        if (numSourceComponents==4) dest[3] = (unsigned char)((float)src_0[3]*r_0 + (float)src_1[3]*r_1);
+                                    }
                                     //std::cout<<"interpolate i axis");
                                 }
                                 else  // need to interpolate i and j axis.
@@ -719,10 +755,24 @@ void SourceData::readImage(DestinationData& destination)
                                     float r_1 = (1.0f-flt_read_ir)*flt_read_jr;
                                     float r_2 = (flt_read_ir)*(1.0f-flt_read_jr);
                                     float r_3 = (flt_read_ir)*flt_read_jr;
-                                    dest[0] = (unsigned char)(((float)src_0[0])*r_0 + ((float)src_1[0])*r_1 + ((float)src_2[0])*r_2 + ((float)src_3[0])*r_3);
-                                    dest[1] = (unsigned char)(((float)src_0[1])*r_0 + ((float)src_1[1])*r_1 + ((float)src_2[1])*r_2 + ((float)src_3[1])*r_3);
-                                    dest[2] = (unsigned char)(((float)src_0[2])*r_0 + ((float)src_1[2])*r_1 + ((float)src_2[2])*r_2 + ((float)src_3[2])*r_3);
-                                    if (numSourceComponents==4) dest[3] = (unsigned char)(((float)src_0[3])*r_0 + ((float)src_1[3])*r_1 + ((float)src_2[3])*r_2 + ((float)src_3[3])*r_3);
+                                    if (targetGDALType == GDT_Float32)
+                                    {
+                                        float* src_0_float = (float*)src_0;
+                                        float* src_1_float = (float*)src_1;
+                                        float* src_2_float = (float*)src_2;
+                                        float* src_3_float = (float*)src_3;
+                                        dest[0] = src_0_float[0]*r_0 + src_1_float[0]*r_1 + src_2_float[0]*r_2 + src_3_float[0]*r_3;
+                                        dest[1] = src_0_float[1]*r_0 + src_1_float[1]*r_1 + src_2_float[1]*r_2 + src_3_float[1]*r_3;
+                                        dest[2] = src_0_float[2]*r_0 + src_1_float[2]*r_1 + src_2_float[2]*r_2 + src_3_float[2]*r_3;
+                                        if (numSourceComponents==4) dest[3] = src_0_float[3]*r_0 + src_1_float[3]*r_1 + src_2_float[3]*r_2 + src_3_float[3]*r_3;
+                                    }
+                                    else
+                                    {
+                                        dest[0] = (unsigned char)(((float)src_0[0])*r_0 + ((float)src_1[0])*r_1 + ((float)src_2[0])*r_2 + ((float)src_3[0])*r_3);
+                                        dest[1] = (unsigned char)(((float)src_0[1])*r_0 + ((float)src_1[1])*r_1 + ((float)src_2[1])*r_2 + ((float)src_3[1])*r_3);
+                                        dest[2] = (unsigned char)(((float)src_0[2])*r_0 + ((float)src_1[2])*r_1 + ((float)src_2[2])*r_2 + ((float)src_3[2])*r_3);
+                                        if (numSourceComponents==4) dest[3] = (unsigned char)(((float)src_0[3])*r_0 + ((float)src_1[3])*r_1 + ((float)src_2[3])*r_2 + ((float)src_3[3])*r_3);
+                                    }
                                     //std::cout<<"interpolate i & j axis");
                                 }
                             }
@@ -754,45 +804,89 @@ void SourceData::readImage(DestinationData& destination)
                         col<destWidth;
                         ++col, sourceColumnPtr+=pixelSpace, destinationColumnPtr+=destination_pixelSpace)
                     {
-                        if (hasAlpha)
+                        if (targetGDALType == GDT_Float32)
                         {
-                            // only copy over source pixel if its alpha value is not 0
-                            if (sourceColumnPtr[3]!=0)
+                            float* sourceColumnPtr_float = (float*)sourceColumnPtr;
+                            float* destinationColumnPtr_float = (float*)destinationColumnPtr;
+                            if (hasAlpha)
                             {
-                                if (sourceColumnPtr[3]==255)
+                                // only copy over source pixel if its alpha value is not 0
+                                if (sourceColumnPtr_float[3]>0.0f)
                                 {
-                                    // source alpha is full on so directly copy over.
-                                    destinationColumnPtr[0] = sourceColumnPtr[0];
-                                    destinationColumnPtr[1] = sourceColumnPtr[1];
-                                    destinationColumnPtr[2] = sourceColumnPtr[2];
+                                    if (sourceColumnPtr_float[3]>=1.0f)
+                                    {
+                                        // source alpha is full on so directly copy over.
+                                        destinationColumnPtr_float[0] = sourceColumnPtr_float[0];
+                                        destinationColumnPtr_float[1] = sourceColumnPtr_float[1];
+                                        destinationColumnPtr_float[2] = sourceColumnPtr_float[2];
 
-                                    if (destination_hasAlpha)
-                                        destinationColumnPtr[3] = sourceColumnPtr[3];
-                                }
-                                else
-                                {
-                                    // source value isn't full on so blend it with destination
-                                    float rs = (float)sourceColumnPtr[3]/255.0f;
-                                    float rd = 1.0f-rs;
+                                        if (destination_hasAlpha)
+                                            destinationColumnPtr_float[3] = sourceColumnPtr_float[3];
+                                    }
+                                    else
+                                    {
+                                        // source value isn't full on so blend it with destination
+                                        float rs = sourceColumnPtr_float[3];
+                                        float rd = 1.0f-rs;
 
-                                    destinationColumnPtr[0] = (int)(rd * (float)destinationColumnPtr[0] + rs * (float)sourceColumnPtr[0]);
-                                    destinationColumnPtr[1] = (int)(rd * (float)destinationColumnPtr[1] + rs * (float)sourceColumnPtr[1]);
-                                    destinationColumnPtr[2] = (int)(rd * (float)destinationColumnPtr[2] + rs * (float)sourceColumnPtr[2]);
+                                        destinationColumnPtr_float[0] = rd * destinationColumnPtr_float[0] + rs * sourceColumnPtr_float[0];
+                                        destinationColumnPtr_float[1] = rd * destinationColumnPtr_float[1] + rs * sourceColumnPtr_float[1];
+                                        destinationColumnPtr_float[2] = rd * destinationColumnPtr_float[2] + rs * sourceColumnPtr_float[2];
 
-                                    if (destination_hasAlpha)
-                                        destinationColumnPtr[3] = osg::maximum(destinationColumnPtr[3],sourceColumnPtr[3]);
-
+                                        if (destination_hasAlpha)
+                                            destinationColumnPtr_float[3] = osg::maximum(destinationColumnPtr_float[3],sourceColumnPtr_float[3]);
+                                    }
                                 }
                             }
+                            else if (sourceColumnPtr_float[0]>0.0f || sourceColumnPtr_float[1]>0.0f || sourceColumnPtr_float[2]>0.0f)
+                            {
+                                destinationColumnPtr_float[0] = sourceColumnPtr_float[0];
+                                destinationColumnPtr_float[1] = sourceColumnPtr_float[1];
+                                destinationColumnPtr_float[2] = sourceColumnPtr_float[2];
+                                if (destination_hasAlpha) 
+                                    destinationColumnPtr_float[3] = 1.0f; 
+                            }
                         }
-                        else if (sourceColumnPtr[0]!=0 || sourceColumnPtr[1]!=0 || sourceColumnPtr[2]!=0)
+                        else
                         {
-                            destinationColumnPtr[0] = sourceColumnPtr[0];
-                            destinationColumnPtr[1] = sourceColumnPtr[1];
-                            destinationColumnPtr[2] = sourceColumnPtr[2];
-                            if (destination_hasAlpha) 
-                                destinationColumnPtr[3] = 255; 
-              
+                            if (hasAlpha)
+                            {
+                                // only copy over source pixel if its alpha value is not 0
+                                if (sourceColumnPtr[3]!=0)
+                                {
+                                    if (sourceColumnPtr[3]==255)
+                                    {
+                                        // source alpha is full on so directly copy over.
+                                        destinationColumnPtr[0] = sourceColumnPtr[0];
+                                        destinationColumnPtr[1] = sourceColumnPtr[1];
+                                        destinationColumnPtr[2] = sourceColumnPtr[2];
+
+                                        if (destination_hasAlpha)
+                                            destinationColumnPtr[3] = sourceColumnPtr[3];
+                                    }
+                                    else
+                                    {
+                                        // source value isn't full on so blend it with destination
+                                        float rs = (float)sourceColumnPtr[3]/255.0f;
+                                        float rd = 1.0f-rs;
+
+                                        destinationColumnPtr[0] = (int)(rd * (float)destinationColumnPtr[0] + rs * (float)sourceColumnPtr[0]);
+                                        destinationColumnPtr[1] = (int)(rd * (float)destinationColumnPtr[1] + rs * (float)sourceColumnPtr[1]);
+                                        destinationColumnPtr[2] = (int)(rd * (float)destinationColumnPtr[2] + rs * (float)sourceColumnPtr[2]);
+
+                                        if (destination_hasAlpha)
+                                            destinationColumnPtr[3] = osg::maximum(destinationColumnPtr[3],sourceColumnPtr[3]);
+                                    }
+                                }
+                            }
+                            else if (sourceColumnPtr[0]!=0 || sourceColumnPtr[1]!=0 || sourceColumnPtr[2]!=0)
+                            {
+                                destinationColumnPtr[0] = sourceColumnPtr[0];
+                                destinationColumnPtr[1] = sourceColumnPtr[1];
+                                destinationColumnPtr[2] = sourceColumnPtr[2];
+                                if (destination_hasAlpha) 
+                                    destinationColumnPtr[3] = 255; 
+                            }
                         }
                     }
                 }

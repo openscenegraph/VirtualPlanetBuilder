@@ -105,6 +105,7 @@ public:
 
     const ImageOptions* getImageOptions(unsigned int layerNum) const;
     GLenum getPixelFormat(unsigned int layerNum) const;
+    GLenum getPixelType(unsigned int layerNum) const;
 
     void computeNeighboursFromQuadMap();
 
