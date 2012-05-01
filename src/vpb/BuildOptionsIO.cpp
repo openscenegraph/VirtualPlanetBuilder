@@ -19,12 +19,25 @@
 #include <map>
 #include <set>
 
+#include <osg/Version>
 #include <osg/Vec3>
 #include <osg/Vec4>
 #include <osg/io_utils>
 
 #include <osgDB/ReadFile>
 #include <osgDB/Registry>
+
+#if OSG_MIN_VERSION_REQUIRED(3,1,0)
+    #define IS_BEGIN_BRACKET    is.BEGIN_BRACKET
+    #define IS_END_BRACKET      is.END_BRACKET
+    #define OS_BEGIN_BRACKET    os.BEGIN_BRACKET
+    #define OS_END_BRACKET      os.END_BRACKET
+#else
+    #define IS_BEGIN_BRACKET    osgDB::BEGIN_BRACKET
+    #define IS_END_BRACKET      osgDB::END_BRACKET
+    #define OS_BEGIN_BRACKET    osgDB::BEGIN_BRACKET
+    #define OS_END_BRACKET      osgDB::END_BRACKET
+#endif
 
 using namespace vpb;
 
@@ -491,14 +504,14 @@ static bool checkOptionalLayerSet( const vpb::BuildOptions& bo )
 static bool readOptionalLayerSet( osgDB::InputStream& is, vpb::BuildOptions& bo )
 {
     vpb::BuildOptions::OptionalLayerSet& ols = bo.getOptionalLayerSet();
-    unsigned int size = 0; is >> size >> osgDB::BEGIN_BRACKET;
+    unsigned int size = 0; is >> size >> IS_BEGIN_BRACKET;
     for ( unsigned int i=0; i<size; ++i  )
     {
         std::string value;
         is.readWrappedString( value );
         ols.insert(value);
     }
-    is >> osgDB::END_BRACKET;
+    is >> IS_END_BRACKET;
     return true;
 }
 
@@ -506,13 +519,13 @@ static bool writeOptionalLayerSet( osgDB::OutputStream& os, const vpb::BuildOpti
 {
     const vpb::BuildOptions::OptionalLayerSet& ols = bo.getOptionalLayerSet();
     unsigned int size = ols.size();
-    os << size << osgDB::BEGIN_BRACKET << std::endl;
+    os << size << OS_BEGIN_BRACKET << std::endl;
     for ( vpb::BuildOptions::OptionalLayerSet::const_iterator itr = ols.begin(); itr != ols.end(); ++itr )
     {
         os.writeWrappedString( *itr );
         os << std::endl;
     }
-    os << osgDB::END_BRACKET << std::endl;
+    os << OS_END_BRACKET << std::endl;
     return true;
 
 }
@@ -522,26 +535,26 @@ static bool checkLayerImageOptions( const vpb::BuildOptions& bo )
 
 static bool readLayerImageOptions( osgDB::InputStream& is, vpb::BuildOptions& bo )
 {
-    unsigned int size = 0; is >> size >> osgDB::BEGIN_BRACKET;
+    unsigned int size = 0; is >> size >> IS_BEGIN_BRACKET;
     for ( unsigned int i=0; i<size; ++i  )
     {
         vpb::ImageOptions* imageOptions = dynamic_cast<vpb::ImageOptions*>( is.readObject() );
         if ( imageOptions ) bo.setLayerImageOptions( i, imageOptions );
     }
-    is >> osgDB::END_BRACKET;
+    is >> IS_END_BRACKET;
     return true;
 }
 
 static bool writeLayerImageOptions( osgDB::OutputStream& os, const vpb::BuildOptions& bo )
 {
     unsigned int size = bo.getNumLayerImageOptions();
-    os << size << osgDB::BEGIN_BRACKET << std::endl;
+    os << size << OS_BEGIN_BRACKET << std::endl;
     for ( unsigned int i=0; i< size; ++i)
     {
         OSG_NOTICE<<"Writing out ImageOptions "<<bo.getLayerImageOptions(i)<<" "<<bo.getLayerImageOptions(i)->className()<<std::endl;
         os.writeObject( bo.getLayerImageOptions(i) );
     }
-    os << osgDB::END_BRACKET << std::endl;
+    os << OS_END_BRACKET << std::endl;
     return true;
 
 }
@@ -554,13 +567,13 @@ static bool readDestinationExtents( osgDB::InputStream& is, vpb::BuildOptions& b
 {    
     double xMin, xMax, yMin, yMax;
     bool isGeo;
-    is >> osgDB::BEGIN_BRACKET;
+    is >> IS_BEGIN_BRACKET;
     is >> xMin;
     is >> yMin;
     is >> xMax;    
     is >> yMax;
     is >> isGeo;
-    is >> osgDB::END_BRACKET;
+    is >> IS_END_BRACKET;
     GeospatialExtents ext(xMin, yMin,xMax,yMax,isGeo);
     bo.setDestinationExtents(ext);
     return true;
@@ -569,7 +582,7 @@ static bool readDestinationExtents( osgDB::InputStream& is, vpb::BuildOptions& b
 static bool writeDestinationExtents( osgDB::OutputStream& os, const vpb::BuildOptions& bo )
 {    
     GeospatialExtents ext(bo.getDestinationExtents());
-    os << osgDB::BEGIN_BRACKET << std::endl;            
+    os << OS_BEGIN_BRACKET << std::endl;
     os << ext.xMin();
     os << ext.yMin();
     os << ext.xMax();    
@@ -577,7 +590,7 @@ static bool writeDestinationExtents( osgDB::OutputStream& os, const vpb::BuildOp
     os << ext._isGeographic;
     os << std::endl;
 
-    os << osgDB::END_BRACKET << std::endl;
+    os << OS_END_BRACKET << std::endl;
     return true;
 }
 
