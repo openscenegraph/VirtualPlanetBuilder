@@ -4,7 +4,7 @@
  * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -38,7 +38,7 @@ TaskManager::TaskManager()
 
     char str[2048];
     _runPath = vpb::getCurrentWorkingDirectory( str, sizeof(str));
-    
+
     _defaultSignalAction = COMPLETE_RUNNING_TASKS_THEN_EXIT;
 }
 
@@ -50,7 +50,7 @@ TaskManager::~TaskManager()
 void TaskManager::setBuildLog(BuildLog* bl)
 {
     Logger::setBuildLog(bl);
-    
+
     if (getMachinePool()) getMachinePool()->setBuildLog(bl);
 }
 
@@ -59,7 +59,7 @@ void TaskManager::setRunPath(const std::string& runPath)
 {
     _runPath = runPath;
     chdir(_runPath.c_str());
-    
+
     log(osg::NOTICE,"setRunPath = %s",_runPath.c_str());
 }
 
@@ -99,10 +99,10 @@ void TaskManager::readPatchSetUp(const std::string& patchFile)
             }
 
             bool isNumeric = i==extension.size();
-            int revisionNum = -1;
+            //int revisionNum = -1;
             if (isNumeric)
             {
-                revisionNum = atoi(extension.c_str());
+                //revisionNum = atoi(extension.c_str());
                 filename = osgDB::getNameLessExtension(filename);
                 extension = osgDB::getFileExtension(filename);
                 basename = filename;
@@ -251,7 +251,7 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     {
         readSource(sourceName);
     }
-    
+
     if (!_terrainTile) _terrainTile = new osgTerrain::TerrainTile;
 
     std::string terrainOutputName;
@@ -259,19 +259,19 @@ int TaskManager::read(osg::ArgumentParser& arguments)
 
 
     Commandline commandlineParser;
-    
+
 
     int result = commandlineParser.read(std::cout, arguments, _terrainTile.get());
     if (result) return result;
-    
+
     while (arguments.read("--build-name",_buildName)) {}
-    
+
     if (!terrainOutputName.empty())
     {
         if (_terrainTile.valid())
         {
             osgDB::writeNodeFile(*_terrainTile, terrainOutputName);
-            
+
             // make sure the changes are written to disk.
             vpb::sync();
         }
@@ -288,7 +288,7 @@ int TaskManager::read(osg::ArgumentParser& arguments)
     {
         readTasks(taskSetFileName);
     }
-    
+
     while (arguments.read("--modified"))
     {
         setOutOfDateTasksToPending();
@@ -321,7 +321,7 @@ void TaskManager::nextTaskSet()
 {
     // don't need to add a new task set if last task set is still empty.
     if (!_taskSetList.empty() && _taskSetList.back().empty()) return;
-    
+
     _taskSetList.push_back(TaskSet());
 }
 
@@ -331,7 +331,7 @@ void TaskManager::addTask(Task* task)
 
     if (_taskSetList.empty()) _taskSetList.push_back(TaskSet());
     _taskSetList.back().push_back(task);
-        
+
 }
 
 void TaskManager::addTask(const std::string& taskFileName, const std::string& application, const std::string& sourceFile,
@@ -417,7 +417,7 @@ bool TaskManager::generateTasksFromSource()
         {
             dataset->setBuildLog(new vpb::BuildLog(bo->getLogFileName()));
         }
-        
+
 
         if (_taskFile.valid())
         {
@@ -467,7 +467,7 @@ bool TaskManager::generateTasksFromSource()
 bool TaskManager::run()
 {
     log(osg::NOTICE,"Begining run");
-    
+
     if (getBuildOptions() && getBuildOptions()->getAbortRunOnError())
     {
         getMachinePool()->setTaskFailureOperation(MachinePool::COMPLETE_RUNNING_TASKS_THEN_EXIT);
@@ -578,15 +578,15 @@ bool TaskManager::run()
             }
         }
         log(osg::NOTICE,"End of TaskSet: tasksPending=%d taskCompleted=%d taskRunning=%d tasksFailed=%d",tasksPending,tasksCompleted,tasksRunning,tasksFailed);
-    
+
         // if (tasksFailed != 0) break;
-        
+
         if (getBuildOptions() && getBuildOptions()->getAbortRunOnError() && tasksFailed>0)
         {
             log(osg::NOTICE,"Task failed aborting.");
             break;
         }
-        
+
 
         if (getMachinePool()->getNumThreadsNotDone()==0)
         {
@@ -595,11 +595,11 @@ bool TaskManager::run()
                 log(osg::INFO,"TaskManager::run() - Waiting for threads to exit.");
                 OpenThreads::Thread::YieldCurrentThread();
             }
-            
+
             break;
         }
-        
-        
+
+
         if (tasksPending!=0 || tasksFailed!=0 || tasksRunning!=0)
         {
             log(osg::NOTICE,"Continuing with existing TaskSet.");
@@ -608,9 +608,9 @@ bool TaskManager::run()
         {
             ++tsItr;
         }
-        
+
     }
-    
+
     // tally up the tasks to see how we've done overall
     unsigned int tasksPending = 0;
     unsigned int tasksRunning = 0;
@@ -772,7 +772,7 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
         fr += 2;
 
         std::string application;
- 
+
         while (!fr.eof() && fr[0].getNoNestedBrackets()>local_entry)
         {
             if (fr[0].getStr())
@@ -792,7 +792,7 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
         }
 
         ++fr;
-        
+
         itrAdvanced = true;
 
         if (!application.empty())
@@ -810,7 +810,7 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
         }
 
     }
-    
+
     std::string filename;
     if (fr.read("taskfile",filename))
     {
@@ -818,7 +818,7 @@ Task* TaskManager::readTask(osgDB::Input& fr, bool& itrAdvanced)
 
         osg::ref_ptr<Task> task = new Task(filename);
         task->read();
-        
+
         return task.release();
     }
 
@@ -839,16 +839,16 @@ bool TaskManager::readTasks(const std::string& filename)
     _tasksFileName = filename;
 
     std::ifstream fin(foundFile.c_str());
-    
+
     if (fin)
     {
         osgDB::Input fr;
         fr.attach(&fin);
-        
+
         while(!fr.eof())
         {
             bool itrAdvanced = false;
-        
+
             std::string readFilename;
             if (fr.read("file",readFilename))
             {
@@ -863,7 +863,7 @@ bool TaskManager::readTasks(const std::string& filename)
                 nextTaskSet();
                 addTask(task);
             }
-            
+
             if (fr.matchSequence("Tasks {"))
             {
                 nextTaskSet();
@@ -890,11 +890,11 @@ bool TaskManager::readTasks(const std::string& filename)
                 itrAdvanced = true;
 
             }
-            
+
             if (!itrAdvanced) ++fr;
         }
     }
-    
+
     log(osg::NOTICE,"Task file read");
     return false;
 }
@@ -920,7 +920,7 @@ bool TaskManager::writeTask(osgDB::Output& fout, const Task* task, bool asFileNa
 bool TaskManager::writeTasks(const std::string& filename, bool asFileNames)
 {
     _tasksFileName = filename;
-    
+
     osgDB::Output fout(filename.c_str());
 
     for(TaskSetList::const_iterator tsItr = _taskSetList.begin();
@@ -949,7 +949,7 @@ bool TaskManager::writeTasks(const std::string& filename, bool asFileNames)
             fout.indent()<<"}"<<std::endl;
         }
     }
-    
+
 
     return true;
 }
@@ -1004,11 +1004,11 @@ void TaskManager::setOutOfDateTasksToPending()
                                     System::instance()->getDateOfLastModification(terrainTile, sourceFileLastModified);
                                 }
                             }
-                        
+
                             filenameDateMap[sourceFile] = sourceFileLastModified;
                         }
                     }
-                    
+
                     if (sourceFileLastModified > buildDate)
                     {
                         task->setStatus(Task::PENDING);
@@ -1111,7 +1111,7 @@ void TaskManager::setSignalAction(int sig, SignalAction action)
             // need to register signal handler for signal
             signal(sig, TaskManager::signalHandler);
         }
-        
+
         _signalActionMap[sig] = action;
     }
 }
