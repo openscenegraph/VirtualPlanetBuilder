@@ -736,7 +736,7 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         // Geographic bounds handled with -gb below since we can't auto detect them reliably
         buildOptions->setDestinationExtents(
             vpb::GeospatialExtents(std::min(xmin,xmax),
-                                   std::min(ymin,ymin),
+                                   std::min(ymin,ymax),
                                    std::max(xmin,xmax),
                                    std::max(ymin,ymax),false)); // Sort max/min for user convenience
     }
@@ -746,7 +746,7 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     {
         buildOptions->setDestinationExtents(
             vpb::GeospatialExtents( std::min(xmin,xmax),
-                                    std::min(ymin,ymin),
+                                    std::min(ymin,ymax),
                                     std::max(xmin,xmax),
                                     std::max(ymin,ymax),true)); // Geographic bounds=true. Sort max/min for user convenience
     }
