@@ -71,7 +71,7 @@ class VPB_EXPORT LogFile : public osg::Referenced
     
         LogFile(const std::string& filename);
         
-        void write(Message* message);
+        virtual void write(Message* message);
         
         std::ofstream       _fout;
         OpenThreads::Mutex  _mutex;
