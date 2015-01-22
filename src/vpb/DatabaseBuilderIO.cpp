@@ -142,7 +142,7 @@ class VPBReaderWriter : public osgDB::ReaderWriter
                 fin.seekg(0);
                 if (str=="#Ascii")
                 {
-                    local_opt->setOptionString( local_opt->getOptionString() + " Ascii" );
+                    local_opt->setPluginStringData( "fileType", "Ascii" );
                     return readNode_new(fin, local_opt.get());
                 }
                 else
@@ -215,9 +215,9 @@ class VPBReaderWriter : public osgDB::ReaderWriter
             osg::ref_ptr<Options> local_opt = options ?
                 static_cast<Options*>(options->clone(osg::CopyOp::SHALLOW_COPY)) : new Options;
             local_opt->getDatabasePathList().push_front(osgDB::getFilePath(fileName));
-            if ( ext=="osgt" || ext=="source" || ext=="vpb" ) local_opt->setOptionString( local_opt->getOptionString() + " Ascii" );
-            if ( ext=="osgx" ) local_opt->setOptionString( local_opt->getOptionString() + " XML" );
-
+            if ( ext=="osgt" || ext=="source" || ext=="vpb" ) local_opt->setPluginStringData( "fileType", "Ascii" );
+            if ( ext=="osgx" ) local_opt->setPluginStringData( "fileType", "XML" );
+            
             return local_opt.release();
         }
 
