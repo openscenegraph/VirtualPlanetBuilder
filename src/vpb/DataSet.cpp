@@ -4,7 +4,7 @@
  * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -64,10 +64,10 @@ void DataSet::init()
     _R1 = 0;
 
     _numTextureLevels = 1;
-    
+
     _modelPlacer = new ObjectPlacer;
     _shapeFilePlacer = new ShapeFilePlacer;
-    
+
     _newDestinationGraph = false;
 
 }
@@ -75,11 +75,11 @@ void DataSet::init()
 void DataSet::addSource(Source* source, unsigned int revisionNumber)
 {
     if (!source) return;
-    
+
     if (!_sourceGraph.valid()) _sourceGraph = new CompositeSource;
 
     source->setRevisionNumber(revisionNumber);
-    
+
     _sourceGraph->_sourceList.push_back(source);
 }
 #if 0
@@ -88,7 +88,7 @@ void DataSet::addSource(CompositeSource* composite)
     if (!composite) return;
 
     if (!_sourceGraph.valid()) _sourceGraph = new CompositeSource;
-    
+
     _sourceGraph->_children.push_back(composite);
 }
 #endif
@@ -105,7 +105,7 @@ void DataSet::loadSources()
         if (source)
         {
             source->loadSourceData();
-        
+
             if (fileCache && source->needReproject(_intermediateCoordinateSystem.get()))
             {
                 if (source->isRaster())
@@ -131,7 +131,7 @@ bool DataSet::mapLatLongsToXYZ() const
 bool DataSet::computeCoverage(const GeospatialExtents& extents, int level, int& minX, int& minY, int& maxX, int& maxY)
 {
     if (!_destinationExtents.intersects(extents)) return false;
-    
+
     if (level==0)
     {
         minX = 0;
@@ -166,12 +166,12 @@ bool DataSet::computeCoverage(const GeospatialExtents& extents, int level, int& 
     if (j_max<0) j_max = 0;
     if (j_min>Rk) j_min = Rk;
     if (j_max>Rk) j_max = Rk;
-    
+
     minX = i_min;
     maxX = i_max;
     minY = j_min;
     maxY = j_max;
-    
+
     return (minX<maxX) && (minY<maxY);
 }
 
@@ -183,7 +183,7 @@ bool DataSet::computeOptimumLevel(Source* source, int maxLevel, int& level)
 
     SourceData* sd = source->getSourceData();
     if (!sd) return false;
-    
+
 
     const SpatialProperties& sp = sd->computeSpatialProperties(_intermediateCoordinateSystem.get());
 
@@ -216,31 +216,31 @@ int DataSet::computeMaximumLevel(int maxNumLevels)
     {
         Source* source = (*itr).get();
 
-        
+
         SourceData* sd = (*itr)->getSourceData();
         if (!sd)
         {
             log(osg::NOTICE,"Skipping source %s as no data loaded from it.",source->getFileName().c_str());
             continue;
         }
-        
+
         if (source->getType()!=Source::IMAGE && source->getType()!=Source::HEIGHT_FIELD)
         {
             // place models and shapefiles into a separate temporary source list and then process these after
             // the main handling of terrainTile/imagery sources.
             continue;
-            
+
         }
 
         int k = 0;
         if (!computeOptimumLevel(source, maxNumLevels-1, k)) continue;
-        
+
         if (k>maxLevel)
         {
             maxLevel = k;
         }
     }
-    
+
     return maxLevel;
 }
 
@@ -248,17 +248,17 @@ bool DataSet::computeOptimumTileSystemDimensions(int& C1, int& R1)
 {
     C1 = 1;
     R1 = 1;
-    
+
     double destination_xRange = _destinationExtents.xMax()-_destinationExtents.xMin();
     double destination_yRange = _destinationExtents.yMax()-_destinationExtents.yMin();
     double AR = destination_xRange / destination_yRange;
-    
+
     bool swapAxis = AR<1.0;
     if (swapAxis) AR = 1.0/AR;
-    
+
     double lower_AR = floor(AR);
     double upper_AR = ceil(AR);
-    
+
     if (AR<sqrt(lower_AR*upper_AR))
     {
         C1 = (int)(lower_AR);
@@ -269,17 +269,17 @@ bool DataSet::computeOptimumTileSystemDimensions(int& C1, int& R1)
         C1 = (int)(upper_AR);
         R1 = 1;
     }
-    
+
     if (swapAxis)
     {
         std::swap(C1,R1);
     }
-    
+
     _C1 = C1;
     _R1 = R1;
-    
+
     log(osg::NOTICE,"AR=%f C1=%i R1=%i",AR,C1,R1);
-    
+
     return true;
 }
 
@@ -300,13 +300,13 @@ CompositeDestination* DataSet::createDestinationTile(int currentLevel, int curre
 
         int Ck = int(pow(2.0, double(currentLevel-1))) * _C1;
         int Rk = int(pow(2.0, double(currentLevel-1))) * _R1;
-        
+
         extents.xMin() = _destinationExtents.xMin() + (double(currentX)/double(Ck)) * destination_xRange;
         extents.xMax() = _destinationExtents.xMin() + (double(currentX+1)/double(Ck)) * destination_xRange;
 
         extents.yMin() = _destinationExtents.yMin() + (double(currentY)/double(Rk)) * destination_yRange;
         extents.yMax() = _destinationExtents.yMin() + (double(currentY+1)/double(Rk)) * destination_yRange;
-        
+
         // compute the parent
         if (currentLevel == 1)
         {
@@ -315,13 +315,13 @@ CompositeDestination* DataSet::createDestinationTile(int currentLevel, int curre
         else
         {
             parent = getComposite(currentLevel-1,currentX/2,currentY/2);
-            
+
             if (!parent)
             {
                 log(osg::NOTICE,"Warning: getComposite(%i,%i,%i) return 0",currentLevel-1,currentX/2,currentY/2);
             }
         }
-        
+
     }
 
     CompositeDestination* destinationGraph = new CompositeDestination(_intermediateCoordinateSystem.get(),extents);
@@ -370,7 +370,7 @@ CompositeDestination* DataSet::createDestinationTile(int currentLevel, int curre
     tile->_dataType = SpatialProperties::NONE;
 
     tile->setMaximumTerrainSize(_maximumTileTerrainSize,_maximumTileTerrainSize);
-    
+
     destinationGraph->_tiles.push_back(tile);
 
     if (parent)
@@ -392,7 +392,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                                unsigned int maxNumLevels)
 {
     log(osg::NOTICE,"createNewDestinationGraph");
-    
+
     _newDestinationGraph = true;
 
     int highestLevelFound = 0;
@@ -420,7 +420,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
             log(osg::NOTICE,"Skipping source %s as no data loaded from it.",source->getFileName().c_str());
             continue;
         }
-        
+
         const SpatialProperties& sp = sd->computeSpatialProperties(cs);
 
         if (!sp._extents.intersects(extents))
@@ -430,15 +430,15 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
             continue;
         }
 
-        
+
         if (source->getType()!=Source::IMAGE && source->getType()!=Source::HEIGHT_FIELD)
         {
             continue;
         }
-        
+
         int k = 0;
         if (!computeOptimumLevel(source, maxNumLevels-1, k)) continue;
-        
+
 
         if (k>highestLevelFound) highestLevelFound = k;
 
@@ -454,7 +454,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                 if (getGenerateSubtile())
                 {
                     int i_lower, i_upper, j_lower, j_upper;
-                
+
                     if (l<static_cast<int>(getSubtileLevel()))
                     {
                         // divide by 2 to the power of ((getSubtileLevel()-l);
@@ -494,7 +494,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
             }
         }
     }
-    
+
     // now extend the sources upwards where required.
     for(QuadMap::iterator qitr = _quadMap.begin();
         qitr != _quadMap.end();
@@ -503,9 +503,9 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         QuadMap::iterator temp_itr = qitr;
         ++temp_itr;
         if (temp_itr==_quadMap.end()) continue;
-        
+
         int l = qitr->first;
-        
+
         Level& level = qitr->second;
         for(Level::iterator litr = level.begin();
             litr != level.end();
@@ -517,7 +517,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                 ++ritr)
             {
                 CompositeDestination* cd = ritr->second;
-                    
+
                 int numChildren = cd->_children.size();
                 int numChildrenExpected = (l==0) ? (_C1*_R1) : 4;
                 if (numChildren!=0 && numChildren!=numChildrenExpected)
@@ -535,7 +535,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                     if (getGenerateSubtile())
                     {
                         int i_lower, i_upper, j_lower, j_upper;
-                        
+
 
                         if (l<static_cast<int>(getSubtileLevel()))
                         {
@@ -573,7 +573,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                             }
                         }
                     }
-                    
+
                 }
             }
         }
@@ -602,7 +602,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
             log(osg::NOTICE,"Skipping source %s as no data loaded from it.",source->getFileName().c_str());
             continue;
         }
-        
+
         const SpatialProperties& sp = sd->computeSpatialProperties(cs);
 
         if (!sp._extents.intersects(extents))
@@ -613,7 +613,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         }
 
         int k = 0;
-        
+
         if (source->getType()==Source::IMAGE || source->getType()==Source::HEIGHT_FIELD)
         {
             if (!computeOptimumLevel(source, maxNumLevels-1, k)) continue;
@@ -622,8 +622,8 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
         {
             k = highestLevelFound;
         }
-        
-        
+
+
         // log(osg::NOTICE,"     opt level = %i",k);
 
         int startLevel = 0; // getGenerateSubtile() ? getSubtileLevel() : 0;
@@ -638,7 +638,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                 if (getGenerateSubtile())
                 {
                     int i_lower, i_upper, j_lower, j_upper;
-                
+
                     if (l<static_cast<int>(getSubtileLevel()))
                     {
                         // divide by 2 to the power of ((getSubtileLevel()-l);
@@ -670,7 +670,7 @@ void DataSet::createNewDestinationGraph(osg::CoordinateSystemNode* cs,
                     {
                         CompositeDestination* cd = getComposite(l,i,j);
                         if (!cd) continue;
-                        
+
 
                         if (l==k)
                         {
@@ -716,7 +716,7 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
     {
         if ((currentX != getSubtileX()) || (currentY != getSubtileY())) return 0;
     }
-    
+
 
     CompositeDestination* destinationGraph = new CompositeDestination(cs,extents);
 
@@ -783,10 +783,10 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
         double resolutionSensitivityScale = 0.9;
 
         tile->requiresDivision(resolutionSensitivityScale, needToDivideX, needToDivideY);
-        
+
         float xCenter = (extents.xMin()+extents.xMax())*0.5f;
         float yCenter = (extents.yMin()+extents.yMax())*0.5f;
-        
+
         unsigned int newLevel = currentLevel+1;
         unsigned int newX = currentX*2;
         unsigned int newY = currentY*2;
@@ -794,7 +794,7 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
         if (needToDivideX && needToDivideY)
         {
             float aspectRatio = (extents.yMax()- extents.yMin())/(extents.xMax()- extents.xMin());
-            
+
             if (aspectRatio>1.414) needToDivideX = false;
             else if (aspectRatio<.707) needToDivideY = false;
         }
@@ -847,10 +847,10 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
                                                                          newX+1,
                                                                          newY+1,
                                                                          maxNumLevels));
-                                                                         
+
             // Set all there max distance to the same value to ensure the same LOD bining.
             float cutOffDistance = destinationGraph->_maxVisibleDistance*0.5f;
-            
+
             for(CompositeDestination::ChildList::iterator citr=destinationGraph->_children.begin();
                 citr!=destinationGraph->_children.end();
                 ++citr)
@@ -887,10 +887,10 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
                                                                          newY,
                                                                          maxNumLevels));
 
-                                                                         
+
             // Set all there max distance to the same value to ensure the same LOD bining.
             float cutOffDistance = destinationGraph->_maxVisibleDistance*0.5f;
-            
+
             for(CompositeDestination::ChildList::iterator citr=destinationGraph->_children.begin();
                 citr!=destinationGraph->_children.end();
                 ++citr)
@@ -926,10 +926,10 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
                                                                          newX,
                                                                          newY+1,
                                                                          maxNumLevels));
-                                                                         
+
             // Set all there max distance to the same value to ensure the same LOD bining.
             float cutOffDistance = destinationGraph->_maxVisibleDistance*0.5f;
-            
+
             for(CompositeDestination::ChildList::iterator citr=destinationGraph->_children.begin();
                 citr!=destinationGraph->_children.end();
                 ++citr)
@@ -943,7 +943,7 @@ CompositeDestination* DataSet::createDestinationGraph(CompositeDestination* pare
             log(osg::INFO,"No Need to Divide");
         }
     }
-    
+
     return destinationGraph;
 }
 
@@ -968,8 +968,8 @@ bool DataSet::prepareForDestinationGraphCreation()
             }
         }
     }
-    
-    
+
+
     assignIntermediateCoordinateSystem();
 
     CoordinateSystemType destinateCoordSytemType = getCoordinateSystemType(_destinationCoordinateSystem.get());
@@ -985,7 +985,7 @@ bool DataSet::prepareForDestinationGraphCreation()
 
     // sort the sources so that the lowest res tiles are drawn first.
     {
-    
+
 #if 0
         for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
         {
@@ -995,9 +995,9 @@ bool DataSet::prepareForDestinationGraphCreation()
                 source->setSortValueFromSourceDataResolution(_intermediateCoordinateSystem.get());
                 log(osg::INFO, "sort %s value %f",source->getFileName().c_str(),source->getSortValue());
             }
-            
+
         }
-        
+
         // sort them so highest sortValue is first.
 #endif
         _sourceGraph->setSortValueFromSourceDataResolution(_intermediateCoordinateSystem.get());
@@ -1014,7 +1014,7 @@ bool DataSet::prepareForDestinationGraphCreation()
                 GeospatialExtents local_extents(sd->getExtents(_intermediateCoordinateSystem.get()));
                 log(osg::INFO, "local_extents = xMin() %f %f",local_extents.xMin(),local_extents.xMax());
                 log(osg::INFO, "                yMin() %f %f",local_extents.yMin(),local_extents.yMax());
-                
+
                 if (destinateCoordSytemType==GEOGRAPHIC)
                 {
                     // need to clamp within -180 and 180 range.
@@ -1036,7 +1036,7 @@ bool DataSet::prepareForDestinationGraphCreation()
             }
         }
     }
-    
+
 
     if (destinateCoordSytemType==GEOGRAPHIC)
     {
@@ -1085,7 +1085,7 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
     if (getBuildOptionsString().find("old_dg")!=std::string::npos)
     {
         log(osg::NOTICE,"Old DataSet::createDestinationGraph() selected");
-    
+
         _destinationGraph = createDestinationGraph(0,
                                                    _intermediateCoordinateSystem.get(),
                                                    _destinationExtents,
@@ -1105,9 +1105,9 @@ void DataSet::computeDestinationGraphFromSources(unsigned int numLevels)
                                   _maximumTileTerrainSize,
                                   numLevels);
     }
-                                                               
+
     osg::Timer_t after = osg::Timer::instance()->tick();
-    
+
     log(osg::NOTICE,"Time for createDestinationGraph %f", osg::Timer::instance()->delta_s(before, after));
 
 
@@ -1151,7 +1151,7 @@ void DataSet::assignIntermediateCoordinateSystem()
             // need to use the geocentric coordinate system as a base for creating an geographic intermediate
             // coordinate system.
             OGRSpatialReference oSRS;
-            
+
             if (_destinationCoordinateSystem.valid() && !_destinationCoordinateSystem->getCoordinateSystem().empty())
             {
                 setIntermediateCoordinateSystem(_destinationCoordinateSystem->getCoordinateSystem());
@@ -1165,14 +1165,14 @@ void DataSet::assignIntermediateCoordinateSystem()
                 setIntermediateCoordinateSystem(pszWKT);
                 setDestinationCoordinateSystem(pszWKT);
             }
-            
+
         }
         else
         {
             _intermediateCoordinateSystem = _destinationCoordinateSystem;
         }
     }
-    
+
 }
 
 bool DataSet::requiresReprojection()
@@ -1184,7 +1184,7 @@ bool DataSet::requiresReprojection()
     for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
     {
         Source* source = itr->get();
-        
+
         if (source && source->needReproject(_intermediateCoordinateSystem.get()))
         {
             return true;
@@ -1207,17 +1207,17 @@ void DataSet::reprojectSourcesAndGenerateOverviews()
         for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
         {
             Source* source = itr->get();
-            
+
             log(osg::INFO, "Checking %s",source->getFileName().c_str());
-            
+
             if (source && source->needReproject(_intermediateCoordinateSystem.get()))
             {
-            
+
                 if (getReprojectSources())
                 {
                     if (source->isRaster())
                     {
-                
+
                         // do the reprojection to a tempory file.
                         std::string newFileName = temporyFilePrefix + osgDB::getStrippedName(source->getFileName()) + ".tif";
 
@@ -1243,9 +1243,9 @@ void DataSet::reprojectSourcesAndGenerateOverviews()
             }
         }
     }
-    
+
     osg::Timer_t after_reproject = osg::Timer::instance()->tick();
-    
+
     log(osg::NOTICE,"Time for after_reproject %f", osg::Timer::instance()->delta_s(before_reproject, after_reproject));
 
     // do sampling of data to required values.
@@ -1314,14 +1314,14 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
 #endif
 
     osg::Timer_t after_consolidate = osg::Timer::instance()->tick();
-    
+
 
     log(osg::NOTICE,"Time for consolodateRequiredResolutions %f", osg::Timer::instance()->delta_s(before, after_consolidate));
 
     reprojectSourcesAndGenerateOverviews();
 
     log(osg::INFO, "Using source_lod_iterator itr");
-        
+
     // buggy mips compiler requires this local variable in source_lod_iterator
     // usage below, since using _sourceGraph.get() as it should be was causing
     // a MIPSpro compiler error "The member "vpb::DataSet::_sourceGraph" is inaccessible."
@@ -1336,7 +1336,7 @@ void DataSet::updateSourcesForDestinationGraphNeeds()
         }
     }
     log(osg::INFO, "End of Using Source Iterator itr");
-    
+
 }
 
 void DataSet::populateDestinationGraphFromSources()
@@ -1353,8 +1353,8 @@ void DataSet::populateDestinationGraphFromSources()
 
         // for each DestinationTile equalize the boundaries so they all fit each other without gaps.
         _destinationGraph->equalizeBoundaries();
-        
-        
+
+
     }
     else
     {
@@ -1380,7 +1380,7 @@ class ReadFromOperation : public BuildOperation
             log(osg::NOTICE, "   ReadFromOperation: reading tile level=%u X=%u Y=%u",_tile->_level,_tile->_tileX,_tile->_tileY);
             _tile->readFrom(_sourceGraph.get());
         }
-      
+
         osg::ref_ptr<DestinationTile> _tile;
         osg::ref_ptr<CompositeSource> _sourceGraph;
 };
@@ -1388,7 +1388,7 @@ class ReadFromOperation : public BuildOperation
 void DataSet::_readRow(Row& row)
 {
     log(osg::NOTICE, "_readRow %u",row.size());
-    
+
     CompositeSource* sourceGraph = _newDestinationGraph ? 0 : _sourceGraph.get();
 
     if (_readThreadPool.valid())
@@ -1462,7 +1462,7 @@ void DataSet::_writeNodeFile(osg::Node& node,const std::string& filename)
         {
             bool fileExistedBeforeWrite = osgDB::fileExists(filename);
 
-            osgDB::ReaderWriter::WriteResult result = 
+            osgDB::ReaderWriter::WriteResult result =
                 osgDB::Registry::instance()->writeNode(node, filename,osgDB::Registry::instance()->getOptions());
 
 
@@ -1513,7 +1513,7 @@ void DataSet::_writeImageFile(osg::Image& image,const std::string& filename)
     if (getDisableWrites()) return;
 
     //image.setFileName(filename.c_str());
-    
+
     // remove any ../ from the filename
     std::string simpliedFileName = vpb::simplifyFileName(filename);
 
@@ -1526,9 +1526,9 @@ void DataSet::_writeImageFile(osg::Image& image,const std::string& filename)
         {
             bool fileExistedBeforeWrite = osgDB::fileExists(filename);
 
-            osgDB::ReaderWriter::WriteResult result = 
+            osgDB::ReaderWriter::WriteResult result =
                 osgDB::Registry::instance()->writeImage(image, simpliedFileName,osgDB::Registry::instance()->getOptions());
-                
+
             if (result.success())
             {
                 if (_databaseRevision.valid())
@@ -1589,7 +1589,7 @@ public:
                 _directory.push_back('/');
             }
         }
-        
+
         if (dataSet->getDestinationTileExtension()==".osg" ||
             dataSet->getDestinationTileExtension()==".osgt" ||
             dataSet->getDestinationTileExtension()==".osgx") _writeHint = osg::Image::EXTERNAL_FILE;
@@ -1598,7 +1598,7 @@ public:
     vpb::DataSet*           _dataSet;
     std::string             _directory;
     osg::Image::WriteHint   _writeHint;
-    
+
     bool needToWriteOutImage(const osg::Image* image) const
     {
         if (image->getWriteHint()!=osg::Image::NO_PREFERENCE)
@@ -1631,7 +1631,7 @@ public:
     void writeLayer(osgTerrain::Layer* layer)
     {
         if (!layer) return;
-        
+
         osgTerrain::ImageLayer* imageLayer = dynamic_cast<osgTerrain::ImageLayer*>(layer);
         if (imageLayer)
         {
@@ -1643,7 +1643,7 @@ public:
             }
             return;
         }
-        
+
         osgTerrain::SwitchLayer* switchLayer = dynamic_cast<osgTerrain::SwitchLayer*>(layer);
         if (switchLayer)
         {
@@ -1690,7 +1690,7 @@ public:
         {
             if (geode.getDrawable(i)->getStateSet()) apply(*(geode.getDrawable(i)->getStateSet()));
         }
-        
+
         traverse(geode);
     }
 
@@ -1701,7 +1701,7 @@ public:
             osg::Image* image = 0;
             osg::Texture2D* texture2D = dynamic_cast<osg::Texture2D*>(stateset.getTextureAttribute(i,osg::StateAttribute::TEXTURE));
             if (texture2D) image = texture2D->getImage();
-            
+
             if (image && needToWriteOutImage(image))
             {
                 _dataSet->_writeImageFile(*image,_directory+image->getFileName());
@@ -1744,7 +1744,7 @@ class WriteOperation : public BuildOperation
             if (node.valid())
             {
                 if (_buildLog.valid()) _buildLog->log(osg::NOTICE, "   writeSubTile filename= %s",_filename.c_str());
-                
+
                 _dataset->_writeNodeFileAndImages(*node,_filename);
 
                 _cd->setSubTilesGenerated(true);
@@ -1755,7 +1755,7 @@ class WriteOperation : public BuildOperation
                 log(osg::WARN, "   failed to writeSubTile node for tile, filename=%s",_filename.c_str());
             }
         }
-      
+
         DataSet*                            _dataset;
         osg::ref_ptr<CompositeDestination>  _cd;
         std::string                         _filename;
@@ -1772,7 +1772,7 @@ void DataSet::_writeRow(Row& row)
     {
         CompositeDestination* cd = citr->second;
         CompositeDestination* parent = cd->_parent;
-        
+
         if (parent)
         {
             if (!parent->getSubTilesGenerated() && parent->areSubTilesComplete())
@@ -1813,7 +1813,7 @@ void DataSet::_writeRow(Row& row)
         else
         {
             osg::ref_ptr<osg::Node> node = cd->createPagedLODScene();
-            
+
 #ifdef NEW_NAMING
             std::string filename = cd->getTileFileName();
 #else
@@ -1890,7 +1890,7 @@ void DataSet::createDestination(unsigned int numLevels)
 
 #else
     computeDestinationGraphFromSources(numLevels);
-    
+
     updateSourcesForDestinationGraphNeeds();
 #endif
 
@@ -1942,8 +1942,8 @@ osg::Node* DataSet::decorateWithMultiTextureControl(osg::Node* subgraph)
 {
     // if only one layer exists don't need to decorate with MultiTextureControl
     if (_numTextureLevels<=1) return subgraph;
-    
-    
+
+
     // multiple layers active so use osgFX::MultiTextureControl to manage them
     osgFX::MultiTextureControl* mtc = new osgFX::MultiTextureControl;
     float r = 1.0f/(float)_numTextureLevels;
@@ -1961,7 +1961,7 @@ osg::Node* DataSet::decorateWithMultiTextureControl(osg::Node* subgraph)
 
 void DataSet::_buildDestination(bool writeToDisk)
 {
-    if (!_state) _state = new osg::State;
+    //if (!_state) _state = new osg::State;
 
     osg::ref_ptr<osgDB::ReaderWriter::Options> previous_options = osgDB::Registry::instance()->getOptions();
     if(previous_options.get())
@@ -2037,13 +2037,13 @@ void DataSet::_buildDestination(bool writeToDisk)
                 ++qitr)
             {
                 Level& level = qitr->second;
-                
+
                 // skip is level is empty.
                 if (level.empty()) continue;
-                
+
                 // skip lower levels if we are generating subtiles
                 if (getGenerateSubtile() && qitr->first<=getSubtileLevel()) continue;
-                
+
                 if (getRecordSubtileFileNamesOnLeafTile() && qitr->first>=getMaximumNumOfLevels()) continue;
 
                 log(osg::INFO, "New level");
@@ -2057,15 +2057,15 @@ void DataSet::_buildDestination(bool writeToDisk)
                     ++curr_itr)
                 {
                     _readRow(curr_itr->second);
-                    
+
                     _equalizeRow(prev_itr->second);
                     if (writeToDisk) _writeRow(prev_itr->second);
-                    
+
                     prev_itr = curr_itr;
                 }
-                
+
                 _equalizeRow(prev_itr->second);
-                
+
                 if (writeToDisk)
                 {
                     if (writeToDisk) _writeRow(prev_itr->second);
@@ -2107,7 +2107,7 @@ void DataSet::_buildDestination(bool writeToDisk)
 bool DataSet::addModel(Source::Type type, osg::Node* model, unsigned int revisionNumber)
 {
     vpb::Source* source = new vpb::Source(type, model);
-    
+
     osgTerrain::Locator* locator = dynamic_cast<osgTerrain::Locator*>(model->getUserData());
     if (locator)
     {
@@ -2118,12 +2118,12 @@ bool DataSet::addModel(Source::Type type, osg::Node* model, unsigned int revisio
 
         source->setCoordinateSystemPolicy(vpb::Source::PREFER_CONFIG_SETTINGS);
         source->setCoordinateSystem(locator->getCoordinateSystem());
-        
+
     }
-    
+
     osg::ComputeBoundsVisitor cbv;
-    
-    
+
+
     const osg::Node::DescriptionList& descriptions = model->getDescriptions();
     for(osg::Node::DescriptionList::const_iterator itr = descriptions.begin();
         itr != descriptions.end();
@@ -2140,23 +2140,23 @@ bool DataSet::addModel(Source::Type type, osg::Node* model, unsigned int revisio
             source->setMaxLevel(value);
         }
     }
-   
-    
+
+
     model->accept(cbv);
-    
+
     source->_extents.xMin() = cbv.getBoundingBox().xMin();
     source->_extents.xMax() = cbv.getBoundingBox().xMax();
 
     source->_extents.yMin() = cbv.getBoundingBox().yMin();
     source->_extents.yMax() = cbv.getBoundingBox().yMax();
-    
+
     source->getSourceData()->_extents._min = source->_extents._min;
     source->getSourceData()->_extents._max = source->_extents._max;
 
     osg::notify(osg::NOTICE)<<"addModel("<<type<<","<<model->getName()<<")"<<std::endl;
     osg::notify(osg::NOTICE)<<"   extents "<<source->_extents.xMin()<<" "<<source->_extents.xMax()<<std::endl;
     osg::notify(osg::NOTICE)<<"           "<<source->_extents.yMin()<<" "<<source->_extents.yMax()<<std::endl;
-    
+
     addSource(source, revisionNumber);
 
     return true;
@@ -2164,7 +2164,7 @@ bool DataSet::addModel(Source::Type type, osg::Node* model, unsigned int revisio
 
 bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned layerNum, unsigned int revisionNumber)
 {
-    
+
     osgTerrain::HeightFieldLayer* hfl = dynamic_cast<osgTerrain::HeightFieldLayer*>(layer);
     if (hfl)
     {
@@ -2191,7 +2191,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
         addSource(source, revisionNumber);
         return true;
     }
-    
+
     osgTerrain::ImageLayer* iml = dynamic_cast<osgTerrain::ImageLayer*>(layer);
     if (iml)
     {
@@ -2218,7 +2218,7 @@ bool DataSet::addLayer(Source::Type type, osgTerrain::Layer* layer, unsigned lay
         addSource(source, revisionNumber);
         return true;
     }
-    
+
     osgTerrain::ProxyLayer* pl = dynamic_cast<osgTerrain::ProxyLayer*>(layer);
     if (pl)
     {
@@ -2426,7 +2426,7 @@ osgTerrain::TerrainTile* DataSet::createTerrainRepresentation()
             {
                 osgTerrain::Locator* locator = new osgTerrain::Locator;
                 locator->setTransform(source->getGeoTransform());
-                
+
                 if (source->_cs.valid())
                 {
                     locator->setCoordinateSystem(source->_cs->getCoordinateSystem());
@@ -2444,7 +2444,7 @@ osgTerrain::TerrainTile* DataSet::createTerrainRepresentation()
 
                 loadedLayer->setLocator(locator);
             }
-        
+
             if (source->getType()==Source::IMAGE)
             {
                 osgTerrain::Layer* existingLayer = (layerNum < terrainTile->getNumColorLayers()) ? terrainTile->getColorLayer(layerNum) : 0;
@@ -2491,7 +2491,7 @@ osgTerrain::TerrainTile* DataSet::createTerrainRepresentation()
             }
         }
     }
-    
+
     osg::ref_ptr<DatabaseBuilder> builder = new DatabaseBuilder;
     builder->setBuildOptions(new BuildOptions(*this));
     builder->setBuildLog(getBuildLog());
@@ -2515,31 +2515,30 @@ class MyGraphicsContext : public osg::Referenced {
             traits->sharedContext = 0;
             traits->pbuffer = true;
 
-            _gc = osg::GraphicsContext::createGraphicsContext(traits.get());
+            _graphicsContext = osg::GraphicsContext::createGraphicsContext(traits.get());
 
-            if (!_gc)
+            if (!_graphicsContext)
             {
                 if (buildLog) buildLog->log(osg::NOTICE,"Failed to create pbuffer, failing back to normal graphics window.");
-                
+
                 traits->pbuffer = false;
-                _gc = osg::GraphicsContext::createGraphicsContext(traits.get());
+                _graphicsContext = osg::GraphicsContext::createGraphicsContext(traits.get());
             }
 
-            if (_gc.valid())
-            
-            
+            if (_graphicsContext.valid())
+
+
             {
-                _gc->realize();
-                _gc->makeCurrent();
-                
+                _graphicsContext->realize();
+                _graphicsContext->makeCurrent();
+
                 if (buildLog) buildLog->log(osg::NOTICE,"Realized window");
             }
         }
-        
-        bool valid() const { return _gc.valid() && _gc->isRealized(); }
-        
-    private:
-        osg::ref_ptr<osg::GraphicsContext> _gc;
+
+        bool valid() const { return _graphicsContext.valid() && _graphicsContext->isRealized(); }
+
+        osg::ref_ptr<osg::GraphicsContext> _graphicsContext;
 };
 
 
@@ -2573,7 +2572,7 @@ bool DataSet::createTileMap(unsigned int level, TilePairMap& tilepairMap)
     osg::CoordinateSystemNode* cs = _intermediateCoordinateSystem.get();
     const GeospatialExtents& extents = _destinationExtents;
     unsigned int maxNumLevels = getMaximumNumOfLevels();
-                                  
+
     // first populate the destination graph from imagery and DEM sources extents/resolution
     for(CompositeSource::source_iterator itr(_sourceGraph.get());itr.valid();++itr)
     {
@@ -2598,7 +2597,7 @@ bool DataSet::createTileMap(unsigned int level, TilePairMap& tilepairMap)
             log(osg::NOTICE,"Skipping source %s as no data loaded from it.",source->getFileName().c_str());
             continue;
         }
-        
+
         const SpatialProperties& sp = sd->computeSpatialProperties(cs);
 
         if (!sp._extents.intersects(extents))
@@ -2612,13 +2611,13 @@ bool DataSet::createTileMap(unsigned int level, TilePairMap& tilepairMap)
         {
             continue;
         }
-        
+
         int k = 0;
         if (!computeOptimumLevel(source, maxNumLevels-1, k)) continue;
 
         // skip if the tiles won't contribute to the tasks with high level number.
         if (k<=static_cast<int>(level)) continue;
-        
+
         int i_min, i_max, j_min, j_max;
         if (computeCoverage(sp._extents, level, i_min, j_min, i_max, j_max))
         {
@@ -2670,7 +2669,7 @@ bool DataSet::generateTasks(TaskManager* taskManager)
     {
         popOperationLog();
     }
-    
+
     return result;
 
 }
@@ -2716,19 +2715,19 @@ void DataSet::selectAppropriateSplitLevels()
             // primary and secondary split levels fully specified.
         }
     }
-    
+
     if (getDistributedBuildSplitLevel()>=maxLevel)
     {
         log(osg::NOTICE,"Warning: primary split level exceed maximum source level, switching off primary split level.");
         setDistributedBuildSplitLevel(0);
     }
-    
+
     if (getDistributedBuildSecondarySplitLevel()>=maxLevel)
     {
         log(osg::NOTICE,"Warning: secondary split level exceed maximum source level, switching off secondary split level.");
         setDistributedBuildSecondarySplitLevel(0);
     }
-    
+
     if (getDistributedBuildSecondarySplitLevel()!=0 &&
         getDistributedBuildSecondarySplitLevel()<=getDistributedBuildSplitLevel())
     {
@@ -2747,8 +2746,8 @@ void DataSet::selectAppropriateSplitLevels()
             getDistributedBuildSplitLevel(),
             getDistributedBuildSecondarySplitLevel());
     }
-    
-    
+
+
 }
 
 std::string DataSet::getTaskName(unsigned int level, unsigned int X, unsigned int Y) const
@@ -2802,10 +2801,10 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
     if (!prepareForDestinationGraphCreation()) return false;
 
     selectAppropriateSplitLevels();
-    
+
     if (getDistributedBuildSplitLevel()==0) return false;
-    
-    int bottomDistributedBuildLevel = getDistributedBuildSecondarySplitLevel()==0 ? 
+
+    int bottomDistributedBuildLevel = getDistributedBuildSecondarySplitLevel()==0 ?
                                         getDistributedBuildSplitLevel() :
                                         getDistributedBuildSecondarySplitLevel();
 
@@ -2869,13 +2868,13 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
 
         if (!logDirectory.empty()) logDirectory += "/";
     }
-    
+
     std::string fileCacheName;
     if (System::instance()->getFileCache()) fileCacheName = System::instance()->getFileCache()->getFileName();
 
     bool logging = getNotifyLevel() > ALWAYS;
 
-    
+
     // create root task
     {
         std::ostringstream taskfile;
@@ -2914,7 +2913,7 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
     // unsigned int numTasksPerDirectory = getMaxNumberOfFilesPerDirectory();
 
     // bool tooManyTasksForOneDirectory = totalNumOfTasksSansRoot > numTasksPerDirectory;
-    
+
     log(osg::NOTICE,"totalNumOfTasksSansRoot = %d", totalNumOfTasksSansRoot);
 
     // initialize the variables used for nested secondary tasks within primary tasks
@@ -2960,17 +2959,17 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
             }
 
             taskManager->addTask(taskfile.str(), app.str(), sourceFile, getDatabaseRevisionBaseFileName(level,tileX,tileY));
-            
+
             ++taskCount;
         }
-        
+
         // we have an intermediated level so the bottom level will need to be nested, so initiliaze
         // the deltaLevels and divisor for use in below.
         deltaLevels = getDistributedBuildSecondarySplitLevel()-getDistributedBuildSplitLevel();
         divisor = 1 << deltaLevels;
     }
-    
-    
+
+
     // create the bottom level split
     {
         unsigned int level = bottomDistributedBuildLevel-1;
@@ -2991,7 +2990,7 @@ bool DataSet::generateTasksImplementation(TaskManager* taskManager)
                 unsigned int nestedX = tileX / divisor;
                 unsigned int nestedY = tileY / divisor;
                 taskfile<<basename<<"_subtile_L"<<nestedLevel<<"_X"<<nestedX<<"_Y"<<nestedY<<"/";
-                
+
                 std::string path = taskfile.str();
                 vpb::mkpath(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
             }
@@ -3067,7 +3066,7 @@ int DataSet::run()
     {
         pushOperationLog(getBuildLog());
     }
-    
+
     if (!getWriteOptionsString().empty())
     {
         if (osgDB::Registry::instance()->getOptions()==0)
@@ -3128,13 +3127,13 @@ int DataSet::run()
         popOperationLog();
     }
 
-    
+
     return result;
 }
 
 int DataSet::_run()
 {
-    
+
     log(osg::NOTICE,"DataSet::_run() %i %i",getDistributedBuildSplitLevel(),getDistributedBuildSecondarySplitLevel());
 
     bool requiresGraphicsContextInMainThread = true;
@@ -3159,18 +3158,18 @@ int DataSet::_run()
             _readThreadPool = new ThreadPool(numReadThreads, false);
             _readThreadPool->startThreads();
         }
-        
+
         int numWriteThreads = int(ceilf(getNumWriteThreadsToCoresRatio() * float(numProcessors)));
         if (numWriteThreads>=1)
         {
             log(osg::NOTICE,"Starting %i write threads.",numWriteThreads);
             _writeThreadPool = new ThreadPool(numWriteThreads, requiresGraphicsContextInWritingThread);
             _writeThreadPool->startThreads();
-            
+
             //requiresGraphicsContextInMainThread = false;
         }
     }
-    
+
 
     loadSources();
 
@@ -3178,7 +3177,7 @@ int DataSet::_run()
     if (getRecordSubtileFileNamesOnLeafTile()) ++numLevels;
 
     createDestination(numLevels);
-    
+
     if (!_destinationGraph)
     {
         log(osg::WARN, "Error: no destination graph built, cannot proceed with build.");
@@ -3187,7 +3186,7 @@ int DataSet::_run()
 
 
     bool requiresGenerationOfTiles = getGenerateTiles();
-    
+
     if (!getIntermediateBuildName().empty())
     {
         osg::ref_ptr<osgTerrain::TerrainTile> terrainTile = createTerrainRepresentation();
@@ -3202,8 +3201,8 @@ int DataSet::_run()
             requiresGenerationOfTiles = false;
         }
     }
-    
-    
+
+
     bool printOutContributingSources = true;
     if (printOutContributingSources)
     {
@@ -3246,6 +3245,8 @@ int DataSet::_run()
                 log(osg::NOTICE,"Error: Unable to create graphis context, problem with running osgViewer-%s, cannot run compression.",osgViewerGetVersion());
                 return 1;
             }
+
+            _state = context->_graphicsContext->getState();
         }
 
         int result = 0;
@@ -3292,19 +3293,19 @@ int DataSet::_run()
                 // need to create directory.
                 result = vpb::mkpath(_taskOutputDirectory.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
             }
-            
+
             if (result)
             {
                 log(osg::NOTICE,"Error: could not create directory, errorno=%i",errno);
                 return 1;
             }
-            
+
 #ifdef WIN32
             _taskOutputDirectory.push_back('\\');
 #else
             _taskOutputDirectory.push_back('/');
 #endif
-        
+
             if (getGenerateSubtile()) log(osg::NOTICE,"We are a subtile");
             if (getRecordSubtileFileNamesOnLeafTile()) log(osg::NOTICE,"We have to record ../task/name");
         }
@@ -3312,7 +3313,7 @@ int DataSet::_run()
         {
             _taskOutputDirectory = getDirectory();
         }
-        
+
         log(osg::NOTICE,"Task output directory = %s", _taskOutputDirectory.c_str());
 
         writeDestination();
