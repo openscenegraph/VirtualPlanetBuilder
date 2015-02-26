@@ -1902,7 +1902,7 @@ osg::Node* DataSet::decorateWithTerrain(osg::Node* subgraph)
 {
     osgTerrain::Terrain* terrain = new osgTerrain::Terrain;
 
-    if (_destinationCoordinateSystem.valid() && _destinationCoordinateSystem->getCoordinateSystem().empty())
+    if (_destinationCoordinateSystem.valid() && !(_destinationCoordinateSystem->getCoordinateSystem().empty()))
     {
         terrain->setFormat(_destinationCoordinateSystem->getFormat());
         terrain->setCoordinateSystem(_destinationCoordinateSystem->getCoordinateSystem());
