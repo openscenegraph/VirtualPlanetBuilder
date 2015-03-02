@@ -1525,9 +1525,21 @@ void DataSet::_writeImageFile(osg::Image& image,const std::string& filename)
         if (FilePathManager::instance()->checkWritePermissionAndEnsurePathAvailability(simpliedFileName))
         {
             bool fileExistedBeforeWrite = osgDB::fileExists(filename);
+            bool isDDS = (osgDB::getLowerCaseFileExtension(simpliedFileName)=="dds");
+            osg::ref_ptr<osgDB::Options> options = osgDB::Registry::instance()->getOptions();
+            if (isDDS)
+            {
+                const char* ddsNoAtuoFlipWrite = "ddsNoAutoFlipWrite";
+                if (options->getOptionString().find(ddsNoAtuoFlipWrite)==std::string::npos)
+                {
+                    options = osg::clone(options.get());
+                    if (options->getOptionString().empty()) options->setOptionString(ddsNoAtuoFlipWrite);
+                    else options->setOptionString(options->getOptionString()+" "+ddsNoAtuoFlipWrite);
+                }
+            }
 
             osgDB::ReaderWriter::WriteResult result =
-                osgDB::Registry::instance()->writeImage(image, simpliedFileName,osgDB::Registry::instance()->getOptions());
+                osgDB::Registry::instance()->writeImage(image, simpliedFileName, options.get());
 
             if (result.success())
             {
