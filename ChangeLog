@@ -1,3 +1,539 @@
+2015-03-02 20:09  robert
+
+	* src/vpb/DataSet.cpp: Added ddsNoAutoFlipWrite to osgDB::Options
+	  passed to osgDB::writeImage() when handling .dds files.
+
+2015-02-26 17:00  robert
+
+	* src/vpb/DataSet.cpp: Fixed setting of Terrain CoordinateSystem.
+
+2015-02-17 19:41  robert
+
+	* src/vpb/DataSet.cpp: Fixed double creation of osg::State
+
+2015-02-05 20:07  robert
+
+	* CMakeModules/VpbMacroUtils.cmake: From Stephan Wenglorz,"the
+	  attached fix corrects a link error when using CMake 3 and
+	  building Debug on Linux (Debian). -lvpbd could not be found when
+	  linking the applications against it."
+
+2015-01-22 09:42  robert
+
+	* src/vpb/DatabaseBuilderIO.cpp: From Stephan Wenglorz, "attached
+	  is a fix that aligns VPB with the changes made in OSG trunk
+	  revision 14344. ReaderWriterOSG2 now expects the "file type"
+	  option to be set via Options::setPluginStringData(), whereas VPB
+	  still used Options::setOptionString(). This should fix the
+	  problem that VPBReaderWriter aborts reading of .source files, so
+	  OSG tries to load a non-existing osgdb_source plugin, as
+	  described here:
+	  
+	  http://forum.openscenegraph.org/viewtopic.php?t=14387
+	  "
+
+2014-12-22 11:28  robert
+
+	* include/vpb/BuildLog: From Sebastian Messerschmidt, "Attached you
+	  find a patch against the VPB-trunk.
+	  
+	  The only change is to make the vpb::LogFile write function
+	  virtual in order to allow the use of user defined logging.
+	  I would need this change, to integrate in the VPB chain into a
+	  graphical user interface."
+
+2013-10-28 11:13  robert
+
+	* src/vpb/Commandline.cpp: From Ruben Smelik, "I’ve tried VPB for
+	  the first time this week (for the visualization of a
+	  high-resolution areal dataset), and I’m very enthusiastic about
+	  it: it just works and is very fast!
+	  During this, I’ve spotted a small error in Commandline.cpp, the
+	  output bounds (“-b”) are not handled correctly if ymin > ymax
+	  (e.g. as in UTM North coordinates). Attached is the fix (against
+	  svn trunk version)."
+
+2013-08-22 08:47  robert
+
+	* src/vpb/TaskManager.cpp: Fixed warning
+
+2013-05-30 09:05  robert
+
+	* CMakeLists.txt: From Martin Naylor, "Fix for VS2010+ when
+	  compiling VPB."
+
+2012-05-01 10:30  robert
+
+	* src/vpb/BuildOptionsIO.cpp: Fixed build against 3.1.x
+
+2012-02-17 15:45  robert
+
+	* include/vpb/BuildOptions, include/vpb/Destination,
+	  src/vpb/BuildOptionsIO.cpp, src/vpb/Commandline.cpp,
+	  src/vpb/Destination.cpp, src/vpb/SourceData.cpp: From Martin
+	  Lambers, "adds new options to choose the texture type: --RGB32F
+	  and --RGBA32F.
+	  Furthermore, it adds support for floating point data to the GDAL
+	  import
+	  code...
+	  
+	  To use these features with VirtualPlanetBuilder, build the
+	  database
+	  with the following options:
+	  --RGB32F --image-ext gta -O "COMPRESSION XZ" -t <YOUR-DATA>
+	  "
+
+2012-01-02 16:02  robert
+
+	* src/vpb/TaskManager.cpp: From Torben Dannhauer, "If one resumes a
+	  VPB run with reading in a taskfile, vpbmaster immediately starts
+	  to read in the taskfile without a single output line. Depending
+	  on the database size the build_master.tasks file could be large
+	  and reading in takes several minutes.
+	  
+	  I added an output message to taskmanager::read() before it reads
+	  in the file to indicate vpbmaster is not hanging but working
+	  already."
+
+2011-06-23 15:56  robert
+
+	* include/vpb/DataSet, include/vpb/FileUtils,
+	  src/vpb/FileUtils.cpp: From Wang Rui, "This submission makes VPB
+	  work with MinGW 5.1.4 (gcc 3.4.5) under
+	  Windows XP. It only adds some preprocessing directives so it
+	  should
+	  not break the build results with other compilers.
+	  "
+
+2011-06-21 17:35  robert
+
+	* src/vpb/Destination.cpp: From Martin Innis, following disucssion
+	  about how tri stripping now hampers performance on modern cards,
+	  removed usage of TriStripVisitor.
+
+2011-06-21 12:55  robert
+
+	* include/vpb/BuildLog, include/vpb/Destination,
+	  src/vpb/PropertyFile.cpp, src/vpb/TaskManager.cpp: From John
+	  Vidar Larring, "While testing OSG 3.0 I also recompiled VPB trunk
+	  against it, and came across a few compile warnings from gcc that
+	  was easy to fix / remove.
+	  
+	  The attached tgz file contains fixes for the following warnings:
+	  
+	  * trunk/include/vpb/BuildLog:190: warning: ?class vpb::Logger?
+	  has virtual functions but non-virtual destructor
+	  * trunk/include/vpb/Destination:72: warning: ?class
+	  vpb::DestinationVisitor? has virtual functions but non-virtual
+	  destructor
+	  * trunk/src/vpb/PropertyFile.cpp:321: warning:
+	  ?file.vpb::FileProxy::_requiresSync? may be used uninitialized in
+	  this function
+	  * trunk/src/vpb/TaskManager.cpp:105: warning: converting to ?int?
+	  from ?double?
+	  * trunk/src/vpb/TaskManager.cpp:174: warning: converting to ?int?
+	  from ?double?
+	  
+	  When patch is applied VPB compiles without warnings."
+
+2011-06-21 11:17  robert
+
+	* CMakeLists.txt: Updated version number
+
+2011-06-21 11:16  robert
+
+	* CMakeLists.txt, CMakeModules/FindLibSquish.cmake,
+	  CMakeModules/FindNVTT.cmake, applications/CMakeLists.txt,
+	  applications/vpbtexturecompression: Removed test problems and
+	  associated cmake scripts
+
+2011-06-21 11:10  robert
+
+	* CMakeModules/FindOSG.cmake, CMakeModules/FindOpenThreads.cmake:
+	  Removed no longer required find scripts
+
+2011-06-21 11:07  robert
+
+	* CMakeLists.txt, applications/osgdem/CMakeLists.txt,
+	  applications/vpbcache/CMakeLists.txt,
+	  applications/vpbmaster/CMakeLists.txt,
+	  applications/vpbsizes/CMakeLists.txt,
+	  applications/vpbtexturecompression/CMakeLists.txt,
+	  src/vpb/CMakeLists.txt: From Jean-Sebastien Guay, "Trying to
+	  build VPB today I found out that the FindOSG.cmake in VPB's own
+	  sources doesn't work if OSG isn't in your path (and to avoid
+	  problems with some apps I've started not putting OSG in my
+	  system-wide path anymore).
+	  
+	  CMake's own FindOpenSceneGraph.cmake works very well and has for
+	  a while, so I modified VPB's CMake config to use that instead.
+	  That change is attached. When merging please also delete the
+	  CMakeModules/FindOSG.cmake and FindOpenThreads.cmake which are no
+	  longer needed.
+	  "
+
+2011-01-13 15:00  robert
+
+	* CMakeLists.txt, include/vpb/TextureUtils, src/vpb/CMakeLists.txt,
+	  src/vpb/DataSet.cpp, src/vpb/TextureUtils.cpp: Moved the NVTT
+	  integration from VPB into the OSG using the new
+	  osgDB::ImageProcessor interface.
+
+2011-01-13 12:35  robert
+
+	* include/vpb/TextureUtils, src/vpb/TextureUtils.cpp: Moved the
+	  interface further towards a generic OSG class interface.
+
+2011-01-13 11:48  robert
+
+	* include/vpb/TextureUtils, src/vpb/TextureUtils.cpp: Restructed
+	  NVTT integration into a single class
+
+2011-01-13 11:24  robert
+
+	* include/vpb/TextureUtils, src/vpb/TextureUtils.cpp: Build fixes
+	  for building against NVTT
+
+2011-01-13 11:14  robert
+
+	* include/vpb/TextureUtils, src/vpb/TextureUtils.cpp: Began work on
+	  refactoring the NVTT usage so that it can be moved into an OSG
+	  plugin
+
+2010-12-20 17:10  robert
+
+	* include/vpb/BuildOptions, src/vpb/BuildOptionsIO.cpp,
+	  src/vpb/Commandline.cpp, src/vpb/Destination.cpp: From Brad
+	  Christiansen, "A couple of small changes to VPB. I have added the
+	  ability to specify the optional image and elevation layout policy
+	  from the command line. I also implemented serialization support
+	  for the compression quality and destination extents so vpbmaster
+	  passes these options to osgdem."
+
+2010-12-16 08:41  robert
+
+	* CMakeLists.txt: From David Fries, "Don't fail silently when GDAL
+	  was not found.
+	  Currently there isn't any indication there is a problem and the
+	  cmake
+	  output is identical to when GDAL is found, the only indication is
+	  make
+	  immediately returning without doing anything. Instead warn and
+	  fail
+	  if OSG or GDAL was not found, this also lets make invoke cmake
+	  and
+	  give the warning again.
+	  
+	  
+	  
+	  make
+	  /usr/bin/cmake -H/opt/src/VPB/VirtualPlanetBuilder
+	  -B/opt/src/VPB/release --check-build-system
+	  CMakeFiles/Makefile.cmake 0
+	  CMake Error at CMakeLists.txt:324 (message):
+	  GDAL was not found
+	  
+	  -- Configuring incomplete, errors occurred!
+	  make: *** [cmake_check_build_system] Error 1
+	  "
+
+2010-11-25 11:57  robert
+
+	* src/vpb/BuildOptions.cpp, src/vpb/BuildOptionsIO.cpp,
+	  src/vpb/System.cpp: Changed VPB to default to outputting .osgb
+	  files
+
+2010-11-25 11:37  robert
+
+	* src/vpb/Destination.cpp: Removed assignment of GeometryTechnique
+	  to TerrainTile.
+
+2010-11-25 11:35  robert
+
+	* src/vpb/DataSet.cpp: Fixed handling of .osgt and .osgx datasets
+	  to that images they reference are now written out to disk.
+
+2010-11-10 14:50  robert
+
+	* include/vpb/BuildOptions, include/vpb/TextureUtils,
+	  src/vpb/BuildOptions.cpp, src/vpb/Commandline.cpp,
+	  src/vpb/Destination.cpp, src/vpb/TextureUtils.cpp: From Brad
+	  Christiansen, "I have gone ahead and implemented the change to
+	  select the quality of the compression at runtime.
+	  The results are quite dramatic:
+	  
+	  - Compressing a 1024x1024 image 3 times on my laptop I got these
+	  results:
+	  
+	  DXT1
+	  GL - 1.2 seconds
+	  Fastest NVTT - 0.7 seconds
+	  All other NVTT - 6.9 seconds
+	  
+	  DXT3
+	  GL - 1.2 seconds
+	  Fastest NVTT - 0.8 seconds
+	  All other NVTT - 7.3 seconds
+	  
+	  
+	  I am unsure what to use as the default option but as I could not
+	  see any difference in the output with my single test image, I
+	  have set it to fastest."
+
+2010-11-05 16:20  robert
+
+	* src/vpb/PropertyFile.cpp: Re-enabled the old fchmod usage for
+	  Win32.
+
+2010-11-05 16:15  robert
+
+	* CMakeModules/FindGDAL.cmake: Merged support for GDAL1.7.0 from
+	  OSG.
+
+2010-11-04 13:44  robert
+
+	* CMakeLists.txt, CMakeModules/FindGDAL.cmake,
+	  CMakeModules/FindNVTT.cmake, CMakeModules/FindOSG.cmake,
+	  include/vpb/BuildOptions, include/vpb/TextureUtils,
+	  src/vpb/BuildOptions.cpp, src/vpb/BuildOptionsIO.cpp,
+	  src/vpb/CMakeLists.txt, src/vpb/Commandline.cpp,
+	  src/vpb/DataSet.cpp, src/vpb/Destination.cpp,
+	  src/vpb/TextureUtils.cpp: From Brad Christiansen, "I have
+	  attached the changes that allow the texture compression method to
+	  be selected via a command line option. If VPB has been built
+	  without nvtt support and nvtt is selected as the compression
+	  method a warning is logged but the old technique will still be
+	  used.
+	  I also made a couple of small changes to the Cmake setup.
+	  - I added support for selecting a 3rd party directory (as in OSG
+	  ) which is used to find gdal and nvtt.
+	  - OSG wasn?t being found via osg-dir so I updated FindOSG
+	  - When using the nvtt binaries from the Nvidia web site only
+	  nvtt.lib is required so I made the other nvtt libs optional
+	  (nvimage, nvmath etc)."
+
+2010-11-02 13:49  robert
+
+	* src/vpb/Commandline.cpp, src/vpb/Destination.cpp: From Brad
+	  Christiansen, "The attached files fix a bug where RGB instead of
+	  RGBA imagery was used for DXT3 and DXT5, and RGBA was used for
+	  DXT1 instead of RGB. I have also added another command line
+	  option --compressed-dxt1a which uses DXT1 with 1 bit alpha for
+	  the output."
+
+2010-11-02 13:47  robert
+
+	* src/vpb/Destination.cpp, src/vpb/TextureUtils.cpp: From Fabien
+	  Lavignotte, "As seen by Brad, the code with nvtt does not works
+	  correctly when using --terrain.
+	  So here is the fix in TextureUtils.cpp.
+	  I also swapped the compression used with
+	  BuildOptions::COMPRESSED_TEXTURE and
+	  BuildOptions::COMPRESSED_RGBA_TEXTURE.
+	  It dit not seems correct to use DXT1 for RGBA, i think it was
+	  just a copy/paste error."
+
+2010-11-02 13:02  robert
+
+	* src/vpb/PropertyFile.cpp: Build fix for gcc 4.4.4
+
+2010-10-05 09:24  robert
+
+	* include/vpb/TextureUtils, src/vpb/TextureUtils.cpp: Cleaned up
+	  header and indentation
+
+2010-09-14 12:42  robert
+
+	* CMakeLists.txt, CMakeModules/FindNVTT.cmake,
+	  include/vpb/TextureUtils, src/vpb/CMakeLists.txt,
+	  src/vpb/DataSet.cpp, src/vpb/Destination.cpp,
+	  src/vpb/TextureUtils.cpp: From Fabien Lavignotte, "Here is a
+	  patch for VPB to work without graphics context as discussed
+	  earlier.
+	  It uses NVTT (NVidia Texture Tools) to support compressed texture
+	  and mipmap.
+	  The use of NVTT is optionnal, so no licensing issue. A define
+	  directive is added (HAVE_NVTT) to select at compile time if NVTT
+	  should be used, and in that case, it disables the use of graphics
+	  context.
+	  Tested on linux and windows."
+	  
+	  Tweaks from Robert Osfield:
+	  
+	  added CMake option BUILD_USE_NVTT_WHEN_AVAILABLE which defaults
+	  to TRUE to enable toggling on/off the use of NVTT.
+	  added nvimage, nvcore and nvmath to FindNVTT.cmake.
+
+2010-09-09 09:34  robert
+
+	* src/vpb/DataSet.cpp, src/vpb/ThreadPool.cpp: From Fabien
+	  Lavignotte, "Here is a small fix so that VPB can be launched
+	  through VNC, when the display is different from :0.0.
+	  readDisplay() is added to create the graphics context using the
+	  current display."
+
+2010-08-16 11:38  robert
+
+	* applications/vpbmaster/vpbmaster.cpp, src/vpb/TaskManager.cpp:
+	  From Brad Christiansen,
+	  
+	  "I have made changes in two areas that effect VPBMaster's
+	  operation. The motivation for the changes come from writing a GUI
+	  front end to VPBMaster.
+	  
+	  The first is changes to the logging behavior:
+	  - If a master log file is set, this is now also used as the
+	  operations log. This adds more detail to the master log file (it
+	  is clearer what has happened, particularly in the case of
+	  errors).
+	  - Fixed a bug which meant the build log was not correctly passed
+	  to the DataSet.
+	  
+	  
+	  The second set of changes relate to the behavior of VPBMaster
+	  when a run is finished. Prior to my changes the VPBMaster
+	  executable would not terminate if the TaskManager had spawned any
+	  threads, even once all tasks had completed. To change this
+	  behavior so VPBMaster would exit on completion I made two
+	  changes:
+	  
+	  - Implemented the exit(int) function in TaskManager (it was
+	  defined in the header but had no implementation)
+	  - Called this method prior to VPBMaster returning from main so
+	  all thread are closed and VPBMaster exits cleanly."
+	  
+	  
+	  Second submission:
+	  
+	  "The return value of TaskManager's run method was ignored by
+	  vpbmaster, thus is the task manager failed to complete all its
+	  tasks, vpbmaster would still return 0. My change to vpbmaster
+	  checks the return value of TaskManager run and sets the return
+	  value to 1 if the run method returns false."
+
+2010-08-16 10:10  robert
+
+	* src/vpb/Destination.cpp: Added checked for .osgb as this allows
+	  for mipmap/compressed imagery.
+
+2010-08-09 19:44  robert
+
+	* include/vpb/SpatialProperties, src/vpb/SourceData.cpp: Introduced
+	  nonZeroExtents() method and usage to avoid divide by zero errors
+
+2010-07-29 16:11  robert
+
+	* src/vpb/DatabaseBuilderIO.cpp: From Wang Rui, ammened the ios
+	  usage when writing out source files
+
+2010-06-28 08:57  robert
+
+	* src/vpb/BuildOptions.cpp: Ammended the checking of image options.
+
+2010-06-21 15:20  robert
+
+	* src/vpb/DatabaseBuilderIO.cpp: From Wang Rui, fix to reading
+	  stream under Windows.
+
+2010-06-17 11:10  robert
+
+	* src/vpb/SourceData.cpp: From Brad Christiansen, "The problem:
+	  
+	  When using VPB, if your destination has an alpha component, but
+	  the source does not, no alpha is set on the destination. The end
+	  result is the destination has an alpha value of 0 and is
+	  completely transparent.
+	  
+	  
+	  
+	  The fix:
+	  
+	  Just a couple of lines that detects this situation and sets the
+	  alpha on the destination to 255."
+
+2010-06-10 15:23  robert
+
+	* include/vpb/BuildOptions, include/vpb/Destination,
+	  src/vpb/DataSet.cpp, src/vpb/Destination.cpp: Added support for
+	  altering the imagery resolution per layer
+
+2010-06-09 17:56  robert
+
+	* include/vpb/BuildOptions, include/vpb/Commandline,
+	  include/vpb/Destination, src/vpb/BuildOptions.cpp,
+	  src/vpb/BuildOptionsIO.cpp, src/vpb/Commandline.cpp,
+	  src/vpb/DataSet.cpp, src/vpb/DatabaseBuilderIO.cpp,
+	  src/vpb/Destination.cpp: Introduced the usage of the new osgDB
+	  serializers for IO support for the source format, retaining
+	  backwards compatibility with older .source files using old sytyle
+	  .osg support.
+	  
+	  Added support for per layer image options.
+
+2010-06-08 11:53  robert
+
+	* include/vpb/BuildOptions, src/vpb/BuildOptions.cpp,
+	  src/vpb/BuildOptionsIO.cpp, src/vpb/Commandline.cpp,
+	  src/vpb/DatabaseBuilderIO.cpp, src/vpb/Destination.cpp:
+	  Implemented new serializers
+
+2010-06-04 11:55  robert
+
+	* include/vpb/BuildOptions, src/vpb/BuildOptions.cpp: Restructured
+	  image options so that they all now are encapsulated in their own
+	  dedicated ImageOptions class
+
+2010-04-03 16:24  robert
+
+	* include/vpb/DataSet, src/vpb/DataSet.cpp: Added support
+	  decorating a osgTerrain based database with osgTerain::Terrain
+	  node.
+
+2010-03-29 17:23  robert
+
+	* CMakeLists.txt: Updated required OSG version to 2.9.8
+
+2010-03-25 16:15  robert
+
+	* src/vpb/Destination.cpp: Added setting of TerrainTile::TileID
+
+2010-03-17 14:35  robert
+
+	* CMakeModules/FindGDAL.cmake: From J.P. Delport, "attached an
+	  updated FindGDAL that finds 1.6.0 version in Debian unstable.
+	  Could also be added to VPB.
+	  "
+
+2010-03-16 18:53  robert
+
+	* src/vpb/Commandline.cpp: Added command line usage docs for new
+	  --blending-policy
+
+2010-03-16 18:48  robert
+
+	* include/vpb/BuildOptions, src/vpb/BuildOptions.cpp,
+	  src/vpb/BuildOptionsIO.cpp, src/vpb/Commandline.cpp,
+	  src/vpb/Destination.cpp: Added support for
+	  osgTerrain::TerrainTile::BlendingPolicy, and added command line
+	  option:
+	  
+	  --blending-policy INHERIT
+	  --blending-policy DO_NOT_SET_BLENDING
+	  --blending-policy ENABLE_BLENDING
+	  --blending-policy ENABLE_BLENDING_WHEN_ALPHA_PRESENT
+
+2010-01-25 17:33  robert
+
+	* ChangeLog, include/vpb/Serializer, src/vpb/BuildOptionsIO.cpp:
+	  Fixed build
+
+2010-01-15 15:32  robert
+
+	* include/vpb/Serializer, src/vpb/BuildOptionsIO.cpp: Moved
+	  Serializer back from OpenSceneGraph into VirtualPlanetBuilder to
+	  ease the way for the new OpenSceneGraph/include/osgDB/Serializer
+	  but avoiding build compatibility issues.
+
 2009-07-01 16:17  robert
 
 	* CMakeModules/FindOSG.cmake, applications/osgdem/osgdem.cpp,
