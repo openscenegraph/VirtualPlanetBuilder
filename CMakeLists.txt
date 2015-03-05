@@ -30,10 +30,10 @@ PROJECT(VIRTUALPLANETBUILDER)
 
 SET(VIRTUALPLANETBUILDER_MAJOR_VERSION 0)
 SET(VIRTUALPLANETBUILDER_MINOR_VERSION 9)
-SET(VIRTUALPLANETBUILDER_PATCH_VERSION 12)
-SET(VIRTUALPLANETBUILDER_SOVERSION 12)
+SET(VIRTUALPLANETBUILDER_PATCH_VERSION 13)
+SET(VIRTUALPLANETBUILDER_SOVERSION 13)
 
-# set to 0 when not a release candidate, non zero means that any generated 
+# set to 0 when not a release candidate, non zero means that any generated
 # svn tags will be treated as release candidates of given number
 SET(VIRTUALPLANETBUILDER_RELEASE_CANDIDATE 0)
 
@@ -118,7 +118,7 @@ IF (VPB_MAINTAINER)
         COMMAND ${SVNCOMMAND} update
         COMMAND ${GENERATELOGS}
     )
-    
+
 ENDIF()
 
 
@@ -266,10 +266,10 @@ ELSE()
         # CMake variables: MSVC60, MSVC70, MSVC71, MSVC80, CMAKE_COMPILER_2005
         SET(OSG_AGGRESSIVE_WARNING_FLAGS /W4 /wd4706 /wd4127 /wd4100)
 
-        if(${MSVC_VERSION} STRGREATER 1600) 
-        message("msvc2010 + build fix /FORCE:MULTIPLE") 
-        SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE:MULTIPLE") 
-        endif() 
+        if(${MSVC_VERSION} STRGREATER 1600)
+        message("msvc2010 + build fix /FORCE:MULTIPLE")
+        SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE:MULTIPLE")
+        endif()
 
 
     ELSE()
