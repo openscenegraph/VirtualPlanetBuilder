@@ -50,7 +50,7 @@ bool FileCache::read(const std::string& filename)
 
     _filename = filename;
 
-    std::ifstream fin(foundFile.c_str());
+    osgDB::ifstream fin(foundFile.c_str());
     
     bool emptyBefore = _variantMap.empty();
     

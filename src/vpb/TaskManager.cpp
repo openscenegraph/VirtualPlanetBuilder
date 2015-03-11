@@ -838,7 +838,7 @@ bool TaskManager::readTasks(const std::string& filename)
 
     _tasksFileName = filename;
 
-    std::ifstream fin(foundFile.c_str());
+    osgDB::ifstream fin(foundFile.c_str());
 
     if (fin)
     {

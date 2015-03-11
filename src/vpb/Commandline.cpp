@@ -1114,7 +1114,7 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         }
         else if (arguments.read(pos, "--wkt-file",def))
         {
-            std::ifstream in(def.c_str());
+            osgDB::ifstream in(def.c_str());
             if (in)
             {   
                 currentCS = "";

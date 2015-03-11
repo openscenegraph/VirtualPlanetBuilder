@@ -26,6 +26,7 @@
 #include <osg/Object>
 #include <osg/Notify>
 #include <osg/Timer>
+#include <osgDB/fstream>
 
 #include <OpenThreads/Mutex>
 #include <OpenThreads/Thread>
@@ -34,7 +35,7 @@
 
 #include <list>
 #include <sstream>
-#include <fstream>
+
 #include <iostream>
 
 
@@ -73,7 +74,7 @@ class VPB_EXPORT LogFile : public osg::Referenced
         
         virtual void write(Message* message);
         
-        std::ofstream       _fout;
+        osgDB::ofstream       _fout;
         OpenThreads::Mutex  _mutex;
         
         osg::ref_ptr<Task>  _taskFile;

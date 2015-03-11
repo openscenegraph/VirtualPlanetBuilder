@@ -607,7 +607,7 @@ bool MachinePool::read(const std::string& filename)
     }
     
 
-    std::ifstream fin(foundFile.c_str());
+    osgDB::ifstream fin(foundFile.c_str());
     
     if (fin)
     {
