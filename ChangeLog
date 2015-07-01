@@ -1,3 +1,27 @@
+2015-03-11 17:41  robert
+
+	* include/vpb/BuildLog, src/vpb/Commandline.cpp,
+	  src/vpb/DatabaseBuilderIO.cpp, src/vpb/FileCache.cpp,
+	  src/vpb/MachinePool.cpp, src/vpb/TaskManager.cpp: From
+	  BjornBlissing, "Some users have reported that compiling Virtual
+	  Planet Builder with Visual Studio have resulted in lots of
+	  compiler errors. See:
+	  http://forum.openscenegraph.org/viewtopic.php?t=13662
+	  
+	  This proposed fix replaces all calls to std::ofstream and
+	  std::ifstream, to use osgDB::ofstream and osgDB::ifstream
+	  instead.
+	  
+	  Which solves these compilation errors."
+
+2015-03-05 20:14  robert
+
+	* CMakeLists.txt: Updated version number for dev release
+
+2015-03-05 20:14  robert
+
+	* ChangeLog: Updated ChangeLog
+
 2015-03-02 20:09  robert
 
 	* src/vpb/DataSet.cpp: Added ddsNoAutoFlipWrite to osgDB::Options

@@ -75,9 +75,9 @@ IF (VPB_MAINTAINER)
     # Provide target for tagging a release
     #
     SET(SVNCOMMAND svn)
-    SET(SVNTRUNKDIR     http://www.openscenegraph.org/svn/VirtualPlanetBuilder/trunk)
-    SET(SVNTAGDIR       http://www.openscenegraph.org/svn/VirtualPlanetBuilder/tags)
-    SET(SVNBRANCHDIR    http://www.openscenegraph.org/svn/VirtualPlanetBuilder/branch)
+    SET(SVNTRUNKDIR     http://svn.openscenegraph.org/VirtualPlanetBuilder/trunk)
+    SET(SVNTAGDIR       http://svn.openscenegraph.org/VirtualPlanetBuilder/tags)
+    SET(SVNBRANCHDIR    http://svn.openscenegraph.org/VirtualPlanetBuilder/branches)
 
     IF   (VIRTUALPLANETBUILDER_SVN STREQUAL "trunk")
         SET(SVNSOURCEDIR ${SVNTRUNKDIR})
@@ -171,7 +171,7 @@ SET(3rdPartyRoot "" CACHE PATH "set to base 3rd party dependancy path")
 
 SET(CMAKE_DEBUG_POSTFIX  "d")
 
-FIND_PACKAGE(OpenSceneGraph 2.9.8 REQUIRED osgDB osgFX osgUtil osgSim osgTerrain osgViewer osgGA osgText)
+FIND_PACKAGE(OpenSceneGraph 3.0.0 REQUIRED osgDB osgFX osgUtil osgSim osgTerrain osgViewer osgGA osgText)
 FIND_PACKAGE(GDAL)
 
 ################################################################################
