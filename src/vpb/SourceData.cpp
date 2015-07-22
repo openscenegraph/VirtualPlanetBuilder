@@ -122,7 +122,12 @@ float SourceData::getInterpolatedValue(GDALRasterBand *band, double x, double y,
 #endif
 
     double invTransform[6];
-    GDALInvGeoTransform(geoTransform, invTransform);
+    if (!GDALInvGeoTransform(geoTransform, invTransform)) 
+    {
+        log(osg::INFO,"Warning GDALInvGeoTransform(geoTransform, invTransform) failed.");
+        return originalHeight;
+    }
+    
     double r, c;
     GDALApplyGeoTransform(invTransform, x, y, &c, &r);
    
