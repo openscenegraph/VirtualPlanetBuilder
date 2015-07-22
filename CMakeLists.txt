@@ -26,7 +26,7 @@ if(COMMAND cmake_policy)
     endif()
 endif()
 
-PROJECT(VitualPlanetBuilder)
+PROJECT(VirtualPlanetBuilder)
 
 SET(VIRTUALPLANETBUILDER_MAJOR_VERSION 1)
 SET(VIRTUALPLANETBUILDER_MINOR_VERSION 0)
