@@ -44,7 +44,7 @@ SET(VIRTUALPLANETBUILDER_SONAMES TRUE)
 
 # We have some custom .cmake scripts not in the official distribution.
 # Maybe this can be used override existing behavior if needed?
-SET(CMAKE_MODULE_PATH "${VIRTUALPLANETBUILDER_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
+SET(CMAKE_MODULE_PATH "${VirtualPlanetBuilder_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
 
 # Okay, here's the problem: On some platforms, linking against OpenThreads
@@ -137,7 +137,7 @@ ENDIF()
 
 # Make the headers visible to everything
 INCLUDE_DIRECTORIES(
-    ${VIRTUALPLANETBUILDER_SOURCE_DIR}/include
+    ${VirtualPlanetBuilder_SOURCE_DIR}/include
     ${OPENGL_INCLUDE_DIR}
 )
 
