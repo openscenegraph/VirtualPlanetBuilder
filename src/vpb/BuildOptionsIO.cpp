@@ -4,7 +4,7 @@
  * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -56,7 +56,7 @@ public:
         _default(defaultValue),
         _getter(getter),
         _setter(setter) {}
-     
+
      bool write(osgDB::Output& fw, const osg::Object& obj)
      {
         const C& object = static_cast<const C&>(obj);
@@ -66,7 +66,7 @@ public:
             P value = (object.*_getter)();
             fw.indent()<<_fieldName<<" "<<value._min[0]<<" "<<value._min[1]<<" "<<value._max[0]<<" "<<value._max[1]<<std::endl;
         }
-        
+
         return true;
      }
 
@@ -79,10 +79,10 @@ public:
             (object.*_setter)(value);
             itrAdvanced = true;
         }
-        
+
         return true;
      }
-     
+
      std::string        _fieldName;
      V                  _default;
      GetterFunctionType _getter;
@@ -103,7 +103,7 @@ public:
         _default(defaultValue),
         _getter(getter),
         _setter(setter) {}
-     
+
      bool write(osgDB::Output& fw, const osg::Object& obj)
      {
         const C& object = static_cast<const C&>(obj);
@@ -126,7 +126,7 @@ public:
                 fw.indent()<<"}"<<std::endl;
             }
         }
-        
+
         return true;
      }
 
@@ -148,14 +148,14 @@ public:
             }
 
             ++fr;
-            
+
             (object.*_setter)(value);
             itrAdvanced = true;
         }
-        
+
         return true;
      }
-     
+
      std::string        _fieldName;
      T                  _default;
      GetterFunctionType _getter;
@@ -182,7 +182,7 @@ public:
         &CLASS::set##NAME\
     )
 
-    
+
 #define VPB_ADD_ENUM_PROPERTY(PROPERTY) \
     VPB_CREATE_ENUM_SERIALIZER(BuildOptions, PROPERTY, prototype); \
     _serializerList.push_back(serializer.get())
@@ -299,7 +299,7 @@ public:
         VPB_ADD_UINT_PROPERTY(ImageryQuantization);
         VPB_ADD_BOOL_PROPERTY(ImageryErrorDiffusion);
         VPB_ADD_FLOAT_PROPERTY(MaxAnisotropy);
-        
+
         VPB_ADD_BOOL_PROPERTY(BuildOverlays);
         VPB_ADD_BOOL_PROPERTY(ReprojectSources);
         VPB_ADD_BOOL_PROPERTY(GenerateTiles);
@@ -311,10 +311,10 @@ public:
         VPB_ADD_BOOL_PROPERTY(WriteNodeBeforeSimplification);
 
         VPB_ADD_VEC4_PROPERTY(DefaultColor);
-        
+
         VPB_ADD_BOOL_PROPERTY(UseInterpolatedImagerySampling);
         VPB_ADD_BOOL_PROPERTY(UseInterpolatedTerrainSampling);
-        
+
         VPB_ADD_STRING_PROPERTY(DestinationCoordinateSystem);
         VPB_ADD_STRING_PROPERTY(DestinationCoordinateSystemFormat);
         VPB_ADD_DOUBLE_PROPERTY(RadiusPolar);
@@ -327,7 +327,7 @@ public:
                 &BuildOptions::setDestinationExtents));
 
         VPB_ADD_UINT_PROPERTY(MaximumNumOfLevels);
-        
+
         VPB_ADD_UINT_PROPERTY(DistributedBuildSplitLevel);
         VPB_ADD_UINT_PROPERTY(DistributedBuildSecondarySplitLevel);
         VPB_ADD_BOOL_PROPERTY(RecordSubtileFileNamesOnLeafTile);
@@ -339,7 +339,7 @@ public:
         { VPB_AEP(NotifyLevel); VPB_AEV(ALWAYS); VPB_AEV(FATAL); VPB_AEV(WARN); VPB_AEV(NOTICE); VPB_AEV(INFO); VPB_AEV(DEBUG_INFO); VPB_AEV(DEBUG_FP); }
 
         VPB_ADD_BOOL_PROPERTY(DisableWrites);
-        
+
         VPB_ADD_FLOAT_PROPERTY(NumReadThreadsToCoresRatio);
         VPB_ADD_FLOAT_PROPERTY(NumWriteThreadsToCoresRatio);
 
@@ -350,10 +350,10 @@ public:
 
         VPB_ADD_BOOL_PROPERTY(AbortTaskOnError);
         VPB_ADD_BOOL_PROPERTY(AbortRunOnError);
-        
+
         { VPB_AEP2(DefaultImageLayerOutputPolicy, LayerOutputPolicy); VPB_AEV(INLINE); VPB_AEV(EXTERNAL_LOCAL_DIRECTORY); VPB_AEV(EXTERNAL_SET_DIRECTORY); }
         { VPB_AEP2(DefaultElevationLayerOutputPolicy, LayerOutputPolicy); VPB_AEV(INLINE); VPB_AEV(EXTERNAL_LOCAL_DIRECTORY); VPB_AEV(EXTERNAL_SET_DIRECTORY); }
-        
+
         { VPB_AEP2(OptionalImageLayerOutputPolicy, LayerOutputPolicy); VPB_AEV(INLINE); VPB_AEV(EXTERNAL_LOCAL_DIRECTORY); VPB_AEV(EXTERNAL_SET_DIRECTORY); }
         { VPB_AEP2(OptionalElevationLayerOutputPolicy, LayerOutputPolicy); VPB_AEV(INLINE); VPB_AEV(EXTERNAL_LOCAL_DIRECTORY); VPB_AEV(EXTERNAL_SET_DIRECTORY); }
 
@@ -425,9 +425,9 @@ bool BuildOptions_readLocalData(osg::Object& obj, osgDB::Input &fr)
 {
     vpb::BuildOptions& gt = static_cast<vpb::BuildOptions&>(obj);
     bool itrAdvanced = false;
-    
+
     BuildOptions_Proxy.read(fr, gt, itrAdvanced);
-    
+
     return itrAdvanced;
 }
 
@@ -538,7 +538,8 @@ static bool readLayerImageOptions( osgDB::InputStream& is, vpb::BuildOptions& bo
     unsigned int size = 0; is >> size >> IS_BEGIN_BRACKET;
     for ( unsigned int i=0; i<size; ++i  )
     {
-        vpb::ImageOptions* imageOptions = dynamic_cast<vpb::ImageOptions*>( is.readObject() );
+        osg::ref_ptr<osg::Object> obj = is.readObject();
+        vpb::ImageOptions* imageOptions = dynamic_cast<vpb::ImageOptions*>( obj.get() );
         if ( imageOptions ) bo.setLayerImageOptions( i, imageOptions );
     }
     is >> IS_END_BRACKET;
@@ -564,13 +565,13 @@ static bool checkDestinationExtents( const vpb::BuildOptions& bo )
 { return bo.getDestinationExtents().valid(); }
 
 static bool readDestinationExtents( osgDB::InputStream& is, vpb::BuildOptions& bo )
-{    
+{
     double xMin, xMax, yMin, yMax;
     bool isGeo;
     is >> IS_BEGIN_BRACKET;
     is >> xMin;
     is >> yMin;
-    is >> xMax;    
+    is >> xMax;
     is >> yMax;
     is >> isGeo;
     is >> IS_END_BRACKET;
@@ -580,12 +581,12 @@ static bool readDestinationExtents( osgDB::InputStream& is, vpb::BuildOptions& b
 }
 
 static bool writeDestinationExtents( osgDB::OutputStream& os, const vpb::BuildOptions& bo )
-{    
+{
     GeospatialExtents ext(bo.getDestinationExtents());
     os << OS_BEGIN_BRACKET << std::endl;
     os << ext.xMin();
     os << ext.yMin();
-    os << ext.xMax();    
+    os << ext.xMax();
     os << ext.yMax();
     os << ext._isGeographic;
     os << std::endl;
@@ -702,7 +703,7 @@ REGISTER_OBJECT_WRAPPER( BuildOptions,
         ADD_ENUM_VALUE( EXTERNAL_SET_DIRECTORY );
     END_ENUM_SERIALIZER();
 
-    ADD_USER_SERIALIZER( OptionalLayerSet );    
+    ADD_USER_SERIALIZER( OptionalLayerSet );
 
     ADD_UINT_SERIALIZER( RevisionNumber, 0);
 
@@ -716,23 +717,23 @@ REGISTER_OBJECT_WRAPPER( BuildOptions,
     BEGIN_ENUM_SERIALIZER( CompressionMethod, GL_DRIVER);
         ADD_ENUM_VALUE( GL_DRIVER );
         ADD_ENUM_VALUE( NVTT );
-        ADD_ENUM_VALUE( NVTT_NOCUDA);        
+        ADD_ENUM_VALUE( NVTT_NOCUDA);
     END_ENUM_SERIALIZER();
 
     BEGIN_ENUM_SERIALIZER( CompressionQuality, FASTEST);
         ADD_ENUM_VALUE( FASTEST );
         ADD_ENUM_VALUE( NORMAL );
-        ADD_ENUM_VALUE( PRODUCTION );        
+        ADD_ENUM_VALUE( PRODUCTION );
         ADD_ENUM_VALUE( HIGHEST );
-    END_ENUM_SERIALIZER();   
+    END_ENUM_SERIALIZER();
 
     ADD_USER_SERIALIZER( DestinationExtents );
 
     ADD_USER_SERIALIZER( LayerImageOptions );
 
-    
 
-    
+
+
 }
 
 }
