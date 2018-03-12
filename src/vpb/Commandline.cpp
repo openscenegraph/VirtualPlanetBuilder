@@ -716,7 +716,7 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
     std::string logFilename;
     while(arguments.read("--log",logFilename)) { buildOptions->setLogFileName(logFilename); }
 
-    float x,y,w,h;
+    double x, y, w, h;
     // extents in X, Y, W, H
     while (arguments.read("-e",x,y,w,h))
     {
@@ -729,7 +729,7 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
         buildOptions->setDestinationExtents(vpb::GeospatialExtents(x,y,x+w,y+h,true)); // Geographic extents
     }
 
-    float xmin,ymin,xmax,ymax;
+    double xmin,ymin,xmax,ymax;
     // extents (bounds) in xmin, ymin, xmax, ymax
     while (arguments.read("-b",xmin,ymin,xmax,ymax))
     {
@@ -944,6 +944,12 @@ int Commandline::read(std::ostream& fout, osg::ArgumentParser& arguments, osgTer
            arguments.read("--no-terrain-simplification"))
     {
         buildOptions->setSimplifyTerrain(false);
+    }
+
+    while (arguments.read("--write_node_before_simplification") ||
+           arguments.read("--write_node_before_simplification"))
+    {
+       buildOptions->setWriteNodeBeforeSimplification(true);
     }
 
     while (arguments.read("--geocentric"))
