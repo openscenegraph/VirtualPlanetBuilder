@@ -356,6 +356,10 @@ GeospatialDataset* System::openGeospatialDataset(const std::string& filename, Ac
 
     // open the new dataset.
     GeospatialDataset* dataset = new GeospatialDataset(filename, accessMode);
+    if (dataset->getGDALDataset() == NULL)
+    {
+        return 0;
+    }
 
     // insert it into the cache
     _datasetMap[FileNameAccessModePair(filename,accessMode)] = dataset;
