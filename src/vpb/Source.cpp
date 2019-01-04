@@ -157,6 +157,11 @@ void Source::loadSourceData()
 
 void Source::assignCoordinateSystemAndGeoTransformAccordingToParameterPolicy()
 {
+    if (_sourceData == NULL)
+    {
+        return;
+    }
+
     if (getCoordinateSystemPolicy()==PREFER_CONFIG_SETTINGS)
     {
         _sourceData->_cs = _cs;
