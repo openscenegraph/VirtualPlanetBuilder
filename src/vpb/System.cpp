@@ -4,7 +4,7 @@
  * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
  * (at your option) any later version.  The full license is in LICENSE file
  * included with this distribution, and on the openscenegraph.org website.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -20,7 +20,7 @@
 #include <gdal_priv.h>
 
 using namespace vpb;
- 
+
 
 std::string vpb::getLocalHostName()
 {
@@ -69,14 +69,14 @@ System::System()
     _trimOldestTiles = true;
     _numUnusedDatasetsToTrimFromCache = 10;
     _maxNumDatasets = (unsigned int)(double(vpb::getdtablesize()) * 0.8);
-    
+
     _logDirectory = "logs";
     _taskDirectory = "tasks";
-    
+
     _maxNumberOfFilesPerDirectory = 1000;
-    
+
     readEnvironmentVariables();
-    
+
     // preload the .osg plugin so its available in case we need to output source files containing core osg nodes
     osgDB::Registry::instance()->loadLibrary(osgDB::Registry::instance()->createLibraryNameForExtension("osg"));
 
@@ -92,14 +92,14 @@ System::System()
                 const char* ext = driver->GetMetadataItem("DMD_EXTENSION");
                 if (ext && strlen(ext)!=0)
                 {
-                    addSupportedExtension(ext, 
-                        Source::IMAGE | Source::HEIGHT_FIELD, 
+                    addSupportedExtension(ext,
+                        Source::IMAGE | Source::HEIGHT_FIELD,
                         driver->GetMetadataItem( GDAL_DMD_LONGNAME ));
                 }
             }
         }
     }
-    
+
     // add entries that GDAL doesn't list via it's DMD_EXTENSIONS but is known to support
     addSupportedExtension("jpeg", Source::IMAGE | Source::HEIGHT_FIELD, "JPEG");
     addSupportedExtension("tiff", Source::IMAGE | Source::HEIGHT_FIELD, "GeoTiff");
@@ -186,13 +186,13 @@ void System::readEnvironmentVariables()
     {
         _machineFileName = str;
     }
-    
+
     str = getenv("VPB_CACHE_FILE");
     if (str)
     {
         _cacheFileName = str;
     }
-    
+
 
     str = getenv("VPB_MAXIMUM_OF_FILES_PER_DIRECTORY");
     if (str)
@@ -215,7 +215,7 @@ FileCache* System::getFileCache()
         _fileCache = new FileCache;
         _fileCache->open(_cacheFileName);
     }
-    
+
     return _fileCache.get();
 }
 
@@ -224,18 +224,18 @@ MachinePool* System::getMachinePool()
     if (!_machinePool)
     {
         _machinePool = new MachinePool;
-        
+
         if (!_machineFileName.empty())
         {
             _machinePool->read(_machineFileName);
         }
-        
+
         if (_machinePool->getNumMachines()==0)
         {
             _machinePool->setUpOnLocalHost();
         }
     }
-    
+
     return _machinePool.get();
 }
 
@@ -246,7 +246,7 @@ TaskManager* System::getTaskManager()
     {
         _taskManager = new TaskManager;
     }
-    
+
     return _taskManager.get();
 }
 
@@ -264,12 +264,12 @@ public:
     TrimN(unsigned int n, bool oldest):
         _oldest(oldest),
         _num(n) {}
-    
-    
+
+
     inline void add(System::DatasetMap::iterator itr)
     {
         if (itr->second->referenceCount()!=1) return;
-    
+
         double t = itr->second->getTimeStamp();
         if (_timeIteratorMap.size() < _num)
         {
@@ -294,7 +294,7 @@ public:
             }
         }
     }
-    
+
     void add(System::DatasetMap& datasetMap)
     {
         for(System::DatasetMap::iterator itr = datasetMap.begin();
@@ -304,7 +304,7 @@ public:
             add(itr);
         }
     }
-    
+
     void eraseFrom(System::DatasetMap& datasetMap)
     {
         for(TimeIteratorMap::iterator itr = _timeIteratorMap.begin();
@@ -314,9 +314,9 @@ public:
             datasetMap.erase(itr->second);
         }
     }
-    
+
     typedef std::multimap<double, System::DatasetMap::iterator> TimeIteratorMap;
-    
+
     bool            _oldest;
     unsigned int    _num;
     TimeIteratorMap _timeIteratorMap;
@@ -328,7 +328,7 @@ void System::clearUnusedDatasets(unsigned int numToClear)
 
     lowerN.add(_datasetMap);
     lowerN.eraseFrom(_datasetMap);
-    
+
     _datasetMap.clear();
 }
 
@@ -344,14 +344,14 @@ GeospatialDataset* System::openGeospatialDataset(const std::string& filename, Ac
 
     // make sure there is room available for this new Dataset
     if (_datasetMap.size()>=_maxNumDatasets) clearUnusedDatasets(_numUnusedDatasetsToTrimFromCache);
-    
+
     // double check to make sure there is room to open a new dataset
     if (_datasetMap.size()>=_maxNumDatasets)
     {
         log(osg::NOTICE,"Error: System::GDALOpen(%s) unable to open file as unsufficient file handles available.",filename.c_str());
         return 0;
     }
-    
+
     //osg::notify(osg::NOTICE)<<"System::openGeospatialDataset("<<filename<<") requires new entry "<<std::endl;
 
     // open the new dataset.
@@ -359,7 +359,7 @@ GeospatialDataset* System::openGeospatialDataset(const std::string& filename, Ac
 
     // insert it into the cache
     _datasetMap[FileNameAccessModePair(filename,accessMode)] = dataset;
-    
+
     // return it.
     return dataset;
 }
@@ -416,7 +416,7 @@ bool System::getDateOfLastModification(osgTerrain::TerrainTile* source, Date& da
             filenames.push_back((*itr)->getFileName());
         }
     }
-    
+
     bool modified = false;
     for(Filenames::iterator itr = filenames.begin();
         itr != filenames.end();
@@ -432,7 +432,7 @@ bool System::getDateOfLastModification(osgTerrain::TerrainTile* source, Date& da
             }
         }
     }
-    
+
     return modified;
 
 
@@ -464,9 +464,9 @@ bool System::openFileToCheckThatItSupported(const std::string& filename, int acc
         osg::notify(osg::INFO)<<"   GDALOpen("<<filename<<") succeeded "<<std::endl;
         int fileTypeMask = Source::IMAGE | Source::HEIGHT_FIELD;
         addSupportedExtension(ext, fileTypeMask,"");
-    
+
         GDALClose(dataset);
-        
+
         return (acceptedTypeMask & fileTypeMask)!=0;
     }
 
