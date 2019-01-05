@@ -1,21 +1,5 @@
-doc/all_Doxyfile
-doc/auto_Doxyfile
-doc/core_Doxyfile
-doc/openscenegraph.doxyfile
-doc/openthreads.doxyfile
-
-doc/OpenSceneGraphReferenceDocs/
-doc/OpenThreadsReferenceDocs/
 
 cmake_uninstall.cmake
-
-include/OpenThreads/Config
-include/OpenThreads/Version
-include/osg/Config
-include/osg/GL
-include/osg/Version
-include/osgQt/Version
-src/osgQt/__
 
 lib/
 bin/
@@ -27,7 +11,7 @@ CMakeFiles
 CMakeScripts
 Makefile
 cmake_install.cmake
-install_manifest*.txt
+install_manifest.txt
 
 
 # Compiled Object files
@@ -58,37 +42,3 @@ install_manifest*.txt
 *.exe
 *.out
 *.app
-
-# Platform Specifics - auto generated files
-PlatformSpecifics/Windows/*.rc
-
-# Visual studio - project files
-*.sln
-*.suo
-*.vcxproj
-*.vcxproj.filters
-*.vcxproj.user
-
-# Visual Studio - Build Results
-[Dd]ebug/
-[Rr]elease/
-[Mm]in[Ss]ize[Rr]el/
-[Rr]el[Ww]ith[Dd]eb[Ii]nfo/
-
-# Visual Studio - Browsing Database File
-*.sdf
-*.opensdf
-
-#osx xcode
-DerivedData/
-*.DS_Store
-*.build
-*.xcodeproj
-
-#CPACK related files
-CPackConfig-*.cmake
-_CPack_Packages/
-
-#packages
-*.tar.gz
-*.zip
