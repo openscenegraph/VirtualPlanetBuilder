@@ -1,19 +1,5 @@
-doc/all_Doxyfile
-doc/auto_Doxyfile
-doc/core_Doxyfile
-doc/openscenegraph.doxyfile
-doc/openthreads.doxyfile
-
-doc/OpenSceneGraphReferenceDocs/
-doc/OpenThreadsReferenceDocs/
 
 cmake_uninstall.cmake
-
-include/OpenThreads/Config
-include/OpenThreads/Version
-include/osg/Config
-include/osg/GL
-include/osg/Version
 
 lib/
 bin/
