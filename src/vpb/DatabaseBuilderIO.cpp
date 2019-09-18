@@ -121,7 +121,7 @@ class VPBReaderWriter : public osgDB::ReaderWriter
 
         virtual ReadResult readNode(const std::string& file, const Options* opt) const
         {
-            OSG_INFO<<"VPBReaderWriter::readNode()"<<std::endl;
+            OSG_INFO<<"VPBReaderWriter::readNode() "<<file<<std::endl;
 
             std::string ext = osgDB::getFileExtension(file);
             if (!acceptsExtension(ext)) return ReadResult::FILE_NOT_HANDLED;
@@ -157,7 +157,7 @@ class VPBReaderWriter : public osgDB::ReaderWriter
         {
             OSG_INFO<<"readNode_new()"<<std::endl;
 
-            osgDB::ReaderWriter* rw = osgDB::Registry::instance()->getReaderWriterForExtension("osg2");
+            osgDB::ReaderWriter* rw = osgDB::Registry::instance()->getReaderWriterForExtension("osg");
             if (!rw) return ReadResult::FILE_NOT_HANDLED;
 
             OSG_INFO<<"   found ReaderWriter, readNode_new()"<<std::endl;
@@ -235,7 +235,7 @@ class VPBReaderWriter : public osgDB::ReaderWriter
             osgDB::ofstream fout( fileName.c_str(), std::ios::out );
             if ( !fout ) return WriteResult::ERROR_IN_WRITING_FILE;
 
-            osgDB::ReaderWriter* rw = osgDB::Registry::instance()->getReaderWriterForExtension("osg2");
+            osgDB::ReaderWriter* rw = osgDB::Registry::instance()->getReaderWriterForExtension("osg");
             if (!rw) return WriteResult::FILE_NOT_HANDLED;
 
             result = rw->writeNode( node, fout, local_opt.get() );
