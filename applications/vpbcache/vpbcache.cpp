@@ -107,7 +107,7 @@ int main(int argc, char** argv)
         fileCache->clear();
     }
 
-    if (arguments.read("--add"))
+    if (arguments.read("--add-source"))
     {
         fileCache->addSource(terrain.get());
     }
